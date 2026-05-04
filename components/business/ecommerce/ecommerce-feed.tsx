@@ -382,6 +382,13 @@ export function EcommerceFeed() {
       return newSet
     })
   }
+
+  const handleSelectCategory = (categoryId: string) => {
+    const product = products.find((item) => item.category.toLowerCase() === categoryId) || products[0]
+    if (!product) return
+    setSelectedProduct(product)
+    setProductDrawerOpen(true)
+  }
   
   // Secoes do feed
   const sections: BusinessSection[] = [
@@ -403,7 +410,7 @@ export function EcommerceFeed() {
       id: "categories",
       title: "Categorias",
       type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+      customContent: <CategoriesModule onSelectCategory={handleSelectCategory} />
     },
     {
       id: "videos",

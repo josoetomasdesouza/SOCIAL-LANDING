@@ -204,7 +204,7 @@ interface StoryViewerProps {
   initialIndex: number
   categoryName: string
   brandLogo: string
-  onViewSection?: (storyName: string) => void
+  onViewSection?: (story: BusinessStory) => void
 }
 
 function StoryViewer({ isOpen, onClose, stories, initialIndex, categoryName, brandLogo, onViewSection }: StoryViewerProps) {
@@ -304,7 +304,7 @@ function StoryViewer({ isOpen, onClose, stories, initialIndex, categoryName, bra
         <button
           onClick={() => {
             onClose()
-            onViewSection?.(currentStory.name)
+            onViewSection?.(currentStory)
           }}
           className="absolute bottom-16 left-6 right-6 flex items-center justify-center gap-2 py-3 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-xl text-white font-medium transition-colors"
         >
@@ -560,7 +560,13 @@ function PostCard({
             )}
           </div>
         )}
-        <div className={normalizedPost.image ? "mt-3" : "p-4 bg-secondary/50 rounded-2xl"}>
+        <div
+          onClick={!normalizedPost.image ? onClick : undefined}
+          className={cn(
+            normalizedPost.image ? "mt-3" : "p-4 bg-secondary/50 rounded-2xl",
+            !normalizedPost.image && "cursor-pointer hover:bg-secondary/70 transition-colors"
+          )}
+        >
           {!normalizedPost.image && normalizedPost.source && (
             <div className="flex items-center gap-2 mb-2">
               <Newspaper className="w-4 h-4 text-accent" />
@@ -583,7 +589,10 @@ function PostCard({
   
   if (normalizedPost.type === "review") {
     return (
-      <article className="mb-8 p-4 bg-card rounded-2xl border border-border/50">
+      <article
+        onClick={onClick}
+        className="mb-8 p-4 bg-card rounded-2xl border border-border/50 cursor-pointer"
+      >
         <div className="flex items-start gap-3">
           {normalizedPost.reviewerAvatar && (
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
@@ -830,23 +839,25 @@ export function BusinessSocialLanding({
         initialIndex={storyInitialIndex}
         categoryName={stories[storyInitialIndex]?.name || "Story"}
         brandLogo={config.logo}
-        onViewSection={(storyName) => {
-          const normalizedName = slugify(storyName)
+        onViewSection={(story) => {
+          const normalizedName = slugify(story.name)
           const contentSections = sections.filter((section) => section.type === "content")
           const namedSection = sections.find((section) => {
             const titleSlug = slugify(section.title)
             const idSlug = slugify(section.id)
 
             return (
+              section.id === story.targetSectionId ||
               titleSlug === normalizedName ||
               idSlug === normalizedName ||
               titleSlug.includes(normalizedName) ||
               normalizedName.includes(titleSlug)
             )
           })
-          const indexedSection = sections[storyInitialIndex] || contentSections[storyInitialIndex] || contentSections[0] || sections[0]
+          const indexedSection = contentSections[storyInitialIndex] || sections[storyInitialIndex] || contentSections[0] || sections[0]
 
           const candidateSelectors = [
+            story.targetSectionId ? `[data-section-id="${story.targetSectionId}"]` : "",
             `[data-section="${normalizedName}"]`,
             `[data-section-id="${normalizedName}"]`,
             namedSection ? `[data-section="${slugify(namedSection.title)}"]` : "",

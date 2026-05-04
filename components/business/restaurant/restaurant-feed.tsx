@@ -269,6 +269,16 @@ export function RestaurantFeed() {
     }
   }
   
+  const handleSelectCategory = (category: string) => {
+    const categoryName = menuCategories.find((cat) => cat.id === category)?.name
+    const item = menuItems.find((menuItem) => menuItem.category === categoryName)
+
+    if (item) {
+      setSelectedItem(item)
+      setItemDrawerOpen(true)
+    }
+  }
+
   const sections: BusinessSection[] = [
     {
       id: "menu",
@@ -286,7 +296,7 @@ export function RestaurantFeed() {
       id: "categories",
       title: "Cardapio",
       type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+      customContent: <CategoriesModule onSelectCategory={handleSelectCategory} />
     },
     {
       id: "videos",
