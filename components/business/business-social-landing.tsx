@@ -2,14 +2,12 @@
 
 import { useState, useCallback, useMemo, useEffect, ReactNode } from "react"
 import Image from "next/image"
-import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
+import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import type { BusinessConfig, BusinessModel } from "@/lib/business-types"
+import type { BusinessConfig } from "@/lib/business-types"
 import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
-import { ActionDrawer } from "./action-drawer"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
 
 // ========================================
@@ -20,9 +18,14 @@ export interface BusinessPost {
   type: "video" | "video-vertical" | "product" | "news" | "review" | "social"
   title: string
   description?: string
-  image: string
+  image?: string
+  // Aliases kept for mock data that predates the shared BusinessPost shape.
+  content?: string
+  summary?: string
+  thumbnail?: string
+  media?: string
   duration?: string
-  views?: number
+  views?: number | string
   price?: number
   originalPrice?: number
   rating?: number
@@ -43,7 +46,7 @@ export interface BusinessSection {
   id: string
   title: string
   icon?: ReactNode
-  type: "primary-action" | "content" | "specific"
+  type: "primary-action" | "content" | "specific" | "custom"
   posts?: BusinessPost[]
   customContent?: ReactNode // Para modulos especificos do negocio (sem drawer)
   renderContent?: (onOpenDrawer: (post: BusinessPost) => void) => ReactNode // Para conteudo com drawer
@@ -80,6 +83,17 @@ const contextualSocialProof: Record<string, string[]> = {
   news: ["leram essa materia", "compartilharam essa noticia", "estao acompanhando"],
   review: ["acharam essa avaliacao util", "concordaram com essa opiniao", "tiveram experiencia parecida"],
   social: ["curtiram essa publicacao", "comentaram aqui", "compartilharam com alguem"],
+}
+
+function normalizeBusinessPost(post: BusinessPost): BusinessPost {
+  const title = post.title || post.content || "Publicacao"
+
+  return {
+    ...post,
+    title,
+    description: post.description || post.summary || (post.title ? post.content : undefined),
+    image: post.image || post.thumbnail || post.media,
+  }
 }
 
 // ========================================
@@ -434,11 +448,12 @@ function PostCard({
     }
   }
   
-  const chatConfig = chatMessages[post.type] || chatMessages.social
+  const normalizedPost = normalizeBusinessPost(post)
+  const chatConfig = chatMessages[normalizedPost.type] || chatMessages.social
   
   // Renderiza card baseado no tipo
-  if (post.type === "video" || post.type === "video-vertical") {
-    const isVertical = post.type === "video-vertical"
+  if (normalizedPost.type === "video" || normalizedPost.type === "video-vertical") {
+    const isVertical = normalizedPost.type === "video-vertical"
     return (
       <article className="mb-8">
         <div 
@@ -448,24 +463,24 @@ function PostCard({
             isVertical ? "aspect-[9/16]" : "aspect-video"
           )}
         >
-          <Image src={post.image} alt={post.title} fill className="object-cover" />
+          {normalizedPost.image && <Image src={normalizedPost.image} alt={normalizedPost.title} fill className="object-cover" />}
           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
               <Play className="w-6 h-6 text-foreground ml-1" />
             </div>
           </div>
-          {post.duration && (
+          {normalizedPost.duration && (
             <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/70 rounded-md">
-              <span className="text-xs text-white font-medium">{post.duration}</span>
+              <span className="text-xs text-white font-medium">{normalizedPost.duration}</span>
             </div>
           )}
         </div>
         <div className="mt-3">
-          <h3 className="font-semibold text-foreground text-[15px] line-clamp-2">{post.title}</h3>
-          {post.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{post.description}</p>}
+          <h3 className="font-semibold text-foreground text-[15px] line-clamp-2">{normalizedPost.title}</h3>
+          {normalizedPost.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{normalizedPost.description}</p>}
         </div>
-        <SocialProofWithAvatars type={post.type} index={index} />
+        <SocialProofWithAvatars type={normalizedPost.type} index={index} />
         <SocialActions />
         {showChat && (index % 3 === 0) && (
           <div className="mt-4">
@@ -486,28 +501,32 @@ function PostCard({
     )
   }
   
-  if (post.type === "product") {
-    const discount = post.originalPrice ? Math.round((1 - post.price! / post.originalPrice) * 100) : 0
+  if (normalizedPost.type === "product") {
+    const discount = normalizedPost.originalPrice && normalizedPost.price
+      ? Math.round((1 - normalizedPost.price / normalizedPost.originalPrice) * 100)
+      : 0
     return (
       <article className="mb-8">
         <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group">
-          <Image src={post.image} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+          {normalizedPost.image && <Image src={normalizedPost.image} alt={normalizedPost.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />}
           {discount > 0 && (
             <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0">-{discount}%</Badge>
           )}
         </div>
         <div className="mt-3">
-          <h3 className="font-semibold text-foreground text-[15px] line-clamp-2">{post.title}</h3>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-lg font-bold text-accent">
-              R$ {post.price?.toFixed(2).replace(".", ",")}
-            </span>
-            {post.originalPrice && (
-              <span className="text-sm text-muted-foreground line-through">
-                R$ {post.originalPrice.toFixed(2).replace(".", ",")}
+          <h3 className="font-semibold text-foreground text-[15px] line-clamp-2">{normalizedPost.title}</h3>
+          {normalizedPost.price && (
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-lg font-bold text-accent">
+                R$ {normalizedPost.price.toFixed(2).replace(".", ",")}
               </span>
-            )}
-          </div>
+              {normalizedPost.originalPrice && (
+                <span className="text-sm text-muted-foreground line-through">
+                  R$ {normalizedPost.originalPrice.toFixed(2).replace(".", ",")}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <SocialProofWithAvatars type="product" index={index} />
         <SocialActions />
@@ -525,26 +544,26 @@ function PostCard({
     )
   }
   
-  if (post.type === "news") {
+  if (normalizedPost.type === "news") {
     return (
       <article className="mb-8">
-        {post.image && (
+        {normalizedPost.image && (
           <div onClick={onClick} className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group">
-            <Image src={post.image} alt={post.title} fill className="object-cover" />
-            {post.source && (
-              <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground border-0">{post.source}</Badge>
+            <Image src={normalizedPost.image} alt={normalizedPost.title} fill className="object-cover" />
+            {normalizedPost.source && (
+              <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground border-0">{normalizedPost.source}</Badge>
             )}
           </div>
         )}
-        <div className={post.image ? "mt-3" : "p-4 bg-secondary/50 rounded-2xl"}>
-          {!post.image && post.source && (
+        <div className={normalizedPost.image ? "mt-3" : "p-4 bg-secondary/50 rounded-2xl"}>
+          {!normalizedPost.image && normalizedPost.source && (
             <div className="flex items-center gap-2 mb-2">
               <Newspaper className="w-4 h-4 text-accent" />
-              <span className="text-xs font-medium text-accent">{post.source}</span>
+              <span className="text-xs font-medium text-accent">{normalizedPost.source}</span>
             </div>
           )}
-          <h3 className="font-semibold text-foreground text-[15px] line-clamp-2">{post.title}</h3>
-          {post.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{post.description}</p>}
+          <h3 className="font-semibold text-foreground text-[15px] line-clamp-2">{normalizedPost.title}</h3>
+          {normalizedPost.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{normalizedPost.description}</p>}
         </div>
         <SocialProofWithAvatars type="news" index={index} />
         <SocialActions />
@@ -557,28 +576,28 @@ function PostCard({
     )
   }
   
-  if (post.type === "review") {
+  if (normalizedPost.type === "review") {
     return (
       <article className="mb-8 p-4 bg-card rounded-2xl border border-border/50">
         <div className="flex items-start gap-3">
-          {post.reviewerAvatar && (
+          {normalizedPost.reviewerAvatar && (
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-              <Image src={post.reviewerAvatar} alt={post.reviewerName || ""} fill className="object-cover" />
+              <Image src={normalizedPost.reviewerAvatar} alt={normalizedPost.reviewerName || ""} fill className="object-cover" />
             </div>
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-foreground">{post.reviewerName}</span>
-              {post.rating && (
+              <span className="font-medium text-foreground">{normalizedPost.reviewerName}</span>
+              {normalizedPost.rating && (
                 <div className="flex items-center gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={cn("w-3.5 h-3.5", i < post.rating! ? "fill-yellow-400 text-yellow-400" : "text-border")} />
+                    <Star key={i} className={cn("w-3.5 h-3.5", i < normalizedPost.rating! ? "fill-yellow-400 text-yellow-400" : "text-border")} />
                   ))}
                 </div>
               )}
             </div>
-            <p className="text-[15px] text-foreground mt-2">{post.title}</p>
-            {post.description && <p className="text-sm text-muted-foreground mt-1">{post.description}</p>}
+            <p className="text-[15px] text-foreground mt-2">{normalizedPost.title}</p>
+            {normalizedPost.description && <p className="text-sm text-muted-foreground mt-1">{normalizedPost.description}</p>}
           </div>
         </div>
         <SocialProofWithAvatars type="review" index={index} />
@@ -595,14 +614,14 @@ function PostCard({
   // Social post (default)
   return (
     <article className="mb-8">
-      {post.image && (
+      {normalizedPost.image && (
         <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer">
-          <Image src={post.image} alt={post.title} fill className="object-cover" />
+          <Image src={normalizedPost.image} alt={normalizedPost.title} fill className="object-cover" />
         </div>
       )}
       <div className="mt-3">
-        <p className="text-[15px] text-foreground">{post.title}</p>
-        {post.description && <p className="text-sm text-muted-foreground mt-1">{post.description}</p>}
+        <p className="text-[15px] text-foreground">{normalizedPost.title}</p>
+        {normalizedPost.description && <p className="text-sm text-muted-foreground mt-1">{normalizedPost.description}</p>}
       </div>
       <SocialProofWithAvatars type="social" index={index} />
       <SocialActions />
@@ -645,15 +664,19 @@ function BusinessSectionComponent({
       {section.renderContent && onPostClick && section.renderContent(onPostClick)}
       
       {/* Posts */}
-      {section.posts && section.posts.map((post, index) => (
-        <PostCard
-          key={post.id}
-          post={post}
-          index={index}
-          brandLogo={config.logo}
-          onClick={() => onPostClick?.(post)}
-        />
-      ))}
+      {section.posts && section.posts.map((post, index) => {
+        const normalizedPost = normalizeBusinessPost(post)
+
+        return (
+          <PostCard
+            key={normalizedPost.id}
+            post={normalizedPost}
+            index={index}
+            brandLogo={config.logo}
+            onClick={() => onPostClick?.(normalizedPost)}
+          />
+        )
+      })}
     </section>
   )
 }
@@ -717,7 +740,7 @@ export function BusinessSocialLanding({
     const posts: BusinessPost[] = []
     sections.forEach(section => {
       if (section.type === "content" && section.posts) {
-        posts.push(...section.posts)
+        posts.push(...section.posts.map(normalizeBusinessPost))
       }
     })
     return posts
@@ -725,7 +748,7 @@ export function BusinessSocialLanding({
   
   const handlePostClick = useCallback((post: BusinessPost) => {
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
-    const contentTypes = ["video", "video-vertical", "news", "review", "social"]
+    const contentTypes = ["video", "video-vertical", "product", "news", "review", "social"]
     if (contentTypes.includes(post.type)) {
       setSelectedPost(post)
       setFeedDrawerCategory(post.type)

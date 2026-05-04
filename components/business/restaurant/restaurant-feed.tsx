@@ -325,7 +325,6 @@ export function RestaurantFeed() {
         config={restaurantConfig}
         stories={restaurantContent.stories}
         sections={sections}
-        onPostClick={() => {}}
         footerLinks={[
           { label: "Sobre", href: "#" },
           { label: "Cardapio", href: "#" },
