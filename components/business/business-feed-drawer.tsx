@@ -438,7 +438,7 @@ export function BusinessFeedDrawer({
                     <div className="mt-4 pt-4 border-t border-border/30">
                       {showConversation ? (
                         <SimulatedChat
-                          messages={[{ content: aiMessage, isUser: false }]}
+                          messages={[{ text: aiMessage, isUser: false }]}
                           brandLogo={brandLogo}
                           userAvatar={userAvatar}
                           placeholder={placeholder}

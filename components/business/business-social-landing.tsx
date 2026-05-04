@@ -40,6 +40,7 @@ export interface BusinessStory {
   name: string
   image: string
   isMain?: boolean // Se true, e o objetivo principal (destacado)
+  targetSectionId?: string
 }
 
 export interface BusinessSection {
@@ -83,6 +84,10 @@ const contextualSocialProof: Record<string, string[]> = {
   news: ["leram essa materia", "compartilharam essa noticia", "estao acompanhando"],
   review: ["acharam essa avaliacao util", "concordaram com essa opiniao", "tiveram experiencia parecida"],
   social: ["curtiram essa publicacao", "comentaram aqui", "compartilharam com alguem"],
+}
+
+function slugify(value: string) {
+  return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
 }
 
 function normalizeBusinessPost(post: BusinessPost): BusinessPost {
@@ -417,33 +422,33 @@ function PostCard({
 }) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
   
-  const chatMessages: Record<string, { messages: { content: string; isUser: boolean }[]; placeholder: string }> = {
+  const chatMessages: Record<string, { messages: { text: string; isUser: boolean }[]; placeholder: string }> = {
     video: {
-      messages: [{ content: "Esse tutorial tem dicas incriveis! Quer que eu resuma os pontos principais?", isUser: false }],
+      messages: [{ text: "Esse tutorial tem dicas incriveis! Quer que eu resuma os pontos principais?", isUser: false }],
       placeholder: "O que achou do video?"
     },
     "video-vertical": {
-      messages: [{ content: "Esse conteudo viralizou essa semana! Quer ver mais como esse?", isUser: false }],
+      messages: [{ text: "Esse conteudo viralizou essa semana! Quer ver mais como esse?", isUser: false }],
       placeholder: "Curti! Tem mais?"
     },
     product: {
       messages: [
-        { content: "Esse produto esta entre os mais vendidos! Sabia que ele tem ingredientes exclusivos da Amazonia?", isUser: false },
-        { content: "Serio? Conta mais!", isUser: true },
-        { content: "Sim! E feito com castanha e oleo de buriti. Quer que eu explique os beneficios?", isUser: false }
+        { text: "Esse produto esta entre os mais vendidos! Sabia que ele tem ingredientes exclusivos da Amazonia?", isUser: false },
+        { text: "Serio? Conta mais!", isUser: true },
+        { text: "Sim! E feito com castanha e oleo de buriti. Quer que eu explique os beneficios?", isUser: false }
       ],
       placeholder: "Vale a pena pra mim?"
     },
     news: {
-      messages: [{ content: "Essa noticia saiu em varios portais essa semana. Quer saber mais detalhes?", isUser: false }],
+      messages: [{ text: "Essa noticia saiu em varios portais essa semana. Quer saber mais detalhes?", isUser: false }],
       placeholder: "Me conta mais"
     },
     review: {
-      messages: [{ content: "Essa avaliacao foi muito curtida! Voce ja experimentou esse produto?", isUser: false }],
+      messages: [{ text: "Essa avaliacao foi muito curtida! Voce ja experimentou esse produto?", isUser: false }],
       placeholder: "Ainda nao, e bom?"
     },
     social: {
-      messages: [{ content: "Esse post teve muito engajamento! O que achou?", isUser: false }],
+      messages: [{ text: "Esse post teve muito engajamento! O que achou?", isUser: false }],
       placeholder: "Adorei!"
     }
   }
@@ -647,10 +652,15 @@ function BusinessSectionComponent({
   onPostClick?: (post: BusinessPost) => void
 }) {
   // Gera ID para scroll baseado no titulo da secao
-  const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
+  const sectionId = slugify(section.title)
   
   return (
-    <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
+    <section
+      className="mb-10"
+      data-section={sectionId}
+      data-section-id={section.id}
+      id={`section-${sectionId}`}
+    >
       {/* Section Header */}
       <div className="flex items-center gap-2 mb-5">
         {section.icon}
@@ -661,7 +671,7 @@ function BusinessSectionComponent({
       {section.customContent && section.customContent}
       
       {/* Render Content (com drawer) - passa onPostClick para o conteudo */}
-      {section.renderContent && onPostClick && section.renderContent(onPostClick)}
+      {section.renderContent && section.renderContent(onPostClick || (() => {}))}
       
       {/* Posts */}
       {section.posts && section.posts.map((post, index) => {
@@ -821,30 +831,35 @@ export function BusinessSocialLanding({
         categoryName={stories[storyInitialIndex]?.name || "Story"}
         brandLogo={config.logo}
         onViewSection={(storyName) => {
-          // Normaliza o nome do story (remove acentos e espacos)
-          const normalizedName = storyName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
-          
-          // Procura a secao correspondente pelo data-section
-          const sectionElement = document.querySelector(`[data-section="${normalizedName}"]`)
-          if (sectionElement) {
-            sectionElement.scrollIntoView({ behavior: "smooth", block: "start" })
-            return
-          }
-          
-          // Fallback: procura por ID
-          const sectionById = document.getElementById(`section-${normalizedName}`)
-          if (sectionById) {
-            sectionById.scrollIntoView({ behavior: "smooth", block: "start" })
-            return
-          }
-          
-          // Ultimo fallback: procura pelo texto no h2
-          const sections = document.querySelectorAll("section h2")
-          for (const section of sections) {
-            const sectionText = section.textContent?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
-            if (sectionText.includes(normalizedName.replace(/-/g, " "))) {
-              section.scrollIntoView({ behavior: "smooth", block: "start" })
-              break
+          const normalizedName = slugify(storyName)
+          const contentSections = sections.filter((section) => section.type === "content")
+          const namedSection = sections.find((section) => {
+            const titleSlug = slugify(section.title)
+            const idSlug = slugify(section.id)
+
+            return (
+              titleSlug === normalizedName ||
+              idSlug === normalizedName ||
+              titleSlug.includes(normalizedName) ||
+              normalizedName.includes(titleSlug)
+            )
+          })
+          const indexedSection = sections[storyInitialIndex] || contentSections[storyInitialIndex] || contentSections[0] || sections[0]
+
+          const candidateSelectors = [
+            `[data-section="${normalizedName}"]`,
+            `[data-section-id="${normalizedName}"]`,
+            namedSection ? `[data-section="${slugify(namedSection.title)}"]` : "",
+            namedSection ? `[data-section-id="${namedSection.id}"]` : "",
+            indexedSection ? `[data-section="${slugify(indexedSection.title)}"]` : "",
+            indexedSection ? `[data-section-id="${indexedSection.id}"]` : "",
+          ].filter(Boolean)
+
+          for (const selector of candidateSelectors) {
+            const sectionElement = document.querySelector(selector)
+            if (sectionElement) {
+              sectionElement.scrollIntoView({ behavior: "smooth", block: "start" })
+              return
             }
           }
         }}
