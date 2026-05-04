@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from "react"
+import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   Send, Sparkles, Check, ArrowRight, Phone, Instagram, 
@@ -9,14 +10,14 @@ import {
   Building2, Briefcase, Ticket, Dumbbell, Stethoscope,
   User, Crown, ArrowLeft, Camera, Clock, Plus, MessageCircle,
   MapPin, Video, FileText, HelpCircle, Star, Users, Newspaper,
-  Upload, Link2, Wand2
+  Upload, Wand2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
-import Image from "next/image"
 import { LivePreview } from "@/components/criar/live-preview"
+import { buildLandingEditorUrl, createLandingDraft, getLandingUrl, saveLandingDraft, slugifyLandingName } from "@/lib/landing-storage"
 
 // Categorias disponiveis
 const CATEGORIES = [
@@ -203,23 +204,28 @@ const CONVERSATION_FLOW: Message[] = [
 ]
 
 export default function CriarNovoPage() {
+  const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState(0)
   const [messages, setMessages] = useState<Message[]>([])
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    description: "",
-    whatsapp: "",
-    instagram: "",
-    email: "",
-    website: ""
-  })
+  const [formData, setFormData] = useState(() => ({
+    name: searchParams.get("name") || "",
+    category: searchParams.get("category") || searchParams.get("businessModel") || "",
+    description: searchParams.get("description") || "",
+    whatsapp: searchParams.get("whatsapp") || "",
+    instagram: searchParams.get("instagram") || "",
+    email: searchParams.get("email") || "",
+    website: searchParams.get("website") || ""
+  }))
   const [inputValue, setInputValue] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
   const [isPublished, setIsPublished] = useState(false)
-  const [generatedSlug, setGeneratedSlug] = useState("")
+  const [generatedSlug, setGeneratedSlug] = useState(() => {
+    const slug = searchParams.get("slug")
+    const name = searchParams.get("name")
+    return slug || (name ? slugifyLandingName(name) : "")
+  })
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
 
@@ -233,7 +239,7 @@ export default function CriarNovoPage() {
     if (formData.instagram) score += 10
     if (formData.email) score += 10
     // logo e photos serao adicionados depois
-    return score
+    return Math.min(100, Math.round((score / 75) * 100))
   }, [formData])
 
   // Itens faltantes para completude organizados por grupo
@@ -288,7 +294,7 @@ export default function CriarNovoPage() {
     await new Promise(resolve => setTimeout(resolve, 2000))
     setIsGeneratingAI(false)
     // Redireciona para editor com flag de AI
-    window.location.href = getEditorUrl() + "&generateAI=true"
+    window.location.href = getEditorUrl(undefined, { generateAI: true })
   }
 
   // Auto-scroll para ultima mensagem
@@ -298,7 +304,19 @@ export default function CriarNovoPage() {
 
   // Adiciona mensagens iniciais
   useEffect(() => {
+    const hasPrefill = Boolean(formData.name || formData.category || formData.description)
     const timer = setTimeout(() => {
+      if (hasPrefill) {
+        const prefillMessages: Message[] = [
+          { id: "welcome-prefill", type: "ai", content: "Encontrei alguns dados da sua marca. Ja montei um preview para voce revisar." },
+          { id: "generating-animation", type: "generating" },
+        ]
+        setMessages(prefillMessages)
+        setCurrentStep(CONVERSATION_FLOW.length)
+        startGeneration()
+        return
+      }
+
       addNextMessages()
     }, 500)
     return () => clearTimeout(timer)
@@ -396,13 +414,7 @@ export default function CriarNovoPage() {
 
     // Simula geracao (aqui chamaria a API real)
     setTimeout(() => {
-      const slug = formData.name
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "")
+      const slug = slugifyLandingName(formData.name || "minha-marca")
 
       setGeneratedSlug(slug)
       setIsGenerating(false)
@@ -413,7 +425,22 @@ export default function CriarNovoPage() {
   const handlePublish = async () => {
     setIsPublishing(true)
     
-    // Simula publicacao (aqui salvaria no banco)
+    const slug = generatedSlug || slugifyLandingName(formData.name || "minha-marca")
+    const draft = createLandingDraft({
+      slug,
+      name: formData.name || "Minha marca",
+      businessModel: formData.category || "institutional",
+      description: formData.description,
+      whatsapp: formData.whatsapp,
+      instagram: formData.instagram,
+      website: formData.website,
+      email: formData.email,
+      status: "published",
+    })
+    saveLandingDraft(draft)
+    setGeneratedSlug(slug)
+
+    // Mantem um delay curto para preservar o feedback visual de publicacao.
     await new Promise(resolve => setTimeout(resolve, 1500))
     
     setIsPublishing(false)
@@ -421,17 +448,19 @@ export default function CriarNovoPage() {
   }
 
   // Gera URL do editor com todos os dados do formulario
-  const getEditorUrl = (focusField?: string) => {
-    const params = new URLSearchParams({
-      slug: generatedSlug,
-      category: formData.category,
+  const getEditorUrl = (focusField?: string, options?: { generateAI?: boolean }) => {
+    return buildLandingEditorUrl({
+      slug: generatedSlug || slugifyLandingName(formData.name || "minha-marca"),
+      businessModel: formData.category,
       name: formData.name,
       description: formData.description,
+      whatsapp: formData.whatsapp,
+      instagram: formData.instagram,
+      email: formData.email,
+      website: formData.website,
+      focus: focusField,
+      generateAI: options?.generateAI,
     })
-    if (formData.whatsapp) params.set("whatsapp", formData.whatsapp)
-    if (formData.instagram) params.set("instagram", formData.instagram)
-    if (focusField) params.set("focus", focusField)
-    return `/criar/editor?${params.toString()}`
   }
 
   const handleAddMissingItem = (field: string) => {
@@ -683,10 +712,12 @@ export default function CriarNovoPage() {
                 <div className="bg-secondary/50 rounded-xl p-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Globe className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm">sociallanding.app/<span className="font-medium">{generatedSlug}</span></span>
+                    <span className="text-sm">/{generatedSlug || slugifyLandingName(formData.name || "minha-marca")}</span>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-accent">
-                    <ExternalLink className="w-4 h-4" />
+                  <Button variant="ghost" size="sm" className="text-accent" asChild>
+                    <Link href={getLandingUrl(generatedSlug || slugifyLandingName(formData.name || "minha-marca"))} target="_blank">
+                      <ExternalLink className="w-4 h-4" />
+                    </Link>
                   </Button>
                 </div>
 
@@ -838,7 +869,7 @@ export default function CriarNovoPage() {
                         </Link>
                       </Button>
                       <Button className="flex-1 bg-accent hover:bg-accent/90" asChild>
-                        <Link href={`/${generatedSlug}`}>
+                        <Link href={getLandingUrl(generatedSlug)}>
                           Ver minha landing
                           <ExternalLink className="w-4 h-4 ml-2" />
                         </Link>

@@ -7,9 +7,9 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { 
   Phone, Mail, Instagram, MapPin, Clock, Star, 
-  MessageCircle, Share2, Heart, ArrowLeft, Edit,
-  ExternalLink, ChevronRight, Loader2
+  MessageCircle, Share2, Edit, ChevronRight, Loader2
 } from "lucide-react"
+import { buildLandingEditorUrl, getLandingDraft } from "@/lib/landing-storage"
 
 // Dados mockados - em producao viriam do banco
 const MOCK_LANDINGS: Record<string, {
@@ -51,6 +51,23 @@ function SlugContent() {
   // Busca dados da landing (em producao, seria uma API call)
   // Por enquanto, tenta ler da URL ou usa mock
   const landing = useMemo(() => {
+    const savedDraft = getLandingDraft(slug)
+    if (savedDraft) {
+      return {
+        name: savedDraft.name,
+        category: savedDraft.businessModel || savedDraft.category,
+        description: savedDraft.description || "",
+        logo: savedDraft.logo,
+        cover: savedDraft.cover,
+        color: savedDraft.primaryColor || "#10b981",
+        whatsapp: savedDraft.whatsapp,
+        instagram: savedDraft.instagram,
+        email: savedDraft.email,
+        address: savedDraft.address,
+        hours: savedDraft.blocks?.find((block) => block.type === "hours")?.content?.description as string | undefined,
+      }
+    }
+
     // Verifica se tem dados na URL (vindos do editor/chat)
     const urlName = searchParams.get("name")
     if (urlName) {
@@ -72,6 +89,16 @@ function SlugContent() {
       color: "#10b981",
     }
   }, [slug, searchParams])
+
+  const editorUrl = buildLandingEditorUrl({
+    slug,
+    name: landing.name,
+    businessModel: landing.category,
+    description: landing.description,
+    whatsapp: landing.whatsapp,
+    instagram: landing.instagram,
+    email: landing.email,
+  })
 
   const brandColor = landing.color
 
@@ -97,7 +124,7 @@ function SlugContent() {
               <Share2 className="w-5 h-5" />
             </Button>
             <Button variant="ghost" size="icon" asChild>
-              <Link href={`/criar/editor?slug=${slug}`}>
+              <Link href={editorUrl}>
                 <Edit className="w-5 h-5" />
               </Link>
             </Button>
@@ -237,7 +264,7 @@ function SlugContent() {
             style={{ backgroundColor: brandColor }}
             asChild
           >
-            <a href={landing.whatsapp ? `https://wa.me/55${landing.whatsapp.replace(/\D/g, "")}` : "#"}>
+            <a href={landing.whatsapp ? `https://wa.me/55${landing.whatsapp.replace(/\D/g, "")}` : editorUrl}>
               Iniciar conversa
               <ChevronRight className="w-5 h-5 ml-2" />
             </a>

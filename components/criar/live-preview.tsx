@@ -156,7 +156,7 @@ export function LivePreview({ data, isLoading, loadingStep, className = "" }: Li
         {/* SECTIONS */}
         <div className="space-y-4 pb-6">
           {sections.map((section: any) => (
-            <Section key={section.id} section={section} brandColor={brandColor} isMock={true} />
+            <Section key={section.id} section={section} brandColor={brandColor} isMock={!data.name} />
           ))}
 
           {/* POSTS (conteudo) */}

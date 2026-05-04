@@ -1,20 +1,20 @@
 "use client"
 
-import { useState, useMemo, Suspense } from "react"
+import { useEffect, useState, useMemo, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import Image from "next/image"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
   ArrowLeft, Save, Eye, EyeOff, Plus, Trash2, GripVertical,
-  Camera, Phone, Mail, Instagram, Globe, Clock, MapPin,
-  Sparkles, Loader2, Check, ChevronRight, ExternalLink,
+  Camera, Phone, Instagram, Clock,
+  Sparkles, Loader2, ExternalLink,
   MessageCircle, Star, Video, Newspaper, Users, ShoppingBag,
   Calendar, FileText, HelpCircle, Link2, Info
 } from "lucide-react"
+import { getLandingDraft, getLandingUrl, saveLandingDraft, type LandingDraft } from "@/lib/landing-storage"
 
 // Tipos de blocos disponiveis
 const BLOCK_TYPES = [
@@ -61,28 +61,47 @@ function EditorContent() {
   const searchParams = useSearchParams()
   const slug = searchParams.get("slug") || "minha-marca"
   const focusField = searchParams.get("focus")
+  const shouldGenerateAI = searchParams.get("generateAI") === "true"
+  const savedDraft = getLandingDraft(slug)
   const category = searchParams.get("category") || "restaurant"
+  const publicUrl = getLandingUrl(slug)
   
   // Dados da marca vindos do chat
   const brandData = useMemo(() => ({
-    name: searchParams.get("name") || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
-    description: searchParams.get("description") || "",
-    whatsapp: searchParams.get("whatsapp") || "",
-    instagram: searchParams.get("instagram") || "",
-  }), [searchParams, slug])
+    name: searchParams.get("name") || savedDraft?.name || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+    description: searchParams.get("description") || savedDraft?.description || "",
+    whatsapp: searchParams.get("whatsapp") || savedDraft?.whatsapp || "",
+    instagram: searchParams.get("instagram") || savedDraft?.instagram || "",
+    email: searchParams.get("email") || savedDraft?.email || "",
+    website: searchParams.get("website") || savedDraft?.website || "",
+    businessModel: searchParams.get("businessModel") || searchParams.get("category") || savedDraft?.businessModel || category,
+  }), [searchParams, slug, savedDraft, category])
 
   // Blocos ativos
   const [blocks, setBlocks] = useState<Block[]>(() => {
-    const defaultBlockIds = DEFAULT_BLOCKS[category] || DEFAULT_BLOCKS.restaurant
-    return defaultBlockIds.map(id => ({
-      id: `${id}-${Date.now()}`,
+    if (savedDraft?.blocks?.length) {
+      return savedDraft.blocks
+    }
+
+    const defaultBlockIds = DEFAULT_BLOCKS[brandData.businessModel] || DEFAULT_BLOCKS.restaurant
+    return defaultBlockIds.map((id, index) => ({
+      id: `${id}-${index}`,
       type: id,
       visible: true,
-      content: {}
+      content: id === "about"
+        ? { title: "Sobre", description: brandData.description }
+        : id === "contact"
+          ? { whatsapp: brandData.whatsapp, email: brandData.email, website: brandData.website }
+          : id === "social"
+            ? { instagram: brandData.instagram }
+            : {}
     }))
   })
 
-  const [selectedBlock, setSelectedBlock] = useState<string | null>(focusField || null)
+  const [selectedBlock, setSelectedBlock] = useState<string | null>(() => {
+    if (!focusField) return null
+    return blocks.find((block) => block.id === focusField || block.type === focusField)?.id || null
+  })
   const [isSaving, setIsSaving] = useState(false)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
   const [showAddBlock, setShowAddBlock] = useState(false)
@@ -104,11 +123,49 @@ function EditorContent() {
     return Math.min(100, Math.round((filled / total) * 100))
   }, [blocks])
 
+  const persistDraft = (status: LandingDraft["status"] = "draft") => {
+    saveLandingDraft({
+      ...(savedDraft || {}),
+      slug,
+      name: brandData.name,
+      category: brandData.businessModel,
+      businessModel: brandData.businessModel,
+      description: brandData.description,
+      whatsapp: brandData.whatsapp,
+      instagram: brandData.instagram,
+      email: brandData.email,
+      website: brandData.website,
+      status,
+      blocks,
+    })
+  }
+
   const handleSave = async () => {
     setIsSaving(true)
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    persistDraft(savedDraft?.status || "draft")
+    await new Promise(resolve => setTimeout(resolve, 500))
     setIsSaving(false)
   }
+
+  const handleUpdateBlockContent = (blockId: string, field: string, value: string) => {
+    setBlocks(prev => prev.map(block => (
+      block.id === blockId
+        ? { ...block, content: { ...block.content, [field]: value } }
+        : block
+    )))
+  }
+
+  useEffect(() => {
+    if (!shouldGenerateAI) return
+
+    const target = (focusField && blocks.find((block) => block.id === focusField || block.type === focusField)) || blocks[0]
+    if (target && Object.keys(target.content).length === 0) {
+      handleGenerateAI(target.id)
+      setSelectedBlock(target.id)
+    }
+    // Runs once for the initial editor load; the URL flag is only an entry trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleGenerateAI = async (blockId: string) => {
     setIsGeneratingAI(true)
@@ -177,7 +234,7 @@ function EditorContent() {
           
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/${slug}`} target="_blank">
+              <Link href={publicUrl} target="_blank">
                 <Eye className="w-4 h-4 mr-2" />
                 Preview
               </Link>
@@ -369,7 +426,8 @@ function EditorContent() {
                             <label className="text-sm font-medium mb-2 block">Titulo</label>
                             <Input 
                               placeholder="Ex: Sobre nos"
-                              defaultValue={block.content.title as string}
+                              value={(block.content.title as string) || ""}
+                              onChange={(e) => handleUpdateBlockContent(block.id, "title", e.target.value)}
                             />
                           </div>
                           <div>
@@ -377,7 +435,8 @@ function EditorContent() {
                             <Textarea 
                               placeholder="Conte sua historia..."
                               rows={4}
-                              defaultValue={block.content.description as string}
+                              value={(block.content.description as string) || ""}
+                              onChange={(e) => handleUpdateBlockContent(block.id, "description", e.target.value)}
                             />
                           </div>
                         </>
@@ -387,15 +446,28 @@ function EditorContent() {
                         <>
                           <div>
                             <label className="text-sm font-medium mb-2 block">WhatsApp</label>
-                            <Input placeholder="(11) 99999-9999" />
+                            <Input
+                              placeholder="(11) 99999-9999"
+                              value={(block.content.whatsapp as string) || ""}
+                              onChange={(e) => handleUpdateBlockContent(block.id, "whatsapp", e.target.value)}
+                            />
                           </div>
                           <div>
                             <label className="text-sm font-medium mb-2 block">E-mail</label>
-                            <Input placeholder="contato@suamarca.com" type="email" />
+                            <Input
+                              placeholder="contato@suamarca.com"
+                              type="email"
+                              value={(block.content.email as string) || ""}
+                              onChange={(e) => handleUpdateBlockContent(block.id, "email", e.target.value)}
+                            />
                           </div>
                           <div>
                             <label className="text-sm font-medium mb-2 block">Endereco</label>
-                            <Input placeholder="Rua, numero, bairro, cidade" />
+                            <Input
+                              placeholder="Rua, numero, bairro, cidade"
+                              value={(block.content.address as string) || ""}
+                              onChange={(e) => handleUpdateBlockContent(block.id, "address", e.target.value)}
+                            />
                           </div>
                         </>
                       )}
@@ -430,19 +502,35 @@ function EditorContent() {
                         <>
                           <div>
                             <label className="text-sm font-medium mb-2 block">Instagram</label>
-                            <Input placeholder="@suamarca" />
+                            <Input
+                              placeholder="@suamarca"
+                              value={(block.content.instagram as string) || ""}
+                              onChange={(e) => handleUpdateBlockContent(block.id, "instagram", e.target.value)}
+                            />
                           </div>
                           <div>
                             <label className="text-sm font-medium mb-2 block">Facebook</label>
-                            <Input placeholder="facebook.com/suamarca" />
+                            <Input
+                              placeholder="facebook.com/suamarca"
+                              value={(block.content.facebook as string) || ""}
+                              onChange={(e) => handleUpdateBlockContent(block.id, "facebook", e.target.value)}
+                            />
                           </div>
                           <div>
                             <label className="text-sm font-medium mb-2 block">TikTok</label>
-                            <Input placeholder="@suamarca" />
+                            <Input
+                              placeholder="@suamarca"
+                              value={(block.content.tiktok as string) || ""}
+                              onChange={(e) => handleUpdateBlockContent(block.id, "tiktok", e.target.value)}
+                            />
                           </div>
                           <div>
                             <label className="text-sm font-medium mb-2 block">YouTube</label>
-                            <Input placeholder="youtube.com/@suamarca" />
+                            <Input
+                              placeholder="youtube.com/@suamarca"
+                              value={(block.content.youtube as string) || ""}
+                              onChange={(e) => handleUpdateBlockContent(block.id, "youtube", e.target.value)}
+                            />
                           </div>
                         </>
                       )}
@@ -476,7 +564,7 @@ function EditorContent() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-sm">Preview</h2>
               <Button variant="ghost" size="sm" asChild>
-                <Link href={`/${slug}`} target="_blank">
+                <Link href={publicUrl} target="_blank">
                   <ExternalLink className="w-4 h-4" />
                 </Link>
               </Button>
@@ -497,7 +585,7 @@ function EditorContent() {
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-accent/20" />
                       <div>
-                        <p className="font-semibold text-sm">{slug}</p>
+                        <p className="font-semibold text-sm">{brandData.name}</p>
                         <p className="text-xs text-muted-foreground">Preview ao vivo</p>
                       </div>
                     </div>
