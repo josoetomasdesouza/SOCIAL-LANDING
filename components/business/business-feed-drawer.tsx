@@ -452,8 +452,8 @@ export function BusinessFeedDrawer({
                       )}
                     </div>
 
-                    {/* CTA (apenas produtos) */}
-                    {post.type === "product" && (
+                    {/* CTA (apenas produtos com carrinho conectado) */}
+                    {post.type === "product" && onAddToCart && (
                       <Button 
                         onClick={() => onAddToCart?.(post)}
                         className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-base font-semibold rounded-xl"

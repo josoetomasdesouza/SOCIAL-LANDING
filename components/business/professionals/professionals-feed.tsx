@@ -223,8 +223,10 @@ export function ProfessionalsFeed() {
             professionalName={professionalsConfig.name}
             professionalRole="Advogado"
             professionalAvatar={professionalsConfig.logo}
+            serviceName={selectedService.name}
             date={bookedDate}
             time={bookedTime}
+            price={selectedService.price}
             onClose={() => {
               setConfirmationOpen(false)
               setSelectedService(null)
