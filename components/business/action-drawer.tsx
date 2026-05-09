@@ -54,7 +54,7 @@ export function ActionDrawer({
 
       {/* Drawer */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out flex flex-col overflow-hidden ${sizeClasses[size]}`}
+        className={`fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out flex flex-col overflow-hidden ${sizeClasses[size]}`}
         style={{ transform: isOpen ? "translateY(0)" : "translateY(100%)" }}
       >
         {/* Handle */}
