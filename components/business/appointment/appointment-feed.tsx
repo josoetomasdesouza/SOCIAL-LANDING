@@ -160,6 +160,17 @@ function getAggregatedAvailability(professionals: Professional[]) {
     }))
 }
 
+function findAvailableProfessional(professionals: Professional[], date: string | null, time: string | null) {
+  if (!date || !time) return null
+
+  return professionals.find((professional) => (
+    professional.availability?.some((day) => (
+      day.date === date &&
+      day.slots.some((slot) => slot.time === time && slot.available)
+    ))
+  )) || null
+}
+
 function getServiceForAppointmentPost(post: BusinessPost) {
   if (post.serviceId) {
     const service = barberServices.find((item) => item.id === post.serviceId)
@@ -434,13 +445,21 @@ function BookingDrawer({
   const schedulingAvailability = anyProfessional
     ? getAggregatedAvailability(barbers)
     : selectedBarber?.availability || []
+  const suggestedProfessional = anyProfessional
+    ? findAvailableProfessional(barbers, selectedDate, selectedTime)
+    : selectedBarber
+  const professionalLabel = anyProfessional
+    ? suggestedProfessional
+      ? `${suggestedProfessional.name} (sugerido)`
+      : labels.anyProfessional
+    : selectedBarber?.name || "A definir"
   const formattedDate = selectedDate
     ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })
     : ""
   const whatsappMessage = encodeURIComponent(
     `Ola! Quero confirmar meu agendamento na ${barberShopConfig.name}:\n` +
     `Servico: ${selectedService?.name || "A definir"}\n` +
-    `Profissional: ${anyProfessional ? "Qualquer profissional disponivel" : selectedBarber?.name || "A definir"}\n` +
+    `Profissional: ${professionalLabel}\n` +
     `Data: ${formattedDate}\n` +
     `Horario: ${selectedTime || ""}\n` +
     `Nome: ${customer.name}\n` +
@@ -469,7 +488,7 @@ function BookingDrawer({
             </div>
             <div className="flex justify-between gap-4 text-sm">
               <span className="text-muted-foreground">Profissional</span>
-              <span className="font-medium text-right">{anyProfessional ? "Qualquer profissional disponivel" : selectedBarber?.name}</span>
+              <span className="font-medium text-right">{professionalLabel}</span>
             </div>
             <div className="flex justify-between gap-4 text-sm">
               <span className="text-muted-foreground">Data</span>
