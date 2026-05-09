@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import type { RefObject } from "react"
 import Image from "next/image"
 import { Calendar, Clock, MapPin, MessageCircle, Scissors, Star, Play, ChevronRight, Check, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -225,6 +226,15 @@ function BookingDrawer({
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [customer, setCustomer] = useState({ name: "", phone: "", note: "" })
   const [confirmed, setConfirmed] = useState(false)
+  const professionalStepRef = useRef<HTMLElement>(null)
+  const scheduleStepRef = useRef<HTMLElement>(null)
+  const customerStepRef = useRef<HTMLElement>(null)
+
+  const scrollToStep = (ref: RefObject<HTMLElement>) => {
+    window.setTimeout(() => {
+      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 100)
+  }
 
   useEffect(() => {
     if (!isOpen) return
@@ -320,6 +330,7 @@ function BookingDrawer({
                     setSelectedService(service)
                     setSelectedDate(null)
                     setSelectedTime(null)
+                    scrollToStep(professionalStepRef)
                   }}
                   className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ${
                     selectedService?.id === service.id ? "border-accent bg-accent/10" : "border-border bg-secondary/30 hover:bg-secondary"
@@ -342,7 +353,7 @@ function BookingDrawer({
             </div>
           </section>
 
-          <section>
+          <section ref={professionalStepRef} className="scroll-mt-4">
             <h4 className="font-semibold text-foreground mb-3">2. Escolha o profissional</h4>
             <button
               onClick={() => {
@@ -350,6 +361,7 @@ function BookingDrawer({
                 setSelectedBarber(null)
                 setSelectedDate(null)
                 setSelectedTime(null)
+                scrollToStep(scheduleStepRef)
               }}
               className={`w-full mb-3 p-4 rounded-xl border text-left transition-colors ${
                 anyProfessional ? "border-accent bg-accent/10" : "border-border bg-secondary/30 hover:bg-secondary"
@@ -368,6 +380,7 @@ function BookingDrawer({
                     setSelectedBarber(barber)
                     setSelectedDate(null)
                     setSelectedTime(null)
+                    scrollToStep(scheduleStepRef)
                   }}
                   className={`p-3 rounded-xl border text-left transition-colors ${
                     !anyProfessional && selectedBarber?.id === barber.id ? "border-accent bg-accent/10" : "border-border bg-secondary/30 hover:bg-secondary"
@@ -391,7 +404,7 @@ function BookingDrawer({
             </div>
           </section>
 
-          <section>
+          <section ref={scheduleStepRef} className="scroll-mt-4">
             <h4 className="font-semibold text-foreground mb-3">3. Escolha data e horario</h4>
             <AppointmentCalendar
               availability={schedulingAvailability}
@@ -401,12 +414,15 @@ function BookingDrawer({
                 setSelectedDate(date)
                 setSelectedTime(null)
               }}
-              onSelectTime={setSelectedTime}
+              onSelectTime={(time) => {
+                setSelectedTime(time)
+                scrollToStep(customerStepRef)
+              }}
             />
           </section>
 
           {selectedTime && (
-            <section className="space-y-3">
+            <section ref={customerStepRef} className="space-y-3 scroll-mt-4">
               <h4 className="font-semibold text-foreground">4. Seus dados</h4>
               <Input
                 placeholder="Nome completo"
