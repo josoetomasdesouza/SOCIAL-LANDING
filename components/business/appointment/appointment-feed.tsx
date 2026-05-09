@@ -196,12 +196,40 @@ function ScheduleModule({
   const { labels } = experience
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
+      <div className="rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/10 via-card to-card p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <p className="text-xs font-medium text-accent mb-1">Agenda online</p>
+            <h3 className="text-lg font-bold tracking-tight">Reserve em poucos passos</h3>
+            <p className="text-sm text-muted-foreground mt-1">Escolha o servico, profissional e horario disponivel.</p>
+          </div>
+          <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-0 whitespace-nowrap">
+            Aberto
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-2xl bg-background/70 p-3">
+            <p className="text-lg font-bold text-foreground">{barberServices.length}</p>
+            <p className="text-[11px] text-muted-foreground">servicos</p>
+          </div>
+          <div className="rounded-2xl bg-background/70 p-3">
+            <p className="text-lg font-bold text-foreground">{barbers.length}</p>
+            <p className="text-[11px] text-muted-foreground">profissionais</p>
+          </div>
+          <div className="rounded-2xl bg-background/70 p-3">
+            <p className="text-lg font-bold text-foreground">Hoje</p>
+            <p className="text-[11px] text-muted-foreground">horarios</p>
+          </div>
+        </div>
+      </div>
+
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
         <Button 
           variant="default"
-          className="h-14 flex items-center justify-center gap-2 rounded-2xl"
+          className="h-14 flex items-center justify-center gap-2 rounded-2xl shadow-sm"
           onClick={() => onStartBooking()}
         >
           <Calendar className="w-5 h-5" />
@@ -209,7 +237,7 @@ function ScheduleModule({
         </Button>
         <Button 
           variant="outline"
-          className="h-14 flex items-center justify-center gap-2 rounded-2xl"
+          className="h-14 flex items-center justify-center gap-2 rounded-2xl bg-card"
           onClick={onSelectService}
         >
           <Scissors className="w-5 h-5" />
@@ -220,21 +248,22 @@ function ScheduleModule({
       {/* Barbeiros */}
       <div>
         <h4 className="font-medium text-foreground mb-3">{labels.professionalsTitle}</h4>
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-5 sm:px-5 scrollbar-hide">
           {barbers.map((barber) => (
             <button
               key={barber.id}
               onClick={() => onStartBooking({ barber })}
-              className="flex flex-col items-center gap-2 flex-shrink-0 group"
+              className="w-32 flex-shrink-0 rounded-2xl border border-border/50 bg-card p-3 text-left shadow-sm transition-all hover:border-accent/50 hover:shadow-md group"
             >
-              <div className="relative w-16 h-16 rounded-full overflow-hidden ring-2 ring-border group-hover:ring-accent transition-colors">
+              <div className="relative w-16 h-16 rounded-full overflow-hidden ring-2 ring-border group-hover:ring-accent transition-colors mx-auto">
                 <Image src={barber.avatar} alt={barber.name} fill className="object-cover" />
               </div>
-              <div className="text-center">
-                <p className="text-sm font-medium text-foreground">{barber.name.split(" ")[0]}</p>
-                <div className="flex items-center gap-1 justify-center">
+              <div className="text-center mt-2">
+                <p className="text-sm font-semibold text-foreground truncate">{barber.name.split(" ")[0]}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{barber.role}</p>
+                <div className="flex items-center gap-1 justify-center mt-1">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  <span className="text-xs text-muted-foreground">{barber.rating}</span>
+                  <span className="text-xs font-medium text-foreground">{barber.rating}</span>
                 </div>
               </div>
             </button>
@@ -245,19 +274,23 @@ function ScheduleModule({
       {/* Servicos Populares */}
       <div>
         <h4 className="font-medium text-foreground mb-3">{labels.popularServicesTitle}</h4>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {popularServices.map((service) => (
             <button
               key={service.id}
               onClick={() => onStartBooking({ service })}
-              className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
+              className="w-full flex items-center gap-3 p-3.5 bg-card border border-border/50 hover:border-accent/50 hover:shadow-sm rounded-2xl transition-all"
             >
-              <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-secondary">
                 <Image src={service.image || ""} alt={service.name} fill className="object-cover" />
               </div>
               <div className="flex-1 text-left">
-                <p className="font-medium text-foreground">{service.name}</p>
-                <p className="text-sm text-muted-foreground">{service.duration} min</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-foreground">{service.name}</p>
+                  {service.popular && <Badge className="text-[10px] px-1.5 py-0 bg-foreground text-background border-0">Mais pedido</Badge>}
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-1">{service.description}</p>
+                <p className="text-xs text-muted-foreground mt-1">{service.duration} min</p>
               </div>
               <div className="text-right">
                 <p className="font-bold text-accent">R$ {service.price}</p>
@@ -283,11 +316,11 @@ function StylesModule({ onSelectStyle }: { onSelectStyle: (style: StyleExample) 
           onClick={() => onSelectStyle(style)}
           className="flex-shrink-0 group"
         >
-          <div className="relative w-32 h-40 rounded-xl overflow-hidden">
+          <div className="relative w-36 h-44 rounded-2xl overflow-hidden shadow-sm ring-1 ring-border/40 group-hover:ring-accent/60 transition-all">
             <Image src={style.image} alt={style.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-3">
-              <p className="text-sm font-medium text-white">{style.name}</p>
+              <p className="text-sm font-semibold text-white">{style.name}</p>
               <Badge variant="secondary" className="mt-1 text-xs bg-white/20 text-white border-0">
                 {style.trend ? "Em alta" : style.category}
               </Badge>
@@ -307,28 +340,34 @@ function BookingInfoModule({ experience }: { experience: typeof appointmentExper
 
   return (
     <div className="grid grid-cols-1 gap-3">
-      <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card">
-        <Clock className="w-5 h-5 text-accent flex-shrink-0" />
+      <div className="flex items-center gap-3 p-4 rounded-2xl border border-border/50 bg-card shadow-sm">
+        <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+          <Clock className="w-5 h-5 text-accent" />
+        </div>
         <div>
           <p className="font-medium">Horario de atendimento</p>
           <p className="text-sm text-muted-foreground">{barberShopConfig.openingHours}</p>
         </div>
       </div>
-      <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card">
-        <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
+      <div className="flex items-center gap-3 p-4 rounded-2xl border border-border/50 bg-card shadow-sm">
+        <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+          <MapPin className="w-5 h-5 text-accent" />
+        </div>
         <div>
           <p className="font-medium">Endereco</p>
           <p className="text-sm text-muted-foreground">{barberShopConfig.address}</p>
         </div>
       </div>
-      <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card">
-        <MessageCircle className="w-5 h-5 text-accent flex-shrink-0" />
+      <div className="flex items-center gap-3 p-4 rounded-2xl border border-border/50 bg-card shadow-sm">
+        <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+          <MessageCircle className="w-5 h-5 text-accent" />
+        </div>
         <div>
           <p className="font-medium">Confirmacao pelo {experience.labels.confirmationChannel}</p>
           <p className="text-sm text-muted-foreground">Depois de escolher o horario, enviamos o resumo pronto para confirmar.</p>
         </div>
       </div>
-      <div className="p-4 rounded-xl border border-border bg-card">
+      <div className="p-4 rounded-2xl border border-border/50 bg-card shadow-sm">
         <p className="font-medium mb-2">Politica de agendamento</p>
         <ul className="space-y-1 text-sm text-muted-foreground">
           {policies.map((policy) => (
@@ -462,6 +501,18 @@ function BookingDrawer({
         </div>
       ) : (
         <div className="space-y-8">
+          <div className="rounded-3xl border border-border/50 bg-card p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium text-accent mb-1">Reserva guiada</p>
+                <p className="font-semibold">Complete as etapas para gerar o resumo no WhatsApp.</p>
+              </div>
+              <Badge variant="secondary" className="bg-accent/10 text-accent border-0">
+                4 passos
+              </Badge>
+            </div>
+          </div>
+
           <section>
             <h4 className="font-semibold text-foreground mb-3">1. {labels.servicesTitle}</h4>
             <div className="space-y-2">
@@ -474,8 +525,8 @@ function BookingDrawer({
                     setSelectedTime(null)
                     scrollToStep(professionalStepRef)
                   }}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ${
-                    selectedService?.id === service.id ? "border-accent bg-accent/10" : "border-border bg-secondary/30 hover:bg-secondary"
+                  className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border transition-all text-left ${
+                    selectedService?.id === service.id ? "border-accent bg-accent/10 shadow-sm" : "border-border/50 bg-card hover:border-accent/50 hover:shadow-sm"
                   }`}
                 >
                   <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
@@ -505,8 +556,8 @@ function BookingDrawer({
                 setSelectedTime(null)
                 scrollToStep(scheduleStepRef)
               }}
-              className={`w-full mb-3 p-4 rounded-xl border text-left transition-colors ${
-                anyProfessional ? "border-accent bg-accent/10" : "border-border bg-secondary/30 hover:bg-secondary"
+              className={`w-full mb-3 p-4 rounded-2xl border text-left transition-all ${
+                anyProfessional ? "border-accent bg-accent/10 shadow-sm" : "border-border/50 bg-card hover:border-accent/50 hover:shadow-sm"
               }`}
             >
               <p className="font-medium">{labels.anyProfessional}</p>
@@ -524,8 +575,8 @@ function BookingDrawer({
                     setSelectedTime(null)
                     scrollToStep(scheduleStepRef)
                   }}
-                  className={`p-3 rounded-xl border text-left transition-colors ${
-                    !anyProfessional && selectedBarber?.id === barber.id ? "border-accent bg-accent/10" : "border-border bg-secondary/30 hover:bg-secondary"
+                  className={`p-3 rounded-2xl border text-left transition-all ${
+                    !anyProfessional && selectedBarber?.id === barber.id ? "border-accent bg-accent/10 shadow-sm" : "border-border/50 bg-card hover:border-accent/50 hover:shadow-sm"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -571,16 +622,19 @@ function BookingDrawer({
               <Input
                 placeholder="Nome completo"
                 value={customer.name}
+                className="h-12 rounded-2xl bg-secondary/60 border-0 focus-visible:ring-1 focus-visible:ring-accent"
                 onChange={(event) => setCustomer(prev => ({ ...prev, name: event.target.value }))}
               />
               <Input
                 placeholder="WhatsApp"
                 value={customer.phone}
+                className="h-12 rounded-2xl bg-secondary/60 border-0 focus-visible:ring-1 focus-visible:ring-accent"
                 onChange={(event) => setCustomer(prev => ({ ...prev, phone: event.target.value }))}
               />
               <Textarea
                 placeholder={labels.customerNotePlaceholder}
                 value={customer.note}
+                className="rounded-2xl bg-secondary/60 border-0 focus-visible:ring-1 focus-visible:ring-accent resize-none"
                 onChange={(event) => setCustomer(prev => ({ ...prev, note: event.target.value }))}
                 rows={3}
               />
