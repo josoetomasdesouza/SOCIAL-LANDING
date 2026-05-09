@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useMemo } from "react"
+import { Suspense, useState, useRef, useEffect, useMemo } from "react"
 import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
@@ -203,7 +203,7 @@ const CONVERSATION_FLOW: Message[] = [
   }
 ]
 
-export default function CriarNovoPage() {
+function CriarNovoContent() {
   const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState(0)
   const [messages, setMessages] = useState<Message[]>([])
@@ -978,5 +978,24 @@ export default function CriarNovoPage() {
         </aside>
       </div>
     </div>
+  )
+}
+
+function CriarNovoLoading() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+        <p className="text-muted-foreground">Carregando assistente...</p>
+      </div>
+    </div>
+  )
+}
+
+export default function CriarNovoPage() {
+  return (
+    <Suspense fallback={<CriarNovoLoading />}>
+      <CriarNovoContent />
+    </Suspense>
   )
 }
