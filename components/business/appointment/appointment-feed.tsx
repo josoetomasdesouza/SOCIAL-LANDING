@@ -228,6 +228,7 @@ function BookingDrawer({
   const [confirmed, setConfirmed] = useState(false)
   const professionalStepRef = useRef<HTMLElement>(null)
   const scheduleStepRef = useRef<HTMLElement>(null)
+  const timeStepRef = useRef<HTMLDivElement>(null)
   const customerStepRef = useRef<HTMLElement>(null)
 
   const scrollToStep = (ref: RefObject<HTMLElement>) => {
@@ -413,12 +414,14 @@ function BookingDrawer({
               onSelectDate={(date) => {
                 setSelectedDate(date)
                 setSelectedTime(null)
+                scrollToStep(timeStepRef)
               }}
               onSelectTime={(time) => {
                 setSelectedTime(time)
                 scrollToStep(customerStepRef)
               }}
             />
+            <div ref={timeStepRef} className="scroll-mt-4" />
           </section>
 
           {selectedTime && (
