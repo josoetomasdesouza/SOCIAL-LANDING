@@ -74,9 +74,9 @@ export default function DemoPage() {
   
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with back button */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center gap-3">
+      {/* Demo controls - floating so the model header/stories keep the same spacing as "/" */}
+      <div className="fixed left-1/2 bottom-4 z-[60] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 rounded-2xl border border-border/60 bg-background/95 shadow-lg backdrop-blur-xl">
+        <div className="px-3 h-12 flex items-center gap-3">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -94,7 +94,7 @@ export default function DemoPage() {
             Ver Social Landing
           </Link>
         </div>
-      </header>
+      </div>
       
       {/* Business Feed */}
       <main>
