@@ -59,6 +59,8 @@ interface BusinessSocialLandingProps {
   sections: BusinessSection[]
   onPostClick?: (post: BusinessPost) => void
   onStoryClick?: (story: BusinessStory) => void
+  getPostActionLabel?: (post: BusinessPost) => string | undefined
+  onPostAction?: (post: BusinessPost) => void
   renderPostDrawer?: (post: BusinessPost | null, onClose: () => void) => ReactNode
   footerLinks?: { label: string; href: string }[]
   conversationalAI?: ReactNode
@@ -741,6 +743,8 @@ export function BusinessSocialLanding({
   sections,
   onPostClick,
   onStoryClick,
+  getPostActionLabel,
+  onPostAction,
   renderPostDrawer,
   footerLinks,
   conversationalAI
@@ -885,6 +889,8 @@ export function BusinessSocialLanding({
         category={feedDrawerCategory}
         brandLogo={config.logo}
         brandName={config.name}
+        getPostActionLabel={getPostActionLabel}
+        onPostAction={onPostAction}
       />
       
       {/* Custom Post Drawer - para itens especificos do negocio */}

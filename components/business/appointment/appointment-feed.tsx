@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
+import { BusinessSocialLanding, type BusinessPost, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { AppointmentCalendar } from "../appointment-calendar"
 import { barberShopConfig, barbers, barberServices, hairStyles } from "@/lib/mock-data/appointment-data"
@@ -17,6 +17,21 @@ import type { Professional, Service, StyleExample } from "@/lib/business-types"
 interface BookingStart {
   service?: Service | null
   barber?: Professional | null
+}
+
+function getServiceForAppointmentPost(post: BusinessPost) {
+  const text = `${post.title} ${post.description || ""}`.toLowerCase()
+
+  return barberServices.find((service) => {
+    const serviceName = service.name.toLowerCase()
+    const category = service.category.toLowerCase()
+    return text.includes(serviceName) || text.includes(category)
+  }) || barberServices.find((service) => (
+    text.includes("barba") ? service.category.toLowerCase() === "barba" :
+    text.includes("degrade") || text.includes("corte") ? service.category.toLowerCase() === "corte" :
+    text.includes("combo") ? service.category.toLowerCase() === "combo" :
+    false
+  )) || barberServices.find(service => service.popular) || barberServices[0]
 }
 
 // ========================================
@@ -496,6 +511,15 @@ export function AppointmentFeed() {
         config={barberShopConfig}
         stories={appointmentContent.stories}
         sections={sections}
+        getPostActionLabel={(post) => {
+          if (post.type === "review") return "Agendar com base nessa avaliacao"
+          if (post.type === "video" || post.type === "video-vertical") return "Agendar esse estilo"
+          if (post.type === "social") return "Agendar agora"
+          return undefined
+        }}
+        onPostAction={(post) => {
+          handleStartBooking({ service: getServiceForAppointmentPost(post) })
+        }}
         onStoryClick={(story) => {
           if (story.isMain) {
             handleStartBooking()
