@@ -33,6 +33,7 @@ export interface BusinessPost {
   reviewerAvatar?: string
   source?: string
   date?: string
+  serviceId?: string
 }
 
 export interface BusinessStory {

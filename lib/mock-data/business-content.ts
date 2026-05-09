@@ -18,9 +18,9 @@ export const appointmentContent = {
   ] as BusinessStory[],
   
   videos: [
-    { id: "apt-vid-1", type: "video" as const, title: "Tutorial: Fade Perfeito em 5 Minutos", description: "Nosso barbeiro chefe mostra a tecnica do fade mais pedido da casa", image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&h=450&fit=crop", duration: "5:23", views: 45000 },
-    { id: "apt-vid-2", type: "video" as const, title: "Tendencias de Corte Masculino 2024", description: "Os estilos que estao bombando esse ano", image: "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800&h=450&fit=crop", duration: "8:45", views: 32000 },
-    { id: "apt-vid-3", type: "video-vertical" as const, title: "Antes e Depois: Transformacao completa", description: "Cliente saiu outro homem!", image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&h=700&fit=crop", duration: "0:45", views: 120000 },
+    { id: "apt-vid-1", type: "video" as const, title: "Tutorial: Fade Perfeito em 5 Minutos", description: "Nosso barbeiro chefe mostra a tecnica do fade mais pedido da casa", image: "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&h=450&fit=crop", duration: "5:23", views: 45000, serviceId: "service-2" },
+    { id: "apt-vid-2", type: "video" as const, title: "Tendencias de Corte Masculino 2024", description: "Os estilos que estao bombando esse ano", image: "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800&h=450&fit=crop", duration: "8:45", views: 32000, serviceId: "service-1" },
+    { id: "apt-vid-3", type: "video-vertical" as const, title: "Antes e Depois: Transformacao completa", description: "Cliente saiu outro homem!", image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&h=700&fit=crop", duration: "0:45", views: 120000, serviceId: "service-4" },
   ] as BusinessPost[],
   
   news: [
@@ -29,9 +29,9 @@ export const appointmentContent = {
   ] as BusinessPost[],
   
   reviews: [
-    { id: "apt-rev-1", type: "review" as const, title: "Melhor barbearia que ja fui! O Carlos e um artista do fade.", reviewerName: "Marcos Silva", reviewerAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face", rating: 5 },
-    { id: "apt-rev-2", type: "review" as const, title: "Atendimento impecavel, ambiente muito agradavel. Volto sempre!", reviewerName: "Pedro Henrique", reviewerAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face", rating: 5 },
-    { id: "apt-rev-3", type: "review" as const, title: "Precos justos e qualidade excepcional. Recomendo demais!", reviewerName: "Lucas Oliveira", reviewerAvatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face", rating: 4 },
+    { id: "apt-rev-1", type: "review" as const, title: "Melhor barbearia que ja fui! O Carlos e um artista do fade.", reviewerName: "Marcos Silva", reviewerAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face", rating: 5, serviceId: "service-2" },
+    { id: "apt-rev-2", type: "review" as const, title: "Atendimento impecavel, ambiente muito agradavel. Volto sempre!", reviewerName: "Pedro Henrique", reviewerAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face", rating: 5, serviceId: "service-4" },
+    { id: "apt-rev-3", type: "review" as const, title: "Precos justos e qualidade excepcional. Recomendo demais!", reviewerName: "Lucas Oliveira", reviewerAvatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face", rating: 4, serviceId: "service-1" },
   ] as BusinessPost[],
   
   social: [

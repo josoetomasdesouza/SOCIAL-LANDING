@@ -20,6 +20,123 @@ interface BookingStart {
   barber?: Professional | null
 }
 
+type AppointmentVariant = "barbershop" | "nails" | "salon" | "aesthetic"
+
+const APPOINTMENT_EXPERIENCES: Record<AppointmentVariant, {
+  labels: {
+    scheduleTitle: string
+    scheduleSubtitle: string
+    primaryAction: string
+    secondaryAction: string
+    professionalsTitle: string
+    professionalSingular: string
+    anyProfessional: string
+    anyProfessionalDescription: string
+    servicesTitle: string
+    popularServicesTitle: string
+    stylesTitle: string
+    infoTitle: string
+    confirmationChannel: string
+    customerNotePlaceholder: string
+  }
+  policies: string[]
+}> = {
+  barbershop: {
+    labels: {
+      scheduleTitle: "Agendar horario",
+      scheduleSubtitle: "Escolha servico, profissional e horario",
+      primaryAction: "Agendar agora",
+      secondaryAction: "Ver servicos",
+      professionalsTitle: "Escolha um barbeiro",
+      professionalSingular: "barbeiro",
+      anyProfessional: "Qualquer profissional disponivel",
+      anyProfessionalDescription: "Combina horarios de toda a equipe e reduz o tempo para reservar.",
+      servicesTitle: "Escolha o servico",
+      popularServicesTitle: "Servicos populares",
+      stylesTitle: "Estilos em Alta",
+      infoTitle: "Antes de Agendar",
+      confirmationChannel: "WhatsApp",
+      customerNotePlaceholder: "Observacao opcional (ex: quero esse corte da foto)",
+    },
+    policies: [
+      "Tolerancia de 10 minutos para atrasos.",
+      "Pagamento direto no local.",
+      "Cancelamentos devem ser avisados pelo WhatsApp.",
+    ],
+  },
+  nails: {
+    labels: {
+      scheduleTitle: "Agendar horario",
+      scheduleSubtitle: "Escolha servico, profissional e horario",
+      primaryAction: "Agendar agora",
+      secondaryAction: "Ver servicos",
+      professionalsTitle: "Escolha uma profissional",
+      professionalSingular: "profissional",
+      anyProfessional: "Qualquer profissional disponivel",
+      anyProfessionalDescription: "Mostra os proximos horarios da equipe para facilitar a reserva.",
+      servicesTitle: "Escolha o servico",
+      popularServicesTitle: "Servicos populares",
+      stylesTitle: "Inspiracoes em alta",
+      infoTitle: "Antes de Agendar",
+      confirmationChannel: "WhatsApp",
+      customerNotePlaceholder: "Observacao opcional (ex: quero essa esmaltacao)",
+    },
+    policies: [
+      "Chegue com 10 minutos de antecedencia.",
+      "Pagamento direto no local.",
+      "Avise pelo WhatsApp para remarcar ou cancelar.",
+    ],
+  },
+  salon: {
+    labels: {
+      scheduleTitle: "Agendar horario",
+      scheduleSubtitle: "Escolha servico, profissional e horario",
+      primaryAction: "Agendar agora",
+      secondaryAction: "Ver servicos",
+      professionalsTitle: "Escolha uma profissional",
+      professionalSingular: "profissional",
+      anyProfessional: "Qualquer profissional disponivel",
+      anyProfessionalDescription: "Combina horarios de toda a equipe e reduz o tempo para reservar.",
+      servicesTitle: "Escolha o servico",
+      popularServicesTitle: "Servicos populares",
+      stylesTitle: "Referencias em alta",
+      infoTitle: "Antes de Agendar",
+      confirmationChannel: "WhatsApp",
+      customerNotePlaceholder: "Observacao opcional (ex: tenho uma referencia)",
+    },
+    policies: [
+      "Alguns procedimentos podem exigir avaliacao previa.",
+      "Pagamento direto no local.",
+      "Cancelamentos devem ser avisados pelo WhatsApp.",
+    ],
+  },
+  aesthetic: {
+    labels: {
+      scheduleTitle: "Agendar avaliacao",
+      scheduleSubtitle: "Escolha tratamento, especialista e horario",
+      primaryAction: "Agendar avaliacao",
+      secondaryAction: "Ver tratamentos",
+      professionalsTitle: "Escolha uma especialista",
+      professionalSingular: "especialista",
+      anyProfessional: "Qualquer especialista disponivel",
+      anyProfessionalDescription: "Mostra os proximos horarios da equipe para facilitar a reserva.",
+      servicesTitle: "Escolha o tratamento",
+      popularServicesTitle: "Tratamentos populares",
+      stylesTitle: "Resultados em destaque",
+      infoTitle: "Antes de Agendar",
+      confirmationChannel: "WhatsApp",
+      customerNotePlaceholder: "Observacao opcional (ex: objetivo do tratamento)",
+    },
+    policies: [
+      "Procedimentos podem exigir avaliacao previa.",
+      "Chegue com 10 minutos de antecedencia.",
+      "Cancelamentos devem ser avisados pelo WhatsApp.",
+    ],
+  },
+}
+
+const appointmentExperience = APPOINTMENT_EXPERIENCES.barbershop
+
 function getAggregatedAvailability(professionals: Professional[]) {
   const slotsByDate = new Map<string, Set<string>>()
 
@@ -44,6 +161,11 @@ function getAggregatedAvailability(professionals: Professional[]) {
 }
 
 function getServiceForAppointmentPost(post: BusinessPost) {
+  if (post.serviceId) {
+    const service = barberServices.find((item) => item.id === post.serviceId)
+    if (service) return service
+  }
+
   const text = `${post.title} ${post.description || ""}`.toLowerCase()
 
   return barberServices.find((service) => {
@@ -63,12 +185,15 @@ function getServiceForAppointmentPost(post: BusinessPost) {
 // ========================================
 function ScheduleModule({ 
   onStartBooking,
-  onSelectService 
+  onSelectService,
+  experience,
 }: { 
   onStartBooking: (start?: BookingStart) => void
   onSelectService: () => void
+  experience: typeof appointmentExperience
 }) {
   const popularServices = barberServices.filter(s => s.popular).slice(0, 3)
+  const { labels } = experience
 
   return (
     <div className="space-y-6">
@@ -80,7 +205,7 @@ function ScheduleModule({
           onClick={() => onStartBooking()}
         >
           <Calendar className="w-5 h-5" />
-          Agendar agora
+          {labels.primaryAction}
         </Button>
         <Button 
           variant="outline"
@@ -88,13 +213,13 @@ function ScheduleModule({
           onClick={onSelectService}
         >
           <Scissors className="w-5 h-5" />
-          Ver servicos
+          {labels.secondaryAction}
         </Button>
       </div>
       
       {/* Barbeiros */}
       <div>
-        <h4 className="font-medium text-foreground mb-3">Escolha um barbeiro</h4>
+        <h4 className="font-medium text-foreground mb-3">{labels.professionalsTitle}</h4>
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
           {barbers.map((barber) => (
             <button
@@ -119,7 +244,7 @@ function ScheduleModule({
       
       {/* Servicos Populares */}
       <div>
-        <h4 className="font-medium text-foreground mb-3">Servicos populares</h4>
+        <h4 className="font-medium text-foreground mb-3">{labels.popularServicesTitle}</h4>
         <div className="space-y-2">
           {popularServices.map((service) => (
             <button
@@ -177,7 +302,9 @@ function StylesModule({ onSelectStyle }: { onSelectStyle: (style: StyleExample) 
 // ========================================
 // MODULO: INFORMACOES PARA FECHAMENTO
 // ========================================
-function BookingInfoModule() {
+function BookingInfoModule({ experience }: { experience: typeof appointmentExperience }) {
+  const { policies } = experience
+
   return (
     <div className="grid grid-cols-1 gap-3">
       <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card">
@@ -197,9 +324,20 @@ function BookingInfoModule() {
       <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card">
         <MessageCircle className="w-5 h-5 text-accent flex-shrink-0" />
         <div>
-          <p className="font-medium">Confirmacao pelo WhatsApp</p>
+          <p className="font-medium">Confirmacao pelo {experience.labels.confirmationChannel}</p>
           <p className="text-sm text-muted-foreground">Depois de escolher o horario, enviamos o resumo pronto para confirmar.</p>
         </div>
+      </div>
+      <div className="p-4 rounded-xl border border-border bg-card">
+        <p className="font-medium mb-2">Politica de agendamento</p>
+        <ul className="space-y-1 text-sm text-muted-foreground">
+          {policies.map((policy) => (
+            <li key={policy} className="flex gap-2">
+              <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
+              <span>{policy}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )
@@ -213,11 +351,13 @@ function BookingDrawer({
   onClose,
   initialService,
   initialBarber,
+  experience,
 }: {
   isOpen: boolean
   onClose: () => void
   initialService?: Service | null
   initialBarber?: Professional | null
+  experience: typeof appointmentExperience
 }) {
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [selectedBarber, setSelectedBarber] = useState<Professional | null>(null)
@@ -251,6 +391,7 @@ function BookingDrawer({
 
   if (!isOpen) return null
 
+  const { labels } = experience
   const schedulingAvailability = anyProfessional
     ? getAggregatedAvailability(barbers)
     : selectedBarber?.availability || []
@@ -270,7 +411,7 @@ function BookingDrawer({
   const whatsappUrl = `https://wa.me/${barberShopConfig.whatsapp}?text=${whatsappMessage}`
 
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Agendar horario" subtitle="Escolha servico, profissional e horario" size="full">
+    <ActionDrawer isOpen={isOpen} onClose={onClose} title={labels.scheduleTitle} subtitle={labels.scheduleSubtitle} size="full">
       {confirmed ? (
         <div className="text-center space-y-6 py-4">
           <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
@@ -279,7 +420,7 @@ function BookingDrawer({
 
           <div>
             <h3 className="text-xl font-bold mb-2">Horario pronto para confirmar!</h3>
-            <p className="text-muted-foreground">Envie os dados pelo WhatsApp para finalizar a reserva.</p>
+            <p className="text-muted-foreground">Envie os dados pelo {labels.confirmationChannel} para finalizar a reserva.</p>
           </div>
 
           <div className="bg-secondary/50 rounded-xl p-4 text-left space-y-3">
@@ -311,7 +452,7 @@ function BookingDrawer({
             <Button className="w-full gap-2" asChild>
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                 <Phone className="w-4 h-4" />
-                Confirmar pelo WhatsApp
+                Confirmar pelo {labels.confirmationChannel}
               </a>
             </Button>
             <Button variant="outline" className="w-full" onClick={onClose}>
@@ -322,7 +463,7 @@ function BookingDrawer({
       ) : (
         <div className="space-y-8">
           <section>
-            <h4 className="font-semibold text-foreground mb-3">1. Escolha o servico</h4>
+            <h4 className="font-semibold text-foreground mb-3">1. {labels.servicesTitle}</h4>
             <div className="space-y-2">
               {barberServices.map((service) => (
                 <button
@@ -355,7 +496,7 @@ function BookingDrawer({
           </section>
 
           <section ref={professionalStepRef} className="scroll-mt-4">
-            <h4 className="font-semibold text-foreground mb-3">2. Escolha o profissional</h4>
+            <h4 className="font-semibold text-foreground mb-3">2. {labels.professionalsTitle}</h4>
             <button
               onClick={() => {
                 setAnyProfessional(true)
@@ -368,8 +509,8 @@ function BookingDrawer({
                 anyProfessional ? "border-accent bg-accent/10" : "border-border bg-secondary/30 hover:bg-secondary"
               }`}
             >
-              <p className="font-medium">Qualquer profissional disponivel</p>
-              <p className="text-sm text-muted-foreground">Combina horarios de toda a equipe e reduz o tempo para reservar.</p>
+              <p className="font-medium">{labels.anyProfessional}</p>
+              <p className="text-sm text-muted-foreground">{labels.anyProfessionalDescription}</p>
             </button>
 
             <div className="grid grid-cols-2 gap-3">
@@ -438,7 +579,7 @@ function BookingDrawer({
                 onChange={(event) => setCustomer(prev => ({ ...prev, phone: event.target.value }))}
               />
               <Textarea
-                placeholder="Observacao opcional (ex: quero esse corte da foto)"
+                placeholder={labels.customerNotePlaceholder}
                 value={customer.note}
                 onChange={(event) => setCustomer(prev => ({ ...prev, note: event.target.value }))}
                 rows={3}
@@ -460,65 +601,21 @@ function BookingDrawer({
 }
 
 // ========================================
-// DRAWER: SERVICOS
-// ========================================
-function ServicesDrawer({ 
-  isOpen, 
-  onClose,
-  onSelectService
-}: { 
-  isOpen: boolean
-  onClose: () => void
-  onSelectService: (service: Service) => void
-}) {
-  const categories = [...new Set(barberServices.map(s => s.category))]
-  
-  return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Servicos" size="lg">
-      <div className="space-y-6">
-        {categories.map((category) => (
-          <div key={category}>
-            <h4 className="font-medium text-foreground mb-3">{category}</h4>
-            <div className="space-y-2">
-              {barberServices.filter(s => s.category === category).map((service) => (
-                <button
-                  key={service.id}
-                  onClick={() => onSelectService(service)}
-                  className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
-                >
-                  <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image src={service.image || ""} alt={service.name} fill className="object-cover" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-medium text-foreground">{service.name}</p>
-                    <p className="text-sm text-muted-foreground">{service.description}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{service.duration} minutos</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-accent">R$ {service.price}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </ActionDrawer>
-  )
-}
-
-// ========================================
 // COMPONENTE PRINCIPAL
 // ========================================
 export function AppointmentFeed() {
   const [bookingOpen, setBookingOpen] = useState(false)
   const [bookingStart, setBookingStart] = useState<BookingStart>({})
-  const [servicesDrawerOpen, setServicesDrawerOpen] = useState(false)
+  const experience = appointmentExperience
   
   // Handlers
   const handleStartBooking = (start: BookingStart = {}) => {
     setBookingStart(start)
     setBookingOpen(true)
+  }
+
+  const handleOpenServices = () => {
+    handleStartBooking({ service: null })
   }
   
   const handleSelectStyle = (style: StyleExample) => {
@@ -541,23 +638,24 @@ export function AppointmentFeed() {
       customContent: (
         <ScheduleModule 
           onStartBooking={handleStartBooking}
-          onSelectService={() => setServicesDrawerOpen(true)}
+          onSelectService={handleOpenServices}
+          experience={experience}
         />
       )
     },
     {
       id: "styles",
-      title: "Estilos em Alta",
+      title: experience.labels.stylesTitle,
       icon: <Scissors className="w-5 h-5 text-accent" />,
       type: "specific",
       customContent: <StylesModule onSelectStyle={handleSelectStyle} />
     },
     {
       id: "info",
-      title: "Antes de Agendar",
+      title: experience.labels.infoTitle,
       icon: <Clock className="w-5 h-5 text-accent" />,
       type: "specific",
-      customContent: <BookingInfoModule />
+      customContent: <BookingInfoModule experience={experience} />
     },
     {
       id: "videos",
@@ -620,15 +718,7 @@ export function AppointmentFeed() {
         onClose={() => setBookingOpen(false)}
         initialService={bookingStart.service}
         initialBarber={bookingStart.barber}
-      />
-      
-      <ServicesDrawer
-        isOpen={servicesDrawerOpen}
-        onClose={() => setServicesDrawerOpen(false)}
-        onSelectService={(service) => {
-          setServicesDrawerOpen(false)
-          handleStartBooking({ service })
-        }}
+        experience={experience}
       />
     </>
   )
