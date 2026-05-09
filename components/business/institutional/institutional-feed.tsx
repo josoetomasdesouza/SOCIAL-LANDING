@@ -358,16 +358,11 @@ export function InstitutionalFeed() {
       posts: institutionalVideos.map((video) => ({
         id: `video-${video.id}`,
         type: "video" as const,
-        content: video.title,
+        title: video.title,
         description: video.description,
-        media: video.thumbnail,
-        videoUrl: `https://youtube.com/watch?v=${video.id}`,
+        image: video.thumbnail,
         duration: video.duration,
         views: video.views,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timestamp: "Agora"
       }))
     },
     // Produtos em destaque - convertido para posts
@@ -378,14 +373,11 @@ export function InstitutionalFeed() {
       posts: institutionalProducts.map((product) => ({
         id: `product-${product.id}`,
         type: "product" as const,
-        content: product.name,
+        title: product.name,
         description: `R$ ${product.price.toFixed(2).replace(".", ",")} - ${product.socialProof}`,
-        media: product.image,
+        image: product.image,
         price: product.price,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timestamp: "Agora"
+        originalPrice: product.oldPrice,
       }))
     },
     // Noticias na midia - convertido para posts
@@ -396,14 +388,10 @@ export function InstitutionalFeed() {
       posts: institutionalNews.map((news) => ({
         id: `news-${news.id}`,
         type: "news" as const,
-        content: news.title,
+        title: news.title,
         description: news.summary,
-        media: news.image,
+        image: news.image,
         source: news.source,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timestamp: "Agora"
       }))
     },
     // FAQ

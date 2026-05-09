@@ -19,10 +19,11 @@ interface StoryViewerProps {
   posts: Post[]
   initialIndex: number
   categoryName: string
+  fallbackImage: string
   onViewPost: (post: Post) => void
 }
 
-function StoryViewer({ isOpen, onClose, posts, initialIndex, categoryName, onViewPost }: StoryViewerProps) {
+function StoryViewer({ isOpen, onClose, posts, initialIndex, categoryName, fallbackImage, onViewPost }: StoryViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
   const [progress, setProgress] = useState(0)
 
@@ -67,6 +68,7 @@ function StoryViewer({ isOpen, onClose, posts, initialIndex, categoryName, onVie
   if (!isOpen || posts.length === 0) return null
 
   const currentPost = posts[currentIndex]
+  const currentPostImage = currentPost.image || currentPost.thumbnail || fallbackImage
 
   const goNext = () => {
     if (currentIndex < posts.length - 1) {
@@ -124,7 +126,7 @@ function StoryViewer({ isOpen, onClose, posts, initialIndex, categoryName, onVie
       {/* Story content */}
       <div className="absolute inset-0 flex items-center justify-center">
         <Image
-          src={currentPost.image || currentPost.thumbnail || ""}
+          src={currentPostImage}
           alt={currentPost.title}
           fill
           className="object-cover"
@@ -189,13 +191,14 @@ const categoryLabels: Record<string, string> = {
   product: "Produtos",
   news: "Noticias",
   review: "Avaliacoes",
-  social: "Contatos",
+  social: "Redes Sociais",
 }
 
 // IDs das secoes no feed para scroll
 const sectionIds: Record<string, string> = {
   all: "section-destaques",
   video: "section-videos",
+  shorts: "section-shorts",
   product: "section-produtos",
   news: "section-noticias",
   review: "section-avaliacoes",
@@ -225,9 +228,10 @@ export function Stories({ categories, posts, brandLogo, onNavigateToPost }: Stor
   }, [categories, posts, brandLogo])
 
   const handleStoryClick = (category: Category) => {
-    const filteredPosts = category.slug === "all" 
-      ? posts.slice(0, 10) 
-      : posts.filter(p => p.type === category.slug).slice(0, 10)
+    const postsWithMedia = posts.filter((post) => post.image || post.thumbnail)
+    const filteredPosts = category.slug === "all"
+      ? postsWithMedia.slice(0, 10)
+      : postsWithMedia.filter(p => p.type === category.slug).slice(0, 10)
     
     if (filteredPosts.length > 0) {
       setViewerPosts(filteredPosts)
@@ -239,7 +243,9 @@ export function Stories({ categories, posts, brandLogo, onNavigateToPost }: Stor
 
   const handleViewPost = (post: Post) => {
     // Primeiro tenta rolar ate a secao
-    const sectionId = sectionIds[post.type] || "section-destaques"
+    const sectionId = post.type === "video" && post.isVertical
+      ? sectionIds.shorts
+      : sectionIds[post.type] || "section-destaques"
     const section = document.getElementById(sectionId)
     
     if (section) {
@@ -297,6 +303,7 @@ export function Stories({ categories, posts, brandLogo, onNavigateToPost }: Stor
         posts={viewerPosts}
         initialIndex={initialIndex}
         categoryName={currentCategory}
+        fallbackImage={brandLogo}
         onViewPost={handleViewPost}
       />
     </>

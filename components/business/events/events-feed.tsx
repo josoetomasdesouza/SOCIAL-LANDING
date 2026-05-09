@@ -12,6 +12,56 @@ import { eventsConfig, events } from "@/lib/mock-data/events-data"
 import { eventsContent } from "@/lib/mock-data/business-content"
 import type { Event } from "@/lib/business-types"
 
+type EventLike = Event & {
+  name?: string
+  location?: Event["venue"]
+  price?: number
+  capacity?: number
+  artists?: string[]
+}
+
+function getEventTitle(event: EventLike) {
+  return event.title || event.name || "Evento"
+}
+
+function getEventVenue(event: EventLike) {
+  return event.venue || event.location
+}
+
+function getEventLocationLabel(event: EventLike) {
+  const venue = getEventVenue(event)
+  if (!venue) return "Local a confirmar"
+  if (typeof venue === "string") return venue
+  return [venue.name, venue.city, venue.state].filter(Boolean).join(", ")
+}
+
+function getAvailableTickets(event: EventLike) {
+  return event.tickets?.filter((ticket) => {
+    if (typeof ticket.available === "boolean") return ticket.available
+    return Number(ticket.available) > 0
+  }) || []
+}
+
+function getEventPrice(event: EventLike) {
+  if (typeof event.price === "number") return event.price
+  const ticketPrices = getAvailableTickets(event).map((ticket) => ticket.price)
+  return ticketPrices.length ? Math.min(...ticketPrices) : 0
+}
+
+function getEventCapacity(event: EventLike) {
+  if (typeof event.capacity === "number") return event.capacity
+  return getAvailableTickets(event).reduce((sum, ticket) => (
+    sum + (typeof ticket.available === "number" ? ticket.available : 1)
+  ), 0)
+}
+
+function getEventArtists(event: EventLike) {
+  if (event.artists?.length) {
+    return event.artists.map((artist) => typeof artist === "string" ? artist : artist.name)
+  }
+  return event.lineup || []
+}
+
 // ========================================
 // MODULO: EVENTOS (OBJETIVO PRINCIPAL)
 // ========================================
@@ -20,7 +70,7 @@ function EventsModule({
   favorites,
   onToggleFavorite
 }: { 
-  onSelectEvent: (event: Event) => void
+  onSelectEvent: (event: EventLike) => void
   favorites: Set<string>
   onToggleFavorite: (id: string) => void
 }) {
@@ -28,6 +78,11 @@ function EventsModule({
     <div className="space-y-4">
       {events.slice(0, 3).map((event) => {
         const eventDate = new Date(event.date)
+        const title = getEventTitle(event)
+        const price = getEventPrice(event)
+        const capacity = getEventCapacity(event)
+        const location = getEventLocationLabel(event)
+
         return (
           <div
             key={event.id}
@@ -35,7 +90,7 @@ function EventsModule({
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors cursor-pointer"
           >
             <div className="relative aspect-[2/1]">
-<Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={event.title} fill className="object-cover" />
+              <Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={title} fill className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <button
                 onClick={(e) => { e.stopPropagation(); onToggleFavorite(event.id) }}
@@ -45,9 +100,9 @@ function EventsModule({
               </button>
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <Badge variant="secondary" className="mb-2 bg-accent text-accent-foreground">
-                  {event.category}
+                  {event.category || "Evento"}
                 </Badge>
-                <h3 className="font-bold text-lg text-white">{event.title}</h3>
+                <h3 className="font-bold text-lg text-white">{title}</h3>
               </div>
             </div>
             <div className="p-4 space-y-2">
@@ -63,13 +118,13 @@ function EventsModule({
               </div>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />
-                <span className="truncate">{typeof event.location === 'object' ? `${event.location.name}, ${event.location.city}` : event.location}</span>
+                <span className="truncate">{location}</span>
               </div>
               <div className="flex items-center justify-between pt-2">
-                <span className="font-bold text-accent">A partir de R$ {(event.price || 0).toFixed(2).replace(".", ",")}</span>
+                <span className="font-bold text-accent">A partir de R$ {price.toFixed(2).replace(".", ",")}</span>
                 <Badge variant="outline" className="gap-1">
                   <Users className="w-3 h-3" />
-                  {event.capacity} vagas
+                  {capacity} vagas
                 </Badge>
               </div>
             </div>
@@ -112,7 +167,7 @@ function EventDetailDrawer({
   onClose,
   onBuyTicket
 }: { 
-  event: Event | null
+  event: EventLike | null
   isOpen: boolean
   onClose: () => void
   onBuyTicket: () => void
@@ -120,17 +175,21 @@ function EventDetailDrawer({
   if (!event) return null
   
   const eventDate = new Date(event.date)
+  const title = getEventTitle(event)
+  const price = getEventPrice(event)
+  const location = getEventLocationLabel(event)
+  const artists = getEventArtists(event)
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={event.title} size="lg">
+    <ActionDrawer isOpen={isOpen} onClose={onClose} title={title} size="lg">
       <div className="space-y-6">
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
-          <Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={event.title} fill className="object-cover" />
+          <Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={title} fill className="object-cover" />
         </div>
         
         <div>
-          <Badge variant="secondary" className="mb-2">{event.category}</Badge>
-          <h2 className="text-xl font-bold">{event.title}</h2>
+          <Badge variant="secondary" className="mb-2">{event.category || "Evento"}</Badge>
+          <h2 className="text-xl font-bold">{title}</h2>
           <p className="text-muted-foreground mt-2">{event.description}</p>
         </div>
         
@@ -142,15 +201,15 @@ function EventDetailDrawer({
           </div>
           <div className="p-3 bg-secondary/50 rounded-xl">
             <MapPin className="w-5 h-5 text-accent mb-1" />
-            <p className="font-medium text-sm line-clamp-2">{typeof event.location === 'object' ? `${event.location.name}, ${event.location.city}` : event.location}</p>
+            <p className="font-medium text-sm line-clamp-2">{location}</p>
           </div>
         </div>
         
-        {event.artists && event.artists.length > 0 && (
+        {artists.length > 0 && (
           <div>
             <h4 className="font-medium mb-3">Artistas</h4>
             <div className="flex flex-wrap gap-2">
-              {event.artists.map((artist, idx) => (
+              {artists.map((artist, idx) => (
                 <Badge key={idx} variant="outline">{artist}</Badge>
               ))}
             </div>
@@ -160,7 +219,7 @@ function EventDetailDrawer({
         <div className="bg-secondary/50 rounded-xl p-4">
           <div className="flex items-baseline justify-between mb-3">
             <span className="text-sm text-muted-foreground">A partir de</span>
-            <span className="text-2xl font-bold text-accent">R$ {event.price.toFixed(2).replace(".", ",")}</span>
+            <span className="text-2xl font-bold text-accent">R$ {price.toFixed(2).replace(".", ",")}</span>
           </div>
           <Button className="w-full h-12" onClick={onBuyTicket}>
             <Ticket className="w-5 h-5 mr-2" />
@@ -176,7 +235,7 @@ function EventDetailDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function EventsFeed() {
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<EventLike | null>(null)
   const [eventDrawerOpen, setEventDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
@@ -270,11 +329,11 @@ export function EventsFeed() {
       >
         {selectedEvent && (
           <TicketCheckout
-            eventName={selectedEvent.title}
+            eventName={getEventTitle(selectedEvent)}
             eventDate={selectedEvent.date}
             eventTime={selectedEvent.time}
-            eventLocation={selectedEvent.location}
-            ticketPrice={selectedEvent.price}
+            eventLocation={getEventLocationLabel(selectedEvent)}
+            ticketPrice={getEventPrice(selectedEvent)}
             onComplete={() => {
               setCheckoutOpen(false)
               setSelectedEvent(null)

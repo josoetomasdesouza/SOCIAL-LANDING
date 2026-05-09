@@ -176,11 +176,10 @@ export function InfluencerFeed() {
         id: v.id,
         type: "video" as const,
         title: v.title,
-        content: v.description,
-        image: v.thumbnail,
-        author: { name: influencerConfig.name, avatar: influencerConfig.logo },
-        stats: { likes: v.views, comments: Math.floor(v.views / 50) },
-        metadata: { duration: v.duration }
+        description: v.description,
+        image: v.image || v.thumbnail,
+        duration: v.duration,
+        views: v.views
       }))
     },
     // Posts
@@ -191,11 +190,8 @@ export function InfluencerFeed() {
       posts: content.socialPosts.map(p => ({
         id: p.id,
         type: "social" as const,
-        title: "",
-        content: p.content,
-        image: p.image,
-        author: { name: influencerConfig.name, avatar: influencerConfig.logo },
-        stats: { likes: p.likes, comments: p.comments }
+        title: p.content,
+        image: p.image
       }))
     }
   ]

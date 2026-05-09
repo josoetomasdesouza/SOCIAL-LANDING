@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Clock, MapPin, Star, Flame, Leaf, ShoppingBag, Plus, Minus, X, Play, Truck, Newspaper } from "lucide-react"
+import { Star, Flame, Leaf, ShoppingBag, Plus, Minus, Play, Truck, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { RestaurantCheckout } from "../checkout-flows"
@@ -13,7 +14,17 @@ import { restaurantContent } from "@/lib/mock-data/business-content"
 import type { MenuItem } from "@/lib/business-types"
 
 interface CartItem extends MenuItem {
+  cartKey: string
   quantity: number
+  note?: string
+}
+
+function getMenuItemForPost(title: string, description?: string) {
+  const text = `${title} ${description || ""}`.toLowerCase()
+  return menuItems.find((item) => (
+    text.includes(item.name.toLowerCase()) ||
+    item.name.toLowerCase().split(" ").some((part) => part.length > 4 && text.includes(part))
+  )) || menuItems.find(item => item.popular) || menuItems[0]
 }
 
 // ========================================
@@ -33,32 +44,39 @@ function MenuModule({
       {/* Destaques */}
       <div className="grid grid-cols-2 gap-3">
         {popularItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onSelectItem(item)}
-            className="text-left group"
-          >
-            <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
-              <Image src={item.image || ""} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-              {item.tags?.includes("Picante") && (
-                <Badge className="absolute top-2 left-2 bg-red-500 text-white border-0 gap-1">
-                  <Flame className="w-3 h-3" />
-                  Picante
-                </Badge>
-              )}
-              {item.tags?.includes("Vegano") && (
-                <Badge className="absolute top-2 left-2 bg-green-500 text-white border-0 gap-1">
-                  <Leaf className="w-3 h-3" />
-                  Vegano
-                </Badge>
-              )}
-            </div>
-            <div className="mt-2">
-              <p className="font-medium text-foreground line-clamp-1">{item.name}</p>
-              <p className="text-sm text-muted-foreground line-clamp-1">{item.description}</p>
-              <p className="font-bold text-accent mt-1">R$ {item.price.toFixed(2).replace(".", ",")}</p>
-            </div>
-          </button>
+          <div key={item.id} className="text-left group">
+            <button onClick={() => onSelectItem(item)} className="w-full text-left">
+              <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
+                <Image src={item.image || ""} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                {item.tags?.includes("Picante") && (
+                  <Badge className="absolute top-2 left-2 bg-red-500 text-white border-0 gap-1">
+                    <Flame className="w-3 h-3" />
+                    Picante
+                  </Badge>
+                )}
+                {item.tags?.includes("Vegano") && (
+                  <Badge className="absolute top-2 left-2 bg-green-500 text-white border-0 gap-1">
+                    <Leaf className="w-3 h-3" />
+                    Vegano
+                  </Badge>
+                )}
+              </div>
+              <div className="mt-2">
+                <p className="font-medium text-foreground line-clamp-1">{item.name}</p>
+                <p className="text-sm text-muted-foreground line-clamp-1">{item.description}</p>
+                <p className="font-bold text-accent mt-1">R$ {item.price.toFixed(2).replace(".", ",")}</p>
+              </div>
+            </button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full mt-2 h-9 rounded-xl"
+              onClick={() => onAddToCart(item)}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Adicionar
+            </Button>
+          </div>
         ))}
       </div>
       
@@ -116,9 +134,16 @@ function ItemDetailDrawer({
   item: MenuItem | null
   isOpen: boolean
   onClose: () => void
-  onAddToCart: (item: MenuItem, qty: number) => void
+  onAddToCart: (item: MenuItem, qty: number, note?: string) => void
 }) {
   const [quantity, setQuantity] = useState(1)
+  const [note, setNote] = useState("")
+
+  useEffect(() => {
+    if (!isOpen) return
+    setQuantity(1)
+    setNote("")
+  }, [isOpen, item?.id])
   
   if (!item) return null
   
@@ -151,8 +176,37 @@ function ItemDetailDrawer({
             </Button>
           </div>
         </div>
+
+        {item.customizations && item.customizations.length > 0 && (
+          <div className="space-y-3">
+            {item.customizations.map((customization) => (
+              <div key={customization.id} className="p-4 rounded-xl border border-border bg-secondary/30">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium">{customization.name}</p>
+                  {customization.required && <Badge variant="secondary">Obrigatorio</Badge>}
+                </div>
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  {customization.options.map((option) => (
+                    <div key={option.id} className="flex justify-between">
+                      <span>{option.name}</span>
+                      <span>{option.price > 0 ? `+ R$ ${option.price.toFixed(2).replace(".", ",")}` : "Incluso"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Textarea
+          placeholder="Observacao para a cozinha (opcional)"
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          className="rounded-xl resize-none"
+          rows={3}
+        />
         
-        <Button className="w-full h-12" onClick={() => { onAddToCart(item, quantity); onClose() }}>
+        <Button className="w-full h-12" onClick={() => { onAddToCart(item, quantity, note); setQuantity(1); setNote(""); onClose() }}>
           <ShoppingBag className="w-5 h-5 mr-2" />
           Adicionar R$ {(item.price * quantity).toFixed(2).replace(".", ",")}
         </Button>
@@ -174,7 +228,7 @@ function CartDrawer({
   isOpen: boolean
   onClose: () => void
   cart: CartItem[]
-  onUpdateQuantity: (id: string, qty: number) => void
+  onUpdateQuantity: (cartKey: string, qty: number) => void
   onCheckout: () => void
 }) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -194,20 +248,21 @@ function CartDrawer({
           <>
             <div className="flex-1 space-y-3 overflow-auto">
               {cart.map((item) => (
-                <div key={item.id} className="flex gap-3 p-3 bg-secondary/50 rounded-xl">
+                <div key={item.cartKey} className="flex gap-3 p-3 bg-secondary/50 rounded-xl">
                   <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                     <Image src={item.image || ""} alt={item.name} fill className="object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium line-clamp-1">{item.name}</p>
+                    {item.note && <p className="text-xs text-muted-foreground line-clamp-1">Obs: {item.note}</p>}
                     <p className="font-bold text-accent">R$ {item.price.toFixed(2).replace(".", ",")}</p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.cartKey, item.quantity - 1)}>
                       <Minus className="w-3 h-3" />
                     </Button>
                     <span className="w-6 text-center text-sm">{item.quantity}</span>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.cartKey, item.quantity + 1)}>
                       <Plus className="w-3 h-3" />
                     </Button>
                   </div>
@@ -231,7 +286,7 @@ function CartDrawer({
                 <span className="text-accent">R$ {total.toFixed(2).replace(".", ",")}</span>
               </div>
               <Button className="w-full h-12 mt-2" onClick={onCheckout}>
-                Finalizar pedido
+                Finalizar pedido · R$ {total.toFixed(2).replace(".", ",")}
               </Button>
             </div>
           </>
@@ -251,24 +306,34 @@ export function RestaurantFeed() {
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [cart, setCart] = useState<CartItem[]>([])
   
-  const handleAddToCart = (item: MenuItem, qty: number = 1) => {
+  const handleAddToCart = (item: MenuItem, qty: number = 1, note?: string) => {
     setCart(prev => {
-      const existing = prev.find(i => i.id === item.id)
+      const existing = prev.find(i => i.id === item.id && (i.note || "") === (note || ""))
       if (existing) {
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + qty } : i)
+        return prev.map(i => i.id === item.id && (i.note || "") === (note || "") ? { ...i, quantity: i.quantity + qty } : i)
       }
-      return [...prev, { ...item, quantity: qty }]
+      return [...prev, { ...item, cartKey: `${item.id}-${Date.now()}`, quantity: qty, note }]
     })
   }
   
-  const handleUpdateQuantity = (id: string, qty: number) => {
+  const handleUpdateQuantity = (cartKey: string, qty: number) => {
     if (qty <= 0) {
-      setCart(prev => prev.filter(i => i.id !== id))
+      setCart(prev => prev.filter(i => i.cartKey !== cartKey))
     } else {
-      setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: qty } : i))
+      setCart(prev => prev.map(i => i.cartKey === cartKey ? { ...i, quantity: qty } : i))
     }
   }
   
+  const handleSelectCategory = (category: string) => {
+    const categoryName = menuCategories.find((cat) => cat.id === category)?.name
+    const item = menuItems.find((menuItem) => menuItem.category === categoryName)
+
+    if (item) {
+      setSelectedItem(item)
+      setItemDrawerOpen(true)
+    }
+  }
+
   const sections: BusinessSection[] = [
     {
       id: "menu",
@@ -286,7 +351,7 @@ export function RestaurantFeed() {
       id: "categories",
       title: "Cardapio",
       type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+      customContent: <CategoriesModule onSelectCategory={handleSelectCategory} />
     },
     {
       id: "videos",
@@ -318,6 +383,7 @@ export function RestaurantFeed() {
   ]
 
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
+  const cartSubtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0)
   
   return (
     <>
@@ -325,7 +391,16 @@ export function RestaurantFeed() {
         config={restaurantConfig}
         stories={restaurantContent.stories}
         sections={sections}
-        onPostClick={() => {}}
+        getPostActionLabel={(post) => {
+          if (post.type === "video" || post.type === "video-vertical" || post.type === "social") return "Pedir agora"
+          if (post.type === "review") return "Ver mais pedidos"
+          return undefined
+        }}
+        onPostAction={(post) => {
+          const item = getMenuItemForPost(post.title, post.description)
+          setSelectedItem(item)
+          setItemDrawerOpen(true)
+        }}
         footerLinks={[
           { label: "Sobre", href: "#" },
           { label: "Cardapio", href: "#" },
@@ -338,7 +413,7 @@ export function RestaurantFeed() {
           <div className="max-w-lg mx-auto">
             <Button className="w-full h-12" onClick={() => setCartDrawerOpen(true)}>
               <ShoppingBag className="w-5 h-5 mr-2" />
-              Ver pedido ({cartCount} {cartCount === 1 ? "item" : "itens"})
+              Ver pedido ({cartCount} {cartCount === 1 ? "item" : "itens"}) · R$ {cartSubtotal.toFixed(2).replace(".", ",")}
             </Button>
           </div>
         </div>
@@ -371,6 +446,8 @@ export function RestaurantFeed() {
         <RestaurantCheckout
           items={cart}
           deliveryInfo={deliveryInfo}
+          restaurantName={restaurantConfig.name}
+          whatsappNumber={restaurantConfig.whatsapp}
           onComplete={() => {
             setCheckoutOpen(false)
             setCart([])

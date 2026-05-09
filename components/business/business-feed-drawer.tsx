@@ -17,6 +17,8 @@ interface BusinessFeedDrawerProps {
   brandLogo: string
   brandName: string
   onAddToCart?: (post: BusinessPost) => void
+  getPostActionLabel?: (post: BusinessPost) => string | undefined
+  onPostAction?: (post: BusinessPost) => void
 }
 
 // Avatar do usuario
@@ -213,7 +215,9 @@ export function BusinessFeedDrawer({
   category, 
   brandLogo,
   brandName,
-  onAddToCart
+  onAddToCart,
+  getPostActionLabel,
+  onPostAction
 }: BusinessFeedDrawerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const initialPostRef = useRef<HTMLDivElement>(null)
@@ -299,6 +303,7 @@ export function BusinessFeedDrawer({
                 const aiMessages = aiInitialMessages[post.type] || aiInitialMessages.social
                 const aiMessage = aiMessages[index % aiMessages.length]
                 const showConversation = index % 3 === 0
+                const postActionLabel = getPostActionLabel?.(post)
 
                 return (
                   <article 
@@ -438,7 +443,7 @@ export function BusinessFeedDrawer({
                     <div className="mt-4 pt-4 border-t border-border/30">
                       {showConversation ? (
                         <SimulatedChat
-                          messages={[{ content: aiMessage, isUser: false }]}
+                          messages={[{ text: aiMessage, isUser: false }]}
                           brandLogo={brandLogo}
                           userAvatar={userAvatar}
                           placeholder={placeholder}
@@ -452,8 +457,21 @@ export function BusinessFeedDrawer({
                       )}
                     </div>
 
-                    {/* CTA (apenas produtos) */}
-                    {post.type === "product" && (
+                    {/* CTA contextual do modelo de negocio */}
+                    {postActionLabel && onPostAction && (
+                      <Button
+                        onClick={() => {
+                          onPostAction(post)
+                          onClose()
+                        }}
+                        className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-base font-semibold rounded-xl"
+                      >
+                        {postActionLabel}
+                      </Button>
+                    )}
+
+                    {/* CTA (apenas produtos com carrinho conectado) */}
+                    {post.type === "product" && onAddToCart && (
                       <Button 
                         onClick={() => onAddToCart?.(post)}
                         className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-base font-semibold rounded-xl"

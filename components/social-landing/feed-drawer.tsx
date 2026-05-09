@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useCallback } from "react"
+import { useEffect, useMemo, useRef, useCallback, useState } from "react"
 import Image from "next/image"
 import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Send } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -152,10 +152,19 @@ function SocialProofWithAvatars({ type, index }: { type: string; index: number }
 
 // Social Actions - Botoes de interacao
 function SocialActions() {
+  const [liked, setLiked] = useState(false)
+  const [saved, setSaved] = useState(false)
+
   return (
     <div className="flex items-center gap-1">
-      <button className="p-2 hover:bg-red-500/10 hover:text-red-500 rounded-full transition-all duration-200 active:scale-90">
-        <Heart className="w-6 h-6" />
+      <button
+        onClick={() => setLiked(!liked)}
+        className={cn(
+          "p-2 rounded-full transition-all duration-200 active:scale-90",
+          liked ? "text-red-500" : "hover:bg-red-500/10 hover:text-red-500"
+        )}
+      >
+        <Heart className={cn("w-6 h-6", liked && "fill-current")} />
       </button>
       <button className="p-2 hover:bg-accent/10 hover:text-accent rounded-full transition-all duration-200 active:scale-90">
         <MessageCircle className="w-6 h-6" />
@@ -163,8 +172,14 @@ function SocialActions() {
       <button className="p-2 hover:bg-accent/10 hover:text-accent rounded-full transition-all duration-200 active:scale-90">
         <Share className="w-6 h-6" />
       </button>
-      <button className="p-2 hover:bg-accent/10 hover:text-accent rounded-full transition-all duration-200 ml-auto active:scale-90">
-        <Bookmark className="w-6 h-6" />
+      <button
+        onClick={() => setSaved(!saved)}
+        className={cn(
+          "p-2 rounded-full transition-all duration-200 ml-auto active:scale-90",
+          saved ? "text-accent" : "hover:bg-accent/10 hover:text-accent"
+        )}
+      >
+        <Bookmark className={cn("w-6 h-6", saved && "fill-current")} />
       </button>
     </div>
   )
@@ -430,9 +445,9 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
                             )}
                           />
                         ))}
-                        {post.author && (
+                        {(post.author?.name || post.reviewerName) && (
                           <span className="text-sm text-muted-foreground ml-2">
-                            por {post.author.name}
+                            por {post.author?.name || post.reviewerName}
                           </span>
                         )}
                       </div>

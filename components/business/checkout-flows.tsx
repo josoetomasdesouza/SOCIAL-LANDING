@@ -15,8 +15,8 @@ interface ConfirmationScreenProps {
   title: string
   subtitle?: string
   details: Array<{ label: string; value: string }>
-  primaryAction?: { label: string; onClick: () => void }
-  secondaryAction?: { label: string; onClick: () => void }
+  primaryAction?: { label: string; onClick: () => void; href?: string }
+  secondaryAction?: { label: string; onClick: () => void; href?: string }
 }
 
 export function ConfirmationScreen({
@@ -54,10 +54,19 @@ export function ConfirmationScreen({
           </Button>
         )}
         {primaryAction && (
-          <Button className="flex-1 gap-2" onClick={primaryAction.onClick}>
-            <Phone className="w-4 h-4" />
-            {primaryAction.label}
-          </Button>
+          primaryAction.href ? (
+            <Button className="flex-1 gap-2" asChild>
+              <a href={primaryAction.href} target="_blank" rel="noopener noreferrer" onClick={primaryAction.onClick}>
+                <Phone className="w-4 h-4" />
+                {primaryAction.label}
+              </a>
+            </Button>
+          ) : (
+            <Button className="flex-1 gap-2" onClick={primaryAction.onClick}>
+              <Phone className="w-4 h-4" />
+              {primaryAction.label}
+            </Button>
+          )
         )}
       </div>
     </div>
@@ -251,22 +260,51 @@ interface DeliveryInfoType {
   freeDeliveryMinimum?: number
 }
 
+interface RestaurantCheckoutItem {
+  name: string
+  image?: string
+  price: number
+  quantity: number
+  note?: string
+}
+
 interface RestaurantCheckoutProps {
-  items: Array<{ name: string; image?: string; price: number; quantity: number }>
+  items: RestaurantCheckoutItem[]
   deliveryInfo: DeliveryInfoType
+  restaurantName?: string
+  whatsappNumber?: string
   onComplete: () => void
   onBack: () => void
 }
 
-export function RestaurantCheckout({ items, deliveryInfo, onComplete, onBack }: RestaurantCheckoutProps) {
+export function RestaurantCheckout({ items, deliveryInfo, restaurantName = "Restaurante", whatsappNumber, onComplete, onBack }: RestaurantCheckoutProps) {
   const [step, setStep] = useState<"address" | "payment" | "confirmation">("address")
   const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery")
-  const [formData, setFormData] = useState({ address: "", complement: "", phone: "", note: "" })
+  const [paymentMethod, setPaymentMethod] = useState("PIX")
+  const [formData, setFormData] = useState({ name: "", address: "", complement: "", phone: "", note: "" })
   
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const meetsMinimumOrder = deliveryType === "pickup" || subtotal >= deliveryInfo.minOrder
   const isFreeDelivery = deliveryInfo.freeDeliveryMinimum ? subtotal >= deliveryInfo.freeDeliveryMinimum : false
   const deliveryFee = deliveryType === "delivery" && !isFreeDelivery ? deliveryInfo.deliveryFee : 0
   const total = subtotal + deliveryFee
+  const canContinue = Boolean(formData.name.trim() && formData.phone.trim() && (deliveryType === "pickup" || formData.address.trim()) && meetsMinimumOrder)
+  const orderSummary = [
+    `Ola! Quero fazer um pedido no ${restaurantName}:`,
+    "",
+    ...items.map((item) => `${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2).replace(".", ",")}${item.note ? `\n  Obs: ${item.note}` : ""}`),
+    "",
+    `Tipo: ${deliveryType === "delivery" ? "Entrega" : "Retirada"}`,
+    deliveryType === "delivery" ? `Endereco: ${formData.address}${formData.complement ? ` - ${formData.complement}` : ""}` : "Retirada no local",
+    `Cliente: ${formData.name}`,
+    `Telefone: ${formData.phone}`,
+    `Pagamento: ${paymentMethod}`,
+    formData.note ? `Observacoes: ${formData.note}` : "",
+    `Total: R$ ${total.toFixed(2).replace(".", ",")}`,
+  ].filter(Boolean).join("\n")
+  const whatsappHref = whatsappNumber
+    ? `https://wa.me/${whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent(orderSummary)}`
+    : undefined
   
   if (step === "confirmation") {
     return (
@@ -278,10 +316,11 @@ export function RestaurantCheckout({ items, deliveryInfo, onComplete, onBack }: 
           { label: "Numero do pedido", value: `#${Math.floor(Math.random() * 9000) + 1000}` },
           { label: "Total", value: `R$ ${total.toFixed(2).replace(".", ",")}` },
           { label: "Tempo estimado", value: deliveryType === "delivery" ? deliveryInfo.estimatedTime : "20-25 min" },
-          { label: "Entrega", value: isFreeDelivery ? "Gratis" : `R$ ${deliveryFee.toFixed(2).replace(".", ",")}` }
+          { label: "Entrega", value: deliveryType === "pickup" ? "Retirada" : isFreeDelivery ? "Gratis" : `R$ ${deliveryFee.toFixed(2).replace(".", ",")}` },
+          { label: "Pagamento", value: paymentMethod }
         ]}
-        primaryAction={{ label: "WhatsApp", onClick: onComplete }}
-        secondaryAction={{ label: "Acompanhar", onClick: onComplete }}
+        primaryAction={{ label: "Enviar WhatsApp", href: whatsappHref, onClick: onComplete }}
+        secondaryAction={{ label: "Fechar", onClick: onComplete }}
       />
     )
   }
@@ -335,9 +374,15 @@ export function RestaurantCheckout({ items, deliveryInfo, onComplete, onBack }: 
               />
             </div>
           )}
+
+          <Input
+            placeholder="Seu nome"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          />
           
           <Input
-            placeholder="Telefone para contato"
+            placeholder="WhatsApp para contato"
             value={formData.phone}
             onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
           />
@@ -359,32 +404,47 @@ export function RestaurantCheckout({ items, deliveryInfo, onComplete, onBack }: 
                 <span>R$ {deliveryFee.toFixed(2).replace(".", ",")}</span>
               </div>
             )}
+            {deliveryType === "delivery" && !meetsMinimumOrder && (
+              <p className="text-xs text-destructive">
+                Pedido minimo para entrega: R$ {deliveryInfo.minOrder.toFixed(2).replace(".", ",")}
+              </p>
+            )}
             <div className="flex justify-between font-bold pt-2 border-t border-border">
               <span>Total</span>
               <span>R$ {total.toFixed(2).replace(".", ",")}</span>
             </div>
           </div>
           
-          <Button className="w-full h-12" onClick={() => setStep("payment")}>
+          <Button className="w-full h-12" onClick={() => setStep("payment")} disabled={!canContinue}>
             Escolher pagamento
           </Button>
         </>
       ) : (
         <>
-          <h3 className="font-semibold">Forma de pagamento</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Forma de pagamento</h3>
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              Voltar ao carrinho
+            </Button>
+          </div>
           
           <div className="space-y-2">
-            {["Cartao na entrega", "Dinheiro", "PIX"].map((method) => (
+            {["PIX", "Cartao na entrega", "Dinheiro"].map((method) => (
               <button
                 key={method}
-                onClick={() => setStep("confirmation")}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-border hover:border-accent transition-colors"
+                onClick={() => setPaymentMethod(method)}
+                className={`w-full flex items-center justify-between p-4 rounded-xl border transition-colors ${
+                  paymentMethod === method ? "border-accent bg-accent/10 text-accent" : "border-border hover:border-accent"
+                }`}
               >
                 <span>{method}</span>
                 <Check className="w-5 h-5 text-muted-foreground" />
               </button>
             ))}
           </div>
+          <Button className="w-full h-12" onClick={() => setStep("confirmation")}>
+            Gerar resumo do pedido
+          </Button>
         </>
       )}
     </div>

@@ -13,10 +13,30 @@ import { healthConfig, healthProfessionals, healthServices } from "@/lib/mock-da
 import { healthContent } from "@/lib/mock-data/business-content"
 import type { HealthProfessional } from "@/lib/business-types"
 
+type HealthProfessionalView = HealthProfessional & {
+  specialty?: string
+  title?: string
+  reviewCount?: number
+  totalConsults?: number
+  consultationPrice?: number
+}
+
+function getProfessionalSpecialty(professional: HealthProfessionalView) {
+  return professional.specialty || professional.title || professional.specialties?.[0] || "Especialista"
+}
+
+function getProfessionalReviewCount(professional: HealthProfessionalView) {
+  return professional.reviewCount || professional.totalConsults || 0
+}
+
+function getProfessionalPrice(professional: HealthProfessionalView) {
+  return professional.consultationPrice || 0
+}
+
 // ========================================
 // MODULO: PROFISSIONAIS (OBJETIVO PRINCIPAL)
 // ========================================
-function ProfessionalsModule({ onSelectProfessional }: { onSelectProfessional: (prof: HealthProfessional) => void }) {
+function ProfessionalsModule({ onSelectProfessional }: { onSelectProfessional: (prof: HealthProfessionalView) => void }) {
   return (
     <div className="space-y-4">
       {healthProfessionals.slice(0, 3).map((prof) => (
@@ -30,7 +50,7 @@ function ProfessionalsModule({ onSelectProfessional }: { onSelectProfessional: (
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold">{prof.name}</h3>
-            <p className="text-sm text-muted-foreground">{prof.specialty}</p>
+            <p className="text-sm text-muted-foreground">{getProfessionalSpecialty(prof)}</p>
             <div className="flex items-center gap-3 mt-1">
               <span className="flex items-center gap-1 text-sm">
                 <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -45,7 +65,7 @@ function ProfessionalsModule({ onSelectProfessional }: { onSelectProfessional: (
             </div>
           </div>
           <div className="text-right">
-            <p className="font-bold text-accent">R$ {prof.consultationPrice?.toFixed(2).replace(".", ",")}</p>
+            <p className="font-bold text-accent">R$ {getProfessionalPrice(prof).toFixed(2).replace(".", ",")}</p>
             <p className="text-xs text-muted-foreground">consulta</p>
           </div>
         </button>
@@ -86,7 +106,7 @@ function ProfessionalDrawer({
   onClose,
   onSchedule
 }: { 
-  professional: HealthProfessional | null
+  professional: HealthProfessionalView | null
   isOpen: boolean
   onClose: () => void
   onSchedule: (date: string, time: string) => void
@@ -105,10 +125,10 @@ function ProfessionalDrawer({
           </div>
           <div>
             <h3 className="font-semibold">{professional.name}</h3>
-            <p className="text-sm text-muted-foreground">{professional.specialty}</p>
+            <p className="text-sm text-muted-foreground">{getProfessionalSpecialty(professional)}</p>
             <div className="flex items-center gap-1 mt-1">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm">{professional.rating} ({professional.reviewCount} avaliacoes)</span>
+              <span className="text-sm">{professional.rating} ({getProfessionalReviewCount(professional)} avaliacoes)</span>
             </div>
           </div>
         </div>
@@ -134,7 +154,7 @@ function ProfessionalDrawer({
         <div className="bg-secondary/50 rounded-xl p-4">
           <div className="flex items-baseline justify-between mb-3">
             <span className="text-sm text-muted-foreground">Valor da consulta</span>
-            <span className="text-xl font-bold text-accent">R$ {professional.consultationPrice?.toFixed(2).replace(".", ",")}</span>
+            <span className="text-xl font-bold text-accent">R$ {getProfessionalPrice(professional).toFixed(2).replace(".", ",")}</span>
           </div>
           <Button 
             className="w-full h-12"
@@ -158,7 +178,7 @@ function ProfessionalDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function HealthFeed() {
-  const [selectedProfessional, setSelectedProfessional] = useState<HealthProfessional | null>(null)
+  const [selectedProfessional, setSelectedProfessional] = useState<HealthProfessionalView | null>(null)
   const [professionalDrawerOpen, setProfessionalDrawerOpen] = useState(false)
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [bookedDate, setBookedDate] = useState<string | null>(null)
@@ -245,10 +265,11 @@ export function HealthFeed() {
         {selectedProfessional && bookedDate && bookedTime && (
           <AppointmentConfirmation
             professionalName={selectedProfessional.name}
-            professionalRole={selectedProfessional.specialty}
+            professionalRole={getProfessionalSpecialty(selectedProfessional)}
             professionalAvatar={selectedProfessional.avatar}
             date={bookedDate}
             time={bookedTime}
+            price={getProfessionalPrice(selectedProfessional)}
             onClose={() => {
               setConfirmationOpen(false)
               setSelectedProfessional(null)

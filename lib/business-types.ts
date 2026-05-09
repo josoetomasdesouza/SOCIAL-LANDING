@@ -131,12 +131,13 @@ export interface Insurance {
 }
 
 export interface BusinessConfig {
-  model: BusinessModel
+  model?: BusinessModel
   name: string
   logo: string
   coverImage: string
   description: string
-  primaryColor: string
+  primaryColor?: string
+  brandColor?: string
   whatsapp?: string
   instagram?: string
   address?: string

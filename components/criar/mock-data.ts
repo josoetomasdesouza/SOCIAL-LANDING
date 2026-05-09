@@ -490,12 +490,24 @@ export const MOCK_SECTIONS: Record<string, any[]> = {
   ]
 }
 
+const CATEGORY_ALIASES: Record<string, string> = {
+  appointment: "salon",
+  courses: "education",
+  professionals: "professional",
+}
+
+export function normalizeMockCategory(category?: string) {
+  if (!category) return "institutional"
+  return CATEGORY_ALIASES[category] || category
+}
+
 // Funcao para mesclar dados do usuario com mock
 export function mergeWithMock(userData: any, category: string) {
-  const mockConfig = MOCK_CONFIGS[category] || MOCK_CONFIGS.institutional
-  const mockStories = MOCK_STORIES[category] || MOCK_STORIES.institutional
-  const mockPosts = MOCK_POSTS[category] || MOCK_POSTS.institutional
-  const mockSections = MOCK_SECTIONS[category] || MOCK_SECTIONS.institutional
+  const normalizedCategory = normalizeMockCategory(category)
+  const mockConfig = MOCK_CONFIGS[normalizedCategory] || MOCK_CONFIGS.institutional
+  const mockStories = MOCK_STORIES[normalizedCategory] || MOCK_STORIES.institutional
+  const mockPosts = MOCK_POSTS[normalizedCategory] || MOCK_POSTS.institutional
+  const mockSections = MOCK_SECTIONS[normalizedCategory] || MOCK_SECTIONS.institutional
 
   return {
     config: {

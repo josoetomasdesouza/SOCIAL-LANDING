@@ -732,7 +732,7 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
 
       {/* Secao: Shorts (video vertical) */}
       {videoVertical.length > 0 && (
-        <section>
+        <section id="section-shorts">
           <SectionHeader icon={Play} title="Em alta agora" />
           {videoVertical.slice(0, 2).map((post, index) => (
             <VideoVerticalCard 

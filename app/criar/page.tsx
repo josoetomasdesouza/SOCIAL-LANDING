@@ -5,13 +5,12 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, Globe, Loader2, Check, AlertCircle, Sparkles, ArrowLeft, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
 import type { ExtractedBrandData } from "@/app/api/extract-brand/route"
 import { BusinessModelSelector } from "@/components/criar/business-model-selector"
 import { BrandFormFields } from "@/components/criar/brand-form-fields"
 import { BrandPreview } from "@/components/criar/brand-preview"
 import Link from "next/link"
-import Image from "next/image"
+import { createLandingDraft, getLandingUrl, saveLandingDraft, slugifyLandingName } from "@/lib/landing-storage"
 
 type Step = "url" | "extracting" | "review" | "complete"
 
@@ -36,6 +35,9 @@ export default function CriarPage() {
   const [extractedData, setExtractedData] = useState<ExtractedBrandData | null>(null)
   const [brandData, setBrandData] = useState<BrandData | null>(null)
   const [extractionStep, setExtractionStep] = useState(0)
+  const effectiveBrandData = brandData || extractedData
+  const landingSlug = effectiveBrandData?.name ? slugifyLandingName(effectiveBrandData.name) : "suamarca"
+  const landingUrl = getLandingUrl(landingSlug)
   
   // Animacao dos steps de extracao
   useEffect(() => {
@@ -72,14 +74,11 @@ export default function CriarPage() {
       }
       
       setExtractedData(data)
-      
-      if (data.confidence >= 70 && data.name && data.businessModel) {
-        setBrandData({
-          ...data,
-          name: data.name,
-          businessModel: data.businessModel
-        })
-      }
+      setBrandData({
+        ...data,
+        name: data.name || "",
+        businessModel: data.businessModel || ""
+      })
       
       setStep("review")
       
@@ -91,26 +90,51 @@ export default function CriarPage() {
   
   const handleSkipUrl = useCallback(() => {
     setExtractedData(null)
-    setBrandData(null)
+    setBrandData({ name: "", businessModel: "" })
     setStep("review")
   }, [])
   
   const handleUpdateBrand = useCallback((updates: Partial<BrandData>) => {
-    setBrandData(prev => prev ? { ...prev, ...updates } : { name: "", businessModel: "", ...updates })
-  }, [])
+    setBrandData(prev => ({
+      name: extractedData?.name || "",
+      businessModel: extractedData?.businessModel || "",
+      ...(extractedData || {}),
+      ...(prev || {}),
+      ...updates
+    }))
+  }, [extractedData])
   
   const handleCreate = useCallback(() => {
-    if (!brandData?.name || !brandData?.businessModel) {
+    if (!effectiveBrandData?.name || !effectiveBrandData?.businessModel) {
       setError("Preencha o nome e selecione a categoria")
       return
     }
+    const draft = createLandingDraft({
+      name: effectiveBrandData.name,
+      businessModel: effectiveBrandData.businessModel,
+      description: effectiveBrandData.description || undefined,
+      whatsapp: effectiveBrandData.socialLinks?.whatsapp,
+      instagram: effectiveBrandData.socialLinks?.instagram,
+      website: effectiveBrandData.website || undefined,
+      logo: effectiveBrandData.logo || undefined,
+      cover: effectiveBrandData.logo || undefined,
+      primaryColor: effectiveBrandData.primaryColor || undefined,
+      sourceUrl: url.trim() || undefined,
+      status: "draft",
+    })
+    saveLandingDraft(draft)
+    setBrandData({ ...effectiveBrandData, name: draft.name, businessModel: draft.businessModel })
     setStep("complete")
-  }, [brandData])
+  }, [effectiveBrandData, url])
   
   const handleBack = useCallback(() => {
     setStep("url")
     setError(null)
   }, [])
+
+  const handleCopyLandingUrl = useCallback(async () => {
+    await navigator.clipboard?.writeText(window.location.origin + landingUrl)
+  }, [landingUrl])
   
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -381,7 +405,7 @@ export default function CriarPage() {
                   <div className="lg:col-span-3 space-y-6">
                     <div className="bg-card border border-border/50 rounded-2xl p-6 space-y-6">
                       <BrandFormFields
-                        data={brandData || extractedData}
+                        data={effectiveBrandData}
                         missingFields={extractedData?.missingFields || ["name", "businessModel"]}
                         onChange={handleUpdateBrand}
                       />
@@ -390,7 +414,7 @@ export default function CriarPage() {
                     <div className="bg-card border border-border/50 rounded-2xl p-6">
                       <h3 className="font-semibold mb-4">Categoria do negocio</h3>
                       <BusinessModelSelector
-                        selected={brandData?.businessModel || extractedData?.businessModel || null}
+                        selected={effectiveBrandData?.businessModel || null}
                         onSelect={(model) => handleUpdateBrand({ businessModel: model })}
                       />
                     </div>
@@ -413,7 +437,7 @@ export default function CriarPage() {
                       onClick={handleCreate}
                       size="lg"
                       className="w-full h-14 text-lg rounded-xl gap-2 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
-                      disabled={!brandData?.name || !brandData?.businessModel}
+                      disabled={!effectiveBrandData?.name || !effectiveBrandData?.businessModel}
                     >
                       <Sparkles className="w-5 h-5" />
                       Criar minha Social Landing
@@ -423,7 +447,7 @@ export default function CriarPage() {
                   {/* Preview - 2 colunas */}
                   <div className="lg:col-span-2">
                     <div className="sticky top-24">
-                      <BrandPreview data={brandData || extractedData} />
+                      <BrandPreview data={effectiveBrandData} />
                     </div>
                   </div>
                 </div>
@@ -487,11 +511,11 @@ export default function CriarPage() {
                       <div className="min-w-0">
                         <p className="text-sm text-muted-foreground">Sua URL</p>
                         <p className="font-medium truncate">
-                          social.land/{brandData?.name?.toLowerCase().replace(/\s+/g, "-") || "suamarca"}
+                          {landingUrl}
                         </p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" className="gap-2 flex-shrink-0">
+                    <Button variant="outline" size="sm" className="gap-2 flex-shrink-0" onClick={handleCopyLandingUrl}>
                       Copiar
                     </Button>
                   </div>
@@ -515,9 +539,12 @@ export default function CriarPage() {
                   <Button 
                     size="lg"
                     className="flex-1 h-12 rounded-xl gap-2 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
+                    asChild
                   >
-                    Ver minha landing
-                    <ExternalLink className="w-4 h-4" />
+                    <Link href={landingUrl}>
+                      Ver minha landing
+                      <ExternalLink className="w-4 h-4" />
+                    </Link>
                   </Button>
                 </motion.div>
               </motion.div>
@@ -531,9 +558,9 @@ export default function CriarPage() {
         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <span>Social Landing - Sua presenca digital em segundos</span>
           <div className="flex items-center gap-6">
-            <Link href="#" className="hover:text-foreground transition-colors">Ajuda</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Termos</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Privacidade</Link>
+            <Link href="/criar/novo" className="hover:text-foreground transition-colors">Ajuda</Link>
+            <Link href="/criar" className="hover:text-foreground transition-colors">Termos</Link>
+            <Link href="/criar" className="hover:text-foreground transition-colors">Privacidade</Link>
           </div>
         </div>
       </footer>

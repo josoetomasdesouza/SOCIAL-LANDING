@@ -74,27 +74,26 @@ export default function DemoPage() {
   
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with back button */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center gap-3">
+      {/* Demo controls - compact overlay that does not cover model CTAs */}
+      <div className="fixed left-3 top-20 z-[60] rounded-full border border-border/60 bg-background/95 shadow-lg backdrop-blur-xl">
+        <div className="h-10 flex items-center gap-1 px-1.5">
           <Button 
             variant="ghost" 
             size="sm" 
-            className="gap-2"
+            className="gap-1.5 rounded-full px-3"
             onClick={() => setSelectedType(null)}
           >
             <ArrowLeft className="w-4 h-4" />
             Voltar
           </Button>
-          <span className="font-medium">{businessNames[selectedType]}</span>
           <Link
             href="/"
-            className="ml-auto text-sm text-muted-foreground hover:text-foreground"
+            className="hidden sm:block px-3 text-sm text-muted-foreground hover:text-foreground"
           >
-            Ver Social Landing
+            Ver /
           </Link>
         </div>
-      </header>
+      </div>
       
       {/* Business Feed */}
       <main>
