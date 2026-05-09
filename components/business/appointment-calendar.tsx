@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import type { RefObject } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, Clock, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ interface AppointmentCalendarProps {
   selectedProfessionalId?: string
   selectedDate?: string | null
   selectedTime?: string | null
+  timeSlotsRef?: RefObject<HTMLDivElement>
   onSelectProfessional?: (id: string) => void
   onSelectDate: (date: string) => void
   onSelectTime: (time: string) => void
@@ -40,6 +42,7 @@ export function AppointmentCalendar({
   selectedProfessionalId,
   selectedDate,
   selectedTime,
+  timeSlotsRef,
   onSelectProfessional,
   onSelectDate,
   onSelectTime,
@@ -221,7 +224,7 @@ export function AppointmentCalendar({
 
       {/* Horarios */}
       {selectedDate && (
-        <div>
+        <div ref={timeSlotsRef} className="scroll-mt-4">
           <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Horarios disponiveis

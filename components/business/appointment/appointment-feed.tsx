@@ -552,6 +552,7 @@ function BookingDrawer({
               availability={schedulingAvailability}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
+              timeSlotsRef={timeStepRef}
               onSelectDate={(date) => {
                 setSelectedDate(date)
                 setSelectedTime(null)
@@ -562,7 +563,6 @@ function BookingDrawer({
                 scrollToStep(customerStepRef)
               }}
             />
-            <div ref={timeStepRef} className="scroll-mt-4" />
           </section>
 
           {selectedTime && (
