@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Calendar, Scissors, Star, Play, ChevronRight, Check, Phone } from "lucide-react"
+import { Calendar, Clock, MapPin, MessageCircle, Scissors, Star, Play, ChevronRight, Check, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,29 @@ import type { Professional, Service, StyleExample } from "@/lib/business-types"
 interface BookingStart {
   service?: Service | null
   barber?: Professional | null
+}
+
+function getAggregatedAvailability(professionals: Professional[]) {
+  const slotsByDate = new Map<string, Set<string>>()
+
+  professionals.forEach((professional) => {
+    professional.availability?.forEach((day) => {
+      const dateSlots = slotsByDate.get(day.date) || new Set<string>()
+      day.slots
+        .filter((slot) => slot.available)
+        .forEach((slot) => dateSlots.add(slot.time))
+      slotsByDate.set(day.date, dateSlots)
+    })
+  })
+
+  return Array.from(slotsByDate.entries())
+    .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+    .map(([date, slots]) => ({
+      date,
+      slots: Array.from(slots)
+        .sort()
+        .map((time) => ({ time, available: true })),
+    }))
 }
 
 function getServiceForAppointmentPost(post: BusinessPost) {
@@ -151,6 +174,37 @@ function StylesModule({ onSelectStyle }: { onSelectStyle: (style: StyleExample) 
 }
 
 // ========================================
+// MODULO: INFORMACOES PARA FECHAMENTO
+// ========================================
+function BookingInfoModule() {
+  return (
+    <div className="grid grid-cols-1 gap-3">
+      <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card">
+        <Clock className="w-5 h-5 text-accent flex-shrink-0" />
+        <div>
+          <p className="font-medium">Horario de atendimento</p>
+          <p className="text-sm text-muted-foreground">{barberShopConfig.openingHours}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card">
+        <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
+        <div>
+          <p className="font-medium">Endereco</p>
+          <p className="text-sm text-muted-foreground">{barberShopConfig.address}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card">
+        <MessageCircle className="w-5 h-5 text-accent flex-shrink-0" />
+        <div>
+          <p className="font-medium">Confirmacao pelo WhatsApp</p>
+          <p className="text-sm text-muted-foreground">Depois de escolher o horario, enviamos o resumo pronto para confirmar.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ========================================
 // DRAWER: FUNIL DE AGENDAMENTO
 // ========================================
 function BookingDrawer({
@@ -186,19 +240,21 @@ function BookingDrawer({
 
   if (!isOpen) return null
 
-  const schedulingBarber = selectedBarber || barbers[0]
+  const schedulingAvailability = anyProfessional
+    ? getAggregatedAvailability(barbers)
+    : selectedBarber?.availability || []
   const formattedDate = selectedDate
     ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })
     : ""
   const whatsappMessage = encodeURIComponent(
-    `Olá! Quero confirmar meu agendamento na ${barberShopConfig.name}:\n` +
-    `Serviço: ${selectedService?.name || "A definir"}\n` +
-    `Profissional: ${anyProfessional ? "Qualquer profissional disponível" : selectedBarber?.name || "A definir"}\n` +
+    `Ola! Quero confirmar meu agendamento na ${barberShopConfig.name}:\n` +
+    `Servico: ${selectedService?.name || "A definir"}\n` +
+    `Profissional: ${anyProfessional ? "Qualquer profissional disponivel" : selectedBarber?.name || "A definir"}\n` +
     `Data: ${formattedDate}\n` +
-    `Horário: ${selectedTime || ""}\n` +
+    `Horario: ${selectedTime || ""}\n` +
     `Nome: ${customer.name}\n` +
     `WhatsApp: ${customer.phone}` +
-    (customer.note ? `\nObservação: ${customer.note}` : "")
+    (customer.note ? `\nObservacao: ${customer.note}` : "")
   )
   const whatsappUrl = `https://wa.me/${barberShopConfig.whatsapp}?text=${whatsappMessage}`
 
@@ -222,7 +278,7 @@ function BookingDrawer({
             </div>
             <div className="flex justify-between gap-4 text-sm">
               <span className="text-muted-foreground">Profissional</span>
-              <span className="font-medium text-right">{anyProfessional ? "Qualquer disponivel" : selectedBarber?.name}</span>
+              <span className="font-medium text-right">{anyProfessional ? "Qualquer profissional disponivel" : selectedBarber?.name}</span>
             </div>
             <div className="flex justify-between gap-4 text-sm">
               <span className="text-muted-foreground">Data</span>
@@ -299,8 +355,8 @@ function BookingDrawer({
                 anyProfessional ? "border-accent bg-accent/10" : "border-border bg-secondary/30 hover:bg-secondary"
               }`}
             >
-              <p className="font-medium">Qualquer profissional disponível</p>
-              <p className="text-sm text-muted-foreground">Mostra os próximos horários e reduz o tempo para reservar.</p>
+              <p className="font-medium">Qualquer profissional disponivel</p>
+              <p className="text-sm text-muted-foreground">Combina horarios de toda a equipe e reduz o tempo para reservar.</p>
             </button>
 
             <div className="grid grid-cols-2 gap-3">
@@ -338,7 +394,7 @@ function BookingDrawer({
           <section>
             <h4 className="font-semibold text-foreground mb-3">3. Escolha data e horario</h4>
             <AppointmentCalendar
-              availability={schedulingBarber?.availability || []}
+              availability={schedulingAvailability}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
               onSelectDate={(date) => {
@@ -476,6 +532,13 @@ export function AppointmentFeed() {
       icon: <Scissors className="w-5 h-5 text-accent" />,
       type: "specific",
       customContent: <StylesModule onSelectStyle={handleSelectStyle} />
+    },
+    {
+      id: "info",
+      title: "Antes de Agendar",
+      icon: <Clock className="w-5 h-5 text-accent" />,
+      type: "specific",
+      customContent: <BookingInfoModule />
     },
     {
       id: "videos",
