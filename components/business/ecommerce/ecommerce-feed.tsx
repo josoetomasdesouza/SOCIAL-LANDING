@@ -217,24 +217,29 @@ function ProductDetailDrawer({
         {reviews.length > 0 && (
           <div className="bg-secondary/50 rounded-xl p-4">
             <h4 className="font-medium mb-3">Avaliacoes recentes</h4>
-            {reviews.slice(0, 2).map((review) => (
-              <div key={review.id} className="flex items-start gap-3 mb-3 last:mb-0">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                  <Image src={review.avatar} alt={review.author} fill className="object-cover" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{review.author}</span>
-                    <div className="flex">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
-                      ))}
-                    </div>
+            {reviews.slice(0, 2).map((review) => {
+              const reviewAuthor = review.author || review.userName
+              const reviewAvatar = review.avatar || review.userAvatar
+
+              return (
+                <div key={review.id} className="flex items-start gap-3 mb-3 last:mb-0">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                    <Image src={reviewAvatar} alt={reviewAuthor} fill className="object-cover" />
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{review.comment}</p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{reviewAuthor}</span>
+                      <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{review.comment}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
         
