@@ -55,6 +55,7 @@ interface BusinessSocialLandingProps {
   sections: BusinessSection[]
   onPostClick?: (post: BusinessPost) => void
   onStoryClick?: (story: BusinessStory) => void
+  onStoryAction?: (story: BusinessStory) => boolean | void
   renderPostDrawer?: (post: BusinessPost | null, onClose: () => void) => ReactNode
   footerLinks?: { label: string; href: string }[]
   conversationalAI?: ReactNode
@@ -185,7 +186,7 @@ interface StoryViewerProps {
   initialIndex: number
   categoryName: string
   brandLogo: string
-  onViewSection?: (storyName: string) => void
+  onViewSection?: (story: BusinessStory) => void
 }
 
 function StoryViewer({ isOpen, onClose, stories, initialIndex, categoryName, brandLogo, onViewSection }: StoryViewerProps) {
@@ -285,7 +286,7 @@ function StoryViewer({ isOpen, onClose, stories, initialIndex, categoryName, bra
         <button
           onClick={() => {
             onClose()
-            onViewSection?.(currentStory.name)
+            onViewSection?.(currentStory)
           }}
           className="absolute bottom-16 left-6 right-6 flex items-center justify-center gap-2 py-3 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-xl text-white font-medium transition-colors"
         >
@@ -699,6 +700,7 @@ export function BusinessSocialLanding({
   sections,
   onPostClick,
   onStoryClick,
+  onStoryAction,
   renderPostDrawer,
   footerLinks,
   conversationalAI
@@ -797,9 +799,30 @@ export function BusinessSocialLanding({
         initialIndex={storyInitialIndex}
         categoryName={stories[storyInitialIndex]?.name || "Story"}
         brandLogo={config.logo}
-        onViewSection={(storyName) => {
+        onViewSection={(story) => {
+          if (onStoryAction?.(story)) {
+            return
+          }
+
           // Normaliza o nome do story (remove acentos e espacos)
+          const storyName = story.name
           const normalizedName = storyName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
+          const normalizedSearchTerm = normalizedName.replace(/-/g, " ")
+          const singularSearchTerm = normalizedSearchTerm.endsWith("s")
+            ? normalizedSearchTerm.slice(0, -1)
+            : normalizedSearchTerm
+          const normalizeText = (value?: string) =>
+            value?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
+          
+          const matchingPost = allContentPosts.find((post) => {
+            const searchableText = normalizeText(`${post.title} ${post.description || ""} ${post.type}`)
+            return searchableText.includes(normalizedSearchTerm) || searchableText.includes(singularSearchTerm)
+          })
+          
+          if (matchingPost) {
+            handlePostClick(matchingPost)
+            return
+          }
           
           // Procura a secao correspondente pelo data-section
           const sectionElement = document.querySelector(`[data-section="${normalizedName}"]`)
@@ -821,8 +844,14 @@ export function BusinessSocialLanding({
             const sectionText = section.textContent?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
             if (sectionText.includes(normalizedName.replace(/-/g, " "))) {
               section.scrollIntoView({ behavior: "smooth", block: "start" })
-              break
+              return
             }
+          }
+          
+          if (allContentPosts.length > 0) {
+            setSelectedPost(allContentPosts[0])
+            setFeedDrawerCategory("all")
+            setFeedDrawerOpen(true)
           }
         }}
       />

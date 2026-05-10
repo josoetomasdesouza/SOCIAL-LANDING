@@ -16,11 +16,11 @@ import type { Professional, Service, StyleExample } from "@/lib/business-types"
 // MODULO: AGENDAR HORARIO (OBJETIVO PRINCIPAL)
 // ========================================
 function ScheduleModule({ 
-  onSelectBarber,
+  onStartBooking,
   onSelectService 
 }: { 
-  onSelectBarber: (barber: Professional, service?: Service) => void
-  onSelectService: () => void
+  onStartBooking: () => void
+  onSelectService: (service: Service) => void
 }) {
   return (
     <div className="space-y-6">
@@ -29,7 +29,7 @@ function ScheduleModule({
         <Button 
           variant="default"
           className="h-14 flex items-center justify-center gap-2 rounded-2xl"
-          onClick={() => onSelectBarber(barbers[0])}
+          onClick={onStartBooking}
         >
           <Calendar className="w-5 h-5" />
           Agendar agora
@@ -37,36 +37,11 @@ function ScheduleModule({
         <Button 
           variant="outline"
           className="h-14 flex items-center justify-center gap-2 rounded-2xl"
-          onClick={onSelectService}
+          onClick={onStartBooking}
         >
           <Scissors className="w-5 h-5" />
           Ver servicos
         </Button>
-      </div>
-      
-      {/* Barbeiros */}
-      <div>
-        <h4 className="font-medium text-foreground mb-3">Escolha um barbeiro</h4>
-        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-          {barbers.map((barber) => (
-            <button
-              key={barber.id}
-              onClick={() => onSelectBarber(barber)}
-              className="flex flex-col items-center gap-2 flex-shrink-0 group"
-            >
-              <div className="relative w-16 h-16 rounded-full overflow-hidden ring-2 ring-border group-hover:ring-accent transition-colors">
-                <Image src={barber.avatar} alt={barber.name} fill className="object-cover" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-medium text-foreground">{barber.name.split(" ")[0]}</p>
-                <div className="flex items-center gap-1 justify-center">
-                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  <span className="text-xs text-muted-foreground">{barber.rating}</span>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
       </div>
       
       {/* Servicos Populares */}
@@ -76,7 +51,7 @@ function ScheduleModule({
           {barberServices.filter(s => s.popular).slice(0, 3).map((service) => (
             <button
               key={service.id}
-              onClick={() => onSelectBarber(barbers[0], service)}
+              onClick={() => onSelectService(service)}
               className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
             >
               <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
@@ -159,7 +134,7 @@ function BarberDetailsDrawer({
       isOpen={isOpen}
       onClose={onClose}
       title={barber.name}
-      size="lg"
+      size="md"
       footer={
         <div className="space-y-3">
           {service && (
@@ -173,9 +148,9 @@ function BarberDetailsDrawer({
           )}
           <Button
             className="w-full h-12"
-            disabled={!selectedDate || !selectedTime}
+            disabled={!service || !selectedDate || !selectedTime}
             onClick={() => {
-              if (selectedDate && selectedTime) {
+              if (service && selectedDate && selectedTime) {
                 onSchedule(barber, service, selectedDate, selectedTime)
               }
             }}
@@ -261,7 +236,7 @@ function ServicesDrawer({
   const categories = [...new Set(barberServices.map(s => s.category))]
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Servicos" size="lg">
+    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Escolha o servico" size="md">
       <div className="space-y-6">
         {categories.map((category) => (
           <div key={category}>
@@ -295,6 +270,62 @@ function ServicesDrawer({
 }
 
 // ========================================
+// DRAWER: PROFISSIONAIS
+// ========================================
+function ProfessionalsDrawer({
+  service,
+  isOpen,
+  onClose,
+  onSelectBarber
+}: {
+  service: Service | null
+  isOpen: boolean
+  onClose: () => void
+  onSelectBarber: (barber: Professional) => void
+}) {
+  if (!service) return null
+
+  return (
+    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Escolha o profissional" size="md">
+      <div className="space-y-5">
+        <div className="bg-secondary/50 rounded-xl p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h4 className="font-medium">{service.name}</h4>
+              <p className="text-sm text-muted-foreground mt-1">{service.duration} minutos</p>
+            </div>
+            <p className="font-bold text-accent whitespace-nowrap">R$ {service.price}</p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {barbers.map((barber) => (
+            <button
+              key={barber.id}
+              onClick={() => onSelectBarber(barber)}
+              className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
+            >
+              <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0">
+                <Image src={barber.avatar} alt={barber.name} fill className="object-cover" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium text-foreground">{barber.name}</p>
+                <p className="text-sm text-muted-foreground">{barber.role}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                  <span className="text-xs text-muted-foreground">{barber.rating}</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+          ))}
+        </div>
+      </div>
+    </ActionDrawer>
+  )
+}
+
+// ========================================
 // DRAWER: CONFIRMACAO
 // ========================================
 function ConfirmationDrawer({ 
@@ -312,7 +343,7 @@ function ConfirmationDrawer({
   date: string | null
   time: string | null
 }) {
-  if (!barber || !date || !time) return null
+  if (!barber || !service || !date || !time) return null
   
   const formattedDate = new Date(date + "T12:00:00").toLocaleDateString("pt-BR", {
     weekday: "long",
@@ -386,21 +417,33 @@ export function AppointmentFeed() {
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [barberDrawerOpen, setBarberDrawerOpen] = useState(false)
   const [servicesDrawerOpen, setServicesDrawerOpen] = useState(false)
+  const [professionalsDrawerOpen, setProfessionalsDrawerOpen] = useState(false)
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [bookedDate, setBookedDate] = useState<string | null>(null)
   const [bookedTime, setBookedTime] = useState<string | null>(null)
   const [bookedService, setBookedService] = useState<Service | null>(null)
   
   // Handlers
-  const handleSelectBarber = (barber: Professional, service?: Service) => {
-    setSelectedService(service ?? null)
+  const handleStartBooking = () => {
+    setSelectedService(null)
+    setSelectedBarber(null)
+    setServicesDrawerOpen(true)
+  }
+  
+  const handleSelectService = (service: Service) => {
+    setSelectedService(service)
+    setServicesDrawerOpen(false)
+    setProfessionalsDrawerOpen(true)
+  }
+  
+  const handleSelectBarber = (barber: Professional) => {
     setSelectedBarber(barber)
+    setProfessionalsDrawerOpen(false)
     setBarberDrawerOpen(true)
   }
   
   const handleSelectStyle = (style: StyleExample) => {
-    setSelectedBarber(barbers[0])
-    setBarberDrawerOpen(true)
+    setServicesDrawerOpen(true)
   }
   
   const handleSchedule = (barber: Professional, service: Service | null, date: string, time: string) => {
@@ -421,8 +464,8 @@ export function AppointmentFeed() {
       type: "primary-action",
       customContent: (
         <ScheduleModule 
-          onSelectBarber={handleSelectBarber}
-          onSelectService={() => setServicesDrawerOpen(true)}
+          onStartBooking={handleStartBooking}
+          onSelectService={handleSelectService}
         />
       )
     },
@@ -467,9 +510,10 @@ export function AppointmentFeed() {
         config={barberShopConfig}
         stories={appointmentContent.stories}
         sections={sections}
-        onStoryClick={(story) => {
+        onStoryAction={(story) => {
           if (story.isMain) {
-            handleSelectBarber(barbers[0])
+            handleStartBooking()
+            return true
           }
         }}
         footerLinks={[
@@ -491,11 +535,14 @@ export function AppointmentFeed() {
       <ServicesDrawer
         isOpen={servicesDrawerOpen}
         onClose={() => setServicesDrawerOpen(false)}
-        onSelectService={(service) => {
-          setSelectedService(service)
-          setServicesDrawerOpen(false)
-          handleSelectBarber(barbers[0], service)
-        }}
+        onSelectService={handleSelectService}
+      />
+      
+      <ProfessionalsDrawer
+        service={selectedService}
+        isOpen={professionalsDrawerOpen}
+        onClose={() => setProfessionalsDrawerOpen(false)}
+        onSelectBarber={handleSelectBarber}
       />
       
       <ConfirmationDrawer
