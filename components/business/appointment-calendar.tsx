@@ -4,17 +4,18 @@ import { useState, useMemo } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, Clock, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { Professional, TimeSlot } from "@/lib/business-types"
+import type { DayAvailability, Professional, TimeSlot } from "@/lib/business-types"
 
 interface AppointmentCalendarProps {
-  professionals: Professional[]
-  selectedProfessionalId?: string
-  selectedDate?: string
-  selectedTime?: string
-  onSelectProfessional: (id: string) => void
+  professionals?: Professional[]
+  availability?: DayAvailability[] | Record<string, string[]>
+  selectedProfessionalId?: string | null
+  selectedDate?: string | null
+  selectedTime?: string | null
+  onSelectProfessional?: (id: string) => void
   onSelectDate: (date: string) => void
   onSelectTime: (time: string) => void
-  onConfirm: () => void
+  onConfirm?: () => void
 }
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"]
@@ -23,8 +24,20 @@ const MONTHS = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ]
 
+function getAvailableSlots(availability: AppointmentCalendarProps["availability"], selectedDate?: string | null): TimeSlot[] {
+  if (!availability || !selectedDate) return []
+
+  if (Array.isArray(availability)) {
+    const dayAvailability = availability.find((day) => day.date === selectedDate)
+    return dayAvailability?.slots?.filter((slot) => slot.available) || []
+  }
+
+  return (availability[selectedDate] || []).map((time) => ({ time, available: true }))
+}
+
 export function AppointmentCalendar({
   professionals,
+  availability,
   selectedProfessionalId,
   selectedDate,
   selectedTime,
@@ -35,7 +48,9 @@ export function AppointmentCalendar({
 }: AppointmentCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   
-  const selectedProfessional = professionals.find(p => p.id === selectedProfessionalId)
+  const selectedProfessional = professionals?.find(p => p.id === selectedProfessionalId)
+  const showProfessionalPicker = Boolean(professionals?.length)
+  const canChooseDate = !showProfessionalPicker || Boolean(selectedProfessional)
 
   // Gera dias do mes
   const calendarDays = useMemo(() => {
@@ -79,19 +94,8 @@ export function AppointmentCalendar({
 
   // Horarios disponiveis para o dia selecionado
   const availableSlots = useMemo(() => {
-    if (!selectedProfessional || !selectedDate) return []
-    
-    // Verifica se availability existe e e um array
-    if (!selectedProfessional.availability || !Array.isArray(selectedProfessional.availability)) {
-      return []
-    }
-    
-    const dayAvailability = selectedProfessional.availability.find(
-      a => a.date === selectedDate
-    )
-    
-    return dayAvailability?.slots?.filter(s => s.available) || []
-  }, [selectedProfessional, selectedDate])
+    return getAvailableSlots(selectedProfessional?.availability || availability, selectedDate)
+  }, [availability, selectedProfessional, selectedDate])
 
   const formatDate = (date: Date) => {
     const year = date.getFullYear()
@@ -111,13 +115,14 @@ export function AppointmentCalendar({
   return (
     <div className="space-y-6">
       {/* Selecao de profissional */}
+      {showProfessionalPicker && (
       <div>
         <h4 className="font-semibold text-foreground mb-3">Escolha o profissional</h4>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {professionals.map((professional) => (
+          {professionals?.map((professional) => (
             <button
               key={professional.id}
-              onClick={() => onSelectProfessional(professional.id)}
+              onClick={() => onSelectProfessional?.(professional.id)}
               className={`flex-shrink-0 text-center transition-all ${
                 selectedProfessionalId === professional.id ? "scale-105" : ""
               }`}
@@ -152,9 +157,10 @@ export function AppointmentCalendar({
           ))}
         </div>
       </div>
+      )}
 
       {/* Calendario */}
-      {selectedProfessionalId && (
+      {canChooseDate && (
         <div>
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-semibold text-foreground">Escolha a data</h4>
@@ -243,7 +249,7 @@ export function AppointmentCalendar({
       )}
 
       {/* Botao de confirmar */}
-      {selectedProfessionalId && selectedDate && selectedTime && (
+      {onConfirm && canChooseDate && selectedDate && selectedTime && (
         <Button onClick={onConfirm} className="w-full h-12 text-base font-medium">
           Confirmar agendamento
         </Button>

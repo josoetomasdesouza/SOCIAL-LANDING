@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Check, CreditCard, QrCode, Phone, Mail, MapPin, Clock, Calendar, User, MessageCircle } from "lucide-react"
+import { ArrowLeft, Check, CreditCard, QrCode, Phone, Mail, MapPin, Clock, Calendar, User, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -90,6 +90,14 @@ export function EcommerceCheckout({ items, onComplete, onBack }: EcommerceChecko
   const shipping = 15.90
   const discount = paymentMethod === "pix" ? subtotal * 0.05 : 0
   const total = subtotal + shipping - discount
+  const canContinueAddress = Boolean(
+    formData.name.trim() &&
+    formData.email.trim() &&
+    formData.phone.trim() &&
+    formData.cep.trim() &&
+    formData.address.trim() &&
+    formData.number.trim()
+  )
   
   if (step === "confirmation") {
     return (
@@ -111,6 +119,15 @@ export function EcommerceCheckout({ items, onComplete, onBack }: EcommerceChecko
   
   return (
     <div className="space-y-6">
+      <Button
+        variant="ghost"
+        className="h-auto p-0 gap-2 text-muted-foreground hover:text-foreground"
+        onClick={step === "address" ? onBack : () => setStep("address")}
+      >
+        <ArrowLeft className="w-4 h-4" />
+        {step === "address" ? "Voltar ao carrinho" : "Voltar aos dados"}
+      </Button>
+
       {/* Progress */}
       <div className="flex items-center justify-center gap-2">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step === "address" ? "bg-accent text-accent-foreground" : "bg-green-500 text-white"}`}>
@@ -169,7 +186,7 @@ export function EcommerceCheckout({ items, onComplete, onBack }: EcommerceChecko
             </div>
           </div>
           
-          <Button className="w-full h-12" onClick={() => setStep("payment")}>
+          <Button className="w-full h-12" onClick={() => setStep("payment")} disabled={!canContinueAddress}>
             Continuar
           </Button>
         </>
@@ -267,6 +284,10 @@ export function RestaurantCheckout({ items, deliveryInfo, onComplete, onBack }: 
   const isFreeDelivery = deliveryInfo.freeDeliveryMinimum ? subtotal >= deliveryInfo.freeDeliveryMinimum : false
   const deliveryFee = deliveryType === "delivery" && !isFreeDelivery ? deliveryInfo.deliveryFee : 0
   const total = subtotal + deliveryFee
+  const canContinueOrder = Boolean(
+    formData.phone.trim() &&
+    (deliveryType === "pickup" || formData.address.trim())
+  )
   
   if (step === "confirmation") {
     return (
@@ -288,6 +309,15 @@ export function RestaurantCheckout({ items, deliveryInfo, onComplete, onBack }: 
   
   return (
     <div className="space-y-6">
+      <Button
+        variant="ghost"
+        className="h-auto p-0 gap-2 text-muted-foreground hover:text-foreground"
+        onClick={step === "address" ? onBack : () => setStep("address")}
+      >
+        <ArrowLeft className="w-4 h-4" />
+        {step === "address" ? "Voltar ao pedido" : "Voltar aos dados"}
+      </Button>
+
       {/* Itens resumidos */}
       <div className="space-y-2">
         <h4 className="font-medium text-sm text-muted-foreground">Seu pedido</h4>
@@ -365,7 +395,7 @@ export function RestaurantCheckout({ items, deliveryInfo, onComplete, onBack }: 
             </div>
           </div>
           
-          <Button className="w-full h-12" onClick={() => setStep("payment")}>
+          <Button className="w-full h-12" onClick={() => setStep("payment")} disabled={!canContinueOrder}>
             Escolher pagamento
           </Button>
         </>
@@ -941,6 +971,11 @@ export function CourseCheckout({ courseName, courseThumbnail, instructorName, pr
   
   const discount = paymentMethod === "pix" ? price * 0.05 : 0
   const total = price - discount
+  const canConfirmEnrollment = Boolean(
+    formData.name.trim() &&
+    formData.email.trim() &&
+    formData.cpf.trim()
+  )
   
   if (step === "confirmation") {
     return (
@@ -962,6 +997,15 @@ export function CourseCheckout({ courseName, courseThumbnail, instructorName, pr
   
   return (
     <div className="space-y-6">
+      <Button
+        variant="ghost"
+        className="h-auto p-0 gap-2 text-muted-foreground hover:text-foreground"
+        onClick={onBack}
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Voltar ao curso
+      </Button>
+
       {/* Resumo do curso */}
       <div className="flex gap-4 p-4 bg-secondary/50 rounded-xl">
         <div className="relative w-24 h-16 rounded-lg overflow-hidden flex-shrink-0">
@@ -1042,7 +1086,7 @@ export function CourseCheckout({ courseName, courseThumbnail, instructorName, pr
         </div>
       </div>
       
-      <Button className="w-full h-12" onClick={() => setStep("confirmation")}>
+      <Button className="w-full h-12" onClick={() => setStep("confirmation")} disabled={!canConfirmEnrollment}>
         {paymentMethod === "pix" ? "Gerar QR Code PIX" : "Finalizar compra"}
       </Button>
       

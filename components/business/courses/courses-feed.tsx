@@ -78,7 +78,7 @@ function CoursesModule({ onSelectCourse }: { onSelectCourse: (course: Course) =>
 // ========================================
 // MODULO: TRILHAS DE APRENDIZADO
 // ========================================
-function TracksModule() {
+function TracksModule({ onSelectTrack }: { onSelectTrack: (trackName: string) => void }) {
   const tracks = [
     { id: "1", name: "Programacao", icon: "💻", courses: 12 },
     { id: "2", name: "Design", icon: "🎨", courses: 8 },
@@ -89,7 +89,11 @@ function TracksModule() {
   return (
     <div className="grid grid-cols-2 gap-3">
       {tracks.map((track) => (
-        <button key={track.id} className="p-4 bg-secondary/50 hover:bg-secondary rounded-xl text-left transition-colors">
+        <button
+          key={track.id}
+          onClick={() => onSelectTrack(track.name)}
+          className="p-4 bg-secondary/50 hover:bg-secondary rounded-xl text-left transition-colors"
+        >
           <span className="text-2xl">{track.icon}</span>
           <p className="font-medium text-foreground mt-2">{track.name}</p>
           <p className="text-sm text-muted-foreground">{track.courses} cursos</p>
@@ -219,6 +223,11 @@ export function CoursesFeed() {
     setSelectedCourse(course)
     setCourseDrawerOpen(true)
   }
+
+  const handleSelectTrack = (trackName: string) => {
+    const course = courses.find((item) => item.category === trackName) || courses[0]
+    if (course) handleSelectCourse(course)
+  }
   
   const sections: BusinessSection[] = [
     {
@@ -233,7 +242,7 @@ export function CoursesFeed() {
       title: "Trilhas de Aprendizado",
       icon: <BookOpen className="w-5 h-5 text-accent" />,
       type: "specific",
-      customContent: <TracksModule />
+      customContent: <TracksModule onSelectTrack={handleSelectTrack} />
     },
     {
       id: "videos",

@@ -11,6 +11,7 @@ import type { BusinessConfig, BusinessModel } from "@/lib/business-types"
 import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
 import { ActionDrawer } from "./action-drawer"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
+import { useBodyScrollLock } from "./use-body-scroll-lock"
 
 // ========================================
 // TIPOS
@@ -191,6 +192,7 @@ interface StoryViewerProps {
 function StoryViewer({ isOpen, onClose, stories, initialIndex, categoryName, brandLogo, onViewSection }: StoryViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
   const [progress, setProgress] = useState(0)
+  useBodyScrollLock(isOpen)
 
   useEffect(() => {
     setCurrentIndex(initialIndex)
@@ -631,7 +633,7 @@ function BusinessSectionComponent({
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
   
   return (
-    <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
+    <section className="mb-10 scroll-mt-20" data-section={sectionId} id={`section-${sectionId}`}>
       {/* Section Header */}
       <div className="flex items-center gap-2 mb-5">
         {section.icon}
@@ -798,32 +800,34 @@ export function BusinessSocialLanding({
         categoryName={stories[storyInitialIndex]?.name || "Story"}
         brandLogo={config.logo}
         onViewSection={(storyName) => {
-          // Normaliza o nome do story (remove acentos e espacos)
-          const normalizedName = storyName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
-          
-          // Procura a secao correspondente pelo data-section
-          const sectionElement = document.querySelector(`[data-section="${normalizedName}"]`)
-          if (sectionElement) {
-            sectionElement.scrollIntoView({ behavior: "smooth", block: "start" })
-            return
-          }
-          
-          // Fallback: procura por ID
-          const sectionById = document.getElementById(`section-${normalizedName}`)
-          if (sectionById) {
-            sectionById.scrollIntoView({ behavior: "smooth", block: "start" })
-            return
-          }
-          
-          // Ultimo fallback: procura pelo texto no h2
-          const sections = document.querySelectorAll("section h2")
-          for (const section of sections) {
-            const sectionText = section.textContent?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
-            if (sectionText.includes(normalizedName.replace(/-/g, " "))) {
-              section.scrollIntoView({ behavior: "smooth", block: "start" })
-              break
+          window.setTimeout(() => {
+            // Normaliza o nome do story (remove acentos e espacos)
+            const normalizedName = storyName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
+            
+            // Procura a secao correspondente pelo data-section
+            const sectionElement = document.querySelector(`[data-section="${normalizedName}"]`)
+            if (sectionElement) {
+              sectionElement.scrollIntoView({ behavior: "smooth", block: "start" })
+              return
             }
-          }
+            
+            // Fallback: procura por ID
+            const sectionById = document.getElementById(`section-${normalizedName}`)
+            if (sectionById) {
+              sectionById.scrollIntoView({ behavior: "smooth", block: "start" })
+              return
+            }
+            
+            // Ultimo fallback: procura pelo texto no h2
+            const sections = document.querySelectorAll("section h2")
+            for (const section of sections) {
+              const sectionText = section.textContent?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
+              if (sectionText.includes(normalizedName.replace(/-/g, " "))) {
+                section.scrollIntoView({ behavior: "smooth", block: "start" })
+                break
+              }
+            }
+          }, 0)
         }}
       />
       

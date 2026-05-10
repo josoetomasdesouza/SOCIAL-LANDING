@@ -382,6 +382,24 @@ export function EcommerceFeed() {
       return newSet
     })
   }
+
+  const openProduct = (product: Product) => {
+    setSelectedProduct(product)
+    setProductDrawerOpen(true)
+  }
+
+  const addToCartAndOpenCart = (product: Product) => {
+    handleAddToCart(product)
+    setCartDrawerOpen(true)
+  }
+
+  const handleSelectCategory = (categoryId: string) => {
+    const product = products.find((item) => (
+      item.category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === categoryId
+    )) || products[0]
+
+    if (product) openProduct(product)
+  }
   
   // Secoes do feed
   const sections: BusinessSection[] = [
@@ -392,8 +410,8 @@ export function EcommerceFeed() {
       type: "primary-action",
       customContent: (
         <ProductsModule 
-          onSelectProduct={(p) => { setSelectedProduct(p); setProductDrawerOpen(true) }}
-          onAddToCart={handleAddToCart}
+          onSelectProduct={openProduct}
+          onAddToCart={addToCartAndOpenCart}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
         />
@@ -403,7 +421,7 @@ export function EcommerceFeed() {
       id: "categories",
       title: "Categorias",
       type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+      customContent: <CategoriesModule onSelectCategory={handleSelectCategory} />
     },
     {
       id: "videos",
@@ -444,7 +462,7 @@ export function EcommerceFeed() {
         sections={sections}
         onStoryClick={(story) => {
           if (story.isMain) {
-            // Abre carrinho ou produtos
+            openProduct(products[0])
           }
         }}
         footerLinks={[
@@ -471,7 +489,7 @@ export function EcommerceFeed() {
         product={selectedProduct}
         isOpen={productDrawerOpen}
         onClose={() => setProductDrawerOpen(false)}
-        onAddToCart={handleAddToCart}
+        onAddToCart={addToCartAndOpenCart}
         isFavorite={selectedProduct ? favorites.has(selectedProduct.id) : false}
         onToggleFavorite={() => selectedProduct && handleToggleFavorite(selectedProduct.id)}
       />
