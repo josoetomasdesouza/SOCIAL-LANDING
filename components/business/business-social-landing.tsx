@@ -17,7 +17,7 @@ import { BusinessFeedDrawer } from "./business-feed-drawer"
 // ========================================
 export interface BusinessPost {
   id: string
-  type: "video" | "video-vertical" | "product" | "news" | "review" | "social"
+  type: "video" | "video-vertical" | "product" | "news" | "review" | "social" | "tip" | "promotion" | "backstage"
   title: string
   description?: string
   image: string
@@ -53,6 +53,7 @@ interface BusinessSocialLandingProps {
   config: BusinessConfig
   stories: BusinessStory[]
   sections: BusinessSection[]
+  preFeedContent?: ReactNode
   onPostClick?: (post: BusinessPost) => void
   onStoryClick?: (story: BusinessStory) => void
   renderPostDrawer?: (post: BusinessPost | null, onClose: () => void) => ReactNode
@@ -697,6 +698,7 @@ export function BusinessSocialLanding({
   config,
   stories,
   sections,
+  preFeedContent,
   onPostClick,
   onStoryClick,
   renderPostDrawer,
@@ -766,6 +768,9 @@ export function BusinessSocialLanding({
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
         {/* Stories */}
         <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
+
+        {/* Contextual content before feed */}
+        {preFeedContent}
         
         {/* Search Bar */}
         <BusinessSearchBar placeholder={`Buscar em ${config.name}...`} />

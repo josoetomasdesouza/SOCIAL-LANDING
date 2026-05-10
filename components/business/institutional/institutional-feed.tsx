@@ -1,16 +1,17 @@
 "use client"
 
-import { useState } from "react"
-import { BusinessSocialLanding } from "../business-social-landing"
-import { getBusinessContent } from "@/lib/mock-data/business-content"
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react"
+import { BusinessSocialLanding, type BusinessPost } from "../business-social-landing"
+import { BusinessFeedDrawer } from "../business-feed-drawer"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { SimpleChatInput } from "@/components/social-landing/inline-chat"
 import { 
   Target, Heart, Users, Award, Mail, Phone, MapPin,
   Building2, Linkedin, ChevronRight, Send, Check,
-  FileText, Download
+  FileText, Download, MessageCircle, Share, Bookmark
 } from "lucide-react"
 import Image from "next/image"
 
@@ -192,6 +193,367 @@ const institutionalNews = [
   }
 ]
 
+type BrandPostType = "tip" | "promotion" | "news" | "backstage"
+type InstitutionalViewerMode = "owner" | "admin" | "mock-owner" | "visitor"
+
+interface BrandPost {
+  id: string
+  type: BrandPostType
+  text: string
+  imagePreviewUrl?: string
+  publishedAt: string
+  socialProof: string
+}
+
+const brandPostTypeOptions: Array<{ value: BrandPostType; label: string; badgeClassName: string }> = [
+  { value: "tip", label: "Dica", badgeClassName: "bg-emerald-500/10 text-emerald-600" },
+  { value: "promotion", label: "Promocao", badgeClassName: "bg-orange-500/10 text-orange-600" },
+  { value: "news", label: "Noticia", badgeClassName: "bg-blue-500/10 text-blue-600" },
+  { value: "backstage", label: "Bastidores", badgeClassName: "bg-violet-500/10 text-violet-600" },
+]
+
+const brandSocialNames = ["Ana", "Julia", "Marina", "Pedro", "Carla", "Lucas"]
+
+const brandSocialAvatars = [
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
+]
+
+const brandPostSocialProof: Record<BrandPostType, string[]> = {
+  tip: ["salvaram essa dica", "comentaram sobre esse cuidado", "mandaram para outras pessoas da comunidade"],
+  promotion: ["compartilharam essa oportunidade", "marcaram outras pessoas aqui", "estao de olho nessa novidade"],
+  news: ["acompanharam essa atualizacao", "comentaram sobre essa novidade", "salvaram para ver depois"],
+  backstage: ["curtiram ver os bastidores", "reagiram a esse momento", "comentaram sobre essa cena"],
+}
+
+const brandPostChatPlaceholders: Record<BrandPostType, string> = {
+  tip: "quero ver mais dicas assim",
+  promotion: "essa novidade ainda esta valendo?",
+  news: "quero saber mais sobre isso",
+  backstage: "adorei ver esse bastidor",
+}
+
+const distributedBrandSections: Array<{ type: BrandPostType; title: string }> = [
+  { type: "promotion", title: "Destaques" },
+  { type: "tip", title: "Dicas" },
+  { type: "news", title: "Noticias" },
+  { type: "backstage", title: "Bastidores" },
+]
+
+function createBrandPostSocialProof(type: BrandPostType, seed: number) {
+  const messages = brandPostSocialProof[type]
+  const message = messages[seed % messages.length]
+  const name1 = brandSocialNames[seed % brandSocialNames.length]
+  const name2 = brandSocialNames[(seed + 2) % brandSocialNames.length]
+
+  return `${name1}, ${name2} e outras pessoas ${message}`
+}
+
+function BrandSocialProofWithAvatars({ postIndex, text }: { postIndex: number; text: string }) {
+  const avatarIndexes = [
+    (postIndex * 2) % brandSocialAvatars.length,
+    (postIndex * 2 + 1) % brandSocialAvatars.length,
+    (postIndex * 2 + 2) % brandSocialAvatars.length,
+  ]
+
+  return (
+    <div className="mt-3 flex items-center gap-2.5">
+      <div className="flex -space-x-2">
+        {avatarIndexes.map((avatarIdx) => (
+          <div
+            key={`${text}-${avatarIdx}`}
+            className="relative h-6 w-6 overflow-hidden rounded-full border-2 border-background shadow-sm"
+          >
+            <Image src={brandSocialAvatars[avatarIdx]} alt="" fill className="object-cover" />
+          </div>
+        ))}
+      </div>
+      <p className="text-sm text-muted-foreground">{text}</p>
+    </div>
+  )
+}
+
+function BrandSocialActions() {
+  const [liked, setLiked] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  return (
+    <div className="mt-3 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <button onClick={() => setLiked(!liked)} className="rounded-full p-1.5 transition-colors hover:bg-secondary">
+          <Heart className={liked ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5 text-foreground"} />
+        </button>
+        <button className="rounded-full p-1.5 text-foreground transition-colors hover:bg-secondary">
+          <MessageCircle className="h-5 w-5" />
+        </button>
+        <button className="rounded-full p-1.5 text-foreground transition-colors hover:bg-secondary">
+          <Share className="h-5 w-5" />
+        </button>
+      </div>
+      <button onClick={() => setSaved(!saved)} className="rounded-full p-1.5 transition-colors hover:bg-secondary">
+        <Bookmark className={saved ? "h-5 w-5 fill-foreground text-foreground" : "h-5 w-5 text-foreground"} />
+      </button>
+    </div>
+  )
+}
+
+function BrandPostsComposer({
+  brandName,
+  brandLogo,
+  viewerMode,
+  postCount,
+  onCreatePost,
+}: {
+  brandName: string
+  brandLogo: string
+  viewerMode: InstitutionalViewerMode
+  postCount: number
+  onCreatePost: (post: BrandPost) => void
+}) {
+  const isOwnerMode = viewerMode !== "visitor"
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [text, setText] = useState("")
+  const [postType, setPostType] = useState<BrandPostType>("news")
+  const [selectedMedia, setSelectedMedia] = useState<{ name: string; previewUrl: string } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const handleMediaChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+
+    if (!file || !file.type.startsWith("image/")) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setSelectedMedia({
+          name: file.name,
+          previewUrl: reader.result,
+        })
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveMedia = () => {
+    setSelectedMedia(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const trimmedText = text.trim()
+
+    if (!trimmedText) return
+
+    const publishedAt = new Date().toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+
+    onCreatePost({
+      id: `brand-post-${Date.now()}`,
+      type: postType,
+      text: trimmedText,
+      imagePreviewUrl: selectedMedia?.previewUrl,
+      publishedAt,
+      socialProof: createBrandPostSocialProof(postType, postCount),
+    })
+
+    setText("")
+    handleRemoveMedia()
+    setPostType("news")
+    setIsExpanded(false)
+  }
+
+  if (!isOwnerMode) {
+    return (
+      <section className="px-4 pt-4 sm:px-5">
+        <div className="rounded-2xl border border-dashed border-border/60 bg-background/80 p-4">
+          <p className="text-sm font-medium text-foreground">Voce representa este instituto?</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Reivindique esta pagina para publicar atualizacoes direto na Social Landing.
+          </p>
+          <Button variant="outline" className="mt-3">
+            Reivindique esta pagina
+          </Button>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="px-4 pt-4 sm:px-5">
+      <div className="rounded-2xl border border-border/50 bg-card/80 p-3 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(true)}
+          className="flex w-full items-center gap-3 text-left"
+        >
+          <div className="relative h-11 w-11 overflow-hidden rounded-full ring-1 ring-border/60">
+            <Image src={brandLogo} alt={brandName} fill className="object-cover" />
+          </div>
+          <div className="min-w-0 flex-1 rounded-full bg-secondary/70 px-4 py-3">
+            <p className="truncate text-sm text-muted-foreground">Criar publicacao para quem acompanha o instituto</p>
+          </div>
+        </button>
+
+        {isExpanded && (
+          <form onSubmit={handleSubmit} className="mt-3 space-y-3 border-t border-border/40 pt-3">
+            <Textarea
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              placeholder="O que voce quer compartilhar hoje?"
+              rows={3}
+              className="min-h-24 rounded-2xl border-0 bg-secondary/50 shadow-none focus-visible:ring-2"
+            />
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleMediaChange}
+              className="hidden"
+            />
+
+            {selectedMedia ? (
+              <div className="overflow-hidden rounded-2xl border border-border/60 bg-secondary/20">
+                <img
+                  src={selectedMedia.previewUrl}
+                  alt={selectedMedia.name}
+                  className="h-auto max-h-[280px] w-full object-cover"
+                />
+                <div className="flex items-center justify-between gap-3 p-3">
+                  <p className="min-w-0 truncate text-sm text-muted-foreground">{selectedMedia.name}</p>
+                  <Button type="button" variant="ghost" onClick={handleRemoveMedia}>
+                    Remover foto
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex w-full items-center justify-center rounded-2xl border border-dashed border-border/70 bg-secondary/20 px-4 py-4 text-sm text-muted-foreground transition-colors hover:bg-secondary/35 hover:text-foreground"
+              >
+                Adicionar foto
+              </button>
+            )}
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <label className="flex-1 space-y-1.5">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tipo de atualizacao</span>
+                <select
+                  value={postType}
+                  onChange={(event) => setPostType(event.target.value as BrandPostType)}
+                  className="border-input bg-secondary/40 h-10 w-full rounded-xl border-0 px-3 text-sm outline-none transition-[color,box-shadow] focus-visible:ring-2 focus-visible:ring-ring/50"
+                >
+                  {brandPostTypeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="flex gap-2 sm:self-end">
+                <Button type="button" variant="ghost" onClick={() => setIsExpanded(false)}>
+                  Agora nao
+                </Button>
+                <Button type="submit" disabled={!text.trim()}>
+                  Publicar
+                </Button>
+              </div>
+            </div>
+          </form>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function BrandPostsFeed({
+  brandName,
+  brandLogo,
+  posts,
+  showChat = true,
+  showActions = true,
+  onPostClick,
+}: {
+  brandName: string
+  brandLogo: string
+  posts: BrandPost[]
+  showChat?: boolean
+  showActions?: boolean
+  onPostClick?: (post: BrandPost) => void
+}) {
+  return (
+    <div className="space-y-8">
+      {posts.map((post, index) => {
+        const typeConfig = brandPostTypeOptions.find((option) => option.value === post.type)
+
+        return (
+          <article
+            key={post.id}
+            onClick={onPostClick ? () => onPostClick(post) : undefined}
+            className={onPostClick ? "cursor-pointer transition-opacity hover:opacity-90" : undefined}
+          >
+            <div className="flex items-start gap-3">
+              <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/60">
+                <Image src={brandLogo} alt={brandName} fill className="object-cover" />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <p className="font-semibold text-foreground">{brandName}</p>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${typeConfig?.badgeClassName}`}>
+                    {typeConfig?.label}
+                  </span>
+                  <span className="text-xs text-muted-foreground">Hoje, {post.publishedAt}</span>
+                </div>
+
+                <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">{post.text}</p>
+              </div>
+            </div>
+
+            {post.imagePreviewUrl && (
+              <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-secondary/20">
+                <img
+                  src={post.imagePreviewUrl}
+                  alt={`Imagem do post ${typeConfig?.label?.toLowerCase() || "da marca"}`}
+                  className="h-auto max-h-[360px] w-full object-cover"
+                />
+              </div>
+            )}
+
+            <BrandSocialProofWithAvatars postIndex={index} text={post.socialProof} />
+            {showActions && <BrandSocialActions />}
+
+            {showChat && index === 0 && (
+              <SimpleChatInput placeholder={brandPostChatPlaceholders[post.type]} />
+            )}
+          </article>
+        )
+      })}
+    </div>
+  )
+}
+
+function mapBrandPostToBusinessPost(post: BrandPost): BusinessPost {
+  return {
+    id: post.id,
+    type: post.type,
+    title: post.text,
+    image: post.imagePreviewUrl || "",
+    date: post.publishedAt,
+  }
+}
+
 export function InstitutionalFeed() {
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false)
   const [teamDrawerOpen, setTeamDrawerOpen] = useState(false)
@@ -199,8 +561,11 @@ export function InstitutionalFeed() {
   const [selectedProject, setSelectedProject] = useState<typeof institutionalProjects[0] | null>(null)
   const [faqOpen, setFaqOpen] = useState<string | null>(null)
   const [contactSent, setContactSent] = useState(false)
-  
-  const content = getBusinessContent("institutional")
+  const [brandPosts, setBrandPosts] = useState<BrandPost[]>([])
+  const [brandFeedDrawerOpen, setBrandFeedDrawerOpen] = useState(false)
+  const [brandFeedCategory, setBrandFeedCategory] = useState<BrandPostType>("news")
+  const [selectedBrandPost, setSelectedBrandPost] = useState<BrandPost | null>(null)
+  const viewerMode: InstitutionalViewerMode = "mock-owner"
   
   const handleSendContact = () => {
     setContactSent(true)
@@ -209,9 +574,56 @@ export function InstitutionalFeed() {
       setContactDrawerOpen(false)
     }, 2000)
   }
+
+  const openBrandTypeDrawer = (type: BrandPostType) => {
+    const latestPost = brandPosts.find((post) => post.type === type)
+    if (!latestPost) return
+
+    setSelectedBrandPost(latestPost)
+    setBrandFeedCategory(type)
+    setBrandFeedDrawerOpen(true)
+  }
+
+  const brandDistributedSections = distributedBrandSections
+    .map((section) => {
+      const latestPost = brandPosts.find((post) => post.type === section.type)
+      if (!latestPost) return null
+
+      return {
+        id: `brand-${section.type}`,
+        title: section.title,
+        type: "custom" as const,
+        posts: [],
+        customContent: (
+          <BrandPostsFeed
+            brandName={institutionalConfig.name}
+            brandLogo={institutionalConfig.logo}
+            posts={[latestPost]}
+            showActions={false}
+            showChat={false}
+            onPostClick={() => openBrandTypeDrawer(section.type)}
+          />
+        )
+      }
+    })
+    .filter(Boolean)
   
   // Secoes do feed
   const sections = [
+    ...(brandPosts.length > 0 ? [{
+      id: "brand-updates",
+      title: "Ultimas do Instituto",
+      type: "custom" as const,
+      posts: [],
+      customContent: (
+        <BrandPostsFeed
+          brandName={institutionalConfig.name}
+          brandLogo={institutionalConfig.logo}
+          posts={brandPosts}
+        />
+      )
+    }] : []),
+    ...brandDistributedSections,
     // Sobre (objetivo principal - apresentacao institucional)
     {
       id: "about",
@@ -464,8 +876,30 @@ return (
 <BusinessSocialLanding
   config={institutionalConfig}
   stories={institutionalStories}
+  preFeedContent={
+    <BrandPostsComposer
+      brandName={institutionalConfig.name}
+      brandLogo={institutionalConfig.logo}
+      viewerMode={viewerMode}
+      postCount={brandPosts.length}
+      onCreatePost={(post) => setBrandPosts((currentPosts) => [post, ...currentPosts])}
+    />
+  }
   sections={sections}
   />
+
+      <BusinessFeedDrawer
+        isOpen={brandFeedDrawerOpen}
+        onClose={() => {
+          setBrandFeedDrawerOpen(false)
+          setSelectedBrandPost(null)
+        }}
+        posts={brandPosts.map(mapBrandPostToBusinessPost)}
+        initialPost={selectedBrandPost ? mapBrandPostToBusinessPost(selectedBrandPost) : null}
+        category={brandFeedCategory}
+        brandLogo={institutionalConfig.logo}
+        brandName={institutionalConfig.name}
+      />
       
       {/* Contact Drawer */}
       <Drawer open={contactDrawerOpen} onOpenChange={setContactDrawerOpen}>
