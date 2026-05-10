@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useRef, useState, type ChangeEvent, type FormEvent } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
@@ -199,7 +199,7 @@ interface BrandPost {
   id: string
   type: BrandPostType
   text: string
-  imageUrl?: string
+  imagePreviewUrl?: string
   publishedAt: string
   socialProof: string
 }
@@ -308,14 +308,38 @@ function BrandPostsComposer({
   const isOwnerMode = viewerMode !== "visitor"
   const [isExpanded, setIsExpanded] = useState(false)
   const [text, setText] = useState("")
-  const [imageUrl, setImageUrl] = useState("")
   const [postType, setPostType] = useState<BrandPostType>("news")
+  const [selectedMedia, setSelectedMedia] = useState<{ name: string; previewUrl: string } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const handleMediaChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+
+    if (!file || !file.type.startsWith("image/")) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setSelectedMedia({
+          name: file.name,
+          previewUrl: reader.result,
+        })
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveMedia = () => {
+    setSelectedMedia(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const trimmedText = text.trim()
-    const trimmedImageUrl = imageUrl.trim()
 
     if (!trimmedText) return
 
@@ -328,13 +352,13 @@ function BrandPostsComposer({
       id: `brand-post-${Date.now()}`,
       type: postType,
       text: trimmedText,
-      imageUrl: trimmedImageUrl || undefined,
+      imagePreviewUrl: selectedMedia?.previewUrl,
       publishedAt,
       socialProof: createBrandPostSocialProof(postType, postCount),
     })
 
     setText("")
-    setImageUrl("")
+    handleRemoveMedia()
     setPostType("news")
     setIsExpanded(false)
   }
@@ -381,13 +405,37 @@ function BrandPostsComposer({
               className="min-h-24 rounded-2xl border-0 bg-secondary/50 shadow-none focus-visible:ring-2"
             />
 
-            <Input
-              type="url"
-              value={imageUrl}
-              onChange={(event) => setImageUrl(event.target.value)}
-              placeholder="Cole a URL de uma imagem para acompanhar o post (opcional)"
-              className="rounded-xl border-0 bg-secondary/40 shadow-none focus-visible:ring-2"
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleMediaChange}
+              className="hidden"
             />
+
+            {selectedMedia ? (
+              <div className="overflow-hidden rounded-2xl border border-border/60 bg-secondary/20">
+                <img
+                  src={selectedMedia.previewUrl}
+                  alt={selectedMedia.name}
+                  className="h-auto max-h-[280px] w-full object-cover"
+                />
+                <div className="flex items-center justify-between gap-3 p-3">
+                  <p className="min-w-0 truncate text-sm text-muted-foreground">{selectedMedia.name}</p>
+                  <Button type="button" variant="ghost" onClick={handleRemoveMedia}>
+                    Remover foto
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex w-full items-center justify-center rounded-2xl border border-dashed border-border/70 bg-secondary/20 px-4 py-4 text-sm text-muted-foreground transition-colors hover:bg-secondary/35 hover:text-foreground"
+              >
+                Adicionar foto
+              </button>
+            )}
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <label className="flex-1 space-y-1.5">
@@ -455,10 +503,10 @@ function BrandPostsFeed({
               </div>
             </div>
 
-            {post.imageUrl && (
+            {post.imagePreviewUrl && (
               <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-secondary/20">
                 <img
-                  src={post.imageUrl}
+                  src={post.imagePreviewUrl}
                   alt={`Imagem do post ${typeConfig?.label?.toLowerCase() || "da marca"}`}
                   className="h-auto max-h-[360px] w-full object-cover"
                 />
