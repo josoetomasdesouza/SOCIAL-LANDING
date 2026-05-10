@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
-import { getBusinessContent } from "@/lib/mock-data/business-content"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -194,6 +193,7 @@ const institutionalNews = [
 ]
 
 type BrandPostType = "tip" | "promotion" | "news" | "backstage"
+type InstitutionalViewerMode = "owner" | "admin" | "mock-owner" | "visitor"
 
 interface BrandPost {
   id: string
@@ -295,14 +295,21 @@ function BrandSocialActions() {
 function BrandPostsComposer({
   brandName,
   brandLogo,
+  viewerMode,
+  postCount,
+  onCreatePost,
 }: {
   brandName: string
   brandLogo: string
+  viewerMode: InstitutionalViewerMode
+  postCount: number
+  onCreatePost: (post: BrandPost) => void
 }) {
+  const isOwnerMode = viewerMode !== "visitor"
+  const [isExpanded, setIsExpanded] = useState(false)
   const [text, setText] = useState("")
   const [imageUrl, setImageUrl] = useState("")
   const [postType, setPostType] = useState<BrandPostType>("news")
-  const [posts, setPosts] = useState<BrandPost[]>([])
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -317,124 +324,156 @@ function BrandPostsComposer({
       minute: "2-digit",
     })
 
-    setPosts((currentPosts) => [
-      {
-        id: `brand-post-${Date.now()}`,
-        type: postType,
-        text: trimmedText,
-        imageUrl: trimmedImageUrl || undefined,
-        publishedAt,
-        socialProof: createBrandPostSocialProof(postType, currentPosts.length),
-      },
-      ...currentPosts,
-    ])
+    onCreatePost({
+      id: `brand-post-${Date.now()}`,
+      type: postType,
+      text: trimmedText,
+      imageUrl: trimmedImageUrl || undefined,
+      publishedAt,
+      socialProof: createBrandPostSocialProof(postType, postCount),
+    })
 
     setText("")
     setImageUrl("")
     setPostType("news")
+    setIsExpanded(false)
+  }
+
+  if (!isOwnerMode) {
+    return (
+      <section className="px-4 pt-4 sm:px-5">
+        <div className="rounded-2xl border border-dashed border-border/60 bg-background/80 p-4">
+          <p className="text-sm font-medium text-foreground">Voce representa este instituto?</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Reivindique esta pagina para publicar atualizacoes direto na Social Landing.
+          </p>
+          <Button variant="outline" className="mt-3">
+            Reivindique esta pagina
+          </Button>
+        </div>
+      </section>
+    )
   }
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="rounded-2xl bg-card/70 p-4">
-        <div className="flex items-center gap-3">
+    <section className="px-4 pt-4 sm:px-5">
+      <div className="rounded-2xl border border-border/50 bg-card/80 p-3 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(true)}
+          className="flex w-full items-center gap-3 text-left"
+        >
           <div className="relative h-11 w-11 overflow-hidden rounded-full ring-1 ring-border/60">
             <Image src={brandLogo} alt={brandName} fill className="object-cover" />
           </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-foreground">{brandName}</p>
-            <p className="text-sm text-muted-foreground">Crie uma publicacao para o feed do instituto</p>
+          <div className="min-w-0 flex-1 rounded-full bg-secondary/70 px-4 py-3">
+            <p className="truncate text-sm text-muted-foreground">Criar publicacao para quem acompanha o instituto</p>
           </div>
-        </div>
+        </button>
 
-        <div className="mt-4 space-y-3">
-          <Textarea
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            placeholder="O que voce quer compartilhar hoje?"
-            rows={3}
-            className="min-h-24 rounded-2xl border-0 bg-secondary/50 shadow-none focus-visible:ring-2"
-          />
+        {isExpanded && (
+          <form onSubmit={handleSubmit} className="mt-3 space-y-3 border-t border-border/40 pt-3">
+            <Textarea
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              placeholder="O que voce quer compartilhar hoje?"
+              rows={3}
+              className="min-h-24 rounded-2xl border-0 bg-secondary/50 shadow-none focus-visible:ring-2"
+            />
 
-          <Input
-            type="url"
-            value={imageUrl}
-            onChange={(event) => setImageUrl(event.target.value)}
-            placeholder="Cole a URL de uma imagem para acompanhar o post (opcional)"
-            className="rounded-xl border-0 bg-secondary/40 shadow-none focus-visible:ring-2"
-          />
+            <Input
+              type="url"
+              value={imageUrl}
+              onChange={(event) => setImageUrl(event.target.value)}
+              placeholder="Cole a URL de uma imagem para acompanhar o post (opcional)"
+              className="rounded-xl border-0 bg-secondary/40 shadow-none focus-visible:ring-2"
+            />
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <label className="flex-1 space-y-1.5">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tipo de atualizacao</span>
-              <select
-                value={postType}
-                onChange={(event) => setPostType(event.target.value as BrandPostType)}
-                className="border-input bg-secondary/40 h-10 w-full rounded-xl border-0 px-3 text-sm outline-none transition-[color,box-shadow] focus-visible:ring-2 focus-visible:ring-ring/50"
-              >
-                {brandPostTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <label className="flex-1 space-y-1.5">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tipo de atualizacao</span>
+                <select
+                  value={postType}
+                  onChange={(event) => setPostType(event.target.value as BrandPostType)}
+                  className="border-input bg-secondary/40 h-10 w-full rounded-xl border-0 px-3 text-sm outline-none transition-[color,box-shadow] focus-visible:ring-2 focus-visible:ring-ring/50"
+                >
+                  {brandPostTypeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <Button type="submit" className="sm:min-w-32 sm:self-end" disabled={!text.trim()}>
-              Publicar no feed
-            </Button>
-          </div>
-        </div>
-      </form>
+              <div className="flex gap-2 sm:self-end">
+                <Button type="button" variant="ghost" onClick={() => setIsExpanded(false)}>
+                  Agora nao
+                </Button>
+                <Button type="submit" disabled={!text.trim()}>
+                  Publicar
+                </Button>
+              </div>
+            </div>
+          </form>
+        )}
+      </div>
+    </section>
+  )
+}
 
-      {posts.length === 0 ? (
-        <div className="px-1 text-sm text-muted-foreground">
-          A proxima atualizacao publicada aparece aqui para dar vida ao feed do instituto.
-        </div>
-      ) : (
-        posts.map((post, index) => {
-          const typeConfig = brandPostTypeOptions.find((option) => option.value === post.type)
+function BrandPostsFeed({
+  brandName,
+  brandLogo,
+  posts,
+}: {
+  brandName: string
+  brandLogo: string
+  posts: BrandPost[]
+}) {
+  return (
+    <div className="space-y-8">
+      {posts.map((post, index) => {
+        const typeConfig = brandPostTypeOptions.find((option) => option.value === post.type)
 
-          return (
-            <article key={post.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-              <div className="flex items-start gap-3">
-                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/60">
-                  <Image src={brandLogo} alt={brandName} fill className="object-cover" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <p className="font-semibold text-foreground">{brandName}</p>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${typeConfig?.badgeClassName}`}>
-                      {typeConfig?.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground">Hoje, {post.publishedAt}</span>
-                  </div>
-
-                  <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">{post.text}</p>
-                </div>
+        return (
+          <article key={post.id}>
+            <div className="flex items-start gap-3">
+              <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/60">
+                <Image src={brandLogo} alt={brandName} fill className="object-cover" />
               </div>
 
-              {post.imageUrl && (
-                <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-secondary/20">
-                  <img
-                    src={post.imageUrl}
-                    alt={`Imagem do post ${typeConfig?.label?.toLowerCase() || "da marca"}`}
-                    className="h-auto max-h-[360px] w-full object-cover"
-                  />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <p className="font-semibold text-foreground">{brandName}</p>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${typeConfig?.badgeClassName}`}>
+                    {typeConfig?.label}
+                  </span>
+                  <span className="text-xs text-muted-foreground">Hoje, {post.publishedAt}</span>
                 </div>
-              )}
 
-              <BrandSocialProofWithAvatars postIndex={index} text={post.socialProof} />
-              <BrandSocialActions />
+                <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">{post.text}</p>
+              </div>
+            </div>
 
-              {index === 0 && (
-                <SimpleChatInput placeholder={brandPostChatPlaceholders[post.type]} />
-              )}
-            </article>
-          )
-        })
-      )}
+            {post.imageUrl && (
+              <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-secondary/20">
+                <img
+                  src={post.imageUrl}
+                  alt={`Imagem do post ${typeConfig?.label?.toLowerCase() || "da marca"}`}
+                  className="h-auto max-h-[360px] w-full object-cover"
+                />
+              </div>
+            )}
+
+            <BrandSocialProofWithAvatars postIndex={index} text={post.socialProof} />
+            <BrandSocialActions />
+
+            {index === 0 && (
+              <SimpleChatInput placeholder={brandPostChatPlaceholders[post.type]} />
+            )}
+          </article>
+        )
+      })}
     </div>
   )
 }
@@ -446,8 +485,8 @@ export function InstitutionalFeed() {
   const [selectedProject, setSelectedProject] = useState<typeof institutionalProjects[0] | null>(null)
   const [faqOpen, setFaqOpen] = useState<string | null>(null)
   const [contactSent, setContactSent] = useState(false)
-  
-  const content = getBusinessContent("institutional")
+  const [brandPosts, setBrandPosts] = useState<BrandPost[]>([])
+  const viewerMode: InstitutionalViewerMode = "mock-owner"
   
   const handleSendContact = () => {
     setContactSent(true)
@@ -459,6 +498,19 @@ export function InstitutionalFeed() {
   
   // Secoes do feed
   const sections = [
+    ...(brandPosts.length > 0 ? [{
+      id: "brand-updates",
+      title: "Ultimas do Instituto",
+      type: "custom" as const,
+      posts: [],
+      customContent: (
+        <BrandPostsFeed
+          brandName={institutionalConfig.name}
+          brandLogo={institutionalConfig.logo}
+          posts={brandPosts}
+        />
+      )
+    }] : []),
     // Sobre (objetivo principal - apresentacao institucional)
     {
       id: "about",
@@ -597,18 +649,6 @@ export function InstitutionalFeed() {
         </div>
       )
     },
-    {
-      id: "brand-updates",
-      title: "Ultimas do Instituto",
-      type: "custom" as const,
-      posts: [],
-      customContent: (
-        <BrandPostsComposer
-          brandName={institutionalConfig.name}
-          brandLogo={institutionalConfig.logo}
-        />
-      )
-    },
     // Videos com chat - usa renderContent para permitir abrir drawer
     {
       id: "videos",
@@ -723,6 +763,15 @@ return (
 <BusinessSocialLanding
   config={institutionalConfig}
   stories={institutionalStories}
+  preFeedContent={
+    <BrandPostsComposer
+      brandName={institutionalConfig.name}
+      brandLogo={institutionalConfig.logo}
+      viewerMode={viewerMode}
+      postCount={brandPosts.length}
+      onCreatePost={(post) => setBrandPosts((currentPosts) => [post, ...currentPosts])}
+    />
+  }
   sections={sections}
   />
       
