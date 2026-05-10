@@ -12,6 +12,7 @@ interface ActionDrawerProps {
   children: React.ReactNode
   footer?: React.ReactNode
   size?: "sm" | "md" | "lg" | "full"
+  matchFeedWidth?: boolean
 }
 
 export function ActionDrawer({
@@ -21,7 +22,8 @@ export function ActionDrawer({
   subtitle,
   children,
   footer,
-  size = "md"
+  size = "md",
+  matchFeedWidth = false
 }: ActionDrawerProps) {
   // Bloqueia scroll do body quando aberto
   useEffect(() => {
@@ -43,6 +45,12 @@ export function ActionDrawer({
     lg: "max-h-[80vh]",
     full: "max-h-[95vh]"
   }
+  const widthClasses = matchFeedWidth
+    ? "left-1/2 right-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
+    : "inset-x-0"
+  const drawerTransform = matchFeedWidth
+    ? `translate(-50%, ${isOpen ? "0" : "100%"})`
+    : `translateY(${isOpen ? "0" : "100%"})`
 
   return (
     <>
@@ -54,8 +62,8 @@ export function ActionDrawer({
 
       {/* Drawer */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
-        style={{ transform: isOpen ? "translateY(0)" : "translateY(100%)" }}
+        className={`fixed ${widthClasses} bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
+        style={{ transform: drawerTransform }}
       >
         {/* Handle */}
         <div className="flex flex-shrink-0 justify-center pt-3 pb-2">
