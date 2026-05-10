@@ -11,6 +11,8 @@ import { EcommerceCheckout } from "../checkout-flows"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product } from "@/lib/business-types"
+import type { UniversalSegmentConfig } from "@/lib/core"
+import { ecommerceSegmentConfig } from "@/lib/segments/ecommerce.config"
 
 interface CartItem {
   id: string
@@ -20,21 +22,30 @@ interface CartItem {
   quantity: number
 }
 
+type EcommerceCategory = {
+  id: string
+  name: string
+  count: number
+  icon: string
+}
+
 // ========================================
 // MODULO: PRODUTOS EM DESTAQUE (OBJETIVO PRINCIPAL)
 // ========================================
-function ProductsModule({ 
+function ProductsModule({
+  items,
   onSelectProduct,
   onAddToCart,
   favorites,
   onToggleFavorite
-}: { 
+}: {
+  items: Product[]
   onSelectProduct: (product: Product) => void
   onAddToCart: (product: Product) => void
   favorites: Set<string>
   onToggleFavorite: (id: string) => void
 }) {
-  const featuredProducts = products.filter(p => p.originalPrice && p.originalPrice > p.price).slice(0, 4)
+  const featuredProducts = items.filter(p => p.originalPrice && p.originalPrice > p.price).slice(0, 4)
   
   return (
     <div className="space-y-6">
@@ -102,10 +113,16 @@ function ProductsModule({
 // ========================================
 // MODULO: CATEGORIAS
 // ========================================
-function CategoriesModule({ onSelectCategory }: { onSelectCategory: (category: string) => void }) {
+function CategoriesModule({
+  categories,
+  onSelectCategory
+}: {
+  categories: EcommerceCategory[]
+  onSelectCategory: (category: string) => void
+}) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {productCategories.map((category) => (
+      {categories.map((category) => (
         <button
           key={category.id}
           onClick={() => onSelectCategory(category.id)}
@@ -349,6 +366,105 @@ function CartDrawerComponent({
   )
 }
 
+type EcommerceSectionData = {
+  content: typeof ecommerceContent
+  products: Product[]
+  categories: EcommerceCategory[]
+}
+
+type EcommerceSectionHandlers = {
+  onSelectProduct: (product: Product) => void
+  onAddToCart: (product: Product) => void
+  onToggleFavorite: (id: string) => void
+  onSelectCategory: (category: string) => void
+}
+
+function buildEcommerceSections({
+  segmentConfig,
+  data,
+  handlers,
+  favorites,
+}: {
+  segmentConfig: UniversalSegmentConfig
+  data: EcommerceSectionData
+  handlers: EcommerceSectionHandlers
+  favorites: Set<string>
+}): BusinessSection[] {
+  const sections: BusinessSection[] = []
+  const contentPriorities = new Set(segmentConfig.contentPriorities)
+
+  if (segmentConfig.requiredModules.includes("ecommerce.products")) {
+    sections.push({
+      id: "products",
+      title: "Ofertas em Destaque",
+      icon: <ShoppingBag className="w-5 h-5 text-accent" />,
+      type: "primary-action",
+      customContent: (
+        <ProductsModule
+          items={data.products}
+          onSelectProduct={handlers.onSelectProduct}
+          onAddToCart={handlers.onAddToCart}
+          favorites={favorites}
+          onToggleFavorite={handlers.onToggleFavorite}
+        />
+      )
+    })
+
+    sections.push({
+      id: "categories",
+      title: "Categorias",
+      type: "specific",
+      customContent: (
+        <CategoriesModule
+          categories={data.categories}
+          onSelectCategory={handlers.onSelectCategory}
+        />
+      )
+    })
+  }
+
+  if (contentPriorities.has("video")) {
+    sections.push({
+      id: "videos",
+      title: "Dicas e Tutoriais",
+      icon: <Play className="w-5 h-5 text-accent" />,
+      type: "content",
+      posts: data.content.videos
+    })
+  }
+
+  if (contentPriorities.has("review")) {
+    sections.push({
+      id: "reviews",
+      title: "O Que Dizem",
+      icon: <Star className="w-5 h-5 text-accent" />,
+      type: "content",
+      posts: data.content.reviews
+    })
+  }
+
+  if (contentPriorities.has("news")) {
+    sections.push({
+      id: "news",
+      title: "Na Midia",
+      icon: <Newspaper className="w-5 h-5 text-accent" />,
+      type: "content",
+      posts: data.content.news
+    })
+  }
+
+  if (contentPriorities.has("social")) {
+    sections.push({
+      id: "social",
+      title: "Bastidores",
+      type: "content",
+      posts: data.content.social
+    })
+  }
+
+  return sections
+}
+
 // ========================================
 // COMPONENTE PRINCIPAL
 // ========================================
@@ -388,56 +504,21 @@ export function EcommerceFeed() {
     })
   }
   
-  // Secoes do feed
-  const sections: BusinessSection[] = [
-    {
-      id: "products",
-      title: "Ofertas em Destaque",
-      icon: <ShoppingBag className="w-5 h-5 text-accent" />,
-      type: "primary-action",
-      customContent: (
-        <ProductsModule 
-          onSelectProduct={(p) => { setSelectedProduct(p); setProductDrawerOpen(true) }}
-          onAddToCart={handleAddToCart}
-          favorites={favorites}
-          onToggleFavorite={handleToggleFavorite}
-        />
-      )
+  const sections = buildEcommerceSections({
+    segmentConfig: ecommerceSegmentConfig,
+    data: {
+      content: ecommerceContent,
+      products,
+      categories: productCategories,
     },
-    {
-      id: "categories",
-      title: "Categorias",
-      type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+    handlers: {
+      onSelectProduct: (product) => { setSelectedProduct(product); setProductDrawerOpen(true) },
+      onAddToCart: handleAddToCart,
+      onToggleFavorite: handleToggleFavorite,
+      onSelectCategory: () => {},
     },
-    {
-      id: "videos",
-      title: "Dicas e Tutoriais",
-      icon: <Play className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: ecommerceContent.videos
-    },
-    {
-      id: "reviews",
-      title: "O Que Dizem",
-      icon: <Star className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: ecommerceContent.reviews
-    },
-    {
-      id: "news",
-      title: "Na Midia",
-      icon: <Newspaper className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: ecommerceContent.news
-    },
-    {
-      id: "social",
-      title: "Bastidores",
-      type: "content",
-      posts: ecommerceContent.social
-    }
-  ]
+    favorites,
+  })
 
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
   
