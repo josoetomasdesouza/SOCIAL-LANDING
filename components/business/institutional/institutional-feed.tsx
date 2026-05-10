@@ -7,10 +7,11 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { SimpleChatInput } from "@/components/social-landing/inline-chat"
 import { 
   Target, Heart, Users, Award, Mail, Phone, MapPin,
   Building2, Linkedin, ChevronRight, Send, Check,
-  FileText, Download
+  FileText, Download, MessageCircle, Share, Bookmark
 } from "lucide-react"
 import Image from "next/image"
 
@@ -200,6 +201,10 @@ interface BrandPost {
   text: string
   imageUrl?: string
   publishedAt: string
+  socialProof: string
+  likes: number
+  comments: number
+  shares: number
 }
 
 const brandPostTypeOptions: Array<{ value: BrandPostType; label: string; badgeClassName: string }> = [
@@ -208,6 +213,31 @@ const brandPostTypeOptions: Array<{ value: BrandPostType; label: string; badgeCl
   { value: "news", label: "Noticia", badgeClassName: "bg-blue-500/10 text-blue-600" },
   { value: "backstage", label: "Bastidores", badgeClassName: "bg-violet-500/10 text-violet-600" },
 ]
+
+const brandSocialNames = ["Ana", "Julia", "Marina", "Pedro", "Carla", "Lucas"]
+
+const brandPostSocialProof: Record<BrandPostType, string[]> = {
+  tip: ["salvaram essa dica", "comentaram sobre esse cuidado", "mandaram para outras pessoas da comunidade"],
+  promotion: ["compartilharam essa oportunidade", "marcaram outras pessoas aqui", "estao de olho nessa novidade"],
+  news: ["acompanharam essa atualizacao", "comentaram sobre essa novidade", "salvaram para ver depois"],
+  backstage: ["curtiram ver os bastidores", "reagiram a esse momento", "comentaram sobre essa cena"],
+}
+
+const brandPostChatPlaceholders: Record<BrandPostType, string> = {
+  tip: "quero ver mais dicas assim",
+  promotion: "essa novidade ainda esta valendo?",
+  news: "quero saber mais sobre isso",
+  backstage: "adorei ver esse bastidor",
+}
+
+function createBrandPostSocialProof(type: BrandPostType, seed: number) {
+  const messages = brandPostSocialProof[type]
+  const message = messages[seed % messages.length]
+  const name1 = brandSocialNames[seed % brandSocialNames.length]
+  const name2 = brandSocialNames[(seed + 2) % brandSocialNames.length]
+
+  return `${name1}, ${name2} e outras pessoas ${message}`
+}
 
 function BrandPostsComposer({
   brandName,
@@ -241,6 +271,10 @@ function BrandPostsComposer({
         text: trimmedText,
         imageUrl: trimmedImageUrl || undefined,
         publishedAt,
+        socialProof: createBrandPostSocialProof(postType, currentPosts.length),
+        likes: 18 + currentPosts.length * 6,
+        comments: 3 + currentPosts.length * 2,
+        shares: 2 + currentPosts.length,
       },
       ...currentPosts,
     ])
@@ -259,7 +293,7 @@ function BrandPostsComposer({
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-foreground">{brandName}</p>
-            <p className="text-sm text-muted-foreground">Publicar novidade localmente na Social Landing</p>
+            <p className="text-sm text-muted-foreground">Compartilhe uma atualizacao com quem acompanha o instituto</p>
           </div>
         </div>
 
@@ -267,20 +301,20 @@ function BrandPostsComposer({
           <Textarea
             value={text}
             onChange={(event) => setText(event.target.value)}
-            placeholder="Escreva uma novidade da marca..."
-            rows={4}
+            placeholder="O que voce quer compartilhar hoje?"
+            rows={3}
           />
 
           <Input
             type="url"
             value={imageUrl}
             onChange={(event) => setImageUrl(event.target.value)}
-            placeholder="URL da imagem (opcional)"
+            placeholder="Cole a URL de uma imagem para acompanhar o post (opcional)"
           />
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <label className="flex-1 space-y-1.5">
-              <span className="text-sm font-medium text-foreground">Tipo do post</span>
+              <span className="text-sm font-medium text-foreground">Tipo de atualizacao</span>
               <select
                 value={postType}
                 onChange={(event) => setPostType(event.target.value as BrandPostType)}
@@ -295,7 +329,7 @@ function BrandPostsComposer({
             </label>
 
             <Button type="submit" className="sm:min-w-32" disabled={!text.trim()}>
-              Publicar
+              Publicar no feed
             </Button>
           </div>
         </div>
@@ -303,10 +337,10 @@ function BrandPostsComposer({
 
       {posts.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-6 text-sm text-muted-foreground">
-          O primeiro post publicado aqui vai aparecer neste bloco para simular um feed vivo.
+          A proxima atualizacao publicada aparece aqui para dar vida ao feed do instituto.
         </div>
       ) : (
-        posts.map((post) => {
+        posts.map((post, index) => {
           const typeConfig = brandPostTypeOptions.find((option) => option.value === post.type)
 
           return (
@@ -317,7 +351,7 @@ function BrandPostsComposer({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <p className="font-semibold text-foreground">{brandName}</p>
                     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${typeConfig?.badgeClassName}`}>
                       {typeConfig?.label}
@@ -325,7 +359,7 @@ function BrandPostsComposer({
                     <span className="text-xs text-muted-foreground">Hoje, {post.publishedAt}</span>
                   </div>
 
-                  <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{post.text}</p>
+                  <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-foreground">{post.text}</p>
                 </div>
               </div>
 
@@ -337,6 +371,42 @@ function BrandPostsComposer({
                     className="h-auto max-h-[360px] w-full object-cover"
                   />
                 </div>
+              )}
+
+              <div className="mt-4 flex items-center gap-2.5 text-sm text-muted-foreground">
+                <div className="flex -space-x-2">
+                  {brandSocialNames.slice(0, 3).map((name) => (
+                    <div
+                      key={`${post.id}-${name}`}
+                      className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-accent/10 text-[10px] font-semibold text-accent"
+                    >
+                      {name.charAt(0)}
+                    </div>
+                  ))}
+                </div>
+                <p>{post.socialProof}</p>
+              </div>
+
+              <div className="mt-2 flex items-center gap-1 border-t border-border/40 pt-3">
+                <button className="flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-red-500/10 hover:text-red-500">
+                  <Heart className="h-4 w-4" />
+                  <span>{post.likes}</span>
+                </button>
+                <button className="flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-accent/10 hover:text-accent">
+                  <MessageCircle className="h-4 w-4" />
+                  <span>{post.comments}</span>
+                </button>
+                <button className="flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-accent/10 hover:text-accent">
+                  <Share className="h-4 w-4" />
+                  <span>{post.shares}</span>
+                </button>
+                <button className="ml-auto rounded-full p-2 text-foreground transition-colors hover:bg-accent/10 hover:text-accent">
+                  <Bookmark className="h-4 w-4" />
+                </button>
+              </div>
+
+              {index === 0 && (
+                <SimpleChatInput placeholder={brandPostChatPlaceholders[post.type]} />
               )}
             </article>
           )
@@ -544,7 +614,7 @@ export function InstitutionalFeed() {
     },
     {
       id: "brand-updates",
-      title: "Novidades da Marca",
+      title: "Ultimas do Instituto",
       type: "custom" as const,
       posts: [],
       customContent: (
