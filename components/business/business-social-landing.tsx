@@ -679,7 +679,10 @@ function BusinessSectionComponent({
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
   const isExplorable = section.type === "content" && !!section.posts?.length && !!onPostClick
-  const previewPosts = section.posts?.slice(0, 4) || []
+  const previewPosts = section.posts?.slice(0, 3) || []
+  const remainingPosts = isExplorable
+    ? section.posts?.slice(previewPosts.length) || []
+    : section.posts || []
   const sectionSubtitle = isExplorable ? getSectionExploreCopy(section) : null
   const sectionCountLabel = section.posts?.length === 1
     ? "1 item"
@@ -771,7 +774,7 @@ function BusinessSectionComponent({
       {section.renderContent && onPostClick && section.renderContent(onPostClick)}
       
       {/* Posts */}
-      {section.posts && section.posts.map((post, index) => (
+      {remainingPosts.map((post, index) => (
         <PostCard
           key={post.id}
           post={post}
