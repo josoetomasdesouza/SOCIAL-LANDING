@@ -1,0 +1,331 @@
+import type { BusinessModel } from "@/lib/business-types"
+
+import {
+  ALL_BLOCK_SEGMENTS,
+  APPOINTMENT_BLOCK_IDS,
+  COURSES_BLOCK_IDS,
+  ECOMMERCE_BLOCK_IDS,
+  RESTAURANT_BLOCK_IDS,
+  UNIVERSAL_BLOCK_IDS,
+  type BlockDefinition,
+  type BlockId,
+} from "./block-types"
+
+const UNIVERSAL_SEGMENTS = ALL_BLOCK_SEGMENTS
+const APPOINTMENT_SEGMENTS = ["appointment"] as const satisfies readonly BusinessModel[]
+const RESTAURANT_SEGMENTS = ["restaurant"] as const satisfies readonly BusinessModel[]
+const ECOMMERCE_SEGMENTS = ["ecommerce"] as const satisfies readonly BusinessModel[]
+const COURSES_SEGMENTS = ["courses"] as const satisfies readonly BusinessModel[]
+
+export const BLOCK_REGISTRY = [
+  {
+    id: "stories",
+    title: "Stories",
+    category: "social",
+    goal: "engagement",
+    compatibleSegments: UNIVERSAL_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "high",
+  },
+  {
+    id: "videos",
+    title: "Videos",
+    category: "editorial",
+    goal: "awareness",
+    compatibleSegments: UNIVERSAL_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "high",
+  },
+  {
+    id: "reviews",
+    title: "Reviews",
+    category: "proof",
+    goal: "trust",
+    compatibleSegments: UNIVERSAL_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "high",
+  },
+  {
+    id: "tips",
+    title: "Tips",
+    category: "editorial",
+    goal: "education",
+    compatibleSegments: UNIVERSAL_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "medium",
+  },
+  {
+    id: "updates",
+    title: "Updates",
+    category: "editorial",
+    goal: "awareness",
+    compatibleSegments: UNIVERSAL_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "medium",
+  },
+  {
+    id: "highlights",
+    title: "Highlights",
+    category: "social",
+    goal: "consideration",
+    compatibleSegments: UNIVERSAL_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "medium",
+  },
+  {
+    id: "institutional",
+    title: "Institutional",
+    category: "institutional",
+    goal: "trust",
+    compatibleSegments: UNIVERSAL_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: false,
+    priorityLevel: "medium",
+  },
+  {
+    id: "brand-posts",
+    title: "Brand Posts",
+    category: "social",
+    goal: "awareness",
+    compatibleSegments: UNIVERSAL_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "medium",
+  },
+  {
+    id: "conversion",
+    title: "Conversion",
+    category: "commercial",
+    goal: "conversion",
+    compatibleSegments: UNIVERSAL_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: false,
+    canGenerateStories: false,
+    priorityLevel: "critical",
+  },
+  {
+    id: "services",
+    title: "Services",
+    category: "catalog",
+    goal: "consideration",
+    compatibleSegments: APPOINTMENT_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "critical",
+  },
+  {
+    id: "professionals",
+    title: "Professionals",
+    category: "proof",
+    goal: "trust",
+    compatibleSegments: APPOINTMENT_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "high",
+  },
+  {
+    id: "availability",
+    title: "Availability",
+    category: "operations",
+    goal: "conversion",
+    compatibleSegments: APPOINTMENT_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: false,
+    priorityLevel: "high",
+  },
+  {
+    id: "results",
+    title: "Results",
+    category: "proof",
+    goal: "trust",
+    compatibleSegments: APPOINTMENT_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "high",
+  },
+  {
+    id: "menu",
+    title: "Menu",
+    category: "catalog",
+    goal: "consideration",
+    compatibleSegments: RESTAURANT_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "critical",
+  },
+  {
+    id: "combos",
+    title: "Combos",
+    category: "commercial",
+    goal: "conversion",
+    compatibleSegments: RESTAURANT_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "high",
+  },
+  {
+    id: "delivery",
+    title: "Delivery",
+    category: "operations",
+    goal: "conversion",
+    compatibleSegments: RESTAURANT_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: false,
+    priorityLevel: "high",
+  },
+  {
+    id: "environment",
+    title: "Environment",
+    category: "proof",
+    goal: "consideration",
+    compatibleSegments: RESTAURANT_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "medium",
+  },
+  {
+    id: "products",
+    title: "Products",
+    category: "catalog",
+    goal: "consideration",
+    compatibleSegments: ECOMMERCE_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "critical",
+  },
+  {
+    id: "categories",
+    title: "Categories",
+    category: "catalog",
+    goal: "consideration",
+    compatibleSegments: ECOMMERCE_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: false,
+    priorityLevel: "high",
+  },
+  {
+    id: "offers",
+    title: "Offers",
+    category: "commercial",
+    goal: "conversion",
+    compatibleSegments: ECOMMERCE_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "critical",
+  },
+  {
+    id: "favorites",
+    title: "Favorites",
+    category: "commercial",
+    goal: "consideration",
+    compatibleSegments: ECOMMERCE_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: false,
+    priorityLevel: "medium",
+  },
+  {
+    id: "courses",
+    title: "Courses",
+    category: "catalog",
+    goal: "consideration",
+    compatibleSegments: COURSES_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "critical",
+  },
+  {
+    id: "tracks",
+    title: "Tracks",
+    category: "catalog",
+    goal: "education",
+    compatibleSegments: COURSES_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: false,
+    priorityLevel: "high",
+  },
+  {
+    id: "lessons",
+    title: "Lessons",
+    category: "editorial",
+    goal: "education",
+    compatibleSegments: COURSES_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "high",
+  },
+  {
+    id: "instructors",
+    title: "Instructors",
+    category: "proof",
+    goal: "trust",
+    compatibleSegments: COURSES_SEGMENTS,
+    acceptsManualPosts: true,
+    acceptsAutoContent: true,
+    canGenerateStories: true,
+    priorityLevel: "high",
+  },
+] as const satisfies readonly BlockDefinition[]
+
+const UNIVERSAL_BLOCK_ID_SET = new Set<BlockId>(UNIVERSAL_BLOCK_IDS)
+const APPOINTMENT_BLOCK_ID_SET = new Set<BlockId>(APPOINTMENT_BLOCK_IDS)
+const RESTAURANT_BLOCK_ID_SET = new Set<BlockId>(RESTAURANT_BLOCK_IDS)
+const ECOMMERCE_BLOCK_ID_SET = new Set<BlockId>(ECOMMERCE_BLOCK_IDS)
+const COURSES_BLOCK_ID_SET = new Set<BlockId>(COURSES_BLOCK_IDS)
+
+export const BLOCK_REGISTRY_BY_ID: Record<BlockId, BlockDefinition> = BLOCK_REGISTRY.reduce(
+  (registry, block) => {
+    registry[block.id] = block
+    return registry
+  },
+  {} as Record<BlockId, BlockDefinition>,
+)
+
+export const UNIVERSAL_BLOCKS = BLOCK_REGISTRY.filter((block) =>
+  UNIVERSAL_BLOCK_ID_SET.has(block.id),
+)
+
+export const SEGMENT_SPECIFIC_BLOCKS = {
+  appointment: BLOCK_REGISTRY.filter((block) => APPOINTMENT_BLOCK_ID_SET.has(block.id)),
+  restaurant: BLOCK_REGISTRY.filter((block) => RESTAURANT_BLOCK_ID_SET.has(block.id)),
+  ecommerce: BLOCK_REGISTRY.filter((block) => ECOMMERCE_BLOCK_ID_SET.has(block.id)),
+  courses: BLOCK_REGISTRY.filter((block) => COURSES_BLOCK_ID_SET.has(block.id)),
+} as const
+
+export function getBlockDefinition(blockId: BlockId): BlockDefinition {
+  return BLOCK_REGISTRY_BY_ID[blockId]
+}
+
+export function getCompatibleBlocksForSegment(segment: BusinessModel): BlockDefinition[] {
+  return BLOCK_REGISTRY.filter((block) =>
+    (block.compatibleSegments as readonly BusinessModel[]).includes(segment),
+  )
+}

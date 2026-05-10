@@ -629,14 +629,46 @@ function BusinessSectionComponent({
 }) {
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
+  const isExplorable = section.type === "content" && !!section.posts?.length && !!onPostClick
+  const featuredPost = isExplorable ? section.posts?.[0] : null
+  const remainingPosts = isExplorable ? [] : section.posts || []
   
   return (
     <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
       {/* Section Header */}
-      <div className="flex items-center gap-2 mb-5">
-        {section.icon}
-        <h2 className="text-lg font-bold text-foreground">{section.title}</h2>
-      </div>
+      {isExplorable ? (
+        <div className="mb-5">
+          <button
+            type="button"
+            onClick={() => featuredPost && onPostClick?.(featuredPost)}
+            className="mb-4 flex w-full items-center gap-2 text-left"
+            aria-label={`Ver publicações em ${section.title}`}
+          >
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              {section.icon}
+              <h2 className="text-lg font-bold text-foreground">{section.title}</h2>
+            </div>
+            <ChevronRight className="w-4 h-4 text-accent flex-shrink-0" />
+          </button>
+
+          {featuredPost && (
+            <div>
+              <PostCard
+                post={featuredPost}
+                index={0}
+                brandLogo={config.logo}
+                onClick={() => onPostClick?.(featuredPost)}
+                showChat={false}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 mb-5">
+          {section.icon}
+          <h2 className="text-lg font-bold text-foreground">{section.title}</h2>
+        </div>
+      )}
       
       {/* Custom Content (for specific modules - sem drawer) */}
       {section.customContent && section.customContent}
@@ -645,7 +677,7 @@ function BusinessSectionComponent({
       {section.renderContent && onPostClick && section.renderContent(onPostClick)}
       
       {/* Posts */}
-      {section.posts && section.posts.map((post, index) => (
+      {remainingPosts.map((post, index) => (
         <PostCard
           key={post.id}
           post={post}
