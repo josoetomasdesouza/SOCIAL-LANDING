@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
@@ -191,6 +191,160 @@ const institutionalNews = [
     socialProof: "Pedro, Marina e outras pessoas compartilharam"
   }
 ]
+
+type BrandPostType = "tip" | "promotion" | "news" | "backstage"
+
+interface BrandPost {
+  id: string
+  type: BrandPostType
+  text: string
+  imageUrl?: string
+  publishedAt: string
+}
+
+const brandPostTypeOptions: Array<{ value: BrandPostType; label: string; badgeClassName: string }> = [
+  { value: "tip", label: "Dica", badgeClassName: "bg-emerald-500/10 text-emerald-600" },
+  { value: "promotion", label: "Promocao", badgeClassName: "bg-orange-500/10 text-orange-600" },
+  { value: "news", label: "Noticia", badgeClassName: "bg-blue-500/10 text-blue-600" },
+  { value: "backstage", label: "Bastidores", badgeClassName: "bg-violet-500/10 text-violet-600" },
+]
+
+function BrandPostsComposer({
+  brandName,
+  brandLogo,
+}: {
+  brandName: string
+  brandLogo: string
+}) {
+  const [text, setText] = useState("")
+  const [imageUrl, setImageUrl] = useState("")
+  const [postType, setPostType] = useState<BrandPostType>("news")
+  const [posts, setPosts] = useState<BrandPost[]>([])
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const trimmedText = text.trim()
+    const trimmedImageUrl = imageUrl.trim()
+
+    if (!trimmedText) return
+
+    const publishedAt = new Date().toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+
+    setPosts((currentPosts) => [
+      {
+        id: `brand-post-${Date.now()}`,
+        type: postType,
+        text: trimmedText,
+        imageUrl: trimmedImageUrl || undefined,
+        publishedAt,
+      },
+      ...currentPosts,
+    ])
+
+    setText("")
+    setImageUrl("")
+    setPostType("news")
+  }
+
+  return (
+    <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="relative h-11 w-11 overflow-hidden rounded-full ring-1 ring-border/60">
+            <Image src={brandLogo} alt={brandName} fill className="object-cover" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-foreground">{brandName}</p>
+            <p className="text-sm text-muted-foreground">Publicar novidade localmente na Social Landing</p>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <Textarea
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder="Escreva uma novidade da marca..."
+            rows={4}
+          />
+
+          <Input
+            type="url"
+            value={imageUrl}
+            onChange={(event) => setImageUrl(event.target.value)}
+            placeholder="URL da imagem (opcional)"
+          />
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <label className="flex-1 space-y-1.5">
+              <span className="text-sm font-medium text-foreground">Tipo do post</span>
+              <select
+                value={postType}
+                onChange={(event) => setPostType(event.target.value as BrandPostType)}
+                className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              >
+                {brandPostTypeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <Button type="submit" className="sm:min-w-32" disabled={!text.trim()}>
+              Publicar
+            </Button>
+          </div>
+        </div>
+      </form>
+
+      {posts.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-6 text-sm text-muted-foreground">
+          O primeiro post publicado aqui vai aparecer neste bloco para simular um feed vivo.
+        </div>
+      ) : (
+        posts.map((post) => {
+          const typeConfig = brandPostTypeOptions.find((option) => option.value === post.type)
+
+          return (
+            <article key={post.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/60">
+                  <Image src={brandLogo} alt={brandName} fill className="object-cover" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold text-foreground">{brandName}</p>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${typeConfig?.badgeClassName}`}>
+                      {typeConfig?.label}
+                    </span>
+                    <span className="text-xs text-muted-foreground">Hoje, {post.publishedAt}</span>
+                  </div>
+
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{post.text}</p>
+                </div>
+              </div>
+
+              {post.imageUrl && (
+                <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-secondary/20">
+                  <img
+                    src={post.imageUrl}
+                    alt={`Imagem do post ${typeConfig?.label?.toLowerCase() || "da marca"}`}
+                    className="h-auto max-h-[360px] w-full object-cover"
+                  />
+                </div>
+              )}
+            </article>
+          )
+        })
+      )}
+    </div>
+  )
+}
 
 export function InstitutionalFeed() {
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false)
@@ -387,6 +541,18 @@ export function InstitutionalFeed() {
         shares: 0,
         timestamp: "Agora"
       }))
+    },
+    {
+      id: "brand-updates",
+      title: "Novidades da Marca",
+      type: "custom" as const,
+      posts: [],
+      customContent: (
+        <BrandPostsComposer
+          brandName={institutionalConfig.name}
+          brandLogo={institutionalConfig.logo}
+        />
+      )
     },
     // Noticias na midia - convertido para posts
     {
