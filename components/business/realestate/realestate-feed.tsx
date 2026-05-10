@@ -12,6 +12,22 @@ import { realestateConfig, properties, propertyTypes } from "@/lib/mock-data/rea
 import { realestateContent } from "@/lib/mock-data/business-content"
 import type { Property } from "@/lib/business-types"
 
+function getPropertyLocationText(property: Property) {
+  const neighborhood = property.neighborhood || property.address?.neighborhood
+  const city = property.city || property.address?.city
+
+  return [neighborhood, city].filter(Boolean).join(", ") || "Localizacao sob consulta"
+}
+
+function getPropertyAddressText(property: Property) {
+  const street = property.address?.street
+  const neighborhood = property.neighborhood || property.address?.neighborhood
+  const city = property.city || property.address?.city
+  const state = property.address?.state
+
+  return [street, neighborhood, city, state].filter(Boolean).join(", ") || "Endereco sob consulta"
+}
+
 // ========================================
 // MODULO: IMOVEIS EM DESTAQUE (OBJETIVO PRINCIPAL)
 // ========================================
@@ -48,7 +64,7 @@ function PropertiesModule({
             <h3 className="font-semibold line-clamp-1">{property.title}</h3>
             <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
               <MapPin className="w-4 h-4" />
-              <span className="truncate">{property.neighborhood}, {property.city}</span>
+              <span className="truncate">{getPropertyLocationText(property)}</span>
             </div>
             <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
@@ -149,7 +165,7 @@ function PropertyDetailDrawer({
           <h2 className="text-xl font-bold">{property.title}</h2>
           <div className="flex items-center gap-1 text-muted-foreground mt-1">
             <MapPin className="w-4 h-4" />
-            <span>{property.address}, {property.neighborhood} - {property.city}</span>
+            <span>{getPropertyAddressText(property)}</span>
           </div>
         </div>
         
