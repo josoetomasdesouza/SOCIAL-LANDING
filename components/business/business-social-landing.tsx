@@ -146,7 +146,7 @@ function BusinessHeader({ config }: { config: BusinessConfig }) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/98 backdrop-blur-xl border-b border-border/50 shadow-sm">
       <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-border/50">
               <Image src={config.logo} alt={config.name} fill className="object-cover" />
@@ -762,7 +762,7 @@ export function BusinessSocialLanding({
       <BusinessHeader config={config} />
       
       {/* Spacer for fixed header */}
-      <div className="h-16" />
+      <div className="h-14" />
       
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
