@@ -632,6 +632,12 @@ function BusinessSectionComponent({
   const isExplorable = section.type === "content" && !!section.posts?.length && !!onPostClick
   const featuredPost = isExplorable ? section.posts?.[0] : null
   const remainingPosts = isExplorable ? [] : section.posts || []
+  const remainingPostCount = Math.max((section.posts?.length || 0) - 1, 0)
+  const sectionCtaLabel = remainingPostCount > 1
+    ? `Ver mais ${remainingPostCount} publicacoes`
+    : remainingPostCount === 1
+      ? "Ver mais 1 publicacao"
+      : "Ver publicacao"
   
   return (
     <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
@@ -649,7 +655,7 @@ function BusinessSectionComponent({
               className="flex items-center gap-1 text-sm font-medium text-accent flex-shrink-0"
               aria-label={`Ver publicações em ${section.title}`}
             >
-              <span>Ver tudo</span>
+              <span>{sectionCtaLabel}</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -663,15 +669,6 @@ function BusinessSectionComponent({
                 onClick={() => onPostClick?.(featuredPost)}
                 showChat={false}
               />
-              <button
-                type="button"
-                onClick={() => onPostClick?.(featuredPost)}
-                className="-mt-2 flex items-center gap-1 text-sm font-medium text-accent"
-                aria-label={`Explorar mais publicações em ${section.title}`}
-              >
-                <span>Explorar mais</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
           )}
         </div>
