@@ -12,6 +12,35 @@ import { realestateConfig, properties, propertyTypes } from "@/lib/mock-data/rea
 import { realestateContent } from "@/lib/mock-data/business-content"
 import type { Property } from "@/lib/business-types"
 
+function getPropertyAddressParts(property: Property) {
+  const address = property.address
+  const fallback = property as unknown as {
+    neighborhood?: string
+    city?: string
+  }
+
+  if (typeof address === "string") {
+    return {
+      street: address,
+      neighborhood: fallback.neighborhood || "",
+      city: fallback.city || "",
+    }
+  }
+
+  return {
+    street: address?.street || "",
+    neighborhood: address?.neighborhood || fallback.neighborhood || "",
+    city: address?.city || fallback.city || "",
+  }
+}
+
+function getPropertyPurpose(property: Property) {
+  const legacyPurpose = (property as unknown as { purpose?: string }).purpose
+  if (legacyPurpose === "venda") return "sale"
+  if (legacyPurpose === "aluguel") return "rent"
+  return property.type
+}
+
 // ========================================
 // MODULO: IMOVEIS EM DESTAQUE (OBJETIVO PRINCIPAL)
 // ========================================
@@ -26,57 +55,62 @@ function PropertiesModule({
 }) {
   return (
     <div className="space-y-4">
-      {properties.slice(0, 3).map((property) => (
-        <button
-          key={property.id}
-          onClick={() => onSelectProperty(property)}
-          className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors"
-        >
-          <div className="relative aspect-[16/9]">
-            <Image src={property.images[0]} alt={property.title} fill className="object-cover" />
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleFavorite(property.id) }}
-              className="absolute top-3 right-3 p-2 rounded-full bg-white/20 backdrop-blur-sm"
-            >
-              <Heart className={`w-5 h-5 ${favorites.has(property.id) ? "fill-red-500 text-red-500" : "text-white"}`} />
-            </button>
-            <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground">
-              {property.type === "sale" ? "Venda" : "Aluguel"}
-            </Badge>
-          </div>
-          <div className="p-4">
-            <h3 className="font-semibold line-clamp-1">{property.title}</h3>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-              <MapPin className="w-4 h-4" />
-              <span className="truncate">{property.neighborhood}, {property.city}</span>
+      {properties.slice(0, 3).map((property) => {
+        const address = getPropertyAddressParts(property)
+        const purpose = getPropertyPurpose(property)
+
+        return (
+          <button
+            key={property.id}
+            onClick={() => onSelectProperty(property)}
+            className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors"
+          >
+            <div className="relative aspect-[16/9]">
+              <Image src={property.images[0]} alt={property.title} fill className="object-cover" />
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite(property.id) }}
+                className="absolute top-3 right-3 p-2 rounded-full bg-white/20 backdrop-blur-sm"
+              >
+                <Heart className={`w-5 h-5 ${favorites.has(property.id) ? "fill-red-500 text-red-500" : "text-white"}`} />
+              </button>
+              <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground">
+                {purpose === "sale" ? "Venda" : "Aluguel"}
+              </Badge>
             </div>
-            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Bed className="w-4 h-4" />
-                {property.bedrooms}
-              </span>
-              <span className="flex items-center gap-1">
-                <Bath className="w-4 h-4" />
-                {property.bathrooms}
-              </span>
-              {property.parkingSpaces && (
+            <div className="p-4">
+              <h3 className="font-semibold line-clamp-1">{property.title}</h3>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                <MapPin className="w-4 h-4" />
+                <span className="truncate">{address.neighborhood}, {address.city}</span>
+              </div>
+              <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Car className="w-4 h-4" />
-                  {property.parkingSpaces}
+                  <Bed className="w-4 h-4" />
+                  {property.bedrooms || 0}
                 </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Maximize className="w-4 h-4" />
-                {property.area}m2
-              </span>
+                <span className="flex items-center gap-1">
+                  <Bath className="w-4 h-4" />
+                  {property.bathrooms || 0}
+                </span>
+                {property.parkingSpaces && (
+                  <span className="flex items-center gap-1">
+                    <Car className="w-4 h-4" />
+                    {property.parkingSpaces}
+                  </span>
+                )}
+                <span className="flex items-center gap-1">
+                  <Maximize className="w-4 h-4" />
+                  {property.area}m2
+                </span>
+              </div>
+              <p className="font-bold text-accent text-lg mt-3">
+                R$ {property.price.toLocaleString("pt-BR")}
+                {purpose === "rent" && <span className="text-sm font-normal text-muted-foreground">/mes</span>}
+              </p>
             </div>
-            <p className="font-bold text-accent text-lg mt-3">
-              R$ {property.price.toLocaleString("pt-BR")}
-              {property.type === "rent" && <span className="text-sm font-normal text-muted-foreground">/mes</span>}
-            </p>
-          </div>
-        </button>
-      ))}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -123,6 +157,9 @@ function PropertyDetailDrawer({
   const [currentImage, setCurrentImage] = useState(0)
   
   if (!property) return null
+
+  const address = getPropertyAddressParts(property)
+  const purpose = getPropertyPurpose(property)
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={property.title} size="lg">
@@ -145,11 +182,11 @@ function PropertyDetailDrawer({
         
         {/* Info */}
         <div>
-          <Badge className="mb-2">{property.type === "sale" ? "Venda" : "Aluguel"}</Badge>
+          <Badge className="mb-2">{purpose === "sale" ? "Venda" : "Aluguel"}</Badge>
           <h2 className="text-xl font-bold">{property.title}</h2>
           <div className="flex items-center gap-1 text-muted-foreground mt-1">
             <MapPin className="w-4 h-4" />
-            <span>{property.address}, {property.neighborhood} - {property.city}</span>
+            <span>{address.street}, {address.neighborhood} - {address.city}</span>
           </div>
         </div>
         
@@ -187,7 +224,7 @@ function PropertyDetailDrawer({
         <div className="bg-secondary/50 rounded-xl p-4">
           <p className="text-2xl font-bold text-accent mb-3">
             R$ {property.price.toLocaleString("pt-BR")}
-            {property.type === "rent" && <span className="text-base font-normal text-muted-foreground">/mes</span>}
+            {purpose === "rent" && <span className="text-base font-normal text-muted-foreground">/mes</span>}
           </p>
           <div className="grid grid-cols-2 gap-3">
             <Button variant="outline" className="h-12" onClick={onContact}>
@@ -309,7 +346,7 @@ export function RealEstateFeed() {
         {selectedProperty && (
           <ScheduleVisitForm
             propertyTitle={selectedProperty.title}
-            propertyAddress={`${selectedProperty.address}, ${selectedProperty.neighborhood}`}
+            propertyAddress={`${getPropertyAddressParts(selectedProperty).street}, ${getPropertyAddressParts(selectedProperty).neighborhood}`}
             onComplete={() => {
               setVisitDrawerOpen(false)
               setSelectedProperty(null)

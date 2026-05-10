@@ -12,6 +12,59 @@ import { eventsConfig, events } from "@/lib/mock-data/events-data"
 import { eventsContent } from "@/lib/mock-data/business-content"
 import type { Event } from "@/lib/business-types"
 
+type EventView = Event & {
+  name?: string
+  location?: string | { name?: string; address?: string; city?: string; state?: string }
+  price?: number
+  capacity?: number
+  artists?: Array<string | { name?: string }>
+  lineup?: Array<string | { name?: string }>
+  tickets?: Array<{ price?: number; available?: boolean | number }>
+}
+
+function getEventTitle(event: Event) {
+  return event.title || (event as EventView).name || "Evento"
+}
+
+function getEventLocation(event: Event) {
+  const location = (event as EventView).location
+  if (!location) return event.venue?.name || ""
+  if (typeof location === "string") return location
+  return [location.name, location.city].filter(Boolean).join(", ")
+}
+
+function getEventPrice(event: Event) {
+  const eventView = event as EventView
+  if (typeof eventView.price === "number") return eventView.price
+
+  const ticketPrices = eventView.tickets
+    ?.map((ticket) => ticket.price)
+    .filter((price): price is number => typeof price === "number") || []
+
+  return ticketPrices.length > 0 ? Math.min(...ticketPrices) : 0
+}
+
+function getEventCapacity(event: Event) {
+  const eventView = event as EventView
+  if (typeof eventView.capacity === "number") return eventView.capacity
+
+  const numericAvailability = eventView.tickets
+    ?.map((ticket) => ticket.available)
+    .filter((available): available is number => typeof available === "number") || []
+
+  if (numericAvailability.length > 0) {
+    return numericAvailability.reduce((sum, available) => sum + available, 0)
+  }
+
+  return eventView.tickets?.filter((ticket) => Boolean(ticket.available)).length || 0
+}
+
+function getEventArtists(event: Event) {
+  const eventView = event as EventView
+  const artists = eventView.artists || eventView.lineup || []
+  return artists.map((artist) => typeof artist === "string" ? artist : artist.name).filter(Boolean)
+}
+
 // ========================================
 // MODULO: EVENTOS (OBJETIVO PRINCIPAL)
 // ========================================
@@ -28,6 +81,10 @@ function EventsModule({
     <div className="space-y-4">
       {events.slice(0, 3).map((event) => {
         const eventDate = new Date(event.date)
+        const eventTitle = getEventTitle(event)
+        const eventLocation = getEventLocation(event)
+        const eventPrice = getEventPrice(event)
+        const eventCapacity = getEventCapacity(event)
         return (
           <div
             key={event.id}
@@ -35,7 +92,7 @@ function EventsModule({
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors cursor-pointer"
           >
             <div className="relative aspect-[2/1]">
-<Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={event.title} fill className="object-cover" />
+<Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={eventTitle} fill className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <button
                 onClick={(e) => { e.stopPropagation(); onToggleFavorite(event.id) }}
@@ -47,7 +104,7 @@ function EventsModule({
                 <Badge variant="secondary" className="mb-2 bg-accent text-accent-foreground">
                   {event.category}
                 </Badge>
-                <h3 className="font-bold text-lg text-white">{event.title}</h3>
+                <h3 className="font-bold text-lg text-white">{eventTitle}</h3>
               </div>
             </div>
             <div className="p-4 space-y-2">
@@ -63,13 +120,13 @@ function EventsModule({
               </div>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />
-                <span className="truncate">{typeof event.location === 'object' ? `${event.location.name}, ${event.location.city}` : event.location}</span>
+                <span className="truncate">{eventLocation}</span>
               </div>
               <div className="flex items-center justify-between pt-2">
-                <span className="font-bold text-accent">A partir de R$ {(event.price || 0).toFixed(2).replace(".", ",")}</span>
+                <span className="font-bold text-accent">A partir de R$ {eventPrice.toFixed(2).replace(".", ",")}</span>
                 <Badge variant="outline" className="gap-1">
                   <Users className="w-3 h-3" />
-                  {event.capacity} vagas
+                  {eventCapacity} vagas
                 </Badge>
               </div>
             </div>
@@ -120,17 +177,21 @@ function EventDetailDrawer({
   if (!event) return null
   
   const eventDate = new Date(event.date)
+  const eventTitle = getEventTitle(event)
+  const eventLocation = getEventLocation(event)
+  const eventPrice = getEventPrice(event)
+  const eventArtists = getEventArtists(event)
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={event.title} size="lg">
+    <ActionDrawer isOpen={isOpen} onClose={onClose} title={eventTitle} size="lg">
       <div className="space-y-6">
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
-          <Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={event.title} fill className="object-cover" />
+          <Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={eventTitle} fill className="object-cover" />
         </div>
         
         <div>
           <Badge variant="secondary" className="mb-2">{event.category}</Badge>
-          <h2 className="text-xl font-bold">{event.title}</h2>
+          <h2 className="text-xl font-bold">{eventTitle}</h2>
           <p className="text-muted-foreground mt-2">{event.description}</p>
         </div>
         
@@ -142,15 +203,15 @@ function EventDetailDrawer({
           </div>
           <div className="p-3 bg-secondary/50 rounded-xl">
             <MapPin className="w-5 h-5 text-accent mb-1" />
-            <p className="font-medium text-sm line-clamp-2">{typeof event.location === 'object' ? `${event.location.name}, ${event.location.city}` : event.location}</p>
+            <p className="font-medium text-sm line-clamp-2">{eventLocation}</p>
           </div>
         </div>
         
-        {event.artists && event.artists.length > 0 && (
+        {eventArtists.length > 0 && (
           <div>
             <h4 className="font-medium mb-3">Artistas</h4>
             <div className="flex flex-wrap gap-2">
-              {event.artists.map((artist, idx) => (
+              {eventArtists.map((artist, idx) => (
                 <Badge key={idx} variant="outline">{artist}</Badge>
               ))}
             </div>
@@ -160,7 +221,7 @@ function EventDetailDrawer({
         <div className="bg-secondary/50 rounded-xl p-4">
           <div className="flex items-baseline justify-between mb-3">
             <span className="text-sm text-muted-foreground">A partir de</span>
-            <span className="text-2xl font-bold text-accent">R$ {event.price.toFixed(2).replace(".", ",")}</span>
+            <span className="text-2xl font-bold text-accent">R$ {eventPrice.toFixed(2).replace(".", ",")}</span>
           </div>
           <Button className="w-full h-12" onClick={onBuyTicket}>
             <Ticket className="w-5 h-5 mr-2" />
@@ -270,11 +331,11 @@ export function EventsFeed() {
       >
         {selectedEvent && (
           <TicketCheckout
-            eventName={selectedEvent.title}
+            eventName={getEventTitle(selectedEvent)}
             eventDate={selectedEvent.date}
             eventTime={selectedEvent.time}
-            eventLocation={selectedEvent.location}
-            ticketPrice={selectedEvent.price}
+            eventLocation={getEventLocation(selectedEvent)}
+            ticketPrice={getEventPrice(selectedEvent)}
             onComplete={() => {
               setCheckoutOpen(false)
               setSelectedEvent(null)
