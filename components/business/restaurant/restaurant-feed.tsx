@@ -7,26 +7,49 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
+import { buildContentSections } from "../build-content-sections"
 import { RestaurantCheckout } from "../checkout-flows"
-import { restaurantConfig, menuItems, deliveryInfo, menuCategories } from "@/lib/mock-data/restaurant-data"
+import { restaurantConfig, menuItems, deliveryInfo } from "@/lib/mock-data/restaurant-data"
 import { restaurantContent } from "@/lib/mock-data/business-content"
-import type { MenuItem } from "@/lib/business-types"
+import type { BusinessConfig, DeliveryInfo, MenuItem } from "@/lib/business-types"
+import type { UniversalSegmentConfig } from "@/lib/core"
+import { restaurantSegmentConfig } from "@/lib/segments/restaurant.config"
 
 interface CartItem extends MenuItem {
   quantity: number
 }
 
+type RestaurantCategory = {
+  id: string
+  name: string
+  icon: string
+  count: number
+}
+
+const restaurantCategories: RestaurantCategory[] = [
+  { id: "entradas", name: "Entradas", icon: "🥗", count: 5 },
+  { id: "pratos", name: "Pratos", icon: "🍛", count: 8 },
+  { id: "bebidas", name: "Bebidas", icon: "🥤", count: 6 },
+  { id: "sobremesas", name: "Sobremesas", icon: "🍮", count: 4 },
+]
+
 // ========================================
 // MODULO: MENU EM DESTAQUE (OBJETIVO PRINCIPAL)
 // ========================================
-function MenuModule({ 
+function MenuModule({
+  items,
+  delivery,
+  config,
   onSelectItem,
   onAddToCart
-}: { 
+}: {
+  items: MenuItem[]
+  delivery: DeliveryInfo
+  config: BusinessConfig
   onSelectItem: (item: MenuItem) => void
   onAddToCart: (item: MenuItem) => void
 }) {
-  const popularItems = menuItems.filter(item => item.popular).slice(0, 4)
+  const popularItems = items.filter(item => item.popular).slice(0, 4)
   
   return (
     <div className="space-y-4">
@@ -67,11 +90,11 @@ function MenuModule({
         <div className="flex items-center gap-2">
           <Truck className="w-5 h-5 text-accent" />
           <div>
-            <p className="text-sm font-medium">Entrega: {deliveryInfo.estimatedTime}</p>
-            <p className="text-xs text-muted-foreground">Frete gratis acima de R$ {deliveryInfo.freeDeliveryMinimum}</p>
+            <p className="text-sm font-medium">Entrega: {delivery.estimatedTime}</p>
+            <p className="text-xs text-muted-foreground">Frete gratis acima de R$ {delivery.freeDeliveryMinimum}</p>
           </div>
         </div>
-        <Badge variant="outline">{restaurantConfig.openingHours}</Badge>
+        <Badge variant="outline">{config.openingHours}</Badge>
       </div>
     </div>
   )
@@ -80,14 +103,13 @@ function MenuModule({
 // ========================================
 // MODULO: CATEGORIAS DO MENU
 // ========================================
-function CategoriesModule({ onSelectCategory }: { onSelectCategory: (category: string) => void }) {
-  const categories = [
-    { id: "entradas", name: "Entradas", icon: "🥗", count: 5 },
-    { id: "pratos", name: "Pratos", icon: "🍛", count: 8 },
-    { id: "bebidas", name: "Bebidas", icon: "🥤", count: 6 },
-    { id: "sobremesas", name: "Sobremesas", icon: "🍮", count: 4 },
-  ]
-  
+function CategoriesModule({
+  categories,
+  onSelectCategory
+}: {
+  categories: RestaurantCategory[]
+  onSelectCategory: (category: string) => void
+}) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
       {categories.map((cat) => (
@@ -241,6 +263,75 @@ function CartDrawer({
   )
 }
 
+type RestaurantSectionData = {
+  config: BusinessConfig
+  content: typeof restaurantContent
+  delivery: DeliveryInfo
+  items: MenuItem[]
+  categories: RestaurantCategory[]
+}
+
+type RestaurantSectionHandlers = {
+  onSelectItem: (item: MenuItem) => void
+  onAddToCart: (item: MenuItem) => void
+  onSelectCategory: (category: string) => void
+}
+
+function buildRestaurantSections({
+  segmentConfig,
+  data,
+  handlers,
+}: {
+  segmentConfig: UniversalSegmentConfig
+  data: RestaurantSectionData
+  handlers: RestaurantSectionHandlers
+}): BusinessSection[] {
+  const sections: BusinessSection[] = []
+
+  if (segmentConfig.requiredModules.includes("restaurant.menu")) {
+    sections.push({
+      id: "menu",
+      title: "Mais Pedidos",
+      icon: <Flame className="w-5 h-5 text-accent" />,
+      type: "primary-action",
+      customContent: (
+        <MenuModule
+          items={data.items}
+          delivery={data.delivery}
+          config={data.config}
+          onSelectItem={handlers.onSelectItem}
+          onAddToCart={handlers.onAddToCart}
+        />
+      )
+    })
+
+    sections.push({
+      id: "categories",
+      title: "Cardapio",
+      type: "specific",
+      customContent: (
+        <CategoriesModule
+          categories={data.categories}
+          onSelectCategory={handlers.onSelectCategory}
+        />
+      )
+    })
+  }
+
+  sections.push(...buildContentSections({
+    content: data.content,
+    contentPriorities: segmentConfig.contentPriorities,
+    definitions: {
+      video: { title: "Nossa Cozinha", icon: <Play className="w-5 h-5 text-accent" /> },
+      review: { title: "Avaliacoes", icon: <Star className="w-5 h-5 text-accent" /> },
+      news: { title: "Na Midia", icon: <Newspaper className="w-5 h-5 text-accent" /> },
+      social: { title: "Bastidores" },
+    },
+  }))
+
+  return sections
+}
+
 // ========================================
 // COMPONENTE PRINCIPAL
 // ========================================
@@ -269,53 +360,21 @@ export function RestaurantFeed() {
     }
   }
   
-  const sections: BusinessSection[] = [
-    {
-      id: "menu",
-      title: "Mais Pedidos",
-      icon: <Flame className="w-5 h-5 text-accent" />,
-      type: "primary-action",
-      customContent: (
-        <MenuModule 
-          onSelectItem={(item) => { setSelectedItem(item); setItemDrawerOpen(true) }}
-          onAddToCart={handleAddToCart}
-        />
-      )
+  const sections = buildRestaurantSections({
+    segmentConfig: restaurantSegmentConfig,
+    data: {
+      config: restaurantConfig,
+      content: restaurantContent,
+      delivery: deliveryInfo,
+      items: menuItems,
+      categories: restaurantCategories,
     },
-    {
-      id: "categories",
-      title: "Cardapio",
-      type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+    handlers: {
+      onSelectItem: (item) => { setSelectedItem(item); setItemDrawerOpen(true) },
+      onAddToCart: handleAddToCart,
+      onSelectCategory: () => {},
     },
-    {
-      id: "videos",
-      title: "Nossa Cozinha",
-      icon: <Play className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: restaurantContent.videos
-    },
-    {
-      id: "reviews",
-      title: "Avaliacoes",
-      icon: <Star className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: restaurantContent.reviews
-    },
-    {
-      id: "news",
-      title: "Na Midia",
-      icon: <Newspaper className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: restaurantContent.news
-    },
-    {
-      id: "social",
-      title: "Bastidores",
-      type: "content",
-      posts: restaurantContent.social
-    }
-  ]
+  })
 
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
   

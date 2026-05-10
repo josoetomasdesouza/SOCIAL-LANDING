@@ -105,8 +105,8 @@ function ServiceDrawer({
           <h4 className="font-medium mb-3">Escolha data e horario</h4>
           <AppointmentCalendar
             availability={professionalAvailability}
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
+            selectedDate={selectedDate ?? undefined}
+            selectedTime={selectedTime ?? undefined}
             onSelectDate={setSelectedDate}
             onSelectTime={setSelectedTime}
           />

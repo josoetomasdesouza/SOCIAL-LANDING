@@ -4,17 +4,18 @@ import { useState, useMemo } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, Clock, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { Professional, TimeSlot } from "@/lib/business-types"
+import type { DayAvailability, Professional, TimeSlot } from "@/lib/business-types"
 
 interface AppointmentCalendarProps {
-  professionals: Professional[]
+  professionals?: Professional[]
+  availability?: DayAvailability[] | Record<string, string[]>
   selectedProfessionalId?: string
   selectedDate?: string
   selectedTime?: string
-  onSelectProfessional: (id: string) => void
+  onSelectProfessional?: (id: string) => void
   onSelectDate: (date: string) => void
   onSelectTime: (time: string) => void
-  onConfirm: () => void
+  onConfirm?: () => void
 }
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"]
@@ -24,7 +25,8 @@ const MONTHS = [
 ]
 
 export function AppointmentCalendar({
-  professionals,
+  professionals = [],
+  availability,
   selectedProfessionalId,
   selectedDate,
   selectedTime,
@@ -36,6 +38,8 @@ export function AppointmentCalendar({
   const [currentMonth, setCurrentMonth] = useState(new Date())
   
   const selectedProfessional = professionals.find(p => p.id === selectedProfessionalId)
+  const showProfessionalSelection = professionals.length > 0
+  const showCalendar = Boolean(selectedProfessionalId || availability)
 
   // Gera dias do mes
   const calendarDays = useMemo(() => {
@@ -79,7 +83,24 @@ export function AppointmentCalendar({
 
   // Horarios disponiveis para o dia selecionado
   const availableSlots = useMemo(() => {
-    if (!selectedProfessional || !selectedDate) return []
+    if (!selectedDate) return []
+
+    if (availability) {
+      if (Array.isArray(availability)) {
+        const dayAvailability = availability.find(
+          a => a.date === selectedDate
+        )
+
+        return dayAvailability?.slots?.filter(s => s.available) || []
+      }
+
+      return (availability[selectedDate] || []).map((time): TimeSlot => ({
+        time,
+        available: true,
+      }))
+    }
+
+    if (!selectedProfessional) return []
     
     // Verifica se availability existe e e um array
     if (!selectedProfessional.availability || !Array.isArray(selectedProfessional.availability)) {
@@ -91,7 +112,7 @@ export function AppointmentCalendar({
     )
     
     return dayAvailability?.slots?.filter(s => s.available) || []
-  }, [selectedProfessional, selectedDate])
+  }, [availability, selectedProfessional, selectedDate])
 
   const formatDate = (date: Date) => {
     const year = date.getFullYear()
@@ -111,13 +132,14 @@ export function AppointmentCalendar({
   return (
     <div className="space-y-6">
       {/* Selecao de profissional */}
+      {showProfessionalSelection && (
       <div>
         <h4 className="font-semibold text-foreground mb-3">Escolha o profissional</h4>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {professionals.map((professional) => (
             <button
               key={professional.id}
-              onClick={() => onSelectProfessional(professional.id)}
+              onClick={() => onSelectProfessional?.(professional.id)}
               className={`flex-shrink-0 text-center transition-all ${
                 selectedProfessionalId === professional.id ? "scale-105" : ""
               }`}
@@ -152,9 +174,10 @@ export function AppointmentCalendar({
           ))}
         </div>
       </div>
+      )}
 
       {/* Calendario */}
-      {selectedProfessionalId && (
+      {showCalendar && (
         <div>
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-semibold text-foreground">Escolha a data</h4>
@@ -243,7 +266,7 @@ export function AppointmentCalendar({
       )}
 
       {/* Botao de confirmar */}
-      {selectedProfessionalId && selectedDate && selectedTime && (
+      {onConfirm && showCalendar && selectedDate && selectedTime && (
         <Button onClick={onConfirm} className="w-full h-12 text-base font-medium">
           Confirmar agendamento
         </Button>

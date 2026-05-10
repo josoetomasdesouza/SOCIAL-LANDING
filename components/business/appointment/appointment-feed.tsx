@@ -8,17 +8,24 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { AppointmentCalendar } from "../appointment-calendar"
+import { buildContentSections } from "../build-content-sections"
 import { barberShopConfig, barbers, barberServices, hairStyles } from "@/lib/mock-data/appointment-data"
 import { appointmentContent } from "@/lib/mock-data/business-content"
 import type { Professional, Service, StyleExample } from "@/lib/business-types"
+import type { UniversalSegmentConfig } from "@/lib/core"
+import { appointmentSegmentConfig } from "@/lib/segments/appointment.config"
 
 // ========================================
 // MODULO: AGENDAR HORARIO (OBJETIVO PRINCIPAL)
 // ========================================
 function ScheduleModule({ 
+  professionals,
+  services,
   onSelectBarber,
   onSelectService 
 }: { 
+  professionals: Professional[]
+  services: Service[]
   onSelectBarber: (barber: Professional) => void
   onSelectService: () => void
 }) {
@@ -29,7 +36,7 @@ function ScheduleModule({
         <Button 
           variant="default"
           className="h-14 flex items-center justify-center gap-2 rounded-2xl"
-          onClick={() => onSelectBarber(barbers[0])}
+          onClick={() => onSelectBarber(professionals[0])}
         >
           <Calendar className="w-5 h-5" />
           Agendar agora
@@ -48,7 +55,7 @@ function ScheduleModule({
       <div>
         <h4 className="font-medium text-foreground mb-3">Escolha um barbeiro</h4>
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-          {barbers.map((barber) => (
+          {professionals.map((barber) => (
             <button
               key={barber.id}
               onClick={() => onSelectBarber(barber)}
@@ -73,10 +80,10 @@ function ScheduleModule({
       <div>
         <h4 className="font-medium text-foreground mb-3">Servicos populares</h4>
         <div className="space-y-2">
-          {barberServices.filter(s => s.popular).slice(0, 3).map((service) => (
+          {services.filter(s => s.popular).slice(0, 3).map((service) => (
             <button
               key={service.id}
-              onClick={() => onSelectBarber(barbers[0])}
+              onClick={() => onSelectBarber(professionals[0])}
               className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
             >
               <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
@@ -101,10 +108,16 @@ function ScheduleModule({
 // ========================================
 // MODULO: ESTILOS EM ALTA
 // ========================================
-function StylesModule({ onSelectStyle }: { onSelectStyle: (style: StyleExample) => void }) {
+function StylesModule({
+  styles,
+  onSelectStyle
+}: {
+  styles: StyleExample[]
+  onSelectStyle: (style: StyleExample) => void
+}) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {hairStyles.slice(0, 6).map((style) => (
+      {styles.slice(0, 6).map((style) => (
         <button
           key={style.id}
           onClick={() => onSelectStyle(style)}
@@ -181,8 +194,8 @@ function BarberDetailsDrawer({
           <h4 className="font-medium mb-3">Escolha data e horario</h4>
           <AppointmentCalendar
             availability={barber.availability || []}
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
+            selectedDate={selectedDate ?? undefined}
+            selectedTime={selectedTime ?? undefined}
             onSelectDate={setSelectedDate}
             onSelectTime={setSelectedTime}
           />
@@ -325,6 +338,69 @@ function ConfirmationDrawer({
   )
 }
 
+type AppointmentSectionData = {
+  content: typeof appointmentContent
+  professionals: Professional[]
+  services: Service[]
+  styles: StyleExample[]
+}
+
+type AppointmentSectionHandlers = {
+  onSelectBarber: (barber: Professional) => void
+  onSelectService: () => void
+  onSelectStyle: (style: StyleExample) => void
+}
+
+function buildAppointmentSections({
+  segmentConfig,
+  data,
+  handlers,
+}: {
+  segmentConfig: UniversalSegmentConfig
+  data: AppointmentSectionData
+  handlers: AppointmentSectionHandlers
+}): BusinessSection[] {
+  const sections: BusinessSection[] = []
+
+  if (segmentConfig.requiredModules.includes("appointment.booking")) {
+    sections.push({
+      id: "schedule",
+      title: "Agendar Horario",
+      icon: <Calendar className="w-5 h-5 text-accent" />,
+      type: "primary-action",
+      customContent: (
+        <ScheduleModule
+          professionals={data.professionals}
+          services={data.services}
+          onSelectBarber={handlers.onSelectBarber}
+          onSelectService={handlers.onSelectService}
+        />
+      )
+    })
+  }
+
+  sections.push({
+    id: "styles",
+    title: "Estilos em Alta",
+    icon: <Scissors className="w-5 h-5 text-accent" />,
+    type: "specific",
+    customContent: <StylesModule styles={data.styles} onSelectStyle={handlers.onSelectStyle} />
+  })
+
+  sections.push(...buildContentSections({
+    content: data.content,
+    contentPriorities: segmentConfig.contentPriorities,
+    definitions: {
+      video: { title: "Tutoriais e Tendencias", icon: <Play className="w-5 h-5 text-accent" /> },
+      review: { title: "O Que Dizem", icon: <Star className="w-5 h-5 text-accent" /> },
+      news: { title: "Na Midia" },
+      social: { title: "Bastidores" },
+    },
+  }))
+
+  return sections
+}
+
 // ========================================
 // COMPONENTE PRINCIPAL
 // ========================================
@@ -354,54 +430,20 @@ export function AppointmentFeed() {
     setConfirmationOpen(true)
   }
   
-  // Secoes do feed
-  const sections: BusinessSection[] = [
-    {
-      id: "schedule",
-      title: "Agendar Horario",
-      icon: <Calendar className="w-5 h-5 text-accent" />,
-      type: "primary-action",
-      customContent: (
-        <ScheduleModule 
-          onSelectBarber={handleSelectBarber}
-          onSelectService={() => setServicesDrawerOpen(true)}
-        />
-      )
+  const sections = buildAppointmentSections({
+    segmentConfig: appointmentSegmentConfig,
+    data: {
+      content: appointmentContent,
+      professionals: barbers,
+      services: barberServices,
+      styles: hairStyles,
     },
-    {
-      id: "styles",
-      title: "Estilos em Alta",
-      icon: <Scissors className="w-5 h-5 text-accent" />,
-      type: "specific",
-      customContent: <StylesModule onSelectStyle={handleSelectStyle} />
+    handlers: {
+      onSelectBarber: handleSelectBarber,
+      onSelectService: () => setServicesDrawerOpen(true),
+      onSelectStyle: handleSelectStyle,
     },
-    {
-      id: "videos",
-      title: "Tutoriais e Tendencias",
-      icon: <Play className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: appointmentContent.videos
-    },
-    {
-      id: "reviews",
-      title: "O Que Dizem",
-      icon: <Star className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: appointmentContent.reviews
-    },
-    {
-      id: "news",
-      title: "Na Midia",
-      type: "content",
-      posts: appointmentContent.news
-    },
-    {
-      id: "social",
-      title: "Bastidores",
-      type: "content",
-      posts: appointmentContent.social
-    }
-  ]
+  })
   
   return (
     <>

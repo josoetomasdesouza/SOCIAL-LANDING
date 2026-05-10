@@ -7,17 +7,40 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
+import { buildContentSections } from "../build-content-sections"
 import { CourseCheckout } from "../checkout-flows"
 import { coursesConfig, courses } from "@/lib/mock-data/courses-data"
 import { coursesContent } from "@/lib/mock-data/business-content"
 import type { Course } from "@/lib/business-types"
+import type { UniversalSegmentConfig } from "@/lib/core"
+import { coursesSegmentConfig } from "@/lib/segments/courses.config"
+
+type CourseTrack = {
+  id: string
+  name: string
+  icon: string
+  courses: number
+}
+
+const courseTracks: CourseTrack[] = [
+  { id: "1", name: "Programacao", icon: "💻", courses: 12 },
+  { id: "2", name: "Design", icon: "🎨", courses: 8 },
+  { id: "3", name: "Marketing", icon: "📈", courses: 6 },
+  { id: "4", name: "Negocios", icon: "💼", courses: 5 },
+]
 
 // ========================================
 // MODULO: CURSOS EM DESTAQUE (OBJETIVO PRINCIPAL)
 // ========================================
-function CoursesModule({ onSelectCourse }: { onSelectCourse: (course: Course) => void }) {
-  const featuredCourses = courses.slice(0, 3)
-  
+function CoursesModule({
+  items,
+  onSelectCourse
+}: {
+  items: Course[]
+  onSelectCourse: (course: Course) => void
+}) {
+  const featuredCourses = items.slice(0, 3)
+
   return (
     <div className="space-y-4">
       {featuredCourses.map((course) => {
@@ -78,14 +101,7 @@ function CoursesModule({ onSelectCourse }: { onSelectCourse: (course: Course) =>
 // ========================================
 // MODULO: TRILHAS DE APRENDIZADO
 // ========================================
-function TracksModule() {
-  const tracks = [
-    { id: "1", name: "Programacao", icon: "💻", courses: 12 },
-    { id: "2", name: "Design", icon: "🎨", courses: 8 },
-    { id: "3", name: "Marketing", icon: "📈", courses: 6 },
-    { id: "4", name: "Negocios", icon: "💼", courses: 5 },
-  ]
-  
+function TracksModule({ tracks }: { tracks: CourseTrack[] }) {
   return (
     <div className="grid grid-cols-2 gap-3">
       {tracks.map((track) => (
@@ -207,6 +223,61 @@ function CourseDetailDrawer({
   )
 }
 
+type CoursesSectionData = {
+  content: typeof coursesContent
+  courses: Course[]
+  tracks: CourseTrack[]
+}
+
+type CoursesSectionHandlers = {
+  onSelectCourse: (course: Course) => void
+}
+
+function buildCoursesSections({
+  segmentConfig,
+  data,
+  handlers,
+}: {
+  segmentConfig: UniversalSegmentConfig
+  data: CoursesSectionData
+  handlers: CoursesSectionHandlers
+}): BusinessSection[] {
+  const sections: BusinessSection[] = []
+
+  if (segmentConfig.requiredModules.includes("courses.enrollment")) {
+    sections.push({
+      id: "courses",
+      title: "Cursos em Destaque",
+      icon: <GraduationCap className="w-5 h-5 text-accent" />,
+      type: "primary-action",
+      customContent: <CoursesModule items={data.courses} onSelectCourse={handlers.onSelectCourse} />
+    })
+  }
+
+  if (segmentConfig.requiredModules.includes("courses.modules")) {
+    sections.push({
+      id: "tracks",
+      title: "Trilhas de Aprendizado",
+      icon: <BookOpen className="w-5 h-5 text-accent" />,
+      type: "specific",
+      customContent: <TracksModule tracks={data.tracks} />
+    })
+  }
+
+  sections.push(...buildContentSections({
+    content: data.content,
+    contentPriorities: segmentConfig.contentPriorities,
+    definitions: {
+      video: { title: "Aulas Gratuitas", icon: <Play className="w-5 h-5 text-accent" /> },
+      review: { title: "Depoimentos de Alunos", icon: <Star className="w-5 h-5 text-accent" /> },
+      news: { title: "Na Midia", icon: <Newspaper className="w-5 h-5 text-accent" /> },
+      social: { title: "Comunidade" },
+    },
+  }))
+
+  return sections
+}
+
 // ========================================
 // COMPONENTE PRINCIPAL
 // ========================================
@@ -214,55 +285,23 @@ export function CoursesFeed() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [courseDrawerOpen, setCourseDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
-  
+
   const handleSelectCourse = (course: Course) => {
     setSelectedCourse(course)
     setCourseDrawerOpen(true)
   }
-  
-  const sections: BusinessSection[] = [
-    {
-      id: "courses",
-      title: "Cursos em Destaque",
-      icon: <GraduationCap className="w-5 h-5 text-accent" />,
-      type: "primary-action",
-      customContent: <CoursesModule onSelectCourse={handleSelectCourse} />
+
+  const sections = buildCoursesSections({
+    segmentConfig: coursesSegmentConfig,
+    data: {
+      content: coursesContent,
+      courses,
+      tracks: courseTracks,
     },
-    {
-      id: "tracks",
-      title: "Trilhas de Aprendizado",
-      icon: <BookOpen className="w-5 h-5 text-accent" />,
-      type: "specific",
-      customContent: <TracksModule />
+    handlers: {
+      onSelectCourse: handleSelectCourse,
     },
-    {
-      id: "videos",
-      title: "Aulas Gratuitas",
-      icon: <Play className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: coursesContent.videos
-    },
-    {
-      id: "reviews",
-      title: "Depoimentos de Alunos",
-      icon: <Star className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: coursesContent.reviews
-    },
-    {
-      id: "news",
-      title: "Na Midia",
-      icon: <Newspaper className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: coursesContent.news
-    },
-    {
-      id: "social",
-      title: "Comunidade",
-      type: "content",
-      posts: coursesContent.social
-    }
-  ]
+  })
   
   return (
     <>

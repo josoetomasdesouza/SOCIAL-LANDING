@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
+import { buildContentSections } from "../build-content-sections"
 import { EcommerceCheckout } from "../checkout-flows"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product } from "@/lib/business-types"
+import type { UniversalSegmentConfig } from "@/lib/core"
+import { ecommerceSegmentConfig } from "@/lib/segments/ecommerce.config"
 
 interface CartItem {
   id: string
@@ -20,21 +23,30 @@ interface CartItem {
   quantity: number
 }
 
+type EcommerceCategory = {
+  id: string
+  name: string
+  count: number
+  icon: string
+}
+
 // ========================================
 // MODULO: PRODUTOS EM DESTAQUE (OBJETIVO PRINCIPAL)
 // ========================================
-function ProductsModule({ 
+function ProductsModule({
+  items,
   onSelectProduct,
   onAddToCart,
   favorites,
   onToggleFavorite
-}: { 
+}: {
+  items: Product[]
   onSelectProduct: (product: Product) => void
   onAddToCart: (product: Product) => void
   favorites: Set<string>
   onToggleFavorite: (id: string) => void
 }) {
-  const featuredProducts = products.filter(p => p.originalPrice && p.originalPrice > p.price).slice(0, 4)
+  const featuredProducts = items.filter(p => p.originalPrice && p.originalPrice > p.price).slice(0, 4)
   
   return (
     <div className="space-y-6">
@@ -102,10 +114,16 @@ function ProductsModule({
 // ========================================
 // MODULO: CATEGORIAS
 // ========================================
-function CategoriesModule({ onSelectCategory }: { onSelectCategory: (category: string) => void }) {
+function CategoriesModule({
+  categories,
+  onSelectCategory
+}: {
+  categories: EcommerceCategory[]
+  onSelectCategory: (category: string) => void
+}) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {productCategories.map((category) => (
+      {categories.map((category) => (
         <button
           key={category.id}
           onClick={() => onSelectCategory(category.id)}
@@ -217,24 +235,29 @@ function ProductDetailDrawer({
         {reviews.length > 0 && (
           <div className="bg-secondary/50 rounded-xl p-4">
             <h4 className="font-medium mb-3">Avaliacoes recentes</h4>
-            {reviews.slice(0, 2).map((review) => (
-              <div key={review.id} className="flex items-start gap-3 mb-3 last:mb-0">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                  <Image src={review.avatar} alt={review.author} fill className="object-cover" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{review.author}</span>
-                    <div className="flex">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
-                      ))}
-                    </div>
+            {reviews.slice(0, 2).map((review) => {
+              const reviewAuthor = review.author || review.userName
+              const reviewAvatar = review.avatar || review.userAvatar
+
+              return (
+                <div key={review.id} className="flex items-start gap-3 mb-3 last:mb-0">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                    <Image src={reviewAvatar} alt={reviewAuthor} fill className="object-cover" />
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{review.comment}</p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{reviewAuthor}</span>
+                      <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{review.comment}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
         
@@ -344,6 +367,76 @@ function CartDrawerComponent({
   )
 }
 
+type EcommerceSectionData = {
+  content: typeof ecommerceContent
+  products: Product[]
+  categories: EcommerceCategory[]
+}
+
+type EcommerceSectionHandlers = {
+  onSelectProduct: (product: Product) => void
+  onAddToCart: (product: Product) => void
+  onToggleFavorite: (id: string) => void
+  onSelectCategory: (category: string) => void
+}
+
+function buildEcommerceSections({
+  segmentConfig,
+  data,
+  handlers,
+  favorites,
+}: {
+  segmentConfig: UniversalSegmentConfig
+  data: EcommerceSectionData
+  handlers: EcommerceSectionHandlers
+  favorites: Set<string>
+}): BusinessSection[] {
+  const sections: BusinessSection[] = []
+
+  if (segmentConfig.requiredModules.includes("ecommerce.products")) {
+    sections.push({
+      id: "products",
+      title: "Ofertas em Destaque",
+      icon: <ShoppingBag className="w-5 h-5 text-accent" />,
+      type: "primary-action",
+      customContent: (
+        <ProductsModule
+          items={data.products}
+          onSelectProduct={handlers.onSelectProduct}
+          onAddToCart={handlers.onAddToCart}
+          favorites={favorites}
+          onToggleFavorite={handlers.onToggleFavorite}
+        />
+      )
+    })
+
+    sections.push({
+      id: "categories",
+      title: "Categorias",
+      type: "specific",
+      customContent: (
+        <CategoriesModule
+          categories={data.categories}
+          onSelectCategory={handlers.onSelectCategory}
+        />
+      )
+    })
+  }
+
+  sections.push(...buildContentSections({
+    content: data.content,
+    contentPriorities: segmentConfig.contentPriorities,
+    definitions: {
+      video: { title: "Dicas e Tutoriais", icon: <Play className="w-5 h-5 text-accent" /> },
+      review: { title: "O Que Dizem", icon: <Star className="w-5 h-5 text-accent" /> },
+      news: { title: "Na Midia", icon: <Newspaper className="w-5 h-5 text-accent" /> },
+      social: { title: "Bastidores" },
+    },
+  }))
+
+  return sections
+}
+
 // ========================================
 // COMPONENTE PRINCIPAL
 // ========================================
@@ -383,56 +476,21 @@ export function EcommerceFeed() {
     })
   }
   
-  // Secoes do feed
-  const sections: BusinessSection[] = [
-    {
-      id: "products",
-      title: "Ofertas em Destaque",
-      icon: <ShoppingBag className="w-5 h-5 text-accent" />,
-      type: "primary-action",
-      customContent: (
-        <ProductsModule 
-          onSelectProduct={(p) => { setSelectedProduct(p); setProductDrawerOpen(true) }}
-          onAddToCart={handleAddToCart}
-          favorites={favorites}
-          onToggleFavorite={handleToggleFavorite}
-        />
-      )
+  const sections = buildEcommerceSections({
+    segmentConfig: ecommerceSegmentConfig,
+    data: {
+      content: ecommerceContent,
+      products,
+      categories: productCategories,
     },
-    {
-      id: "categories",
-      title: "Categorias",
-      type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+    handlers: {
+      onSelectProduct: (product) => { setSelectedProduct(product); setProductDrawerOpen(true) },
+      onAddToCart: handleAddToCart,
+      onToggleFavorite: handleToggleFavorite,
+      onSelectCategory: () => {},
     },
-    {
-      id: "videos",
-      title: "Dicas e Tutoriais",
-      icon: <Play className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: ecommerceContent.videos
-    },
-    {
-      id: "reviews",
-      title: "O Que Dizem",
-      icon: <Star className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: ecommerceContent.reviews
-    },
-    {
-      id: "news",
-      title: "Na Midia",
-      icon: <Newspaper className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: ecommerceContent.news
-    },
-    {
-      id: "social",
-      title: "Bastidores",
-      type: "content",
-      posts: ecommerceContent.social
-    }
-  ]
+    favorites,
+  })
 
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
   

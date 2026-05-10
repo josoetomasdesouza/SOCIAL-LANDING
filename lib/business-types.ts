@@ -12,12 +12,10 @@ export type BusinessModel =
   | 'events'        // Eventos, Ingressos, Festas
   | 'gym'           // Academia, Personal, Studio
   | 'health'        // Clinica, Medico, Dentista
-  | 'influencer'    // Influenciador, Creator, Personalidade
-  | 'personal'      // Pagina pessoal, Portfolio individual
-  | 'institutional' // Marca institucional, ONG, Governo
 
 // Alias para compatibilidade
-export type BusinessType = BusinessModel
+export type BusinessModelAlias = 'professional' | 'fitness'
+export type BusinessType = BusinessModel | 'influencer' | 'personal' | 'institutional'
 
 // Tipos base para brands de diferentes modelos
 export interface RealEstateBrand {
@@ -74,6 +72,7 @@ export interface GymPlan {
   period: string
   features: string[]
   isPopular?: boolean
+  popular?: boolean
   discount?: number
 }
 
@@ -105,23 +104,33 @@ export interface HealthBrand {
 export interface HealthProfessional {
   id: string
   name: string
-  specialty: string
-  crm: string
+  specialty?: string
+  title?: string
+  crm?: string
   avatar: string
   bio: string
   rating: number
+  reviewCount?: number
   totalConsults: number
-  availability: Record<string, string[]>
+  consultationPrice?: number
+  telemedicine?: boolean
+  specialties?: string[]
+  education?: Education[]
+  experience?: number
+  insurances?: string[]
+  availability: DayAvailability[] | Record<string, string[]>
 }
 
 export interface HealthService {
   id: string
   name: string
   description: string
-  duration: string
+  duration: string | number
   price: number
+  category?: string
   professional?: string
   isOnline?: boolean
+  preparation?: string
 }
 
 export interface Insurance {
@@ -131,16 +140,24 @@ export interface Insurance {
 }
 
 export interface BusinessConfig {
-  model: BusinessModel
+  model?: BusinessType | BusinessModelAlias
   name: string
   logo: string
   coverImage: string
   description: string
-  primaryColor: string
+  primaryColor?: string
+  brandColor?: string
   whatsapp?: string
   instagram?: string
   address?: string
   openingHours?: string
+  phone?: string
+  email?: string
+  location?: string
+  occupation?: string
+  youtube?: string
+  twitter?: string
+  tiktok?: string
 }
 
 // ============================================
@@ -185,6 +202,7 @@ export interface StyleExample {
   image: string
   category: string // Degradê, Social, Pompadour, etc
   tags: string[]
+  trend?: boolean
 }
 
 export interface Appointment {
@@ -263,6 +281,8 @@ export interface ProductReview {
   productId: string
   userName: string
   userAvatar: string
+  author?: string
+  avatar?: string
   rating: number
   title: string
   comment: string
@@ -374,7 +394,7 @@ export interface DeliveryInfo {
   minOrder: number
   deliveryFee: number
   estimatedTime: string // "30-45 min"
-  freeDeliveryMinimum?: number
+  freeDeliveryMinimum: number
 }
 
 // ============================================
@@ -385,8 +405,10 @@ export interface Property {
   id: string
   title: string
   description: string
-  type: 'sale' | 'rent'
-  propertyType: 'house' | 'apartment' | 'commercial' | 'land'
+  name?: string
+  type: 'sale' | 'rent' | string
+  purpose?: string
+  propertyType?: 'house' | 'apartment' | 'commercial' | 'land' | string
   price: number
   rentPrice?: number
   condoFee?: number
@@ -395,10 +417,17 @@ export interface Property {
   video?: string
   virtualTour?: string
   address: PropertyAddress
-  features: PropertyFeatures
-  amenities: string[]
+  neighborhood?: string
+  city?: string
+  bedrooms?: number
+  bathrooms?: number
+  parkingSpaces?: number
+  area?: number
+  features: PropertyFeatures | string[]
+  amenities?: string[]
   agent: RealEstateAgent
-  status: 'available' | 'reserved' | 'sold' | 'rented'
+  status?: 'available' | 'reserved' | 'sold' | 'rented'
+  isHighlighted?: boolean
 }
 
 export interface PropertyAddress {
@@ -406,7 +435,7 @@ export interface PropertyAddress {
   neighborhood: string
   city: string
   state: string
-  zipCode: string
+  zipCode?: string
   latitude?: number
   longitude?: number
 }
@@ -423,12 +452,12 @@ export interface PropertyFeatures {
 }
 
 export interface RealEstateAgent {
-  id: string
+  id?: string
   name: string
   avatar: string
   phone: string
-  email: string
-  creci: string
+  email?: string
+  creci?: string
 }
 
 // ============================================
@@ -440,9 +469,10 @@ export interface ProfessionalService {
   name: string
   description: string
   duration: string
-  priceRange: string // "A partir de R$ 500"
+  price: number
+  priceRange?: string // "A partir de R$ 500"
   category: string
-  includes: string[]
+  includes?: string[]
 }
 
 export interface ConsultationType {
@@ -482,38 +512,46 @@ export interface Education {
 
 export interface Event {
   id: string
-  title: string
+  title?: string
+  name?: string
   description: string
   image: string
-  images: string[]
+  images?: string[]
   date: string
+  endDate?: string
   time: string
   endTime?: string
-  venue: Venue
-  category: string // Show, Teatro, Festival, Palestra
-  ageRating: string
+  venue?: Venue
+  location?: Venue
+  category?: string // Show, Teatro, Festival, Palestra
+  ageRating?: string
   tickets: TicketType[]
-  lineup?: Artist[]
-  organizer: Organizer
-  status: 'upcoming' | 'soldout' | 'cancelled' | 'ended'
+  lineup?: Array<Artist | string>
+  artists?: string[]
+  organizer?: Organizer
+  status?: 'upcoming' | 'soldout' | 'cancelled' | 'ended'
+  price?: number
+  capacity?: number
+  isHighlighted?: boolean
 }
 
 export interface Venue {
   name: string
   address: string
   city: string
-  capacity: number
+  state?: string
+  capacity?: number
   mapUrl?: string
 }
 
 export interface TicketType {
   id: string
   name: string // Pista, VIP, Camarote
-  description: string
+  description?: string
   price: number
-  serviceFee: number
-  available: number
-  maxPerPurchase: number
+  serviceFee?: number
+  available: number | boolean
+  maxPerPurchase?: number
   benefits?: string[]
 }
 
@@ -575,43 +613,6 @@ export interface PersonalTrainer {
   price: number // por sessao
   availability: DayAvailability[]
   bio: string
-}
-
-// ============================================
-// MODELO 9: SAUDE (Clinica, Medico)
-// ============================================
-
-export interface HealthProfessional {
-  id: string
-  name: string
-  avatar: string
-  title: string // "Cardiologista", "Dentista"
-  crm?: string // ou CRO
-  specialties: string[]
-  education: Education[]
-  experience: number
-  rating: number
-  reviewCount: number
-  consultationPrice: number
-  telemedicine: boolean
-  insurances: string[] // Convenios aceitos
-  availability: DayAvailability[]
-}
-
-export interface HealthService {
-  id: string
-  name: string
-  description: string
-  duration: number
-  price: number
-  category: string // Consulta, Exame, Procedimento
-  preparation?: string // Instrucoes pre-exame
-}
-
-export interface Insurance {
-  id: string
-  name: string
-  logo: string
 }
 
 export interface Clinic {
@@ -716,7 +717,7 @@ export const BUSINESS_MODEL_CONFIG: Record<BusinessModel, {
     secondaryActions: ['Ver fotos', 'Simular financiamento', 'Falar com corretor'],
     contentTypes: ['properties', 'neighborhoods', 'agents', 'tours']
   },
-  professional: {
+  professionals: {
     name: 'Profissionais',
     description: 'Advogado, Contador, Consultor',
     icon: 'Briefcase',
@@ -732,7 +733,7 @@ export const BUSINESS_MODEL_CONFIG: Record<BusinessModel, {
     secondaryActions: ['Ver lineup', 'Escolher setor', 'Ver mapa'],
     contentTypes: ['events', 'tickets', 'artists', 'venue']
   },
-  fitness: {
+  gym: {
     name: 'Fitness',
     description: 'Academia, Personal, Studio',
     icon: 'Dumbbell',
