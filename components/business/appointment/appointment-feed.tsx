@@ -116,7 +116,7 @@ function StylesModule({ onSelectStyle }: { onSelectStyle: (style: StyleExample) 
             <div className="absolute bottom-0 left-0 right-0 p-3">
               <p className="text-sm font-medium text-white">{style.name}</p>
               <Badge variant="secondary" className="mt-1 text-xs bg-white/20 text-white border-0">
-                {style.trend ? "Em alta" : style.category}
+                {"trend" in style && style.trend ? "Em alta" : style.category}
               </Badge>
             </div>
           </div>

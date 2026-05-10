@@ -6,9 +6,11 @@ import { ChevronLeft, ChevronRight, Clock, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { DayAvailability, Professional } from "@/lib/business-types"
 
+type AvailabilityInput = DayAvailability[] | Record<string, string[]>
+
 interface AppointmentCalendarProps {
   professionals?: Professional[]
-  availability?: DayAvailability[]
+  availability?: AvailabilityInput
   selectedProfessionalId?: string
   selectedDate?: string | null
   selectedTime?: string | null
@@ -39,7 +41,7 @@ export function AppointmentCalendar({
   
   const selectedProfessional = professionals.find(p => p.id === selectedProfessionalId)
   const hasProfessionalPicker = professionals.length > 0
-  const activeAvailability = selectedProfessional?.availability || availability
+  const activeAvailability: AvailabilityInput = selectedProfessional?.availability || availability
 
   // Gera dias do mes
   const calendarDays = useMemo(() => {
@@ -85,9 +87,12 @@ export function AppointmentCalendar({
   const availableSlots = useMemo(() => {
     if (!selectedDate) return []
     
-    // Verifica se availability existe e e um array
-    if (!activeAvailability || !Array.isArray(activeAvailability)) {
+    if (!activeAvailability) {
       return []
+    }
+
+    if (!Array.isArray(activeAvailability)) {
+      return activeAvailability[selectedDate]?.map((time) => ({ time, available: true })) || []
     }
     
     const dayAvailability = activeAvailability.find(
