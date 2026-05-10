@@ -11,6 +11,16 @@ import {
   type BlockId,
 } from "./block-types"
 
+const INSTITUTIONAL_RECOMMENDED_BLOCK_IDS = [
+  "stories",
+  "institutional",
+  "highlights",
+  "videos",
+  "updates",
+  "brand-posts",
+  "conversion",
+] as const satisfies readonly BlockId[]
+
 function withUniversalBlocks(
   segmentSpecificBlocks: readonly BlockId[],
 ): readonly BlockId[] {
@@ -30,7 +40,7 @@ export const RECOMMENDED_BLOCK_IDS_BY_SEGMENT: Record<BusinessModel, readonly Bl
   health: UNIVERSAL_BLOCK_IDS,
   influencer: UNIVERSAL_BLOCK_IDS,
   personal: UNIVERSAL_BLOCK_IDS,
-  institutional: UNIVERSAL_BLOCK_IDS,
+  institutional: INSTITUTIONAL_RECOMMENDED_BLOCK_IDS,
 }
 
 export const RECOMMENDED_BLOCKS_BY_SEGMENT: Record<

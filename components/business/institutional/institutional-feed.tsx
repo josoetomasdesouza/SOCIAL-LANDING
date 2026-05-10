@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
+import { getBlockDefinition } from "@/lib/blocks/block-registry"
+import { getRecommendedBlockIdsForSegment } from "@/lib/blocks/segment-blocks"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -209,261 +211,280 @@ export function InstitutionalFeed() {
       setContactDrawerOpen(false)
     }, 2000)
   }
-  
-  // Secoes do feed
-  const sections = [
-    // Sobre (objetivo principal - apresentacao institucional)
-    {
-      id: "about",
-      title: "Quem Somos",
-      type: "custom" as const,
-      posts: [],
-      customContent: (
-        <div className="space-y-4">
-          <p className="text-muted-foreground leading-relaxed">
-            O Instituto Futuro Verde e uma organizacao sem fins lucrativos dedicada a 
-            transformar vidas atraves da educacao ambiental. Desde 2010, trabalhamos 
-            incansavelmente para criar um futuro mais sustentavel para as proximas geracoes.
-          </p>
-          <div className="flex gap-3">
-            <Button onClick={() => setContactDrawerOpen(true)}>
-              <Mail className="w-4 h-4 mr-2" />
-              Fale conosco
-            </Button>
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Relatorio Anual
-            </Button>
-          </div>
+
+  const institutionalBlockIds = getRecommendedBlockIdsForSegment("institutional")
+  const institutionalBlocks = institutionalBlockIds.map(getBlockDefinition)
+  const stories = institutionalBlockIds.includes("stories") ? institutionalStories : []
+
+  const aboutSection = {
+    id: "about",
+    title: "Quem Somos",
+    type: "custom" as const,
+    posts: [],
+    customContent: (
+      <div className="space-y-4">
+        <p className="text-muted-foreground leading-relaxed">
+          O Instituto Futuro Verde e uma organizacao sem fins lucrativos dedicada a
+          transformar vidas atraves da educacao ambiental. Desde 2010, trabalhamos
+          incansavelmente para criar um futuro mais sustentavel para as proximas geracoes.
+        </p>
+        <div className="flex gap-3">
+          <Button onClick={() => setContactDrawerOpen(true)}>
+            <Mail className="w-4 h-4 mr-2" />
+            Fale conosco
+          </Button>
+          <Button variant="outline">
+            <Download className="w-4 h-4 mr-2" />
+            Relatorio Anual
+          </Button>
         </div>
-      )
-    },
-    // Missao, Visao, Valores
-    {
-      id: "pillars",
-      title: "Proposito",
-      type: "custom" as const,
-      posts: [],
-      customContent: (
-        <div className="space-y-3">
-          {institutionalPillars.map((pillar) => {
-            const Icon = pillar.icon
-            return (
-              <div key={pillar.id} className="flex gap-4 p-4 rounded-xl border border-border bg-card">
-                <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: `${pillar.color}15` }}
-                >
-                  <Icon className="w-6 h-6" style={{ color: pillar.color }} />
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-1">{pillar.title}</h4>
-                  <p className="text-sm text-muted-foreground">{pillar.description}</p>
-                </div>
+      </div>
+    )
+  }
+
+  const pillarsSection = {
+    id: "pillars",
+    title: "Proposito",
+    type: "custom" as const,
+    posts: [],
+    customContent: (
+      <div className="space-y-3">
+        {institutionalPillars.map((pillar) => {
+          const Icon = pillar.icon
+          return (
+            <div key={pillar.id} className="flex gap-4 p-4 rounded-xl border border-border bg-card">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: `${pillar.color}15` }}
+              >
+                <Icon className="w-6 h-6" style={{ color: pillar.color }} />
               </div>
-            )
-          })}
-        </div>
-      )
-    },
-    // Numeros de Impacto
-    {
-      id: "impact",
-      title: "Nosso Impacto",
-      type: "custom" as const,
-      posts: [],
-      customContent: (
-        <div className="grid grid-cols-2 gap-3">
-          {institutionalImpact.map((item) => (
-            <div key={item.id} className="p-4 rounded-xl bg-accent/5 border border-accent/20 text-center">
-              <p className="text-2xl font-bold text-accent">{item.value}</p>
-              <p className="text-xs text-muted-foreground">{item.label}</p>
+              <div>
+                <h4 className="font-semibold mb-1">{pillar.title}</h4>
+                <p className="text-sm text-muted-foreground">{pillar.description}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  const impactSection = {
+    id: "impact",
+    title: "Nosso Impacto",
+    type: "custom" as const,
+    posts: [],
+    customContent: (
+      <div className="grid grid-cols-2 gap-3">
+        {institutionalImpact.map((item) => (
+          <div key={item.id} className="p-4 rounded-xl bg-accent/5 border border-accent/20 text-center">
+            <p className="text-2xl font-bold text-accent">{item.value}</p>
+            <p className="text-xs text-muted-foreground">{item.label}</p>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  const teamSection = {
+    id: "team",
+    title: "Nossa Equipe",
+    type: "custom" as const,
+    posts: [],
+    customContent: (
+      <div>
+        <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+          {institutionalTeam.map((member) => (
+            <div key={member.id} className="flex-shrink-0 text-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden mb-2 mx-auto ring-2 ring-border">
+                <Image src={member.image} alt={member.name} width={80} height={80} className="object-cover" />
+              </div>
+              <p className="text-sm font-medium line-clamp-1 max-w-20">{member.name.split(" ")[0]}</p>
+              <p className="text-xs text-muted-foreground line-clamp-1 max-w-20">{member.role.split(" ")[0]}</p>
             </div>
           ))}
         </div>
-      )
-    },
-    // Equipe
-    {
-      id: "team",
-      title: "Nossa Equipe",
-      type: "custom" as const,
-      posts: [],
-      customContent: (
-        <div>
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-            {institutionalTeam.map((member) => (
-              <div key={member.id} className="flex-shrink-0 text-center">
-                <div className="w-20 h-20 rounded-full overflow-hidden mb-2 mx-auto ring-2 ring-border">
-                  <Image src={member.image} alt={member.name} width={80} height={80} className="object-cover" />
-                </div>
-                <p className="text-sm font-medium line-clamp-1 max-w-20">{member.name.split(" ")[0]}</p>
-                <p className="text-xs text-muted-foreground line-clamp-1 max-w-20">{member.role.split(" ")[0]}</p>
-              </div>
-            ))}
-          </div>
-          <button 
-            onClick={() => setTeamDrawerOpen(true)}
-            className="w-full mt-3 text-sm text-accent hover:text-accent/80 transition-colors"
+        <button
+          onClick={() => setTeamDrawerOpen(true)}
+          className="w-full mt-3 text-sm text-accent hover:text-accent/80 transition-colors"
+        >
+          Ver equipe completa
+        </button>
+      </div>
+    )
+  }
+
+  const projectsSection = {
+    id: "projects",
+    title: "Projetos",
+    type: "custom" as const,
+    posts: [],
+    customContent: (
+      <div className="space-y-3">
+        {institutionalProjects.map((project) => (
+          <button
+            key={project.id}
+            onClick={() => {
+              setSelectedProject(project)
+              setProjectDrawerOpen(true)
+            }}
+            className="w-full flex gap-4 p-3 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all text-left"
           >
-            Ver equipe completa
+            <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+              <Image src={project.image} alt={project.title} width={80} height={80} className="object-cover w-full h-full" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-medium line-clamp-1">{project.title}</h4>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  project.status === "Em andamento"
+                    ? "bg-blue-500/10 text-blue-500"
+                    : "bg-green-500/10 text-green-500"
+                }`}>
+                  {project.status}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 self-center" />
           </button>
+        ))}
+      </div>
+    )
+  }
+
+  const videosSection = {
+    id: "videos",
+    title: "Nossos Videos",
+    type: "content" as const,
+    posts: institutionalVideos.map((video) => ({
+      id: `video-${video.id}`,
+      type: "video" as const,
+      content: video.title,
+      description: video.description,
+      media: video.thumbnail,
+      videoUrl: `https://youtube.com/watch?v=${video.id}`,
+      duration: video.duration,
+      views: video.views,
+      likes: 0,
+      comments: 0,
+      shares: 0,
+      timestamp: "Agora"
+    }))
+  }
+
+  const brandPostsSection = {
+    id: "products",
+    title: "Tendencia em perfumaria",
+    type: "content" as const,
+    posts: institutionalProducts.map((product) => ({
+      id: `product-${product.id}`,
+      type: "product" as const,
+      content: product.name,
+      description: `R$ ${product.price.toFixed(2).replace(".", ",")} - ${product.socialProof}`,
+      media: product.image,
+      price: product.price,
+      likes: 0,
+      comments: 0,
+      shares: 0,
+      timestamp: "Agora"
+    }))
+  }
+
+  const updatesSection = {
+    id: "news",
+    title: "Para um mundo melhor",
+    type: "content" as const,
+    posts: institutionalNews.map((news) => ({
+      id: `news-${news.id}`,
+      type: "news" as const,
+      content: news.title,
+      description: news.summary,
+      media: news.image,
+      source: news.source,
+      likes: 0,
+      comments: 0,
+      shares: 0,
+      timestamp: "Agora"
+    }))
+  }
+
+  const faqSection = {
+    id: "faq",
+    title: "Perguntas Frequentes",
+    type: "custom" as const,
+    posts: [],
+    customContent: (
+      <div className="space-y-2">
+        {institutionalFAQs.map((faq) => (
+          <button
+            key={faq.id}
+            onClick={() => setFaqOpen(faqOpen === faq.id ? null : faq.id)}
+            className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{faq.question}</span>
+              <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform ${
+                faqOpen === faq.id ? "rotate-90" : ""
+              }`} />
+            </div>
+            {faqOpen === faq.id && (
+              <p className="mt-3 text-sm text-muted-foreground">{faq.answer}</p>
+            )}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  const contactSection = {
+    id: "contact",
+    title: "Contato",
+    type: "custom" as const,
+    posts: [],
+    customContent: (
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
+          <Phone className="w-5 h-5 text-accent" />
+          <span>{institutionalConfig.phone}</span>
         </div>
-      )
-    },
-    // Projetos
-    {
-      id: "projects",
-      title: "Projetos",
-      type: "custom" as const,
-      posts: [],
-      customContent: (
-        <div className="space-y-3">
-          {institutionalProjects.map((project) => (
-            <button
-              key={project.id}
-              onClick={() => {
-                setSelectedProject(project)
-                setProjectDrawerOpen(true)
-              }}
-              className="w-full flex gap-4 p-3 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all text-left"
-            >
-              <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                <Image src={project.image} alt={project.title} width={80} height={80} className="object-cover w-full h-full" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium line-clamp-1">{project.title}</h4>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    project.status === "Em andamento" 
-                      ? "bg-blue-500/10 text-blue-500" 
-                      : "bg-green-500/10 text-green-500"
-                  }`}>
-                    {project.status}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 self-center" />
-            </button>
-          ))}
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
+          <Mail className="w-5 h-5 text-accent" />
+          <span>{institutionalConfig.email}</span>
         </div>
-      )
-    },
-    // Videos com chat - usa renderContent para permitir abrir drawer
-    {
-      id: "videos",
-      title: "Nossos Videos",
-      type: "content" as const,
-      posts: institutionalVideos.map((video) => ({
-        id: `video-${video.id}`,
-        type: "video" as const,
-        content: video.title,
-        description: video.description,
-        media: video.thumbnail,
-        videoUrl: `https://youtube.com/watch?v=${video.id}`,
-        duration: video.duration,
-        views: video.views,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timestamp: "Agora"
-      }))
-    },
-    // Produtos em destaque - convertido para posts
-    {
-      id: "products",
-      title: "Tendencia em perfumaria",
-      type: "content" as const,
-      posts: institutionalProducts.map((product) => ({
-        id: `product-${product.id}`,
-        type: "product" as const,
-        content: product.name,
-        description: `R$ ${product.price.toFixed(2).replace(".", ",")} - ${product.socialProof}`,
-        media: product.image,
-        price: product.price,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timestamp: "Agora"
-      }))
-    },
-    // Noticias na midia - convertido para posts
-    {
-      id: "news",
-      title: "Para um mundo melhor",
-      type: "content" as const,
-      posts: institutionalNews.map((news) => ({
-        id: `news-${news.id}`,
-        type: "news" as const,
-        content: news.title,
-        description: news.summary,
-        media: news.image,
-        source: news.source,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timestamp: "Agora"
-      }))
-    },
-    // FAQ
-    {
-      id: "faq",
-      title: "Perguntas Frequentes",
-      type: "custom" as const,
-      posts: [],
-      customContent: (
-        <div className="space-y-2">
-          {institutionalFAQs.map((faq) => (
-            <button
-              key={faq.id}
-              onClick={() => setFaqOpen(faqOpen === faq.id ? null : faq.id)}
-              className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-medium">{faq.question}</span>
-                <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform ${
-                  faqOpen === faq.id ? "rotate-90" : ""
-                }`} />
-              </div>
-              {faqOpen === faq.id && (
-                <p className="mt-3 text-sm text-muted-foreground">{faq.answer}</p>
-              )}
-            </button>
-          ))}
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
+          <MapPin className="w-5 h-5 text-accent" />
+          <span>{institutionalConfig.address}</span>
         </div>
-      )
-    },
-    // Contato
-    {
-      id: "contact",
-      title: "Contato",
-      type: "custom" as const,
-      posts: [],
-      customContent: (
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
-            <Phone className="w-5 h-5 text-accent" />
-            <span>{institutionalConfig.phone}</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
-            <Mail className="w-5 h-5 text-accent" />
-            <span>{institutionalConfig.email}</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
-            <MapPin className="w-5 h-5 text-accent" />
-            <span>{institutionalConfig.address}</span>
-          </div>
-        </div>
-      )
+      </div>
+    )
+  }
+
+  const sections = institutionalBlocks.flatMap((block) => {
+    switch (block.id) {
+      case "institutional":
+        return [aboutSection, pillarsSection, impactSection, faqSection]
+      case "highlights":
+        return [teamSection, projectsSection]
+      case "videos":
+        return [videosSection]
+      case "updates":
+        return [updatesSection]
+      case "brand-posts":
+        return [brandPostsSection]
+      case "conversion":
+        return [contactSection]
+      default:
+        return []
     }
-  ]
+  })
   
 return (
   <>
 <BusinessSocialLanding
   config={institutionalConfig}
-  stories={institutionalStories}
+  stories={stories}
   sections={sections}
   />
       
