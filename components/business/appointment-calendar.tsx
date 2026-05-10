@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, Clock, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,7 @@ interface AppointmentCalendarProps {
   onSelectDate: (date: string) => void
   onSelectTime: (time: string) => void
   onConfirm?: () => void
+  autoScrollToTimes?: boolean
 }
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"]
@@ -35,9 +36,11 @@ export function AppointmentCalendar({
   onSelectProfessional,
   onSelectDate,
   onSelectTime,
-  onConfirm
+  onConfirm,
+  autoScrollToTimes = false
 }: AppointmentCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const timeSlotsRef = useRef<HTMLDivElement>(null)
   
   const selectedProfessional = professionals.find(p => p.id === selectedProfessionalId)
   const hasProfessionalPicker = professionals.length > 0
@@ -116,6 +119,16 @@ export function AppointmentCalendar({
   const nextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))
   }
+
+  useEffect(() => {
+    if (!autoScrollToTimes || !selectedDate) return
+
+    const scrollTimer = window.setTimeout(() => {
+      timeSlotsRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    }, 50)
+
+    return () => window.clearTimeout(scrollTimer)
+  }, [autoScrollToTimes, selectedDate])
 
   return (
     <div className="space-y-6">
@@ -221,7 +234,7 @@ export function AppointmentCalendar({
 
       {/* Horarios */}
       {selectedDate && (
-        <div>
+        <div ref={timeSlotsRef}>
           <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Horarios disponiveis

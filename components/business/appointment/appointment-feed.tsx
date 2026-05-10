@@ -12,6 +12,8 @@ import { barberShopConfig, barbers, barberServices, hairStyles } from "@/lib/moc
 import { appointmentContent } from "@/lib/mock-data/business-content"
 import type { Professional, Service, StyleExample } from "@/lib/business-types"
 
+type BookingStep = "service" | "professional" | "datetime" | "confirmation" | null
+
 // ========================================
 // MODULO: AGENDAR HORARIO (OBJETIVO PRINCIPAL)
 // ========================================
@@ -214,6 +216,7 @@ function BarberDetailsDrawer({
               setSelectedTime(null)
             }}
             onSelectTime={setSelectedTime}
+            autoScrollToTimes
           />
         </div>
       </div>
@@ -415,10 +418,7 @@ function ConfirmationDrawer({
 export function AppointmentFeed() {
   const [selectedBarber, setSelectedBarber] = useState<Professional | null>(null)
   const [selectedService, setSelectedService] = useState<Service | null>(null)
-  const [barberDrawerOpen, setBarberDrawerOpen] = useState(false)
-  const [servicesDrawerOpen, setServicesDrawerOpen] = useState(false)
-  const [professionalsDrawerOpen, setProfessionalsDrawerOpen] = useState(false)
-  const [confirmationOpen, setConfirmationOpen] = useState(false)
+  const [bookingStep, setBookingStep] = useState<BookingStep>(null)
   const [bookedDate, setBookedDate] = useState<string | null>(null)
   const [bookedTime, setBookedTime] = useState<string | null>(null)
   const [bookedService, setBookedService] = useState<Service | null>(null)
@@ -427,23 +427,22 @@ export function AppointmentFeed() {
   const handleStartBooking = () => {
     setSelectedService(null)
     setSelectedBarber(null)
-    setServicesDrawerOpen(true)
+    setBookingStep("service")
   }
   
   const handleSelectService = (service: Service) => {
     setSelectedService(service)
-    setServicesDrawerOpen(false)
-    setProfessionalsDrawerOpen(true)
+    setSelectedBarber(null)
+    setBookingStep("professional")
   }
   
   const handleSelectBarber = (barber: Professional) => {
     setSelectedBarber(barber)
-    setProfessionalsDrawerOpen(false)
-    setBarberDrawerOpen(true)
+    setBookingStep("datetime")
   }
   
   const handleSelectStyle = (style: StyleExample) => {
-    setServicesDrawerOpen(true)
+    setBookingStep("service")
   }
   
   const handleSchedule = (barber: Professional, service: Service | null, date: string, time: string) => {
@@ -451,8 +450,7 @@ export function AppointmentFeed() {
     setBookedService(service)
     setBookedDate(date)
     setBookedTime(time)
-    setBarberDrawerOpen(false)
-    setConfirmationOpen(true)
+    setBookingStep("confirmation")
   }
   
   // Secoes do feed
@@ -527,27 +525,27 @@ export function AppointmentFeed() {
       <BarberDetailsDrawer
         barber={selectedBarber}
         service={selectedService}
-        isOpen={barberDrawerOpen}
-        onClose={() => setBarberDrawerOpen(false)}
+        isOpen={bookingStep === "datetime"}
+        onClose={() => setBookingStep(null)}
         onSchedule={handleSchedule}
       />
       
       <ServicesDrawer
-        isOpen={servicesDrawerOpen}
-        onClose={() => setServicesDrawerOpen(false)}
+        isOpen={bookingStep === "service"}
+        onClose={() => setBookingStep(null)}
         onSelectService={handleSelectService}
       />
       
       <ProfessionalsDrawer
         service={selectedService}
-        isOpen={professionalsDrawerOpen}
-        onClose={() => setProfessionalsDrawerOpen(false)}
+        isOpen={bookingStep === "professional"}
+        onClose={() => setBookingStep(null)}
         onSelectBarber={handleSelectBarber}
       />
       
       <ConfirmationDrawer
-        isOpen={confirmationOpen}
-        onClose={() => setConfirmationOpen(false)}
+        isOpen={bookingStep === "confirmation"}
+        onClose={() => setBookingStep(null)}
         barber={selectedBarber}
         service={bookedService}
         date={bookedDate}
