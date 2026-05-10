@@ -1,7 +1,8 @@
 "use client"
 
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react"
-import { BusinessSocialLanding } from "../business-social-landing"
+import { BusinessSocialLanding, type BusinessPost } from "../business-social-landing"
+import { BusinessFeedDrawer } from "../business-feed-drawer"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -481,11 +482,15 @@ function BrandPostsFeed({
   brandLogo,
   posts,
   showChat = true,
+  showActions = true,
+  onPostClick,
 }: {
   brandName: string
   brandLogo: string
   posts: BrandPost[]
   showChat?: boolean
+  showActions?: boolean
+  onPostClick?: (post: BrandPost) => void
 }) {
   return (
     <div className="space-y-8">
@@ -493,7 +498,11 @@ function BrandPostsFeed({
         const typeConfig = brandPostTypeOptions.find((option) => option.value === post.type)
 
         return (
-          <article key={post.id}>
+          <article
+            key={post.id}
+            onClick={onPostClick ? () => onPostClick(post) : undefined}
+            className={onPostClick ? "cursor-pointer transition-opacity hover:opacity-90" : undefined}
+          >
             <div className="flex items-start gap-3">
               <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/60">
                 <Image src={brandLogo} alt={brandName} fill className="object-cover" />
@@ -523,7 +532,7 @@ function BrandPostsFeed({
             )}
 
             <BrandSocialProofWithAvatars postIndex={index} text={post.socialProof} />
-            <BrandSocialActions />
+            {showActions && <BrandSocialActions />}
 
             {showChat && index === 0 && (
               <SimpleChatInput placeholder={brandPostChatPlaceholders[post.type]} />
@@ -535,6 +544,16 @@ function BrandPostsFeed({
   )
 }
 
+function mapBrandPostToBusinessPost(post: BrandPost): BusinessPost {
+  return {
+    id: post.id,
+    type: post.type,
+    title: post.text,
+    image: post.imagePreviewUrl || "",
+    date: post.publishedAt,
+  }
+}
+
 export function InstitutionalFeed() {
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false)
   const [teamDrawerOpen, setTeamDrawerOpen] = useState(false)
@@ -543,6 +562,9 @@ export function InstitutionalFeed() {
   const [faqOpen, setFaqOpen] = useState<string | null>(null)
   const [contactSent, setContactSent] = useState(false)
   const [brandPosts, setBrandPosts] = useState<BrandPost[]>([])
+  const [brandFeedDrawerOpen, setBrandFeedDrawerOpen] = useState(false)
+  const [brandFeedCategory, setBrandFeedCategory] = useState<BrandPostType>("news")
+  const [selectedBrandPost, setSelectedBrandPost] = useState<BrandPost | null>(null)
   const viewerMode: InstitutionalViewerMode = "mock-owner"
   
   const handleSendContact = () => {
@@ -551,6 +573,15 @@ export function InstitutionalFeed() {
       setContactSent(false)
       setContactDrawerOpen(false)
     }, 2000)
+  }
+
+  const openBrandTypeDrawer = (type: BrandPostType) => {
+    const latestPost = brandPosts.find((post) => post.type === type)
+    if (!latestPost) return
+
+    setSelectedBrandPost(latestPost)
+    setBrandFeedCategory(type)
+    setBrandFeedDrawerOpen(true)
   }
 
   const brandDistributedSections = distributedBrandSections
@@ -568,7 +599,9 @@ export function InstitutionalFeed() {
             brandName={institutionalConfig.name}
             brandLogo={institutionalConfig.logo}
             posts={[latestPost]}
+            showActions={false}
             showChat={false}
+            onPostClick={() => openBrandTypeDrawer(section.type)}
           />
         )
       }
@@ -854,6 +887,19 @@ return (
   }
   sections={sections}
   />
+
+      <BusinessFeedDrawer
+        isOpen={brandFeedDrawerOpen}
+        onClose={() => {
+          setBrandFeedDrawerOpen(false)
+          setSelectedBrandPost(null)
+        }}
+        posts={brandPosts.map(mapBrandPostToBusinessPost)}
+        initialPost={selectedBrandPost ? mapBrandPostToBusinessPost(selectedBrandPost) : null}
+        category={brandFeedCategory}
+        brandLogo={institutionalConfig.logo}
+        brandName={institutionalConfig.name}
+      />
       
       {/* Contact Drawer */}
       <Drawer open={contactDrawerOpen} onOpenChange={setContactDrawerOpen}>

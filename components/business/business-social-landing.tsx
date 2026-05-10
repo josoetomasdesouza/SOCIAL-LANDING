@@ -17,7 +17,7 @@ import { BusinessFeedDrawer } from "./business-feed-drawer"
 // ========================================
 export interface BusinessPost {
   id: string
-  type: "video" | "video-vertical" | "product" | "news" | "review" | "social"
+  type: "video" | "video-vertical" | "product" | "news" | "review" | "social" | "tip" | "promotion" | "backstage"
   title: string
   description?: string
   image: string

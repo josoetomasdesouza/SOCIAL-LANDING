@@ -64,6 +64,27 @@ const contextualSocialProof: Record<string, string[]> = {
     "salvaram para ler depois",
     "comentaram sobre isso",
   ],
+  tip: [
+    "salvaram essa dica",
+    "comentaram sobre esse cuidado",
+    "mandaram para outras pessoas",
+    "estao acompanhando essa dica",
+    "compartilharam isso agora",
+  ],
+  promotion: [
+    "estao de olho nessa novidade",
+    "compartilharam essa oportunidade",
+    "marcaram outras pessoas",
+    "salvaram para ver depois",
+    "comentaram sobre isso",
+  ],
+  backstage: [
+    "curtiram ver os bastidores",
+    "reagiram a esse momento",
+    "comentaram sobre essa cena",
+    "compartilharam isso com alguem",
+    "querem ver mais",
+  ],
   review: [
     "acharam essa avaliacao util",
     "concordaram com essa opiniao",
@@ -86,6 +107,9 @@ const inputPlaceholders: Record<string, string[]> = {
   "video-vertical": ["adorei esse!", "tem mais assim?", "quero ver mais"],
   product: ["esse e bom pra mim?", "qual a diferenca desse?", "vale a pena?"],
   news: ["onde posso ler mais?", "tem mais sobre isso?", "interessante, conta mais"],
+  tip: ["tem mais dicas assim?", "quero ver mais sobre isso", "como aplicar isso no dia a dia?"],
+  promotion: ["essa novidade ainda esta valendo?", "quero saber mais", "tem mais detalhes?"],
+  backstage: ["adorei ver isso!", "tem mais bastidores?", "quero acompanhar mais"],
   review: ["posso confiar nessa avaliacao?", "tem mais avaliacoes?", "quero ver outras opinioes"],
   social: ["quero saber mais!", "como participo?", "adorei, tem mais?"],
 }
@@ -112,6 +136,21 @@ const aiInitialMessages: Record<string, string[]> = {
     "Esse assunto esta em alta. Posso te contar os detalhes?",
     "Muita gente comentou sobre isso. Quer participar da conversa?",
   ],
+  tip: [
+    "Essa dica foi uma das mais salvas recentemente. Quer ver mais?",
+    "Muita gente comentou sobre esse cuidado. Posso aprofundar?",
+    "Esse conteudo ta ajudando bastante gente. Quer continuar?",
+  ],
+  promotion: [
+    "Essa novidade chamou bastante atencao. Quer saber mais detalhes?",
+    "Muita gente esta acompanhando essa oportunidade. Quer ver mais?",
+    "Esse destaque gerou bastante interesse. Posso te contar mais?",
+  ],
+  backstage: [
+    "Esse bastidor aproximou muita gente da marca. Quer ver mais?",
+    "A comunidade adorou esse momento. Posso mostrar mais?",
+    "Esse tipo de conteudo gera bastante conversa. Quer continuar?",
+  ],
   review: [
     "Muitas pessoas tiveram experiencia parecida. Quer ver mais avaliacoes?",
     "Essa avaliacao foi marcada como util por centenas de pessoas.",
@@ -130,6 +169,9 @@ const categoryLabels: Record<string, string> = {
   "video-vertical": "Shorts",
   product: "Produtos",
   news: "Noticias",
+  tip: "Dicas",
+  promotion: "Destaques",
+  backstage: "Bastidores",
   review: "Avaliacoes",
   social: "Posts",
 }
