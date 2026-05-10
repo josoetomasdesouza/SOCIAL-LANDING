@@ -509,6 +509,7 @@ export function AppointmentFeed() {
         config={barberShopConfig}
         stories={appointmentContent.stories}
         sections={sections}
+        reserveHeaderSpace={false}
         onStoryAction={(story) => {
           if (story.isMain) {
             handleStartBooking()

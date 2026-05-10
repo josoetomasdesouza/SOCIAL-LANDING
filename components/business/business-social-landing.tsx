@@ -59,6 +59,7 @@ interface BusinessSocialLandingProps {
   renderPostDrawer?: (post: BusinessPost | null, onClose: () => void) => ReactNode
   footerLinks?: { label: string; href: string }[]
   conversationalAI?: ReactNode
+  reserveHeaderSpace?: boolean
 }
 
 // ========================================
@@ -703,7 +704,8 @@ export function BusinessSocialLanding({
   onStoryAction,
   renderPostDrawer,
   footerLinks,
-  conversationalAI
+  conversationalAI,
+  reserveHeaderSpace = true
 }: BusinessSocialLandingProps) {
   const [selectedPost, setSelectedPost] = useState<BusinessPost | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -762,7 +764,7 @@ export function BusinessSocialLanding({
       <BusinessHeader config={config} />
       
       {/* Spacer for fixed header */}
-      <div className="h-14" />
+      {reserveHeaderSpace && <div className="h-14" />}
       
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
