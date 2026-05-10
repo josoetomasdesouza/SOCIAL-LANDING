@@ -54,16 +54,16 @@ export function ActionDrawer({
 
       {/* Drawer */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
+        className={`fixed inset-x-0 bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
         style={{ transform: isOpen ? "translateY(0)" : "translateY(100%)" }}
       >
         {/* Handle */}
-        <div className="flex justify-center pt-3 pb-2">
+        <div className="flex flex-shrink-0 justify-center pt-3 pb-2">
           <div className="w-10 h-1 bg-border rounded-full" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pb-4 border-b border-border/50">
+        <div className="flex flex-shrink-0 items-center justify-between px-5 pb-4 border-b border-border/50">
           <div>
             <h3 className="text-lg font-semibold text-foreground">{title}</h3>
             {subtitle && (
@@ -81,13 +81,13 @@ export function ActionDrawer({
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto p-5" style={{ maxHeight: "calc(100% - 140px)" }}>
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="border-t border-border/50 p-5 bg-card">
+          <div className="flex-shrink-0 border-t border-border/50 p-5 bg-card">
             {footer}
           </div>
         )}
