@@ -3,7 +3,7 @@
 // Videos, Noticias, Avaliacoes, Posts Sociais
 // ========================================
 
-import type { BusinessPost, BusinessStory } from "@/components/business/business-social-landing"
+import type { UniversalPost as BusinessPost, UniversalStory as BusinessStory } from "@/lib/core"
 
 // ========================================
 // APPOINTMENT (BARBEARIA)
