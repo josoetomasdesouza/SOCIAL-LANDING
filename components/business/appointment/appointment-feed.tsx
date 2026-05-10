@@ -136,7 +136,7 @@ function BarberDetailsDrawer({
       isOpen={isOpen}
       onClose={onClose}
       title={barber.name}
-      size="md"
+      size="lg"
       matchFeedWidth
       footer={
         <div className="space-y-3">
@@ -240,7 +240,7 @@ function ServicesDrawer({
   const categories = [...new Set(barberServices.map(s => s.category))]
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Escolha o servico" size="md" matchFeedWidth>
+    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Escolha o servico" size="lg" matchFeedWidth>
       <div className="space-y-6">
         {categories.map((category) => (
           <div key={category}>
@@ -290,7 +290,7 @@ function ProfessionalsDrawer({
   if (!service) return null
 
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Escolha o profissional" size="md" matchFeedWidth>
+    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Escolha o profissional" size="lg" matchFeedWidth>
       <div className="space-y-5">
         <div className="bg-secondary/50 rounded-xl p-4">
           <div className="flex items-start justify-between gap-3">
@@ -356,7 +356,7 @@ function ConfirmationDrawer({
   })
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Agendamento confirmado!" size="md" matchFeedWidth>
+    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Agendamento confirmado!" size="lg" matchFeedWidth>
       <div className="text-center space-y-6 py-4">
         <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
           <Check className="w-10 h-10 text-green-600" />

@@ -326,7 +326,7 @@ function BusinessStories({ stories, config, onStoryClick }: {
   const brandColor = config.brandColor || "#F97316"
   
   return (
-    <section className="py-5 border-b border-border/50 bg-background">
+    <section className="pt-0 pb-5 border-b border-border/50 bg-background">
       <div className="px-4 sm:px-5">
         <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:-mx-5 sm:px-5">
           {stories.map((story, index) => (
