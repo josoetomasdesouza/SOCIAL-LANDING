@@ -235,6 +235,13 @@ const brandPostChatPlaceholders: Record<BrandPostType, string> = {
   backstage: "adorei ver esse bastidor",
 }
 
+const distributedBrandSections: Array<{ type: BrandPostType; title: string }> = [
+  { type: "promotion", title: "Destaques" },
+  { type: "tip", title: "Dicas" },
+  { type: "news", title: "Noticias" },
+  { type: "backstage", title: "Bastidores" },
+]
+
 function createBrandPostSocialProof(type: BrandPostType, seed: number) {
   const messages = brandPostSocialProof[type]
   const message = messages[seed % messages.length]
@@ -473,10 +480,12 @@ function BrandPostsFeed({
   brandName,
   brandLogo,
   posts,
+  showChat = true,
 }: {
   brandName: string
   brandLogo: string
   posts: BrandPost[]
+  showChat?: boolean
 }) {
   return (
     <div className="space-y-8">
@@ -516,7 +525,7 @@ function BrandPostsFeed({
             <BrandSocialProofWithAvatars postIndex={index} text={post.socialProof} />
             <BrandSocialActions />
 
-            {index === 0 && (
+            {showChat && index === 0 && (
               <SimpleChatInput placeholder={brandPostChatPlaceholders[post.type]} />
             )}
           </article>
@@ -543,6 +552,28 @@ export function InstitutionalFeed() {
       setContactDrawerOpen(false)
     }, 2000)
   }
+
+  const brandDistributedSections = distributedBrandSections
+    .map((section) => {
+      const latestPost = brandPosts.find((post) => post.type === section.type)
+      if (!latestPost) return null
+
+      return {
+        id: `brand-${section.type}`,
+        title: section.title,
+        type: "custom" as const,
+        posts: [],
+        customContent: (
+          <BrandPostsFeed
+            brandName={institutionalConfig.name}
+            brandLogo={institutionalConfig.logo}
+            posts={[latestPost]}
+            showChat={false}
+          />
+        )
+      }
+    })
+    .filter(Boolean)
   
   // Secoes do feed
   const sections = [
@@ -559,6 +590,7 @@ export function InstitutionalFeed() {
         />
       )
     }] : []),
+    ...brandDistributedSections,
     // Sobre (objetivo principal - apresentacao institucional)
     {
       id: "about",
