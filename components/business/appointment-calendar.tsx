@@ -4,17 +4,18 @@ import { useState, useMemo } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, Clock, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { Professional, TimeSlot } from "@/lib/business-types"
+import type { DayAvailability, Professional } from "@/lib/business-types"
 
 interface AppointmentCalendarProps {
-  professionals: Professional[]
+  professionals?: Professional[]
+  availability?: DayAvailability[]
   selectedProfessionalId?: string
-  selectedDate?: string
-  selectedTime?: string
-  onSelectProfessional: (id: string) => void
+  selectedDate?: string | null
+  selectedTime?: string | null
+  onSelectProfessional?: (id: string) => void
   onSelectDate: (date: string) => void
   onSelectTime: (time: string) => void
-  onConfirm: () => void
+  onConfirm?: () => void
 }
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"]
@@ -24,7 +25,8 @@ const MONTHS = [
 ]
 
 export function AppointmentCalendar({
-  professionals,
+  professionals = [],
+  availability = [],
   selectedProfessionalId,
   selectedDate,
   selectedTime,
@@ -36,6 +38,8 @@ export function AppointmentCalendar({
   const [currentMonth, setCurrentMonth] = useState(new Date())
   
   const selectedProfessional = professionals.find(p => p.id === selectedProfessionalId)
+  const hasProfessionalPicker = professionals.length > 0
+  const activeAvailability = selectedProfessional?.availability || availability
 
   // Gera dias do mes
   const calendarDays = useMemo(() => {
@@ -79,19 +83,19 @@ export function AppointmentCalendar({
 
   // Horarios disponiveis para o dia selecionado
   const availableSlots = useMemo(() => {
-    if (!selectedProfessional || !selectedDate) return []
+    if (!selectedDate) return []
     
     // Verifica se availability existe e e um array
-    if (!selectedProfessional.availability || !Array.isArray(selectedProfessional.availability)) {
+    if (!activeAvailability || !Array.isArray(activeAvailability)) {
       return []
     }
     
-    const dayAvailability = selectedProfessional.availability.find(
+    const dayAvailability = activeAvailability.find(
       a => a.date === selectedDate
     )
     
     return dayAvailability?.slots?.filter(s => s.available) || []
-  }, [selectedProfessional, selectedDate])
+  }, [activeAvailability, selectedDate])
 
   const formatDate = (date: Date) => {
     const year = date.getFullYear()
@@ -111,50 +115,52 @@ export function AppointmentCalendar({
   return (
     <div className="space-y-6">
       {/* Selecao de profissional */}
-      <div>
-        <h4 className="font-semibold text-foreground mb-3">Escolha o profissional</h4>
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {professionals.map((professional) => (
-            <button
-              key={professional.id}
-              onClick={() => onSelectProfessional(professional.id)}
-              className={`flex-shrink-0 text-center transition-all ${
-                selectedProfessionalId === professional.id ? "scale-105" : ""
-              }`}
-            >
-              <div className={`relative w-16 h-16 rounded-full overflow-hidden ring-2 transition-colors ${
-                selectedProfessionalId === professional.id
-                  ? "ring-accent"
-                  : "ring-transparent hover:ring-border"
-              }`}>
-                <Image
-                  src={professional.avatar}
-                  alt={professional.name}
-                  fill
-                  className="object-cover"
-                />
-                {selectedProfessionalId === professional.id && (
-                  <div className="absolute inset-0 bg-accent/20 flex items-center justify-center">
-                    <Check className="h-6 w-6 text-accent" />
-                  </div>
-                )}
-              </div>
-              <p className="text-xs font-medium text-foreground mt-2 max-w-16 truncate">
-                {professional.name.split(" ")[0]}
-              </p>
-              <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="text-[10px] text-muted-foreground">{professional.rating}</span>
-              </div>
-            </button>
-          ))}
+      {hasProfessionalPicker && (
+        <div>
+          <h4 className="font-semibold text-foreground mb-3">Escolha o profissional</h4>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {professionals.map((professional) => (
+              <button
+                key={professional.id}
+                onClick={() => onSelectProfessional?.(professional.id)}
+                className={`flex-shrink-0 text-center transition-all ${
+                  selectedProfessionalId === professional.id ? "scale-105" : ""
+                }`}
+              >
+                <div className={`relative w-16 h-16 rounded-full overflow-hidden ring-2 transition-colors ${
+                  selectedProfessionalId === professional.id
+                    ? "ring-accent"
+                    : "ring-transparent hover:ring-border"
+                }`}>
+                  <Image
+                    src={professional.avatar}
+                    alt={professional.name}
+                    fill
+                    className="object-cover"
+                  />
+                  {selectedProfessionalId === professional.id && (
+                    <div className="absolute inset-0 bg-accent/20 flex items-center justify-center">
+                      <Check className="h-6 w-6 text-accent" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs font-medium text-foreground mt-2 max-w-16 truncate">
+                  {professional.name.split(" ")[0]}
+                </p>
+                <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                  <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span className="text-[10px] text-muted-foreground">{professional.rating}</span>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Calendario */}
-      {selectedProfessionalId && (
+      {(!hasProfessionalPicker || selectedProfessionalId) && (
         <div>
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-semibold text-foreground">Escolha a data</h4>
@@ -243,7 +249,7 @@ export function AppointmentCalendar({
       )}
 
       {/* Botao de confirmar */}
-      {selectedProfessionalId && selectedDate && selectedTime && (
+      {onConfirm && (!hasProfessionalPicker || selectedProfessionalId) && selectedDate && selectedTime && (
         <Button onClick={onConfirm} className="w-full h-12 text-base font-medium">
           Confirmar agendamento
         </Button>

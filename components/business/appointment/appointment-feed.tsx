@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Calendar, Clock, Scissors, Star, Play, ChevronRight, Check, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -19,7 +19,7 @@ function ScheduleModule({
   onSelectBarber,
   onSelectService 
 }: { 
-  onSelectBarber: (barber: Professional) => void
+  onSelectBarber: (barber: Professional, service?: Service) => void
   onSelectService: () => void
 }) {
   return (
@@ -76,7 +76,7 @@ function ScheduleModule({
           {barberServices.filter(s => s.popular).slice(0, 3).map((service) => (
             <button
               key={service.id}
-              onClick={() => onSelectBarber(barbers[0])}
+              onClick={() => onSelectBarber(barbers[0], service)}
               className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
             >
               <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
@@ -131,22 +131,60 @@ function StylesModule({ onSelectStyle }: { onSelectStyle: (style: StyleExample) 
 // ========================================
 function BarberDetailsDrawer({ 
   barber, 
+  service,
   isOpen, 
   onClose,
   onSchedule
 }: { 
   barber: Professional | null
+  service: Service | null
   isOpen: boolean
   onClose: () => void
-  onSchedule: (barber: Professional, date: string, time: string) => void
+  onSchedule: (barber: Professional, service: Service | null, date: string, time: string) => void
 }) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedDate(null)
+      setSelectedTime(null)
+    }
+  }, [isOpen, barber?.id, service?.id])
+  
   if (!barber) return null
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={barber.name} size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={barber.name}
+      size="lg"
+      footer={
+        <div className="space-y-3">
+          {service && (
+            <div className="flex items-center justify-between text-sm">
+              <div>
+                <p className="font-medium text-foreground">{service.name}</p>
+                <p className="text-muted-foreground">{service.duration} min</p>
+              </div>
+              <p className="font-bold text-accent">R$ {service.price}</p>
+            </div>
+          )}
+          <Button
+            className="w-full h-12"
+            disabled={!selectedDate || !selectedTime}
+            onClick={() => {
+              if (selectedDate && selectedTime) {
+                onSchedule(barber, service, selectedDate, selectedTime)
+              }
+            }}
+          >
+            Confirmar agendamento
+          </Button>
+        </div>
+      }
+    >
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
@@ -166,6 +204,19 @@ function BarberDetailsDrawer({
           </div>
         </div>
         
+        {service && (
+          <div className="bg-secondary/50 rounded-xl p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h4 className="font-medium">{service.name}</h4>
+                <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
+                <p className="text-xs text-muted-foreground mt-2">{service.duration} minutos</p>
+              </div>
+              <p className="font-bold text-accent whitespace-nowrap">R$ {service.price}</p>
+            </div>
+          </div>
+        )}
+        
         {/* Especialidades */}
         <div>
           <h4 className="font-medium mb-2">Especialidades</h4>
@@ -183,23 +234,13 @@ function BarberDetailsDrawer({
             availability={barber.availability || []}
             selectedDate={selectedDate}
             selectedTime={selectedTime}
-            onSelectDate={setSelectedDate}
+            onSelectDate={(date) => {
+              setSelectedDate(date)
+              setSelectedTime(null)
+            }}
             onSelectTime={setSelectedTime}
           />
         </div>
-        
-        {/* Botao de agendar */}
-        <Button 
-          className="w-full h-12"
-          disabled={!selectedDate || !selectedTime}
-          onClick={() => {
-            if (selectedDate && selectedTime) {
-              onSchedule(barber, selectedDate, selectedTime)
-            }
-          }}
-        >
-          Confirmar agendamento
-        </Button>
       </div>
     </ActionDrawer>
   )
@@ -260,12 +301,14 @@ function ConfirmationDrawer({
   isOpen, 
   onClose,
   barber,
+  service,
   date,
   time
 }: { 
   isOpen: boolean
   onClose: () => void
   barber: Professional | null
+  service: Service | null
   date: string | null
   time: string | null
 }) {
@@ -290,6 +333,16 @@ function ConfirmationDrawer({
         </div>
         
         <div className="bg-secondary/50 rounded-xl p-4 text-left space-y-3">
+          {service && (
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-border/50">
+              <div>
+                <p className="font-medium">{service.name}</p>
+                <p className="text-sm text-muted-foreground">{service.duration} minutos</p>
+              </div>
+              <p className="font-bold text-accent">R$ {service.price}</p>
+            </div>
+          )}
+          
           <div className="flex items-center gap-3">
             <div className="relative w-12 h-12 rounded-full overflow-hidden">
               <Image src={barber.avatar} alt={barber.name} fill className="object-cover" />
@@ -330,14 +383,17 @@ function ConfirmationDrawer({
 // ========================================
 export function AppointmentFeed() {
   const [selectedBarber, setSelectedBarber] = useState<Professional | null>(null)
+  const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [barberDrawerOpen, setBarberDrawerOpen] = useState(false)
   const [servicesDrawerOpen, setServicesDrawerOpen] = useState(false)
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [bookedDate, setBookedDate] = useState<string | null>(null)
   const [bookedTime, setBookedTime] = useState<string | null>(null)
+  const [bookedService, setBookedService] = useState<Service | null>(null)
   
   // Handlers
-  const handleSelectBarber = (barber: Professional) => {
+  const handleSelectBarber = (barber: Professional, service?: Service) => {
+    setSelectedService(service ?? null)
     setSelectedBarber(barber)
     setBarberDrawerOpen(true)
   }
@@ -347,7 +403,9 @@ export function AppointmentFeed() {
     setBarberDrawerOpen(true)
   }
   
-  const handleSchedule = (barber: Professional, date: string, time: string) => {
+  const handleSchedule = (barber: Professional, service: Service | null, date: string, time: string) => {
+    setSelectedBarber(barber)
+    setBookedService(service)
     setBookedDate(date)
     setBookedTime(time)
     setBarberDrawerOpen(false)
@@ -424,6 +482,7 @@ export function AppointmentFeed() {
       {/* Drawers */}
       <BarberDetailsDrawer
         barber={selectedBarber}
+        service={selectedService}
         isOpen={barberDrawerOpen}
         onClose={() => setBarberDrawerOpen(false)}
         onSchedule={handleSchedule}
@@ -433,8 +492,9 @@ export function AppointmentFeed() {
         isOpen={servicesDrawerOpen}
         onClose={() => setServicesDrawerOpen(false)}
         onSelectService={(service) => {
+          setSelectedService(service)
           setServicesDrawerOpen(false)
-          handleSelectBarber(barbers[0])
+          handleSelectBarber(barbers[0], service)
         }}
       />
       
@@ -442,6 +502,7 @@ export function AppointmentFeed() {
         isOpen={confirmationOpen}
         onClose={() => setConfirmationOpen(false)}
         barber={selectedBarber}
+        service={bookedService}
         date={bookedDate}
         time={bookedTime}
       />
