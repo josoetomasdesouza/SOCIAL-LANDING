@@ -324,7 +324,7 @@ function BusinessStories({ stories, config, onStoryClick }: {
   onStoryClick?: (story: BusinessStory, index: number) => void 
 }) {
   // Gera gradiente baseado na cor da marca
-  const brandColor = config.brandColor || "#F97316"
+  const brandColor = config.primaryColor || "#F97316"
   
   return (
     <section className="py-5 border-b border-border/50 bg-background">
@@ -405,33 +405,33 @@ function PostCard({
 }) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
   
-  const chatMessages: Record<string, { messages: { content: string; isUser: boolean }[]; placeholder: string }> = {
+  const chatMessages: Record<string, { messages: { text: string; isUser: boolean }[]; placeholder: string }> = {
     video: {
-      messages: [{ content: "Esse tutorial tem dicas incriveis! Quer que eu resuma os pontos principais?", isUser: false }],
+      messages: [{ text: "Esse tutorial tem dicas incriveis! Quer que eu resuma os pontos principais?", isUser: false }],
       placeholder: "O que achou do video?"
     },
     "video-vertical": {
-      messages: [{ content: "Esse conteudo viralizou essa semana! Quer ver mais como esse?", isUser: false }],
+      messages: [{ text: "Esse conteudo viralizou essa semana! Quer ver mais como esse?", isUser: false }],
       placeholder: "Curti! Tem mais?"
     },
     product: {
       messages: [
-        { content: "Esse produto esta entre os mais vendidos! Sabia que ele tem ingredientes exclusivos da Amazonia?", isUser: false },
-        { content: "Serio? Conta mais!", isUser: true },
-        { content: "Sim! E feito com castanha e oleo de buriti. Quer que eu explique os beneficios?", isUser: false }
+        { text: "Esse produto esta entre os mais vendidos! Sabia que ele tem ingredientes exclusivos da Amazonia?", isUser: false },
+        { text: "Serio? Conta mais!", isUser: true },
+        { text: "Sim! E feito com castanha e oleo de buriti. Quer que eu explique os beneficios?", isUser: false }
       ],
       placeholder: "Vale a pena pra mim?"
     },
     news: {
-      messages: [{ content: "Essa noticia saiu em varios portais essa semana. Quer saber mais detalhes?", isUser: false }],
+      messages: [{ text: "Essa noticia saiu em varios portais essa semana. Quer saber mais detalhes?", isUser: false }],
       placeholder: "Me conta mais"
     },
     review: {
-      messages: [{ content: "Essa avaliacao foi muito curtida! Voce ja experimentou esse produto?", isUser: false }],
+      messages: [{ text: "Essa avaliacao foi muito curtida! Voce ja experimentou esse produto?", isUser: false }],
       placeholder: "Ainda nao, e bom?"
     },
     social: {
-      messages: [{ content: "Esse post teve muito engajamento! O que achou?", isUser: false }],
+      messages: [{ text: "Esse post teve muito engajamento! O que achou?", isUser: false }],
       placeholder: "Adorei!"
     }
   }

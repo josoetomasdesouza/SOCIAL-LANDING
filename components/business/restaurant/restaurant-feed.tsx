@@ -68,7 +68,7 @@ function MenuModule({
           <Truck className="w-5 h-5 text-accent" />
           <div>
             <p className="text-sm font-medium">Entrega: {deliveryInfo.estimatedTime}</p>
-            <p className="text-xs text-muted-foreground">Frete gratis acima de R$ {deliveryInfo.freeDeliveryMinimum}</p>
+            <p className="text-xs text-muted-foreground">Frete gratis acima de R$ {deliveryInfo.freeDeliveryMinimum ?? 0}</p>
           </div>
         </div>
         <Badge variant="outline">{restaurantConfig.openingHours}</Badge>
@@ -259,7 +259,8 @@ function CartDrawer({
   onCheckout: () => void
 }) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const deliveryFee = subtotal >= deliveryInfo.freeDeliveryMinimum ? 0 : deliveryInfo.deliveryFee
+  const freeDeliveryMinimum = deliveryInfo.freeDeliveryMinimum ?? Infinity
+  const deliveryFee = subtotal >= freeDeliveryMinimum ? 0 : deliveryInfo.deliveryFee
   const total = subtotal + deliveryFee
   
   return (
