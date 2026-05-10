@@ -301,9 +301,13 @@ const RESTAURANT_BLOCK_ID_SET = new Set<BlockId>(RESTAURANT_BLOCK_IDS)
 const ECOMMERCE_BLOCK_ID_SET = new Set<BlockId>(ECOMMERCE_BLOCK_IDS)
 const COURSES_BLOCK_ID_SET = new Set<BlockId>(COURSES_BLOCK_IDS)
 
-export const BLOCK_REGISTRY_BY_ID = Object.fromEntries(
-  BLOCK_REGISTRY.map((block) => [block.id, block]),
-) as Record<BlockId, BlockDefinition>
+export const BLOCK_REGISTRY_BY_ID: Record<BlockId, BlockDefinition> = BLOCK_REGISTRY.reduce(
+  (registry, block) => {
+    registry[block.id] = block
+    return registry
+  },
+  {} as Record<BlockId, BlockDefinition>,
+)
 
 export const UNIVERSAL_BLOCKS = BLOCK_REGISTRY.filter((block) =>
   UNIVERSAL_BLOCK_ID_SET.has(block.id),
@@ -321,5 +325,7 @@ export function getBlockDefinition(blockId: BlockId): BlockDefinition {
 }
 
 export function getCompatibleBlocksForSegment(segment: BusinessModel): BlockDefinition[] {
-  return BLOCK_REGISTRY.filter((block) => block.compatibleSegments.includes(segment))
+  return BLOCK_REGISTRY.filter((block) =>
+    (block.compatibleSegments as readonly BusinessModel[]).includes(segment),
+  )
 }

@@ -36,12 +36,15 @@ export const RECOMMENDED_BLOCK_IDS_BY_SEGMENT: Record<BusinessModel, readonly Bl
 export const RECOMMENDED_BLOCKS_BY_SEGMENT: Record<
   BusinessModel,
   readonly BlockDefinition[]
-> = Object.fromEntries(
-  Object.entries(RECOMMENDED_BLOCK_IDS_BY_SEGMENT).map(([segment, blockIds]) => [
-    segment,
-    blockIds.map((blockId) => BLOCK_REGISTRY_BY_ID[blockId]),
-  ]),
-) as Record<BusinessModel, readonly BlockDefinition[]>
+> = (Object.keys(RECOMMENDED_BLOCK_IDS_BY_SEGMENT) as BusinessModel[]).reduce(
+  (segments, segment) => {
+    segments[segment] = RECOMMENDED_BLOCK_IDS_BY_SEGMENT[segment].map(
+      (blockId) => BLOCK_REGISTRY_BY_ID[blockId],
+    )
+    return segments
+  },
+  {} as Record<BusinessModel, readonly BlockDefinition[]>,
+)
 
 export function getRecommendedBlockIdsForSegment(
   segment: BusinessModel,
