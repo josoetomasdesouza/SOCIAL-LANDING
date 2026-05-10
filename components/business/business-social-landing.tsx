@@ -59,7 +59,7 @@ interface BusinessSocialLandingProps {
   renderPostDrawer?: (post: BusinessPost | null, onClose: () => void) => ReactNode
   footerLinks?: { label: string; href: string }[]
   conversationalAI?: ReactNode
-  reserveHeaderSpace?: boolean
+  reserveHeaderSpace?: boolean | "compact"
 }
 
 // ========================================
@@ -715,6 +715,7 @@ export function BusinessSocialLanding({
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
   const [storyInitialIndex, setStoryInitialIndex] = useState(0)
+  const headerSpacerClass = reserveHeaderSpace === "compact" ? "h-6" : "h-14"
   
   // Coleta todos os posts de conteudo para o FeedDrawer
   const allContentPosts = useMemo(() => {
@@ -764,7 +765,7 @@ export function BusinessSocialLanding({
       <BusinessHeader config={config} />
       
       {/* Spacer for fixed header */}
-      {reserveHeaderSpace && <div className="h-14" />}
+      {reserveHeaderSpace && <div className={headerSpacerClass} />}
       
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
