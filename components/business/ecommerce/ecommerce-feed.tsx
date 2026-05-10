@@ -220,11 +220,11 @@ function ProductDetailDrawer({
             {reviews.slice(0, 2).map((review) => (
               <div key={review.id} className="flex items-start gap-3 mb-3 last:mb-0">
                 <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                  <Image src={review.avatar} alt={review.author} fill className="object-cover" />
+                  <Image src={review.userAvatar} alt={review.userName} fill className="object-cover" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{review.author}</span>
+                    <span className="text-sm font-medium">{review.userName}</span>
                     <div className="flex">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
