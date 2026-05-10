@@ -5,6 +5,45 @@
 
 import type { UniversalPost as BusinessPost, UniversalStory as BusinessStory } from "@/lib/core"
 
+type BusinessVideoPost = BusinessPost & { views: number }
+type BusinessSocialPost = Partial<Omit<BusinessPost, "id">> & {
+  id: string
+  content: string
+  image: string
+  likes: number
+  comments: number
+}
+
+interface BusinessContentBundle {
+  stories: BusinessStory[]
+  videos: BusinessVideoPost[]
+  news: BusinessPost[]
+  reviews: BusinessPost[]
+  social: BusinessPost[]
+  socialPosts: BusinessSocialPost[]
+}
+
+function asBusinessContentBundle(content: {
+  stories: BusinessStory[]
+  videos: BusinessPost[]
+  news: BusinessPost[]
+  reviews: BusinessPost[]
+  social?: BusinessPost[]
+  socialPosts?: BusinessSocialPost[]
+}): BusinessContentBundle {
+  const social = content.social || content.socialPosts || []
+  const socialPosts = content.socialPosts || content.social || []
+
+  return {
+    stories: content.stories,
+    videos: content.videos as BusinessVideoPost[],
+    news: content.news,
+    reviews: content.reviews,
+    social: social as BusinessPost[],
+    socialPosts: socialPosts as BusinessSocialPost[],
+  }
+}
+
 // ========================================
 // APPOINTMENT (BARBEARIA)
 // ========================================
@@ -399,19 +438,19 @@ export const institutionalContent = {
 // FUNCAO HELPER PARA OBTER CONTEUDO POR MODELO
 // ========================================
 export function getBusinessContent(model: string) {
-  const contentMap: Record<string, typeof appointmentContent> = {
-    appointment: appointmentContent,
-    ecommerce: ecommerceContent,
-    courses: coursesContent,
-    restaurant: restaurantContent,
-    realestate: realestateContent,
-    events: eventsContent,
-    gym: gymContent,
-    health: healthContent,
-    professionals: professionalsContent,
-    influencer: influencerContent,
-    personal: personalContent,
-    institutional: institutionalContent,
+  const contentMap: Record<string, BusinessContentBundle> = {
+    appointment: asBusinessContentBundle(appointmentContent),
+    ecommerce: asBusinessContentBundle(ecommerceContent),
+    courses: asBusinessContentBundle(coursesContent),
+    restaurant: asBusinessContentBundle(restaurantContent),
+    realestate: asBusinessContentBundle(realestateContent),
+    events: asBusinessContentBundle(eventsContent),
+    gym: asBusinessContentBundle(gymContent),
+    health: asBusinessContentBundle(healthContent),
+    professionals: asBusinessContentBundle(professionalsContent),
+    influencer: asBusinessContentBundle(influencerContent),
+    personal: asBusinessContentBundle(personalContent),
+    institutional: asBusinessContentBundle(institutionalContent),
   }
-  return contentMap[model] || appointmentContent
+  return contentMap[model] || contentMap.appointment
 }

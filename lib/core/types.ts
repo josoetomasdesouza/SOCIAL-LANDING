@@ -40,7 +40,9 @@ export interface UniversalPost {
   id: string
   type: UniversalPostType
   title?: string
+  name?: string
   content?: string
+  summary?: string
   description?: string
   image?: string
   media?: string
@@ -55,8 +57,11 @@ export interface UniversalPost {
     name: string
     avatar: string
   }
+  avatar?: string
+  userName?: string
+  userAvatar?: string
   duration?: string
-  views?: number
+  views?: string | number
   isVertical?: boolean
   price?: number
   originalPrice?: number
@@ -65,6 +70,8 @@ export interface UniversalPost {
   reviewerAvatar?: string
   source?: string
   hasImage?: boolean
+  stats?: Record<string, string | number>
+  metadata?: Record<string, unknown>
 }
 
 export interface UniversalStory {
