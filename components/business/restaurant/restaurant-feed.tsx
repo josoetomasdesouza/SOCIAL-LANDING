@@ -2,19 +2,24 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { Clock, MapPin, Star, Flame, Leaf, ShoppingBag, Plus, Minus, X, Play, Truck, Newspaper } from "lucide-react"
+import { Check, Star, Flame, Leaf, ShoppingBag, Plus, Minus, Play, Truck, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
-import { RestaurantCheckout } from "../checkout-flows"
-import { restaurantConfig, menuItems, deliveryInfo, menuCategories } from "@/lib/mock-data/restaurant-data"
+import { restaurantConfig, menuItems, deliveryInfo } from "@/lib/mock-data/restaurant-data"
 import { restaurantContent } from "@/lib/mock-data/business-content"
 import type { MenuItem } from "@/lib/business-types"
 
 interface CartItem extends MenuItem {
   quantity: number
 }
+
+type CheckoutStep = "address" | "payment" | "confirmation"
+type DeliveryType = "delivery" | "pickup"
+
+const formatCurrency = (value: number) => `R$ ${value.toFixed(2).replace(".", ",")}`
 
 // ========================================
 // MODULO: MENU EM DESTAQUE (OBJETIVO PRINCIPAL)
@@ -161,6 +166,48 @@ function ItemDetailDrawer({
   )
 }
 
+function OrderSummaryFooter({
+  itemCount,
+  subtotal,
+  deliveryFee,
+  total,
+  ctaLabel,
+  onCta,
+  disabled = false
+}: {
+  itemCount: number
+  subtotal: number
+  deliveryFee: number
+  total: number
+  ctaLabel: string
+  onCta: () => void
+  disabled?: boolean
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>{itemCount} {itemCount === 1 ? "item" : "itens"}</span>
+          <span>Subtotal {formatCurrency(subtotal)}</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-muted-foreground">Entrega</span>
+          <span className={deliveryFee === 0 ? "text-green-600" : ""}>
+            {deliveryFee === 0 ? "Gratis" : formatCurrency(deliveryFee)}
+          </span>
+        </div>
+        <div className="flex justify-between font-bold text-lg pt-1 border-t border-border/50">
+          <span>Total</span>
+          <span className="text-accent">{formatCurrency(total)}</span>
+        </div>
+      </div>
+      <Button className="w-full h-12" onClick={onCta} disabled={disabled}>
+        {ctaLabel}
+      </Button>
+    </div>
+  )
+}
+
 // ========================================
 // DRAWER: CARRINHO
 // ========================================
@@ -178,63 +225,58 @@ function CartDrawer({
   onCheckout: () => void
 }) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const deliveryFee = subtotal >= deliveryInfo.freeDeliveryMinimum ? 0 : deliveryInfo.deliveryFee
+  const freeDeliveryMinimum = deliveryInfo.freeDeliveryMinimum ?? 0
+  const deliveryFee = freeDeliveryMinimum > 0 && subtotal >= freeDeliveryMinimum ? 0 : deliveryInfo.deliveryFee
   const total = subtotal + deliveryFee
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={`Pedido (${cart.length})`} size="lg">
-      <div className="flex flex-col h-full">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Pedido (${cart.length})`}
+      size="lg"
+      matchFeedWidth
+      footer={cart.length > 0 && (
+        <OrderSummaryFooter
+          itemCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+          subtotal={subtotal}
+          deliveryFee={deliveryFee}
+          total={total}
+          ctaLabel="Finalizar pedido"
+          onCta={onCheckout}
+        />
+      )}
+    >
+      <div>
         {cart.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-12">
+          <div className="flex flex-col items-center justify-center py-12">
             <ShoppingBag className="w-16 h-16 text-muted-foreground/50 mb-4" />
             <h3 className="font-semibold text-lg mb-2">Seu pedido esta vazio</h3>
             <p className="text-muted-foreground">Adicione itens do menu</p>
           </div>
         ) : (
-          <>
-            <div className="flex-1 space-y-3 overflow-auto">
-              {cart.map((item) => (
-                <div key={item.id} className="flex gap-3 p-3 bg-secondary/50 rounded-xl">
-                  <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image src={item.image || ""} alt={item.name} fill className="object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium line-clamp-1">{item.name}</p>
-                    <p className="font-bold text-accent">R$ {item.price.toFixed(2).replace(".", ",")}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>
-                      <Minus className="w-3 h-3" />
-                    </Button>
-                    <span className="w-6 text-center text-sm">{item.quantity}</span>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  </div>
+          <div className="space-y-3">
+            {cart.map((item) => (
+              <div key={item.id} className="flex gap-3 p-3 bg-secondary/50 rounded-xl">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                  <Image src={item.image || ""} alt={item.name} fill className="object-cover" />
                 </div>
-              ))}
-            </div>
-            
-            <div className="border-t pt-4 mt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium line-clamp-1">{item.name}</p>
+                  <p className="font-bold text-accent">{formatCurrency(item.price)}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>
+                    <Minus className="w-3 h-3" />
+                  </Button>
+                  <span className="w-6 text-center text-sm">{item.quantity}</span>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Entrega</span>
-                <span className={deliveryFee === 0 ? "text-green-600" : ""}>
-                  {deliveryFee === 0 ? "Gratis" : `R$ ${deliveryFee.toFixed(2).replace(".", ",")}`}
-                </span>
-              </div>
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span className="text-accent">R$ {total.toFixed(2).replace(".", ",")}</span>
-              </div>
-              <Button className="w-full h-12 mt-2" onClick={onCheckout}>
-                Finalizar pedido
-              </Button>
-            </div>
-          </>
+            ))}
+          </div>
         )}
       </div>
     </ActionDrawer>
@@ -249,6 +291,10 @@ export function RestaurantFeed() {
   const [itemDrawerOpen, setItemDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>("address")
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>("delivery")
+  const [paymentMethod, setPaymentMethod] = useState("")
+  const [formData, setFormData] = useState({ address: "", complement: "", phone: "", note: "" })
   const [cart, setCart] = useState<CartItem[]>([])
   
   const handleAddToCart = (item: MenuItem, qty: number = 1) => {
@@ -318,6 +364,44 @@ export function RestaurantFeed() {
   ]
 
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const freeDeliveryMinimum = deliveryInfo.freeDeliveryMinimum ?? 0
+  const isFreeDelivery = freeDeliveryMinimum > 0 && subtotal >= freeDeliveryMinimum
+  const checkoutDeliveryFee = deliveryType === "delivery" && !isFreeDelivery ? deliveryInfo.deliveryFee : 0
+  const checkoutTotal = subtotal + checkoutDeliveryFee
+  const canChoosePayment = deliveryType === "pickup"
+    ? Boolean(formData.phone)
+    : Boolean(formData.address && formData.phone)
+  const checkoutTitle = checkoutStep === "address"
+    ? "Entrega do pedido"
+    : checkoutStep === "payment"
+      ? "Pagamento"
+      : "Confirmar pedido"
+  const checkoutCtaLabel = checkoutStep === "address"
+    ? "Escolher pagamento"
+    : checkoutStep === "payment"
+      ? "Selecione uma forma de pagamento"
+      : "Confirmar pedido"
+  const checkoutCtaDisabled = checkoutStep === "address"
+    ? !canChoosePayment
+    : checkoutStep === "payment"
+      ? true
+      : !paymentMethod
+
+  const handleCheckoutCta = () => {
+    if (checkoutStep === "address") {
+      setCheckoutStep("payment")
+      return
+    }
+
+    if (checkoutStep === "confirmation") {
+      setCheckoutOpen(false)
+      setCart([])
+      setCheckoutStep("address")
+      setPaymentMethod("")
+      setFormData({ address: "", complement: "", phone: "", note: "" })
+    }
+  }
   
   return (
     <>
@@ -358,6 +442,8 @@ export function RestaurantFeed() {
         onUpdateQuantity={handleUpdateQuantity}
         onCheckout={() => {
           setCartDrawerOpen(false)
+          setCheckoutStep("address")
+          setPaymentMethod("")
           setCheckoutOpen(true)
         }}
       />
@@ -365,21 +451,117 @@ export function RestaurantFeed() {
       <ActionDrawer
         isOpen={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
-        title="Finalizar Pedido"
+        title={checkoutTitle}
         size="lg"
+        matchFeedWidth
+        footer={
+          <OrderSummaryFooter
+            itemCount={cartCount}
+            subtotal={subtotal}
+            deliveryFee={checkoutDeliveryFee}
+            total={checkoutTotal}
+            ctaLabel={checkoutCtaLabel}
+            onCta={handleCheckoutCta}
+            disabled={checkoutCtaDisabled}
+          />
+        }
       >
-        <RestaurantCheckout
-          items={cart}
-          deliveryInfo={deliveryInfo}
-          onComplete={() => {
-            setCheckoutOpen(false)
-            setCart([])
-          }}
-          onBack={() => {
-            setCheckoutOpen(false)
-            setCartDrawerOpen(true)
-          }}
-        />
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm text-muted-foreground">Seu pedido</h4>
+            {cart.map((item) => (
+              <div key={item.id} className="flex justify-between text-sm">
+                <span>{item.quantity}x {item.name}</span>
+                <span>{formatCurrency(item.price * item.quantity)}</span>
+              </div>
+            ))}
+          </div>
+
+          {checkoutStep === "address" && (
+            <>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDeliveryType("delivery")}
+                  className={`flex-1 py-3 rounded-xl border text-sm font-medium transition-colors ${
+                    deliveryType === "delivery" ? "border-accent bg-accent/10 text-accent" : "border-border"
+                  }`}
+                >
+                  Delivery
+                </button>
+                <button
+                  onClick={() => setDeliveryType("pickup")}
+                  className={`flex-1 py-3 rounded-xl border text-sm font-medium transition-colors ${
+                    deliveryType === "pickup" ? "border-accent bg-accent/10 text-accent" : "border-border"
+                  }`}
+                >
+                  Retirada
+                </button>
+              </div>
+
+              {deliveryType === "delivery" && (
+                <div className="space-y-3">
+                  <Input
+                    placeholder="Endereco completo"
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                  />
+                  <Input
+                    placeholder="Complemento (apt, bloco...)"
+                    value={formData.complement}
+                    onChange={(e) => setFormData(prev => ({ ...prev, complement: e.target.value }))}
+                  />
+                </div>
+              )}
+
+              <Input
+                placeholder="Telefone para contato"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+              />
+
+              <Input
+                placeholder="Observacoes do pedido (opcional)"
+                value={formData.note}
+                onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
+              />
+            </>
+          )}
+
+          {checkoutStep === "payment" && (
+            <div className="space-y-2">
+              {["Cartao na entrega", "Dinheiro", "PIX"].map((method) => (
+                <button
+                  key={method}
+                  onClick={() => {
+                    setPaymentMethod(method)
+                    setCheckoutStep("confirmation")
+                  }}
+                  className="w-full flex items-center justify-between p-4 rounded-xl border border-border hover:border-accent transition-colors"
+                >
+                  <span>{method}</span>
+                  <Check className="w-5 h-5 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {checkoutStep === "confirmation" && (
+            <div className="text-center space-y-4 py-4">
+              <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
+                <Check className="w-8 h-8 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">Revise seu pedido</h3>
+                <p className="text-sm text-muted-foreground">
+                  {deliveryType === "delivery" ? `Entrega em ${deliveryInfo.estimatedTime}` : "Retirada no balcao"}
+                </p>
+                {paymentMethod && (
+                  <p className="text-sm text-muted-foreground mt-1">Pagamento: {paymentMethod}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </ActionDrawer>
     </>
   )
