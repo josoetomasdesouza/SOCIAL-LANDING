@@ -632,33 +632,24 @@ function BusinessSectionComponent({
   const isExplorable = section.type === "content" && !!section.posts?.length && !!onPostClick
   const featuredPost = isExplorable ? section.posts?.[0] : null
   const remainingPosts = isExplorable ? [] : section.posts || []
-  const remainingPostCount = Math.max((section.posts?.length || 0) - 1, 0)
-  const sectionCtaLabel = remainingPostCount > 1
-    ? `Ver mais ${remainingPostCount} publicacoes`
-    : remainingPostCount === 1
-      ? "Ver mais 1 publicacao"
-      : "Ver publicacao"
   
   return (
     <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
       {/* Section Header */}
       {isExplorable ? (
         <div className="mb-5">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2 min-w-0">
+          <button
+            type="button"
+            onClick={() => featuredPost && onPostClick?.(featuredPost)}
+            className="mb-4 flex w-full items-center gap-2 text-left"
+            aria-label={`Ver publicações em ${section.title}`}
+          >
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               {section.icon}
               <h2 className="text-lg font-bold text-foreground">{section.title}</h2>
             </div>
-            <button
-              type="button"
-              onClick={() => featuredPost && onPostClick?.(featuredPost)}
-              className="flex items-center gap-1 text-sm font-medium text-accent flex-shrink-0"
-              aria-label={`Ver publicações em ${section.title}`}
-            >
-              <span>{sectionCtaLabel}</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+            <ChevronRight className="w-4 h-4 text-accent flex-shrink-0" />
+          </button>
 
           {featuredPost && (
             <div>
