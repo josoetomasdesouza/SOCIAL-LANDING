@@ -615,55 +615,6 @@ function PostCard({
   )
 }
 
-function getSectionExploreCopy(section: BusinessSection) {
-  const normalizedTitle = section.title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-
-  if (
-    normalizedTitle.includes("dicas") ||
-    normalizedTitle.includes("tutorial") ||
-    normalizedTitle.includes("tendencia") ||
-    normalizedTitle.includes("cozinha")
-  ) {
-    return "Abra para explorar mais conteudos, dicas e referencias desse tema."
-  }
-
-  if (
-    normalizedTitle.includes("midia") ||
-    normalizedTitle.includes("noticia") ||
-    normalizedTitle.includes("mundo melhor")
-  ) {
-    return "Toque para navegar pelas publicacoes, repercussoes e materias relacionadas."
-  }
-
-  if (
-    normalizedTitle.includes("bastidores") ||
-    normalizedTitle.includes("social")
-  ) {
-    return "Entre no universo do dia a dia da marca, com mais contexto e publicacoes."
-  }
-
-  if (
-    normalizedTitle.includes("avaliac") ||
-    normalizedTitle.includes("dizem") ||
-    normalizedTitle.includes("review")
-  ) {
-    return "Veja mais experiencias, opinioes e sinais de confianca da comunidade."
-  }
-
-  if (normalizedTitle.includes("destaque")) {
-    return "Descubra mais recortes, selecoes e conteudos ligados a esse universo."
-  }
-
-  return "Toque para mergulhar em mais conteudos relacionados a esse bloco."
-}
-
-function getSectionPreviewImage(post: BusinessPost, fallbackImage: string) {
-  return post.image || post.reviewerAvatar || fallbackImage
-}
-
 // ========================================
 // SECTION
 // ========================================
@@ -679,86 +630,50 @@ function BusinessSectionComponent({
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
   const isExplorable = section.type === "content" && !!section.posts?.length && !!onPostClick
-  const previewPosts = section.posts?.slice(0, 3) || []
-  const remainingPosts = isExplorable
-    ? section.posts?.slice(previewPosts.length) || []
-    : section.posts || []
-  const sectionSubtitle = isExplorable ? getSectionExploreCopy(section) : null
-  const sectionCountLabel = section.posts?.length === 1
-    ? "1 item"
-    : `${section.posts?.length || 0} itens`
+  const featuredPost = isExplorable ? section.posts?.[0] : null
+  const remainingPosts = isExplorable ? [] : section.posts || []
   
   return (
     <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
       {/* Section Header */}
       {isExplorable ? (
         <div className="mb-5">
-          <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2 min-w-0">
+              {section.icon}
+              <h2 className="text-lg font-bold text-foreground">{section.title}</h2>
+            </div>
             <button
               type="button"
-              onClick={() => section.posts?.[0] && onPostClick?.(section.posts[0])}
-              className="w-full text-left transition-colors hover:text-accent"
-              aria-label={`Ver tudo em ${section.title}`}
+              onClick={() => featuredPost && onPostClick?.(featuredPost)}
+              className="flex items-center gap-1 text-sm font-medium text-accent flex-shrink-0"
+              aria-label={`Ver publicações em ${section.title}`}
             >
-              <div className="flex items-start gap-3">
-                {section.icon && (
-                  <div className="mt-0.5 flex-shrink-0">
-                    {section.icon}
-                  </div>
-                )}
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="text-lg font-bold text-foreground">{section.title}</h2>
-                    <div className="flex items-center gap-2 text-accent flex-shrink-0">
-                      <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-[11px] font-medium">
-                        {sectionCountLabel}
-                      </Badge>
-                      <span className="text-sm font-medium">Ver tudo</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </div>
-                  </div>
-
-                  {sectionSubtitle && (
-                    <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
-                      {sectionSubtitle}
-                    </p>
-                  )}
-                </div>
-              </div>
+              <span>Ver tudo</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
-
-            {previewPosts.length > 0 && (
-              <div className="relative mt-4 -mx-4 px-4 sm:-mx-5 sm:px-5">
-                <div className="flex gap-3 overflow-x-auto scrollbar-hide pr-8">
-                  {previewPosts.map((post) => (
-                    <button
-                      key={post.id}
-                      type="button"
-                      onClick={() => onPostClick?.(post)}
-                      className="group relative h-20 w-32 flex-shrink-0 overflow-hidden rounded-2xl border border-border/50 bg-secondary text-left"
-                      aria-label={`Explorar ${post.title}`}
-                    >
-                      <Image
-                        src={getSectionPreviewImage(post, config.logo)}
-                        alt={post.title}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-                      <div className="absolute inset-x-0 bottom-0 p-2.5">
-                        <p className="line-clamp-2 text-xs font-medium leading-snug text-white">
-                          {post.title}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-card via-card/90 to-transparent" />
-              </div>
-            )}
           </div>
+
+          {featuredPost && (
+            <div>
+              <PostCard
+                post={featuredPost}
+                index={0}
+                brandLogo={config.logo}
+                onClick={() => onPostClick?.(featuredPost)}
+                showChat={false}
+              />
+              <button
+                type="button"
+                onClick={() => onPostClick?.(featuredPost)}
+                className="-mt-2 flex items-center gap-1 text-sm font-medium text-accent"
+                aria-label={`Explorar mais publicações em ${section.title}`}
+              >
+                <span>Explorar mais</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex items-center gap-2 mb-5">
