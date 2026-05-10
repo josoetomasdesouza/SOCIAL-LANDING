@@ -124,12 +124,13 @@ export interface UniversalFlowStep {
 
 export interface UniversalSegmentConfig {
   id: string
+  name: string
   objective: string
   primaryCTA: UniversalCTA
   contentPriorities: Array<UniversalPostType | string>
   operationalFlow: UniversalFlowStep[]
   requiredModules: OperationalModuleId[]
-  sections: UniversalSectionConfig[]
+  sections?: UniversalSectionConfig[]
   stories?: UniversalStory[]
   rules?: Record<string, unknown>
 }
