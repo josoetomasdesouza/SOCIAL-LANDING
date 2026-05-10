@@ -202,9 +202,6 @@ interface BrandPost {
   imageUrl?: string
   publishedAt: string
   socialProof: string
-  likes: number
-  comments: number
-  shares: number
 }
 
 const brandPostTypeOptions: Array<{ value: BrandPostType; label: string; badgeClassName: string }> = [
@@ -215,6 +212,14 @@ const brandPostTypeOptions: Array<{ value: BrandPostType; label: string; badgeCl
 ]
 
 const brandSocialNames = ["Ana", "Julia", "Marina", "Pedro", "Carla", "Lucas"]
+
+const brandSocialAvatars = [
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
+]
 
 const brandPostSocialProof: Record<BrandPostType, string[]> = {
   tip: ["salvaram essa dica", "comentaram sobre esse cuidado", "mandaram para outras pessoas da comunidade"],
@@ -237,6 +242,54 @@ function createBrandPostSocialProof(type: BrandPostType, seed: number) {
   const name2 = brandSocialNames[(seed + 2) % brandSocialNames.length]
 
   return `${name1}, ${name2} e outras pessoas ${message}`
+}
+
+function BrandSocialProofWithAvatars({ postIndex, text }: { postIndex: number; text: string }) {
+  const avatarIndexes = [
+    (postIndex * 2) % brandSocialAvatars.length,
+    (postIndex * 2 + 1) % brandSocialAvatars.length,
+    (postIndex * 2 + 2) % brandSocialAvatars.length,
+  ]
+
+  return (
+    <div className="mt-3 flex items-center gap-2.5">
+      <div className="flex -space-x-2">
+        {avatarIndexes.map((avatarIdx) => (
+          <div
+            key={`${text}-${avatarIdx}`}
+            className="relative h-6 w-6 overflow-hidden rounded-full border-2 border-background shadow-sm"
+          >
+            <Image src={brandSocialAvatars[avatarIdx]} alt="" fill className="object-cover" />
+          </div>
+        ))}
+      </div>
+      <p className="text-sm text-muted-foreground">{text}</p>
+    </div>
+  )
+}
+
+function BrandSocialActions() {
+  const [liked, setLiked] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  return (
+    <div className="mt-3 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <button onClick={() => setLiked(!liked)} className="rounded-full p-1.5 transition-colors hover:bg-secondary">
+          <Heart className={liked ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5 text-foreground"} />
+        </button>
+        <button className="rounded-full p-1.5 text-foreground transition-colors hover:bg-secondary">
+          <MessageCircle className="h-5 w-5" />
+        </button>
+        <button className="rounded-full p-1.5 text-foreground transition-colors hover:bg-secondary">
+          <Share className="h-5 w-5" />
+        </button>
+      </div>
+      <button onClick={() => setSaved(!saved)} className="rounded-full p-1.5 transition-colors hover:bg-secondary">
+        <Bookmark className={saved ? "h-5 w-5 fill-foreground text-foreground" : "h-5 w-5 text-foreground"} />
+      </button>
+    </div>
+  )
 }
 
 function BrandPostsComposer({
@@ -272,9 +325,6 @@ function BrandPostsComposer({
         imageUrl: trimmedImageUrl || undefined,
         publishedAt,
         socialProof: createBrandPostSocialProof(postType, currentPosts.length),
-        likes: 18 + currentPosts.length * 6,
-        comments: 3 + currentPosts.length * 2,
-        shares: 2 + currentPosts.length,
       },
       ...currentPosts,
     ])
@@ -286,14 +336,14 @@ function BrandPostsComposer({
 
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <form onSubmit={handleSubmit} className="rounded-2xl bg-card/70 p-4">
         <div className="flex items-center gap-3">
           <div className="relative h-11 w-11 overflow-hidden rounded-full ring-1 ring-border/60">
             <Image src={brandLogo} alt={brandName} fill className="object-cover" />
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-foreground">{brandName}</p>
-            <p className="text-sm text-muted-foreground">Compartilhe uma atualizacao com quem acompanha o instituto</p>
+            <p className="text-sm text-muted-foreground">Crie uma publicacao para o feed do instituto</p>
           </div>
         </div>
 
@@ -303,6 +353,7 @@ function BrandPostsComposer({
             onChange={(event) => setText(event.target.value)}
             placeholder="O que voce quer compartilhar hoje?"
             rows={3}
+            className="min-h-24 rounded-2xl border-0 bg-secondary/50 shadow-none focus-visible:ring-2"
           />
 
           <Input
@@ -310,15 +361,16 @@ function BrandPostsComposer({
             value={imageUrl}
             onChange={(event) => setImageUrl(event.target.value)}
             placeholder="Cole a URL de uma imagem para acompanhar o post (opcional)"
+            className="rounded-xl border-0 bg-secondary/40 shadow-none focus-visible:ring-2"
           />
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <label className="flex-1 space-y-1.5">
-              <span className="text-sm font-medium text-foreground">Tipo de atualizacao</span>
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tipo de atualizacao</span>
               <select
                 value={postType}
                 onChange={(event) => setPostType(event.target.value as BrandPostType)}
-                className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                className="border-input bg-secondary/40 h-10 w-full rounded-xl border-0 px-3 text-sm outline-none transition-[color,box-shadow] focus-visible:ring-2 focus-visible:ring-ring/50"
               >
                 {brandPostTypeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -328,7 +380,7 @@ function BrandPostsComposer({
               </select>
             </label>
 
-            <Button type="submit" className="sm:min-w-32" disabled={!text.trim()}>
+            <Button type="submit" className="sm:min-w-32 sm:self-end" disabled={!text.trim()}>
               Publicar no feed
             </Button>
           </div>
@@ -336,7 +388,7 @@ function BrandPostsComposer({
       </form>
 
       {posts.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-6 text-sm text-muted-foreground">
+        <div className="px-1 text-sm text-muted-foreground">
           A proxima atualizacao publicada aparece aqui para dar vida ao feed do instituto.
         </div>
       ) : (
@@ -373,37 +425,8 @@ function BrandPostsComposer({
                 </div>
               )}
 
-              <div className="mt-4 flex items-center gap-2.5 text-sm text-muted-foreground">
-                <div className="flex -space-x-2">
-                  {brandSocialNames.slice(0, 3).map((name) => (
-                    <div
-                      key={`${post.id}-${name}`}
-                      className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-accent/10 text-[10px] font-semibold text-accent"
-                    >
-                      {name.charAt(0)}
-                    </div>
-                  ))}
-                </div>
-                <p>{post.socialProof}</p>
-              </div>
-
-              <div className="mt-2 flex items-center gap-1 border-t border-border/40 pt-3">
-                <button className="flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-red-500/10 hover:text-red-500">
-                  <Heart className="h-4 w-4" />
-                  <span>{post.likes}</span>
-                </button>
-                <button className="flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-accent/10 hover:text-accent">
-                  <MessageCircle className="h-4 w-4" />
-                  <span>{post.comments}</span>
-                </button>
-                <button className="flex items-center gap-1.5 rounded-full px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-accent/10 hover:text-accent">
-                  <Share className="h-4 w-4" />
-                  <span>{post.shares}</span>
-                </button>
-                <button className="ml-auto rounded-full p-2 text-foreground transition-colors hover:bg-accent/10 hover:text-accent">
-                  <Bookmark className="h-4 w-4" />
-                </button>
-              </div>
+              <BrandSocialProofWithAvatars postIndex={index} text={post.socialProof} />
+              <BrandSocialActions />
 
               {index === 0 && (
                 <SimpleChatInput placeholder={brandPostChatPlaceholders[post.type]} />
@@ -574,6 +597,18 @@ export function InstitutionalFeed() {
         </div>
       )
     },
+    {
+      id: "brand-updates",
+      title: "Ultimas do Instituto",
+      type: "custom" as const,
+      posts: [],
+      customContent: (
+        <BrandPostsComposer
+          brandName={institutionalConfig.name}
+          brandLogo={institutionalConfig.logo}
+        />
+      )
+    },
     // Videos com chat - usa renderContent para permitir abrir drawer
     {
       id: "videos",
@@ -611,18 +646,6 @@ export function InstitutionalFeed() {
         shares: 0,
         timestamp: "Agora"
       }))
-    },
-    {
-      id: "brand-updates",
-      title: "Ultimas do Instituto",
-      type: "custom" as const,
-      posts: [],
-      customContent: (
-        <BrandPostsComposer
-          brandName={institutionalConfig.name}
-          brandLogo={institutionalConfig.logo}
-        />
-      )
     },
     // Noticias na midia - convertido para posts
     {
