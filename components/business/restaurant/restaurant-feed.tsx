@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
+import { buildContentSections } from "../build-content-sections"
 import { RestaurantCheckout } from "../checkout-flows"
 import { restaurantConfig, menuItems, deliveryInfo } from "@/lib/mock-data/restaurant-data"
 import { restaurantContent } from "@/lib/mock-data/business-content"
@@ -286,7 +287,6 @@ function buildRestaurantSections({
   handlers: RestaurantSectionHandlers
 }): BusinessSection[] {
   const sections: BusinessSection[] = []
-  const contentPriorities = new Set(segmentConfig.contentPriorities)
 
   if (segmentConfig.requiredModules.includes("restaurant.menu")) {
     sections.push({
@@ -318,44 +318,16 @@ function buildRestaurantSections({
     })
   }
 
-  if (contentPriorities.has("video")) {
-    sections.push({
-      id: "videos",
-      title: "Nossa Cozinha",
-      icon: <Play className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: data.content.videos
-    })
-  }
-
-  if (contentPriorities.has("review")) {
-    sections.push({
-      id: "reviews",
-      title: "Avaliacoes",
-      icon: <Star className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: data.content.reviews
-    })
-  }
-
-  if (contentPriorities.has("news")) {
-    sections.push({
-      id: "news",
-      title: "Na Midia",
-      icon: <Newspaper className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: data.content.news
-    })
-  }
-
-  if (contentPriorities.has("social")) {
-    sections.push({
-      id: "social",
-      title: "Bastidores",
-      type: "content",
-      posts: data.content.social
-    })
-  }
+  sections.push(...buildContentSections({
+    content: data.content,
+    contentPriorities: segmentConfig.contentPriorities,
+    definitions: {
+      video: { title: "Nossa Cozinha", icon: <Play className="w-5 h-5 text-accent" /> },
+      review: { title: "Avaliacoes", icon: <Star className="w-5 h-5 text-accent" /> },
+      news: { title: "Na Midia", icon: <Newspaper className="w-5 h-5 text-accent" /> },
+      social: { title: "Bastidores" },
+    },
+  }))
 
   return sections
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
+import { buildContentSections } from "../build-content-sections"
 import { CourseCheckout } from "../checkout-flows"
 import { coursesConfig, courses } from "@/lib/mock-data/courses-data"
 import { coursesContent } from "@/lib/mock-data/business-content"
@@ -242,7 +243,6 @@ function buildCoursesSections({
   handlers: CoursesSectionHandlers
 }): BusinessSection[] {
   const sections: BusinessSection[] = []
-  const contentPriorities = new Set(segmentConfig.contentPriorities)
 
   if (segmentConfig.requiredModules.includes("courses.enrollment")) {
     sections.push({
@@ -264,44 +264,16 @@ function buildCoursesSections({
     })
   }
 
-  if (contentPriorities.has("video")) {
-    sections.push({
-      id: "videos",
-      title: "Aulas Gratuitas",
-      icon: <Play className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: data.content.videos
-    })
-  }
-
-  if (contentPriorities.has("review")) {
-    sections.push({
-      id: "reviews",
-      title: "Depoimentos de Alunos",
-      icon: <Star className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: data.content.reviews
-    })
-  }
-
-  if (contentPriorities.has("news")) {
-    sections.push({
-      id: "news",
-      title: "Na Midia",
-      icon: <Newspaper className="w-5 h-5 text-accent" />,
-      type: "content",
-      posts: data.content.news
-    })
-  }
-
-  if (contentPriorities.has("social")) {
-    sections.push({
-      id: "social",
-      title: "Comunidade",
-      type: "content",
-      posts: data.content.social
-    })
-  }
+  sections.push(...buildContentSections({
+    content: data.content,
+    contentPriorities: segmentConfig.contentPriorities,
+    definitions: {
+      video: { title: "Aulas Gratuitas", icon: <Play className="w-5 h-5 text-accent" /> },
+      review: { title: "Depoimentos de Alunos", icon: <Star className="w-5 h-5 text-accent" /> },
+      news: { title: "Na Midia", icon: <Newspaper className="w-5 h-5 text-accent" /> },
+      social: { title: "Comunidade" },
+    },
+  }))
 
   return sections
 }
