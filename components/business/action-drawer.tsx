@@ -51,6 +51,7 @@ export function ActionDrawer({
   const drawerTransform = matchFeedWidth
     ? `translate(-50%, ${isOpen ? "0" : "100%"})`
     : `translateY(${isOpen ? "0" : "100%"})`
+  const innerWidthClasses = "w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
 
   return (
     <>
@@ -71,32 +72,38 @@ export function ActionDrawer({
         </div>
 
         {/* Header */}
-        <div className="flex flex-shrink-0 items-center justify-between px-5 pb-4 border-b border-border/50">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-            {subtitle && (
-              <p className="text-sm text-muted-foreground">{subtitle}</p>
-            )}
+        <div className="flex-shrink-0 border-b border-border/50">
+          <div className={`${innerWidthClasses} flex items-center justify-between px-5 pb-4`}>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+              {subtitle && (
+                <p className="text-sm text-muted-foreground">{subtitle}</p>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-9 w-9 p-0 rounded-full"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-9 w-9 p-0 rounded-full"
-          >
-            <X className="h-5 w-5" />
-          </Button>
         </div>
 
         {/* Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto p-5">
-          {children}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className={`${innerWidthClasses} p-5`}>
+            {children}
+          </div>
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex-shrink-0 border-t border-border/50 p-5 bg-card">
-            {footer}
+          <div className="flex-shrink-0 border-t border-border/50 bg-card">
+            <div className={`${innerWidthClasses} p-5`}>
+              {footer}
+            </div>
           </div>
         )}
       </div>
