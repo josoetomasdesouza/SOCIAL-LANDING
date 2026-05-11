@@ -3,11 +3,13 @@
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { socialPatternClasses } from "./social-patterns"
 
 interface SocialCompactHeroProps {
   variant?: "default" | "editorial"
   brandLogo?: string
   brandName?: string
+  contextLabel?: string
   eyebrow?: string
   headline: string
   subheadline?: string
@@ -22,6 +24,7 @@ export function SocialCompactHero({
   variant = "default",
   brandLogo,
   brandName,
+  contextLabel,
   eyebrow,
   headline,
   subheadline,
@@ -33,6 +36,7 @@ export function SocialCompactHero({
 }: SocialCompactHeroProps) {
   const safeBrandLogo = brandLogo || ""
   const safeBrandName = brandName || ""
+  const resolvedContextLabel = contextLabel || eyebrow || "Sobre a marca"
 
   if (variant === "editorial") {
     return (
@@ -49,14 +53,14 @@ export function SocialCompactHero({
               {brandName && (
                 <p className="truncate text-sm font-semibold text-foreground">{safeBrandName}</p>
               )}
-              <p className="text-xs text-muted-foreground">{eyebrow || "Sobre a marca"}</p>
+              <p className={socialPatternClasses.editorialContext}>{resolvedContextLabel}</p>
             </div>
           </div>
 
           <div className="mt-3 space-y-1.5">
-            <p className="text-[15px] leading-6 text-foreground text-pretty">{headline}</p>
+            <p className={socialPatternClasses.editorialHeadline}>{headline}</p>
             {subheadline && (
-              <p className="text-sm leading-5 text-muted-foreground text-pretty">
+              <p className={socialPatternClasses.editorialSubheadline}>
                 {subheadline}
               </p>
             )}
@@ -70,6 +74,18 @@ export function SocialCompactHero({
                 fill
                 className="object-cover"
               />
+            </div>
+          )}
+
+          {primaryActionLabel && onPrimaryAction && (
+            <div className="mt-4">
+              <Button
+                type="button"
+                className={socialPatternClasses.primaryAction}
+                onClick={onPrimaryAction}
+              >
+                {primaryActionLabel}
+              </Button>
             </div>
           )}
         </article>
@@ -94,8 +110,8 @@ export function SocialCompactHero({
                 </span>
               </div>
 
-              {eyebrow && (
-                <p className="truncate text-xs text-muted-foreground">{eyebrow}</p>
+              {resolvedContextLabel && (
+                <p className="truncate text-xs text-muted-foreground">{resolvedContextLabel}</p>
               )}
             </div>
           </div>
@@ -121,7 +137,7 @@ export function SocialCompactHero({
           </div>
 
           <div className="mt-4">
-            <Button className="h-10 rounded-2xl px-4 text-sm" onClick={onPrimaryAction}>
+            <Button type="button" className="h-10 rounded-2xl px-4 text-sm" onClick={onPrimaryAction}>
               {primaryActionLabel}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

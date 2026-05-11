@@ -377,7 +377,7 @@ export function AppointmentFeed() {
             variant="editorial"
             brandLogo={barberShopConfig.logo}
             brandName={barberShopConfig.name}
-            eyebrow="Sobre a casa"
+            contextLabel="Sobre a casa"
             headline="Na Barba Negra, corte preciso e barba bem feita andam juntos."
             subheadline="Agende rapido e continue explorando o feed."
           />
@@ -412,7 +412,9 @@ export function AppointmentFeed() {
       type: "specific",
       customContent: (
         <SocialContactCTA
+          contextLabel="Contato rapido"
           headline="Quer falar com a Barba Negra ou ja sair com horario marcado?"
+          subheadline="Chama no WhatsApp, veja o horario da casa ou agende agora."
           whatsapp={barberShopConfig.whatsapp || ""}
           openingHours={barberShopConfig.openingHours || "Consulte horarios"}
           location="Rua Augusta • Sao Paulo"

@@ -2,10 +2,13 @@
 
 import { Clock3, MapPin, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { socialPatternClasses } from "./social-patterns"
 
 interface SocialContactCTAProps {
+  contextLabel?: string
   eyebrow?: string
   headline: string
+  subheadline?: string
   whatsapp: string
   openingHours: string
   location: string
@@ -29,8 +32,10 @@ function formatWhatsAppLabel(whatsapp: string) {
 }
 
 export function SocialContactCTA({
+  contextLabel,
   eyebrow = "Contato rapido",
   headline,
+  subheadline,
   whatsapp,
   openingHours,
   location,
@@ -39,15 +44,17 @@ export function SocialContactCTA({
 }: SocialContactCTAProps) {
   const whatsappHref = `https://wa.me/${whatsapp.replace(/\D/g, "")}`
   const whatsappLabel = formatWhatsAppLabel(whatsapp)
+  const resolvedContextLabel = contextLabel || eyebrow
 
   return (
-    <section className="mb-8">
-      <div className="rounded-[22px] border border-border/50 bg-secondary/25 p-4">
+    <section className={socialPatternClasses.sectionSpacing}>
+      <div className={socialPatternClasses.compactSurface}>
         <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            {eyebrow}
-          </p>
-          <p className="text-[15px] leading-6 text-foreground text-pretty">{headline}</p>
+          <p className={socialPatternClasses.editorialContext}>{resolvedContextLabel}</p>
+          <p className={socialPatternClasses.editorialHeadline}>{headline}</p>
+          {subheadline && (
+            <p className={socialPatternClasses.editorialSubheadline}>{subheadline}</p>
+          )}
         </div>
 
         <div className="mt-4 space-y-2.5">
@@ -55,7 +62,7 @@ export function SocialContactCTA({
             href={whatsappHref}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-3 rounded-xl bg-background/70 px-3 py-2.5 transition-colors hover:bg-background"
+            className={`flex items-center gap-3 ${socialPatternClasses.itemSurface} transition-colors hover:bg-background`}
           >
             <MessageCircle className="h-4 w-4 text-accent" />
             <div className="min-w-0">
@@ -65,7 +72,7 @@ export function SocialContactCTA({
           </a>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="flex items-center gap-3 rounded-xl bg-background/70 px-3 py-2.5">
+            <div className={`flex items-center gap-3 ${socialPatternClasses.itemSurface}`}>
               <Clock3 className="h-4 w-4 text-accent" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Horario</p>
@@ -73,7 +80,7 @@ export function SocialContactCTA({
               </div>
             </div>
 
-            <div className="flex items-center gap-3 rounded-xl bg-background/70 px-3 py-2.5">
+            <div className={`flex items-center gap-3 ${socialPatternClasses.itemSurface}`}>
               <MapPin className="h-4 w-4 text-accent" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Local</p>
@@ -84,7 +91,7 @@ export function SocialContactCTA({
         </div>
 
         <div className="mt-4">
-          <Button type="button" className="h-11 rounded-2xl px-5" onClick={onPrimaryAction}>
+          <Button type="button" className={socialPatternClasses.primaryAction} onClick={onPrimaryAction}>
             {primaryActionLabel}
           </Button>
         </div>
