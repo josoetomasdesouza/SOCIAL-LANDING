@@ -29,17 +29,27 @@ function ScheduleModule({
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
         <Button 
+          type="button"
           variant="default"
           className="h-14 flex items-center justify-center gap-2 rounded-2xl"
-          onClick={onStartBooking}
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            onStartBooking()
+          }}
         >
           <Calendar className="w-5 h-5" />
           Agendar agora
         </Button>
         <Button 
+          type="button"
           variant="outline"
           className="h-14 flex items-center justify-center gap-2 rounded-2xl"
-          onClick={onStartBooking}
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            onStartBooking()
+          }}
         >
           <Scissors className="w-5 h-5" />
           Ver servicos
@@ -52,8 +62,13 @@ function ScheduleModule({
         <div className="space-y-2">
           {barberServices.filter(s => s.popular).slice(0, 3).map((service) => (
             <button
+              type="button"
               key={service.id}
-              onClick={() => onSelectService(service)}
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                onSelectService(service)
+              }}
               className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
             >
               <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
@@ -83,8 +98,13 @@ function StylesModule({ onSelectStyle }: { onSelectStyle: (style: StyleExample) 
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
       {hairStyles.slice(0, 6).map((style) => (
         <button
+          type="button"
           key={style.id}
-          onClick={() => onSelectStyle(style)}
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            onSelectStyle(style)
+          }}
           className="flex-shrink-0 group"
         >
           <div className="relative w-32 h-40 rounded-xl overflow-hidden">
@@ -149,9 +169,12 @@ function BarberDetailsDrawer({
             </div>
           )}
           <Button
+            type="button"
             className="w-full h-12"
             disabled={!service || !selectedDate || !selectedTime}
-            onClick={() => {
+            onClick={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
               if (service && selectedDate && selectedTime) {
                 onSchedule(barber, service, selectedDate, selectedTime)
               }
@@ -247,8 +270,13 @@ function ServicesDrawer({
             <div className="space-y-2">
               {barberServices.filter(s => s.category === category).map((service) => (
                 <button
+                  type="button"
                   key={service.id}
-                  onClick={() => onSelectService(service)}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    onSelectService(service)
+                  }}
                   className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
                 >
                   <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
@@ -304,8 +332,13 @@ function ProfessionalsDrawer({
         <div className="space-y-2">
           {barbers.map((barber) => (
             <button
+              type="button"
               key={barber.id}
-              onClick={() => onSelectBarber(barber)}
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                onSelectBarber(barber)
+              }}
               className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
             >
               <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0">
@@ -399,10 +432,10 @@ function ConfirmationDrawer({
         </div>
         
         <div className="flex flex-col gap-2">
-          <Button className="w-full" onClick={onClose}>
+          <Button type="button" className="w-full" onClick={onClose}>
             Adicionar ao calendario
           </Button>
-          <Button variant="outline" className="w-full gap-2" onClick={onClose}>
+          <Button type="button" variant="outline" className="w-full gap-2" onClick={onClose}>
             <Phone className="w-4 h-4" />
             Enviar por WhatsApp
           </Button>

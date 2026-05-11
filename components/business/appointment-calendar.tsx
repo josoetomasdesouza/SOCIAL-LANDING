@@ -179,8 +179,13 @@ export function AppointmentCalendar({
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {professionals.map((professional) => (
               <button
+                type="button"
                 key={professional.id}
-                onClick={() => onSelectProfessional?.(professional.id)}
+                onClick={(event) => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  onSelectProfessional?.(professional.id)
+                }}
                 className={`flex-shrink-0 text-center transition-all ${
                   selectedProfessionalId === professional.id ? "scale-105" : ""
                 }`}
@@ -223,13 +228,33 @@ export function AppointmentCalendar({
           <div className="flex items-center justify-between mb-4">
             <h4 className="font-semibold text-foreground">Escolha a data</h4>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={prevMonth} className="h-8 w-8 p-0">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={(event) => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  prevMonth()
+                }}
+                className="h-8 w-8 p-0"
+              >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm font-medium min-w-[140px] text-center">
                 {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
               </span>
-              <Button variant="ghost" size="sm" onClick={nextMonth} className="h-8 w-8 p-0">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={(event) => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  nextMonth()
+                }}
+                className="h-8 w-8 p-0"
+              >
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -253,8 +278,15 @@ export function AppointmentCalendar({
               
               return (
                 <button
+                  type="button"
                   key={index}
-                  onClick={() => !isDisabled && onSelectDate(dateStr)}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    if (!isDisabled) {
+                      onSelectDate(dateStr)
+                    }
+                  }}
                   disabled={isDisabled}
                   className={`
                     aspect-square flex items-center justify-center text-sm rounded-full transition-colors
@@ -288,8 +320,13 @@ export function AppointmentCalendar({
             <div className="grid grid-cols-4 gap-2">
               {availableSlots.map((slot) => (
                 <button
+                  type="button"
                   key={slot.time}
-                  onClick={() => onSelectTime(slot.time)}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    onSelectTime(slot.time)
+                  }}
                   className={`
                     py-2 px-3 text-sm rounded-lg border transition-colors
                     ${selectedTime === slot.time
@@ -308,7 +345,15 @@ export function AppointmentCalendar({
 
       {/* Botao de confirmar */}
       {onConfirm && (!hasProfessionalPicker || selectedProfessionalId) && selectedDate && selectedTime && (
-        <Button onClick={onConfirm} className="w-full h-12 text-base font-medium">
+        <Button
+          type="button"
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            onConfirm()
+          }}
+          className="w-full h-12 text-base font-medium"
+        >
           Confirmar agendamento
         </Button>
       )}
