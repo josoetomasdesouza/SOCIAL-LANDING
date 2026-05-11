@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { AppointmentCalendar } from "../appointment-calendar"
+import { SocialCompactHero } from "../social-compact-hero"
 import { barberShopConfig, barbers, barberServices, hairStyles } from "@/lib/mock-data/appointment-data"
 import { appointmentContent } from "@/lib/mock-data/business-content"
 import type { Professional, Service, StyleExample } from "@/lib/business-types"
@@ -335,11 +336,19 @@ export function AppointmentFeed() {
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [bookedDate, setBookedDate] = useState<string | null>(null)
   const [bookedTime, setBookedTime] = useState<string | null>(null)
+  const totalReviews = barbers.reduce((sum, barber) => sum + barber.reviewCount, 0)
+  const averageRating = (
+    barbers.reduce((sum, barber) => sum + barber.rating, 0) / barbers.length
+  ).toFixed(1)
   
   // Handlers
   const handleSelectBarber = (barber: Professional) => {
     setSelectedBarber(barber)
     setBarberDrawerOpen(true)
+  }
+
+  const handlePrimaryBooking = () => {
+    handleSelectBarber(barbers[0])
   }
   
   const handleSelectStyle = (style: StyleExample) => {
@@ -409,9 +418,25 @@ export function AppointmentFeed() {
         config={barberShopConfig}
         stories={appointmentContent.stories}
         sections={sections}
+        topContent={
+          <SocialCompactHero
+            brandLogo={barberShopConfig.logo}
+            brandName={barberShopConfig.name}
+            eyebrow="Cortes, barba e agendamento rapido"
+            headline="Seu horario na barbearia, sem sair do fluxo."
+            subheadline="Escolha o barbeiro, reserve o melhor horario e continue explorando estilos e bastidores da casa."
+            primaryActionLabel="Agendar horario"
+            onPrimaryAction={handlePrimaryBooking}
+            highlights={[
+              `${barbers.length} barbeiros especialistas`,
+              `${averageRating} de media em ${totalReviews}+ avaliacoes`,
+              barberShopConfig.openingHours || "Atendimento sob consulta",
+            ]}
+          />
+        }
         onStoryClick={(story) => {
           if (story.isMain) {
-            handleSelectBarber(barbers[0])
+            handlePrimaryBooking()
           }
         }}
         footerLinks={[
