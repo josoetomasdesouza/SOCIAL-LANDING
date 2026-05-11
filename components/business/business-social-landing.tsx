@@ -715,7 +715,7 @@ export function BusinessSocialLanding({
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
   const [storyInitialIndex, setStoryInitialIndex] = useState(0)
-  const headerSpacerClass = reserveHeaderSpace === "compact" ? "h-6" : "h-14"
+  const headerSpacerClass = "h-14"
   
   // Coleta todos os posts de conteudo para o FeedDrawer
   const allContentPosts = useMemo(() => {
@@ -770,7 +770,9 @@ export function BusinessSocialLanding({
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
         {/* Stories */}
-        <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
+        <div className={reserveHeaderSpace === "compact" ? "-mt-3" : undefined}>
+          <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
+        </div>
         
         {/* Search Bar */}
         <BusinessSearchBar placeholder={`Buscar em ${config.name}...`} />

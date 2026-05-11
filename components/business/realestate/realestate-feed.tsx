@@ -60,9 +60,17 @@ function PropertiesModule({
         const purpose = getPropertyPurpose(property)
 
         return (
-          <button
+          <div
             key={property.id}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelectProperty(property)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault()
+                onSelectProperty(property)
+              }
+            }}
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors"
           >
             <div className="relative aspect-[16/9]">
@@ -108,7 +116,7 @@ function PropertiesModule({
                 {purpose === "rent" && <span className="text-sm font-normal text-muted-foreground">/mes</span>}
               </p>
             </div>
-          </button>
+          </div>
         )
       })}
     </div>
