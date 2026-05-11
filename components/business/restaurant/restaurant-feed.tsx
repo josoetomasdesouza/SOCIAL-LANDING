@@ -431,7 +431,10 @@ export function RestaurantFeed() {
         item={selectedItem}
         isOpen={itemDrawerOpen}
         onClose={() => setItemDrawerOpen(false)}
-        onAddToCart={handleAddToCart}
+        onAddToCart={(item, quantity) => {
+          handleAddToCart(item, quantity)
+          setCartDrawerOpen(true)
+        }}
       />
       
       <CartDrawer

@@ -366,6 +366,11 @@ export function EcommerceFeed() {
     })
   }
   
+  const handleAddToCartAndOpenCart = (product: Product) => {
+    handleAddToCart(product)
+    setCartDrawerOpen(true)
+  }
+  
   const handleUpdateQuantity = (id: string, qty: number) => {
     if (qty <= 0) {
       setCart(prev => prev.filter(item => item.id !== id))
@@ -393,7 +398,7 @@ export function EcommerceFeed() {
       customContent: (
         <ProductsModule 
           onSelectProduct={(p) => { setSelectedProduct(p); setProductDrawerOpen(true) }}
-          onAddToCart={handleAddToCart}
+          onAddToCart={handleAddToCartAndOpenCart}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
         />
@@ -471,7 +476,7 @@ export function EcommerceFeed() {
         product={selectedProduct}
         isOpen={productDrawerOpen}
         onClose={() => setProductDrawerOpen(false)}
-        onAddToCart={handleAddToCart}
+        onAddToCart={handleAddToCartAndOpenCart}
         isFavorite={selectedProduct ? favorites.has(selectedProduct.id) : false}
         onToggleFavorite={() => selectedProduct && handleToggleFavorite(selectedProduct.id)}
       />
