@@ -84,7 +84,7 @@ export function SocialContactCTA({
         </div>
 
         <div className="mt-4">
-          <Button className="h-11 rounded-2xl px-5" onClick={onPrimaryAction}>
+          <Button type="button" className="h-11 rounded-2xl px-5" onClick={onPrimaryAction}>
             {primaryActionLabel}
           </Button>
         </div>
