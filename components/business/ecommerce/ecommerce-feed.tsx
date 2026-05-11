@@ -219,12 +219,12 @@ function ProductDetailDrawer({
             <h4 className="font-medium mb-3">Avaliacoes recentes</h4>
             {reviews.slice(0, 2).map((review) => (
               <div key={review.id} className="flex items-start gap-3 mb-3 last:mb-0">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                  <Image src={review.avatar} alt={review.author} fill className="object-cover" />
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                    <Image src={review.userAvatar} alt={review.userName} fill className="object-cover" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{review.author}</span>
+                    <span className="text-sm font-medium">{review.userName}</span>
                     <div className="flex">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
@@ -382,6 +382,24 @@ export function EcommerceFeed() {
       return newSet
     })
   }
+
+  const openProduct = (product: Product) => {
+    setSelectedProduct(product)
+    setProductDrawerOpen(true)
+  }
+
+  const addToCartAndOpenCart = (product: Product) => {
+    handleAddToCart(product)
+    setCartDrawerOpen(true)
+  }
+
+  const handleSelectCategory = (categoryId: string) => {
+    const product = products.find((item) => (
+      item.category.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === categoryId
+    )) || products[0]
+
+    if (product) openProduct(product)
+  }
   
   // Secoes do feed
   const sections: BusinessSection[] = [
@@ -392,8 +410,8 @@ export function EcommerceFeed() {
       type: "primary-action",
       customContent: (
         <ProductsModule 
-          onSelectProduct={(p) => { setSelectedProduct(p); setProductDrawerOpen(true) }}
-          onAddToCart={handleAddToCart}
+          onSelectProduct={openProduct}
+          onAddToCart={addToCartAndOpenCart}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
         />
@@ -403,7 +421,7 @@ export function EcommerceFeed() {
       id: "categories",
       title: "Categorias",
       type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+      customContent: <CategoriesModule onSelectCategory={handleSelectCategory} />
     },
     {
       id: "videos",
@@ -444,7 +462,7 @@ export function EcommerceFeed() {
         sections={sections}
         onStoryClick={(story) => {
           if (story.isMain) {
-            // Abre carrinho ou produtos
+            openProduct(products[0])
           }
         }}
         footerLinks={[
@@ -471,7 +489,7 @@ export function EcommerceFeed() {
         product={selectedProduct}
         isOpen={productDrawerOpen}
         onClose={() => setProductDrawerOpen(false)}
-        onAddToCart={handleAddToCart}
+        onAddToCart={addToCartAndOpenCart}
         isFavorite={selectedProduct ? favorites.has(selectedProduct.id) : false}
         onToggleFavorite={() => selectedProduct && handleToggleFavorite(selectedProduct.id)}
       />

@@ -68,7 +68,7 @@ function MenuModule({
           <Truck className="w-5 h-5 text-accent" />
           <div>
             <p className="text-sm font-medium">Entrega: {deliveryInfo.estimatedTime}</p>
-            <p className="text-xs text-muted-foreground">Frete gratis acima de R$ {deliveryInfo.freeDeliveryMinimum}</p>
+            <p className="text-xs text-muted-foreground">Frete gratis acima de R$ {deliveryInfo.freeDeliveryMinimum ?? 0}</p>
           </div>
         </div>
         <Badge variant="outline">{restaurantConfig.openingHours}</Badge>
@@ -81,22 +81,23 @@ function MenuModule({
 // MODULO: CATEGORIAS DO MENU
 // ========================================
 function CategoriesModule({ onSelectCategory }: { onSelectCategory: (category: string) => void }) {
-  const categories = [
-    { id: "entradas", name: "Entradas", icon: "🥗", count: 5 },
-    { id: "pratos", name: "Pratos", icon: "🍛", count: 8 },
-    { id: "bebidas", name: "Bebidas", icon: "🥤", count: 6 },
-    { id: "sobremesas", name: "Sobremesas", icon: "🍮", count: 4 },
-  ]
+  const icons: Record<string, string> = {
+    entradas: "🥗",
+    pratos: "🍛",
+    saladas: "🥗",
+    bebidas: "🥤",
+    sobremesas: "🍮",
+  }
   
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {categories.map((cat) => (
+      {menuCategories.map((cat) => (
         <button
           key={cat.id}
           onClick={() => onSelectCategory(cat.id)}
           className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
         >
-          <span className="text-2xl">{cat.icon}</span>
+          <span className="text-2xl">{icons[cat.id] || "🍽️"}</span>
           <span className="text-sm font-medium text-foreground">{cat.name}</span>
         </button>
       ))}
@@ -119,8 +120,36 @@ function ItemDetailDrawer({
   onAddToCart: (item: MenuItem, qty: number) => void
 }) {
   const [quantity, setQuantity] = useState(1)
+  const [selectedCustomizations, setSelectedCustomizations] = useState<Record<string, string[]>>({})
   
   if (!item) return null
+
+  const selectedOptions = item.customizations?.flatMap((customization) => {
+    const selectedIds = selectedCustomizations[customization.id] || []
+    return customization.options.filter((option) => selectedIds.includes(option.id))
+  }) || []
+  const customizationTotal = selectedOptions.reduce((sum, option) => sum + option.price, 0)
+  const requiredComplete = item.customizations?.every((customization) => {
+    if (!customization.required) return true
+    return (selectedCustomizations[customization.id] || []).length > 0
+  }) ?? true
+  const total = (item.price + customizationTotal) * quantity
+
+  const toggleCustomization = (customizationId: string, optionId: string, maxSelections: number) => {
+    setSelectedCustomizations((prev) => {
+      const selected = prev[customizationId] || []
+      const isSelected = selected.includes(optionId)
+      const nextSelected = maxSelections === 1
+        ? [optionId]
+        : isSelected
+          ? selected.filter((id) => id !== optionId)
+          : selected.length < maxSelections
+            ? [...selected, optionId]
+            : selected
+
+      return { ...prev, [customizationId]: nextSelected }
+    })
+  }
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={item.name} size="md">
@@ -138,6 +167,41 @@ function ItemDetailDrawer({
           <h3 className="text-xl font-bold">{item.name}</h3>
           <p className="text-muted-foreground mt-2">{item.description}</p>
         </div>
+
+        {item.customizations && item.customizations.length > 0 && (
+          <div className="space-y-4">
+            {item.customizations.map((customization) => (
+              <div key={customization.id} className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="font-medium">{customization.name}</h4>
+                  {customization.required && (
+                    <Badge variant="secondary" className="text-xs">Obrigatorio</Badge>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {customization.options.map((option) => {
+                    const selected = selectedCustomizations[customization.id]?.includes(option.id)
+
+                    return (
+                      <button
+                        key={option.id}
+                        onClick={() => toggleCustomization(customization.id, option.id, customization.maxSelections)}
+                        className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl border text-left transition-colors ${
+                          selected ? "border-accent bg-accent/10" : "border-border hover:border-accent/50"
+                        }`}
+                      >
+                        <span className="text-sm font-medium">{option.name}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {option.price > 0 ? `+ R$ ${option.price.toFixed(2).replace(".", ",")}` : "Incluso"}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         
         <div className="flex items-center justify-between">
           <span className="text-2xl font-bold text-accent">R$ {item.price.toFixed(2).replace(".", ",")}</span>
@@ -152,9 +216,26 @@ function ItemDetailDrawer({
           </div>
         </div>
         
-        <Button className="w-full h-12" onClick={() => { onAddToCart(item, quantity); onClose() }}>
+        <Button
+          className="w-full h-12"
+          disabled={!requiredComplete}
+          onClick={() => {
+            const selectedOptionNames = selectedOptions.map((option) => option.name)
+            const cartItem = selectedOptionNames.length > 0
+              ? {
+                  ...item,
+                  id: `${item.id}-${selectedOptions.map((option) => option.id).sort().join("-")}`,
+                  price: item.price + customizationTotal,
+                  description: `${item.description} (${selectedOptionNames.join(", ")})`
+                }
+              : item
+
+            onAddToCart(cartItem, quantity)
+            onClose()
+          }}
+        >
           <ShoppingBag className="w-5 h-5 mr-2" />
-          Adicionar R$ {(item.price * quantity).toFixed(2).replace(".", ",")}
+          Adicionar R$ {total.toFixed(2).replace(".", ",")}
         </Button>
       </div>
     </ActionDrawer>
@@ -178,7 +259,8 @@ function CartDrawer({
   onCheckout: () => void
 }) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const deliveryFee = subtotal >= deliveryInfo.freeDeliveryMinimum ? 0 : deliveryInfo.deliveryFee
+  const freeDeliveryMinimum = deliveryInfo.freeDeliveryMinimum ?? Infinity
+  const deliveryFee = subtotal >= freeDeliveryMinimum ? 0 : deliveryInfo.deliveryFee
   const total = subtotal + deliveryFee
   
   return (
@@ -268,6 +350,17 @@ export function RestaurantFeed() {
       setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: qty } : i))
     }
   }
+
+  const openItem = (item: MenuItem) => {
+    setSelectedItem(item)
+    setItemDrawerOpen(true)
+  }
+
+  const handleSelectCategory = (categoryId: string) => {
+    const category = menuCategories.find((cat) => cat.id === categoryId)
+    const item = menuItems.find((menuItem) => menuItem.category === category?.name) || menuItems[0]
+    if (item) openItem(item)
+  }
   
   const sections: BusinessSection[] = [
     {
@@ -277,7 +370,7 @@ export function RestaurantFeed() {
       type: "primary-action",
       customContent: (
         <MenuModule 
-          onSelectItem={(item) => { setSelectedItem(item); setItemDrawerOpen(true) }}
+          onSelectItem={openItem}
           onAddToCart={handleAddToCart}
         />
       )
@@ -286,7 +379,7 @@ export function RestaurantFeed() {
       id: "categories",
       title: "Cardapio",
       type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+      customContent: <CategoriesModule onSelectCategory={handleSelectCategory} />
     },
     {
       id: "videos",
@@ -345,10 +438,14 @@ export function RestaurantFeed() {
       )}
       
       <ItemDetailDrawer
+        key={selectedItem?.id}
         item={selectedItem}
         isOpen={itemDrawerOpen}
         onClose={() => setItemDrawerOpen(false)}
-        onAddToCart={handleAddToCart}
+        onAddToCart={(item, qty) => {
+          handleAddToCart(item, qty)
+          setCartDrawerOpen(true)
+        }}
       />
       
       <CartDrawer

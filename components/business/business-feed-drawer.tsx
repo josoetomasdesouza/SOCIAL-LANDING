@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { BusinessPost } from "./business-social-landing"
 import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
+import { useBodyScrollLock } from "./use-body-scroll-lock"
 
 interface BusinessFeedDrawerProps {
   isOpen: boolean
@@ -217,6 +218,7 @@ export function BusinessFeedDrawer({
 }: BusinessFeedDrawerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const initialPostRef = useRef<HTMLDivElement>(null)
+  useBodyScrollLock(isOpen)
 
   const filteredPosts = useMemo(() => {
     if (category === "all") return posts
@@ -237,17 +239,6 @@ export function BusinessFeedDrawer({
       }, 100)
     }
   }, [isOpen, initialPost])
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-    return () => {
-      document.body.style.overflow = ""
-    }
-  }, [isOpen])
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -289,7 +280,7 @@ export function BusinessFeedDrawer({
         </div>
 
         {/* Feed Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
           <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6">
             <div className="space-y-8">
               {orderedPosts.map((post, index) => {
@@ -438,7 +429,7 @@ export function BusinessFeedDrawer({
                     <div className="mt-4 pt-4 border-t border-border/30">
                       {showConversation ? (
                         <SimulatedChat
-                          messages={[{ content: aiMessage, isUser: false }]}
+                          messages={[{ text: aiMessage, isUser: false }]}
                           brandLogo={brandLogo}
                           userAvatar={userAvatar}
                           placeholder={placeholder}

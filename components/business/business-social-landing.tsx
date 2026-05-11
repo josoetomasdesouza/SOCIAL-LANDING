@@ -11,6 +11,7 @@ import type { BusinessConfig, BusinessModel } from "@/lib/business-types"
 import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
 import { ActionDrawer } from "./action-drawer"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
+import { useBodyScrollLock } from "./use-body-scroll-lock"
 
 // ========================================
 // TIPOS
@@ -192,6 +193,7 @@ interface StoryViewerProps {
 function StoryViewer({ isOpen, onClose, stories, initialIndex, categoryName, brandLogo, onViewSection }: StoryViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
   const [progress, setProgress] = useState(0)
+  useBodyScrollLock(isOpen)
 
   useEffect(() => {
     setCurrentIndex(initialIndex)
@@ -323,7 +325,7 @@ function BusinessStories({ stories, config, onStoryClick }: {
   onStoryClick?: (story: BusinessStory, index: number) => void 
 }) {
   // Gera gradiente baseado na cor da marca
-  const brandColor = config.brandColor || "#F97316"
+  const brandColor = config.primaryColor || "#F97316"
   
   return (
     <section className="py-5 border-b border-border/50 bg-background">
@@ -404,33 +406,33 @@ function PostCard({
 }) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
   
-  const chatMessages: Record<string, { messages: { content: string; isUser: boolean }[]; placeholder: string }> = {
+  const chatMessages: Record<string, { messages: { text: string; isUser: boolean }[]; placeholder: string }> = {
     video: {
-      messages: [{ content: "Esse tutorial tem dicas incriveis! Quer que eu resuma os pontos principais?", isUser: false }],
+      messages: [{ text: "Esse tutorial tem dicas incriveis! Quer que eu resuma os pontos principais?", isUser: false }],
       placeholder: "O que achou do video?"
     },
     "video-vertical": {
-      messages: [{ content: "Esse conteudo viralizou essa semana! Quer ver mais como esse?", isUser: false }],
+      messages: [{ text: "Esse conteudo viralizou essa semana! Quer ver mais como esse?", isUser: false }],
       placeholder: "Curti! Tem mais?"
     },
     product: {
       messages: [
-        { content: "Esse produto esta entre os mais vendidos! Sabia que ele tem ingredientes exclusivos da Amazonia?", isUser: false },
-        { content: "Serio? Conta mais!", isUser: true },
-        { content: "Sim! E feito com castanha e oleo de buriti. Quer que eu explique os beneficios?", isUser: false }
+        { text: "Esse produto esta entre os mais vendidos! Sabia que ele tem ingredientes exclusivos da Amazonia?", isUser: false },
+        { text: "Serio? Conta mais!", isUser: true },
+        { text: "Sim! E feito com castanha e oleo de buriti. Quer que eu explique os beneficios?", isUser: false }
       ],
       placeholder: "Vale a pena pra mim?"
     },
     news: {
-      messages: [{ content: "Essa noticia saiu em varios portais essa semana. Quer saber mais detalhes?", isUser: false }],
+      messages: [{ text: "Essa noticia saiu em varios portais essa semana. Quer saber mais detalhes?", isUser: false }],
       placeholder: "Me conta mais"
     },
     review: {
-      messages: [{ content: "Essa avaliacao foi muito curtida! Voce ja experimentou esse produto?", isUser: false }],
+      messages: [{ text: "Essa avaliacao foi muito curtida! Voce ja experimentou esse produto?", isUser: false }],
       placeholder: "Ainda nao, e bom?"
     },
     social: {
-      messages: [{ content: "Esse post teve muito engajamento! O que achou?", isUser: false }],
+      messages: [{ text: "Esse post teve muito engajamento! O que achou?", isUser: false }],
       placeholder: "Adorei!"
     }
   }
@@ -632,7 +634,7 @@ function BusinessSectionComponent({
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
   
   return (
-    <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
+    <section className="mb-10 scroll-mt-20" data-section={sectionId} id={`section-${sectionId}`}>
       {/* Section Header */}
       <div className="flex items-center gap-2 mb-5">
         {section.icon}
@@ -803,32 +805,34 @@ export function BusinessSocialLanding({
         categoryName={stories[storyInitialIndex]?.name || "Story"}
         brandLogo={config.logo}
         onViewSection={(storyName) => {
-          // Normaliza o nome do story (remove acentos e espacos)
-          const normalizedName = storyName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
-          
-          // Procura a secao correspondente pelo data-section
-          const sectionElement = document.querySelector(`[data-section="${normalizedName}"]`)
-          if (sectionElement) {
-            sectionElement.scrollIntoView({ behavior: "smooth", block: "start" })
-            return
-          }
-          
-          // Fallback: procura por ID
-          const sectionById = document.getElementById(`section-${normalizedName}`)
-          if (sectionById) {
-            sectionById.scrollIntoView({ behavior: "smooth", block: "start" })
-            return
-          }
-          
-          // Ultimo fallback: procura pelo texto no h2
-          const sections = document.querySelectorAll("section h2")
-          for (const section of sections) {
-            const sectionText = section.textContent?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
-            if (sectionText.includes(normalizedName.replace(/-/g, " "))) {
-              section.scrollIntoView({ behavior: "smooth", block: "start" })
-              break
+          window.setTimeout(() => {
+            // Normaliza o nome do story (remove acentos e espacos)
+            const normalizedName = storyName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
+            
+            // Procura a secao correspondente pelo data-section
+            const sectionElement = document.querySelector(`[data-section="${normalizedName}"]`)
+            if (sectionElement) {
+              sectionElement.scrollIntoView({ behavior: "smooth", block: "start" })
+              return
             }
-          }
+            
+            // Fallback: procura por ID
+            const sectionById = document.getElementById(`section-${normalizedName}`)
+            if (sectionById) {
+              sectionById.scrollIntoView({ behavior: "smooth", block: "start" })
+              return
+            }
+            
+            // Ultimo fallback: procura pelo texto no h2
+            const sections = document.querySelectorAll("section h2")
+            for (const section of sections) {
+              const sectionText = section.textContent?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
+              if (sectionText.includes(normalizedName.replace(/-/g, " "))) {
+                section.scrollIntoView({ behavior: "smooth", block: "start" })
+                break
+              }
+            }
+          }, 0)
         }}
       />
       

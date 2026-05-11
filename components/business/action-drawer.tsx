@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect } from "react"
 import { X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useBodyScrollLock } from "./use-body-scroll-lock"
 
 interface ActionDrawerProps {
   isOpen: boolean
@@ -23,17 +23,7 @@ export function ActionDrawer({
   footer,
   size = "md"
 }: ActionDrawerProps) {
-  // Bloqueia scroll do body quando aberto
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-    return () => {
-      document.body.style.overflow = ""
-    }
-  }, [isOpen])
+  useBodyScrollLock(isOpen)
 
   if (!isOpen) return null
 
@@ -54,16 +44,16 @@ export function ActionDrawer({
 
       {/* Drawer */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
+        className={`fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out overflow-hidden flex flex-col ${sizeClasses[size]}`}
         style={{ transform: isOpen ? "translateY(0)" : "translateY(100%)" }}
       >
         {/* Handle */}
-        <div className="flex justify-center pt-3 pb-2">
+        <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
           <div className="w-10 h-1 bg-border rounded-full" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pb-4 border-b border-border/50">
+        <div className="flex items-center justify-between px-5 pb-4 border-b border-border/50 flex-shrink-0">
           <div>
             <h3 className="text-lg font-semibold text-foreground">{title}</h3>
             {subtitle && (
@@ -81,13 +71,13 @@ export function ActionDrawer({
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto p-5" style={{ maxHeight: "calc(100% - 140px)" }}>
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="border-t border-border/50 p-5 bg-card">
+          <div className="border-t border-border/50 p-5 bg-card flex-shrink-0">
             {footer}
           </div>
         )}
