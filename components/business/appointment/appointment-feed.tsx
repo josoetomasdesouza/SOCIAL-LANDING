@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { AppointmentCalendar } from "../appointment-calendar"
+import { SocialCompactHero } from "../social-compact-hero"
+import { SocialContactCTA } from "../social-contact-cta"
 import { barberShopConfig, barbers, barberServices, hairStyles } from "@/lib/mock-data/appointment-data"
 import { appointmentContent } from "@/lib/mock-data/business-content"
 import type { Professional, Service, StyleExample } from "@/lib/business-types"
@@ -341,6 +343,10 @@ export function AppointmentFeed() {
     setSelectedBarber(barber)
     setBarberDrawerOpen(true)
   }
+
+  const handlePrimaryBooking = () => {
+    handleSelectBarber(barbers[0])
+  }
   
   const handleSelectStyle = (style: StyleExample) => {
     setSelectedBarber(barbers[0])
@@ -362,10 +368,20 @@ export function AppointmentFeed() {
       icon: <Calendar className="w-5 h-5 text-accent" />,
       type: "primary-action",
       customContent: (
-        <ScheduleModule 
-          onSelectBarber={handleSelectBarber}
-          onSelectService={() => setServicesDrawerOpen(true)}
-        />
+        <>
+          <ScheduleModule 
+            onSelectBarber={handleSelectBarber}
+            onSelectService={() => setServicesDrawerOpen(true)}
+          />
+          <SocialCompactHero
+            variant="editorial"
+            brandLogo={barberShopConfig.logo}
+            brandName={barberShopConfig.name}
+            contextLabel="Sobre a casa"
+            headline="Na Barba Negra, corte preciso e barba bem feita andam juntos."
+            subheadline="Agende rapido e continue explorando o feed."
+          />
+        </>
       )
     },
     {
@@ -390,6 +406,24 @@ export function AppointmentFeed() {
       posts: appointmentContent.reviews
     },
     {
+      id: "contact-cta",
+      title: "Fale com a casa",
+      icon: <Phone className="w-5 h-5 text-accent" />,
+      type: "specific",
+      customContent: (
+        <SocialContactCTA
+          contextLabel="Contato rapido"
+          headline="Quer falar com a Barba Negra ou ja sair com horario marcado?"
+          subheadline="Chama no WhatsApp, veja o horario da casa ou agende agora."
+          whatsapp={barberShopConfig.whatsapp || ""}
+          openingHours={barberShopConfig.openingHours || "Consulte horarios"}
+          location="Rua Augusta • Sao Paulo"
+          primaryActionLabel="Agendar agora"
+          onPrimaryAction={handlePrimaryBooking}
+        />
+      )
+    },
+    {
       id: "news",
       title: "Na Midia",
       type: "content",
@@ -411,7 +445,7 @@ export function AppointmentFeed() {
         sections={sections}
         onStoryClick={(story) => {
           if (story.isMain) {
-            handleSelectBarber(barbers[0])
+            handlePrimaryBooking()
           }
         }}
         footerLinks={[

@@ -53,6 +53,7 @@ interface BusinessSocialLandingProps {
   config: BusinessConfig
   stories: BusinessStory[]
   sections: BusinessSection[]
+  topContent?: ReactNode
   onPostClick?: (post: BusinessPost) => void
   onStoryClick?: (story: BusinessStory) => void
   renderPostDrawer?: (post: BusinessPost | null, onClose: () => void) => ReactNode
@@ -697,6 +698,7 @@ export function BusinessSocialLanding({
   config,
   stories,
   sections,
+  topContent,
   onPostClick,
   onStoryClick,
   renderPostDrawer,
@@ -766,6 +768,9 @@ export function BusinessSocialLanding({
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
         {/* Stories */}
         <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
+
+        {/* Top content slot */}
+        {topContent}
         
         {/* Search Bar */}
         <BusinessSearchBar placeholder={`Buscar em ${config.name}...`} />
