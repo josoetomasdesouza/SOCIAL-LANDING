@@ -235,7 +235,6 @@ function CartDrawer({
       onClose={onClose}
       title={`Pedido (${cart.length})`}
       size="lg"
-      matchFeedWidth
       footer={cart.length > 0 && (
         <OrderSummaryFooter
           itemCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
@@ -453,7 +452,6 @@ export function RestaurantFeed() {
         onClose={() => setCheckoutOpen(false)}
         title={checkoutTitle}
         size="lg"
-        matchFeedWidth
         footer={
           <OrderSummaryFooter
             itemCount={cartCount}
