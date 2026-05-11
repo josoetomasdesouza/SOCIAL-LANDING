@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { ShoppingBag, Heart, Star, Truck, ChevronRight, Plus, Minus, Check, X, Play, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -10,14 +10,55 @@ import { ActionDrawer } from "../action-drawer"
 import { EcommerceCheckout } from "../checkout-flows"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
-import type { Product } from "@/lib/business-types"
+import type { Product, VariantOption } from "@/lib/business-types"
+
+type SelectedVariantsById = Record<string, string>
+type SelectedVariant = {
+  id: string
+  name: string
+  option: VariantOption
+}
 
 interface CartItem {
   id: string
+  cartKey: string
   name: string
   image: string
   price: number
   quantity: number
+  selectedVariants?: SelectedVariant[]
+}
+
+function getSelectedVariants(product: Product, selectedById: SelectedVariantsById): SelectedVariant[] {
+  return product.variants
+    ?.map((variant) => {
+      const selectedOption = variant.options.find((option) => option.id === selectedById[variant.id])
+      if (!selectedOption) return null
+
+      return {
+        id: variant.id,
+        name: variant.name,
+        option: selectedOption,
+      }
+    })
+    .filter((variant): variant is SelectedVariant => Boolean(variant)) || []
+}
+
+function getVariantPriceModifier(selectedVariants: SelectedVariant[] = []) {
+  return selectedVariants.reduce((sum, variant) => sum + (variant.option.priceModifier || 0), 0)
+}
+
+function getCartItemUnitPrice(item: CartItem) {
+  return item.price + getVariantPriceModifier(item.selectedVariants)
+}
+
+function getCartKey(product: Product, selectedVariants: SelectedVariant[]) {
+  const variantKey = selectedVariants
+    .map((variant) => `${variant.id}:${variant.option.id}`)
+    .sort()
+    .join("|")
+
+  return `${product.id}:${variantKey}`
 }
 
 // ========================================
@@ -134,17 +175,30 @@ function ProductDetailDrawer({
   product: Product | null
   isOpen: boolean
   onClose: () => void
-  onAddToCart: (product: Product) => void
+  onAddToCart: (product: Product, quantity: number, selectedVariants: SelectedVariant[]) => void
   isFavorite: boolean
   onToggleFavorite: () => void
 }) {
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [selectedVariants, setSelectedVariants] = useState<SelectedVariantsById>({})
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedImage(0)
+      setQuantity(1)
+      setSelectedVariants({})
+    }
+  }, [isOpen, product?.id])
   
   if (!product) return null
   
   const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
   const reviews = productReviews.filter(r => r.productId === product.id)
+  const resolvedVariants = getSelectedVariants(product, selectedVariants)
+  const missingRequiredVariant = product.variants?.some((variant) => !selectedVariants[variant.id]) || false
+  const unitPrice = product.price + getVariantPriceModifier(resolvedVariants)
+  const totalPrice = unitPrice * quantity
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={product.name} size="lg">
@@ -193,12 +247,51 @@ function ProductDetailDrawer({
         
         {/* Preco */}
         <div className="flex items-baseline gap-3">
-          <span className="text-3xl font-bold text-accent">R$ {product.price.toFixed(2).replace(".", ",")}</span>
+          <span className="text-3xl font-bold text-accent">R$ {unitPrice.toFixed(2).replace(".", ",")}</span>
           {product.originalPrice && (
             <span className="text-lg text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
           )}
         </div>
         
+        {/* Variacoes */}
+        {product.variants && product.variants.length > 0 && (
+          <div className="space-y-4">
+            {product.variants.map((variant) => (
+              <div key={variant.id}>
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <h4 className="font-medium">{variant.name}</h4>
+                  <Badge>Obrigatorio</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {variant.options.map((option) => {
+                    const isSelected = selectedVariants[variant.id] === option.id
+
+                    return (
+                      <button
+                        key={option.id}
+                        disabled={!option.available}
+                        onClick={() => setSelectedVariants((prev) => ({ ...prev, [variant.id]: option.id }))}
+                        className={`p-3 rounded-xl border text-left transition-colors ${
+                          isSelected ? "border-accent bg-accent/10" : "border-border hover:border-accent/50"
+                        } ${!option.available ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        <p className="font-medium text-sm">{option.value}</p>
+                        {option.priceModifier ? (
+                          <p className="text-xs text-muted-foreground">
+                            {option.priceModifier > 0 ? "+" : "-"} R$ {Math.abs(option.priceModifier).toFixed(2).replace(".", ",")}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">Preco base</p>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Quantidade */}
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium">Quantidade:</span>
@@ -239,14 +332,16 @@ function ProductDetailDrawer({
         )}
         
         {/* Botao de compra */}
-        <Button className="w-full h-12" onClick={() => {
-          for (let i = 0; i < quantity; i++) {
-            onAddToCart(product)
-          }
-          onClose()
-        }}>
+        <Button
+          className="w-full h-12"
+          disabled={missingRequiredVariant}
+          onClick={() => {
+            onAddToCart(product, quantity, resolvedVariants)
+            onClose()
+          }}
+        >
           <ShoppingBag className="w-5 h-5 mr-2" />
-          Adicionar ao carrinho
+          {missingRequiredVariant ? "Escolha as opcoes obrigatorias" : `Adicionar R$ ${totalPrice.toFixed(2).replace(".", ",")}`}
         </Button>
       </div>
     </ActionDrawer>
@@ -271,7 +366,7 @@ function CartDrawerComponent({
   onRemove: (id: string) => void
   onCheckout: () => void
 }) {
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const total = cart.reduce((sum, item) => sum + getCartItemUnitPrice(item) * item.quantity, 0)
   const freeShippingThreshold = 199
   const remaining = Math.max(0, freeShippingThreshold - total)
   
@@ -296,24 +391,33 @@ function CartDrawerComponent({
             
             <div className="flex-1 space-y-3 overflow-auto">
               {cart.map((item) => (
-                <div key={item.id} className="flex gap-3 p-3 bg-secondary/50 rounded-xl">
+                <div key={item.cartKey} className="flex gap-3 p-3 bg-secondary/50 rounded-xl">
                   <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                     <Image src={item.image} alt={item.name} fill className="object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm line-clamp-2">{item.name}</p>
-                    <p className="font-bold text-accent mt-1">R$ {item.price.toFixed(2).replace(".", ",")}</p>
+                    {item.selectedVariants && item.selectedVariants.length > 0 && (
+                      <div className="mt-1 space-y-0.5">
+                        {item.selectedVariants.map((variant) => (
+                          <p key={variant.id} className="text-xs text-muted-foreground line-clamp-1">
+                            {variant.name}: {variant.option.value}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                    <p className="font-bold text-accent mt-1">R$ {getCartItemUnitPrice(item).toFixed(2).replace(".", ",")}</p>
                   </div>
                   <div className="flex flex-col items-end justify-between">
-                    <button onClick={() => onRemove(item.id)} className="p-1 text-muted-foreground hover:text-foreground">
+                    <button onClick={() => onRemove(item.cartKey)} className="p-1 text-muted-foreground hover:text-foreground">
                       <X className="w-4 h-4" />
                     </button>
                     <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.cartKey, item.quantity - 1)}>
                         <Minus className="w-3 h-3" />
                       </Button>
                       <span className="w-6 text-center text-sm">{item.quantity}</span>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.cartKey, item.quantity + 1)}>
                         <Plus className="w-3 h-3" />
                       </Button>
                     </div>
@@ -356,26 +460,28 @@ export function EcommerceFeed() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   
   // Handlers
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: Product, quantity: number = 1, selectedVariants: SelectedVariant[] = []) => {
+    const cartKey = getCartKey(product, selectedVariants)
+
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id)
+      const existing = prev.find(item => item.cartKey === cartKey)
       if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
+        return prev.map(item => item.cartKey === cartKey ? { ...item, quantity: item.quantity + quantity } : item)
       }
-      return [...prev, { id: product.id, name: product.name, image: product.images[0], price: product.price, quantity: 1 }]
+      return [...prev, { id: product.id, cartKey, name: product.name, image: product.images[0], price: product.price, quantity, selectedVariants }]
     })
   }
   
-  const handleAddToCartAndOpenCart = (product: Product) => {
-    handleAddToCart(product)
+  const handleAddToCartAndOpenCart = (product: Product, quantity: number = 1, selectedVariants: SelectedVariant[] = []) => {
+    handleAddToCart(product, quantity, selectedVariants)
     setCartDrawerOpen(true)
   }
   
-  const handleUpdateQuantity = (id: string, qty: number) => {
+  const handleUpdateQuantity = (cartKey: string, qty: number) => {
     if (qty <= 0) {
-      setCart(prev => prev.filter(item => item.id !== id))
+      setCart(prev => prev.filter(item => item.cartKey !== cartKey))
     } else {
-      setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: qty } : item))
+      setCart(prev => prev.map(item => item.cartKey === cartKey ? { ...item, quantity: qty } : item))
     }
   }
   
@@ -398,7 +504,15 @@ export function EcommerceFeed() {
       customContent: (
         <ProductsModule 
           onSelectProduct={(p) => { setSelectedProduct(p); setProductDrawerOpen(true) }}
-          onAddToCart={handleAddToCartAndOpenCart}
+          onAddToCart={(product) => {
+            if (product.variants && product.variants.length > 0) {
+              setSelectedProduct(product)
+              setProductDrawerOpen(true)
+              return
+            }
+
+            handleAddToCartAndOpenCart(product)
+          }}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
         />
@@ -486,7 +600,7 @@ export function EcommerceFeed() {
         onClose={() => setCartDrawerOpen(false)}
         cart={cart}
         onUpdateQuantity={handleUpdateQuantity}
-        onRemove={(id) => setCart(prev => prev.filter(item => item.id !== id))}
+        onRemove={(cartKey) => setCart(prev => prev.filter(item => item.cartKey !== cartKey))}
         onCheckout={() => {
           setCartDrawerOpen(false)
           setCheckoutDrawerOpen(true)
@@ -500,7 +614,13 @@ export function EcommerceFeed() {
         size="lg"
       >
         <EcommerceCheckout
-          items={cart}
+          items={cart.map((item) => ({
+            ...item,
+            name: item.selectedVariants && item.selectedVariants.length > 0
+              ? `${item.name} (${item.selectedVariants.map((variant) => `${variant.name}: ${variant.option.value}`).join(", ")})`
+              : item.name,
+            price: getCartItemUnitPrice(item),
+          }))}
           onComplete={() => {
             setCheckoutDrawerOpen(false)
             setCart([])
