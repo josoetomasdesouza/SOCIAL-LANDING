@@ -9,6 +9,7 @@ import { BusinessSocialLanding, type BusinessSection } from "../business-social-
 import { ActionDrawer } from "../action-drawer"
 import { AppointmentCalendar } from "../appointment-calendar"
 import { SocialCompactHero } from "../social-compact-hero"
+import { SocialContactCTA } from "../social-contact-cta"
 import { barberShopConfig, barbers, barberServices, hairStyles } from "@/lib/mock-data/appointment-data"
 import { appointmentContent } from "@/lib/mock-data/business-content"
 import type { Professional, Service, StyleExample } from "@/lib/business-types"
@@ -403,6 +404,22 @@ export function AppointmentFeed() {
       icon: <Star className="w-5 h-5 text-accent" />,
       type: "content",
       posts: appointmentContent.reviews
+    },
+    {
+      id: "contact-cta",
+      title: "Fale com a casa",
+      icon: <Phone className="w-5 h-5 text-accent" />,
+      type: "specific",
+      customContent: (
+        <SocialContactCTA
+          headline="Quer falar com a Barba Negra ou ja sair com horario marcado?"
+          whatsapp={barberShopConfig.whatsapp || ""}
+          openingHours={barberShopConfig.openingHours || "Consulte horarios"}
+          location="Rua Augusta, Sao Paulo"
+          primaryActionLabel="Agendar horario"
+          onPrimaryAction={handlePrimaryBooking}
+        />
+      )
     },
     {
       id: "news",
