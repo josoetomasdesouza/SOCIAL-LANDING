@@ -1,17 +1,28 @@
 "use client"
 
-import { Clock3, MapPin, MessageCircle } from "lucide-react"
+import { Clock3, Mail, MapPin, MessageCircle, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { socialPatternClasses } from "./social-patterns"
+
+type SocialContactIcon = "message-circle" | "mail" | "phone" | "clock" | "map-pin"
+
+interface SocialContactItem {
+  label: string
+  value: string
+  href?: string
+  icon: SocialContactIcon
+}
 
 interface SocialContactCTAProps {
   contextLabel?: string
   eyebrow?: string
   headline: string
   subheadline?: string
-  whatsapp: string
-  openingHours: string
-  location: string
+  whatsapp?: string
+  openingHours?: string
+  location?: string
+  primaryContact?: SocialContactItem
+  secondaryItems?: SocialContactItem[]
   primaryActionLabel: string
   onPrimaryAction: () => void
 }
@@ -31,6 +42,22 @@ function formatWhatsAppLabel(whatsapp: string) {
   return whatsapp
 }
 
+function renderContactIcon(icon: SocialContactIcon) {
+  switch (icon) {
+    case "mail":
+      return <Mail className="h-4 w-4 text-accent" />
+    case "phone":
+      return <Phone className="h-4 w-4 text-accent" />
+    case "clock":
+      return <Clock3 className="h-4 w-4 text-accent" />
+    case "map-pin":
+      return <MapPin className="h-4 w-4 text-accent" />
+    case "message-circle":
+    default:
+      return <MessageCircle className="h-4 w-4 text-accent" />
+  }
+}
+
 export function SocialContactCTA({
   contextLabel,
   eyebrow = "Contato rapido",
@@ -39,12 +66,31 @@ export function SocialContactCTA({
   whatsapp,
   openingHours,
   location,
+  primaryContact,
+  secondaryItems,
   primaryActionLabel,
   onPrimaryAction,
 }: SocialContactCTAProps) {
-  const whatsappHref = `https://wa.me/${whatsapp.replace(/\D/g, "")}`
-  const whatsappLabel = formatWhatsAppLabel(whatsapp)
   const resolvedContextLabel = contextLabel || eyebrow
+  const resolvedPrimaryContact = primaryContact || (
+    whatsapp
+      ? {
+          label: "WhatsApp",
+          value: formatWhatsAppLabel(whatsapp),
+          href: `https://wa.me/${whatsapp.replace(/\D/g, "")}`,
+          icon: "message-circle" as const,
+        }
+      : undefined
+  )
+
+  const resolvedSecondaryItems = secondaryItems || [
+    ...(openingHours
+      ? [{ label: "Horario", value: openingHours, icon: "clock" as const }]
+      : []),
+    ...(location
+      ? [{ label: "Local", value: location, icon: "map-pin" as const }]
+      : []),
+  ]
 
   return (
     <section className={socialPatternClasses.sectionSpacing}>
@@ -58,36 +104,34 @@ export function SocialContactCTA({
         </div>
 
         <div className="mt-4 space-y-2.5">
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noreferrer"
-            className={`flex items-center gap-3 ${socialPatternClasses.itemSurface} transition-colors hover:bg-background`}
-          >
-            <MessageCircle className="h-4 w-4 text-accent" />
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">WhatsApp</p>
-              <p className="truncate text-sm font-medium text-foreground">{whatsappLabel}</p>
-            </div>
-          </a>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className={`flex items-center gap-3 ${socialPatternClasses.itemSurface}`}>
-              <Clock3 className="h-4 w-4 text-accent" />
+          {resolvedPrimaryContact && (
+            <a
+              href={resolvedPrimaryContact.href}
+              target={resolvedPrimaryContact.href ? "_blank" : undefined}
+              rel={resolvedPrimaryContact.href ? "noreferrer" : undefined}
+              className={`flex items-center gap-3 ${socialPatternClasses.itemSurface} transition-colors hover:bg-background`}
+            >
+              {renderContactIcon(resolvedPrimaryContact.icon)}
               <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">Horario</p>
-                <p className="truncate text-sm font-medium text-foreground">{openingHours}</p>
+                <p className="text-xs text-muted-foreground">{resolvedPrimaryContact.label}</p>
+                <p className="truncate text-sm font-medium text-foreground">{resolvedPrimaryContact.value}</p>
               </div>
-            </div>
+            </a>
+          )}
 
-            <div className={`flex items-center gap-3 ${socialPatternClasses.itemSurface}`}>
-              <MapPin className="h-4 w-4 text-accent" />
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">Local</p>
-                <p className="truncate text-sm font-medium text-foreground">{location}</p>
-              </div>
+          {resolvedSecondaryItems.length > 0 && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {resolvedSecondaryItems.slice(0, 2).map((item) => (
+                <div key={`${item.label}-${item.value}`} className={`flex items-center gap-3 ${socialPatternClasses.itemSurface}`}>
+                  {renderContactIcon(item.icon)}
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">{item.label}</p>
+                    <p className="truncate text-sm font-medium text-foreground">{item.value}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
 
         <div className="mt-4">
