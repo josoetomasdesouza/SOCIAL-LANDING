@@ -374,6 +374,9 @@ export function AppointmentFeed() {
           />
           <SocialCompactHero
             variant="editorial"
+            brandLogo={barberShopConfig.logo}
+            brandName={barberShopConfig.name}
+            eyebrow="Sobre a casa"
             headline="Na Barba Negra, corte preciso e barba bem feita andam juntos."
             subheadline="Agende rapido e continue explorando o feed."
           />

@@ -11,6 +11,8 @@ interface SocialCompactHeroProps {
   eyebrow?: string
   headline: string
   subheadline?: string
+  mediaSrc?: string
+  mediaAlt?: string
   primaryActionLabel?: string
   onPrimaryAction?: () => void
   highlights?: string[]
@@ -23,6 +25,8 @@ export function SocialCompactHero({
   eyebrow,
   headline,
   subheadline,
+  mediaSrc,
+  mediaAlt,
   primaryActionLabel,
   onPrimaryAction,
   highlights = [],
@@ -33,16 +37,42 @@ export function SocialCompactHero({
   if (variant === "editorial") {
     return (
       <section className="pt-5">
-        <div className="space-y-1.5">
-          <p className="text-[15px] font-medium leading-6 text-foreground text-pretty">
-            {headline}
-          </p>
-          {subheadline && (
-            <p className="text-sm leading-5 text-muted-foreground text-pretty">
-              {subheadline}
-            </p>
+        <article className="border-y border-border/40 py-4">
+          <div className="flex items-center gap-3">
+            {brandLogo && (
+              <div className="relative h-10 w-10 overflow-hidden rounded-full ring-1 ring-border/60">
+                <Image src={safeBrandLogo} alt={safeBrandName} fill className="object-cover" />
+              </div>
+            )}
+
+            <div className="min-w-0">
+              {brandName && (
+                <p className="truncate text-sm font-semibold text-foreground">{safeBrandName}</p>
+              )}
+              <p className="text-xs text-muted-foreground">{eyebrow || "Sobre a marca"}</p>
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-1.5">
+            <p className="text-[15px] leading-6 text-foreground text-pretty">{headline}</p>
+            {subheadline && (
+              <p className="text-sm leading-5 text-muted-foreground text-pretty">
+                {subheadline}
+              </p>
+            )}
+          </div>
+
+          {mediaSrc && (
+            <div className="relative mt-4 aspect-[4/3] overflow-hidden rounded-2xl">
+              <Image
+                src={mediaSrc}
+                alt={mediaAlt || headline}
+                fill
+                className="object-cover"
+              />
+            </div>
           )}
-        </div>
+        </article>
       </section>
     )
   }
