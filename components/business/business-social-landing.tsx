@@ -56,9 +56,11 @@ interface BusinessSocialLandingProps {
   topContent?: ReactNode
   onPostClick?: (post: BusinessPost) => void
   onStoryClick?: (story: BusinessStory) => void
+  onStoryAction?: (story: BusinessStory) => boolean | void
   renderPostDrawer?: (post: BusinessPost | null, onClose: () => void) => ReactNode
   footerLinks?: { label: string; href: string }[]
   conversationalAI?: ReactNode
+  reserveHeaderSpace?: boolean | "compact"
 }
 
 // ========================================
@@ -146,7 +148,7 @@ function BusinessHeader({ config }: { config: BusinessConfig }) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/98 backdrop-blur-xl border-b border-border/50 shadow-sm">
       <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-border/50">
               <Image src={config.logo} alt={config.name} fill className="object-cover" />
@@ -186,7 +188,7 @@ interface StoryViewerProps {
   initialIndex: number
   categoryName: string
   brandLogo: string
-  onViewSection?: (storyName: string) => void
+  onViewSection?: (story: BusinessStory) => void
 }
 
 function StoryViewer({ isOpen, onClose, stories, initialIndex, categoryName, brandLogo, onViewSection }: StoryViewerProps) {
@@ -286,7 +288,7 @@ function StoryViewer({ isOpen, onClose, stories, initialIndex, categoryName, bra
         <button
           onClick={() => {
             onClose()
-            onViewSection?.(currentStory.name)
+            onViewSection?.(currentStory)
           }}
           className="absolute bottom-16 left-6 right-6 flex items-center justify-center gap-2 py-3 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-xl text-white font-medium transition-colors"
         >
@@ -326,7 +328,7 @@ function BusinessStories({ stories, config, onStoryClick }: {
   const brandColor = config.brandColor || "#F97316"
   
   return (
-    <section className="py-5 border-b border-border/50 bg-background">
+    <section className="pt-0 pb-5 border-b border-border/50 bg-background">
       <div className="px-4 sm:px-5">
         <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:-mx-5 sm:px-5">
           {stories.map((story, index) => (
@@ -701,9 +703,11 @@ export function BusinessSocialLanding({
   topContent,
   onPostClick,
   onStoryClick,
+  onStoryAction,
   renderPostDrawer,
   footerLinks,
-  conversationalAI
+  conversationalAI,
+  reserveHeaderSpace = true
 }: BusinessSocialLandingProps) {
   const [selectedPost, setSelectedPost] = useState<BusinessPost | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -713,6 +717,7 @@ export function BusinessSocialLanding({
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
   const [storyInitialIndex, setStoryInitialIndex] = useState(0)
+  const headerSpacerClass = "h-14"
   
   // Coleta todos os posts de conteudo para o FeedDrawer
   const allContentPosts = useMemo(() => {
@@ -762,12 +767,14 @@ export function BusinessSocialLanding({
       <BusinessHeader config={config} />
       
       {/* Spacer for fixed header */}
-      <div className="h-16" />
+      {reserveHeaderSpace && <div className={headerSpacerClass} />}
       
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
         {/* Stories */}
-        <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
+        <div className={reserveHeaderSpace ? "-mt-3" : undefined}>
+          <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
+        </div>
 
         {/* Top content slot */}
         {topContent}
@@ -802,9 +809,30 @@ export function BusinessSocialLanding({
         initialIndex={storyInitialIndex}
         categoryName={stories[storyInitialIndex]?.name || "Story"}
         brandLogo={config.logo}
-        onViewSection={(storyName) => {
+        onViewSection={(story) => {
+          if (onStoryAction?.(story)) {
+            return
+          }
+
           // Normaliza o nome do story (remove acentos e espacos)
+          const storyName = story.name
           const normalizedName = storyName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
+          const normalizedSearchTerm = normalizedName.replace(/-/g, " ")
+          const singularSearchTerm = normalizedSearchTerm.endsWith("s")
+            ? normalizedSearchTerm.slice(0, -1)
+            : normalizedSearchTerm
+          const normalizeText = (value?: string) =>
+            value?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
+          
+          const matchingPost = allContentPosts.find((post) => {
+            const searchableText = normalizeText(`${post.title} ${post.description || ""} ${post.type}`)
+            return searchableText.includes(normalizedSearchTerm) || searchableText.includes(singularSearchTerm)
+          })
+          
+          if (matchingPost) {
+            handlePostClick(matchingPost)
+            return
+          }
           
           // Procura a secao correspondente pelo data-section
           const sectionElement = document.querySelector(`[data-section="${normalizedName}"]`)
@@ -826,8 +854,14 @@ export function BusinessSocialLanding({
             const sectionText = section.textContent?.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
             if (sectionText.includes(normalizedName.replace(/-/g, " "))) {
               section.scrollIntoView({ behavior: "smooth", block: "start" })
-              break
+              return
             }
+          }
+          
+          if (allContentPosts.length > 0) {
+            setSelectedPost(allContentPosts[0])
+            setFeedDrawerCategory("all")
+            setFeedDrawerOpen(true)
           }
         }}
       />

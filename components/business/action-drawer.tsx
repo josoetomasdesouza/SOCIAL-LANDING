@@ -12,6 +12,7 @@ interface ActionDrawerProps {
   children: React.ReactNode
   footer?: React.ReactNode
   size?: "sm" | "md" | "lg" | "full"
+  matchFeedWidth?: boolean
 }
 
 export function ActionDrawer({
@@ -21,7 +22,8 @@ export function ActionDrawer({
   subtitle,
   children,
   footer,
-  size = "md"
+  size = "md",
+  matchFeedWidth = false
 }: ActionDrawerProps) {
   // Bloqueia scroll do body quando aberto
   useEffect(() => {
@@ -43,6 +45,13 @@ export function ActionDrawer({
     lg: "max-h-[80vh]",
     full: "max-h-[95vh]"
   }
+  const widthClasses = matchFeedWidth
+    ? "left-1/2 right-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
+    : "inset-x-0"
+  const drawerTransform = matchFeedWidth
+    ? `translate(-50%, ${isOpen ? "0" : "100%"})`
+    : `translateY(${isOpen ? "0" : "100%"})`
+  const innerWidthClasses = "w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
 
   return (
     <>
@@ -54,41 +63,47 @@ export function ActionDrawer({
 
       {/* Drawer */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
-        style={{ transform: isOpen ? "translateY(0)" : "translateY(100%)" }}
+        className={`fixed ${widthClasses} bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
+        style={{ transform: drawerTransform }}
       >
         {/* Handle */}
-        <div className="flex justify-center pt-3 pb-2">
+        <div className="flex flex-shrink-0 justify-center pt-3 pb-2">
           <div className="w-10 h-1 bg-border rounded-full" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pb-4 border-b border-border/50">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-            {subtitle && (
-              <p className="text-sm text-muted-foreground">{subtitle}</p>
-            )}
+        <div className="flex-shrink-0 border-b border-border/50">
+          <div className={`${innerWidthClasses} flex items-center justify-between px-5 pb-4`}>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+              {subtitle && (
+                <p className="text-sm text-muted-foreground">{subtitle}</p>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-9 w-9 p-0 rounded-full"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-9 w-9 p-0 rounded-full"
-          >
-            <X className="h-5 w-5" />
-          </Button>
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto p-5" style={{ maxHeight: "calc(100% - 140px)" }}>
-          {children}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className={`${innerWidthClasses} p-5`}>
+            {children}
+          </div>
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="border-t border-border/50 p-5 bg-card">
-            {footer}
+          <div className="flex-shrink-0 border-t border-border/50 bg-card">
+            <div className={`${innerWidthClasses} p-5`}>
+              {footer}
+            </div>
           </div>
         )}
       </div>

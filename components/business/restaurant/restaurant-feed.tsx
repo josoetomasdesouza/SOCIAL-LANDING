@@ -1,19 +1,62 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
-import { Clock, MapPin, Star, Flame, Leaf, ShoppingBag, Plus, Minus, X, Play, Truck, Newspaper } from "lucide-react"
+import { Check, Star, Flame, Leaf, ShoppingBag, Plus, Minus, Play, Truck, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
-import { RestaurantCheckout } from "../checkout-flows"
-import { restaurantConfig, menuItems, deliveryInfo, menuCategories } from "@/lib/mock-data/restaurant-data"
+import { restaurantConfig, menuItems, deliveryInfo } from "@/lib/mock-data/restaurant-data"
 import { restaurantContent } from "@/lib/mock-data/business-content"
-import type { MenuItem } from "@/lib/business-types"
+import type { CustomizationOption, MenuItem } from "@/lib/business-types"
 
 interface CartItem extends MenuItem {
+  cartKey: string
   quantity: number
+  selectedCustomizations?: SelectedCustomization[]
+}
+
+type CheckoutStep = "address" | "payment" | "confirmation"
+type DeliveryType = "delivery" | "pickup"
+type SelectedCustomizationsById = Record<string, string[]>
+type SelectedCustomization = {
+  id: string
+  name: string
+  options: CustomizationOption[]
+}
+
+const formatCurrency = (value: number) => `R$ ${value.toFixed(2).replace(".", ",")}`
+
+function getSelectedCustomizations(item: MenuItem, selectedById: SelectedCustomizationsById): SelectedCustomization[] {
+  return item.customizations
+    ?.map((customization) => ({
+      id: customization.id,
+      name: customization.name,
+      options: customization.options.filter((option) => selectedById[customization.id]?.includes(option.id)),
+    }))
+    .filter((customization) => customization.options.length > 0) || []
+}
+
+function getCustomizationTotal(selectedCustomizations: SelectedCustomization[] = []) {
+  return selectedCustomizations.reduce(
+    (sum, customization) => sum + customization.options.reduce((optionSum, option) => optionSum + option.price, 0),
+    0
+  )
+}
+
+function getCartItemUnitPrice(item: CartItem) {
+  return item.price + getCustomizationTotal(item.selectedCustomizations)
+}
+
+function getCartKey(item: MenuItem, selectedCustomizations: SelectedCustomization[]) {
+  const customizationKey = selectedCustomizations
+    .map((customization) => `${customization.id}:${customization.options.map((option) => option.id).sort().join(",")}`)
+    .sort()
+    .join("|")
+
+  return `${item.id}:${customizationKey}`
 }
 
 // ========================================
@@ -116,11 +159,43 @@ function ItemDetailDrawer({
   item: MenuItem | null
   isOpen: boolean
   onClose: () => void
-  onAddToCart: (item: MenuItem, qty: number) => void
+  onAddToCart: (item: MenuItem, qty: number, selectedCustomizations: SelectedCustomization[]) => void
 }) {
   const [quantity, setQuantity] = useState(1)
+  const [selectedCustomizations, setSelectedCustomizations] = useState<SelectedCustomizationsById>({})
+
+  useEffect(() => {
+    if (isOpen) {
+      setQuantity(1)
+      setSelectedCustomizations({})
+    }
+  }, [isOpen, item?.id])
   
   if (!item) return null
+
+  const resolvedCustomizations = getSelectedCustomizations(item, selectedCustomizations)
+  const customizationTotal = getCustomizationTotal(resolvedCustomizations)
+  const itemTotal = (item.price + customizationTotal) * quantity
+  const missingRequiredCustomization = item.customizations?.some(
+    (customization) => customization.required && !selectedCustomizations[customization.id]?.length
+  ) || false
+
+  const handleSelectCustomization = (customizationId: string, optionId: string, maxSelections: number) => {
+    setSelectedCustomizations((prev) => {
+      const current = prev[customizationId] || []
+      const isSelected = current.includes(optionId)
+      const nextSelection = isSelected
+        ? current.filter((id) => id !== optionId)
+        : maxSelections === 1
+          ? [optionId]
+          : [...current, optionId].slice(0, maxSelections)
+
+      return {
+        ...prev,
+        [customizationId]: nextSelection,
+      }
+    })
+  }
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={item.name} size="md">
@@ -138,9 +213,51 @@ function ItemDetailDrawer({
           <h3 className="text-xl font-bold">{item.name}</h3>
           <p className="text-muted-foreground mt-2">{item.description}</p>
         </div>
+
+        {item.customizations && item.customizations.length > 0 && (
+          <div className="space-y-4">
+            {item.customizations.map((customization) => (
+              <div key={customization.id}>
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <h4 className="font-medium">{customization.name}</h4>
+                  <Badge variant={customization.required ? "default" : "secondary"}>
+                    {customization.required ? "Obrigatorio" : `Ate ${customization.maxSelections}`}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  {customization.options.map((option) => {
+                    const isSelected = selectedCustomizations[customization.id]?.includes(option.id) || false
+
+                    return (
+                      <button
+                        key={option.id}
+                        onClick={() => handleSelectCustomization(customization.id, option.id, customization.maxSelections)}
+                        className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl border text-left transition-colors ${
+                          isSelected ? "border-accent bg-accent/10" : "border-border hover:border-accent/50"
+                        }`}
+                      >
+                        <div>
+                          <p className="font-medium text-sm">{option.name}</p>
+                          {option.price > 0 && (
+                            <p className="text-xs text-muted-foreground">+ {formatCurrency(option.price)}</p>
+                          )}
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          isSelected ? "border-accent bg-accent" : "border-muted-foreground/40"
+                        }`}>
+                          {isSelected && <Check className="w-3 h-3 text-accent-foreground" />}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-accent">R$ {item.price.toFixed(2).replace(".", ",")}</span>
+          <span className="text-2xl font-bold text-accent">{formatCurrency(item.price + customizationTotal)}</span>
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
               <Minus className="w-4 h-4" />
@@ -152,12 +269,58 @@ function ItemDetailDrawer({
           </div>
         </div>
         
-        <Button className="w-full h-12" onClick={() => { onAddToCart(item, quantity); onClose() }}>
+        <Button
+          className="w-full h-12"
+          disabled={missingRequiredCustomization}
+          onClick={() => { onAddToCart(item, quantity, resolvedCustomizations); onClose() }}
+        >
           <ShoppingBag className="w-5 h-5 mr-2" />
-          Adicionar R$ {(item.price * quantity).toFixed(2).replace(".", ",")}
+          {missingRequiredCustomization ? "Escolha as opcoes obrigatorias" : `Adicionar ${formatCurrency(itemTotal)}`}
         </Button>
       </div>
     </ActionDrawer>
+  )
+}
+
+function OrderSummaryFooter({
+  itemCount,
+  subtotal,
+  deliveryFee,
+  total,
+  ctaLabel,
+  onCta,
+  disabled = false
+}: {
+  itemCount: number
+  subtotal: number
+  deliveryFee: number
+  total: number
+  ctaLabel: string
+  onCta: () => void
+  disabled?: boolean
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>{itemCount} {itemCount === 1 ? "item" : "itens"}</span>
+          <span>Subtotal {formatCurrency(subtotal)}</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-muted-foreground">Entrega</span>
+          <span className={deliveryFee === 0 ? "text-green-600" : ""}>
+            {deliveryFee === 0 ? "Gratis" : formatCurrency(deliveryFee)}
+          </span>
+        </div>
+        <div className="flex justify-between font-bold text-lg pt-1 border-t border-border/50">
+          <span>Total</span>
+          <span className="text-accent">{formatCurrency(total)}</span>
+        </div>
+      </div>
+      <Button className="w-full h-12" onClick={onCta} disabled={disabled}>
+        {ctaLabel}
+      </Button>
+    </div>
   )
 }
 
@@ -177,64 +340,67 @@ function CartDrawer({
   onUpdateQuantity: (id: string, qty: number) => void
   onCheckout: () => void
 }) {
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const deliveryFee = subtotal >= deliveryInfo.freeDeliveryMinimum ? 0 : deliveryInfo.deliveryFee
+  const subtotal = cart.reduce((sum, item) => sum + getCartItemUnitPrice(item) * item.quantity, 0)
+  const freeDeliveryMinimum = deliveryInfo.freeDeliveryMinimum ?? 0
+  const deliveryFee = freeDeliveryMinimum > 0 && subtotal >= freeDeliveryMinimum ? 0 : deliveryInfo.deliveryFee
   const total = subtotal + deliveryFee
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={`Pedido (${cart.length})`} size="lg">
-      <div className="flex flex-col h-full">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Pedido (${cart.length})`}
+      size="lg"
+      footer={cart.length > 0 && (
+        <OrderSummaryFooter
+          itemCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+          subtotal={subtotal}
+          deliveryFee={deliveryFee}
+          total={total}
+          ctaLabel="Finalizar pedido"
+          onCta={onCheckout}
+        />
+      )}
+    >
+      <div>
         {cart.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-12">
+          <div className="flex flex-col items-center justify-center py-12">
             <ShoppingBag className="w-16 h-16 text-muted-foreground/50 mb-4" />
             <h3 className="font-semibold text-lg mb-2">Seu pedido esta vazio</h3>
             <p className="text-muted-foreground">Adicione itens do menu</p>
           </div>
         ) : (
-          <>
-            <div className="flex-1 space-y-3 overflow-auto">
-              {cart.map((item) => (
-                <div key={item.id} className="flex gap-3 p-3 bg-secondary/50 rounded-xl">
-                  <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image src={item.image || ""} alt={item.name} fill className="object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium line-clamp-1">{item.name}</p>
-                    <p className="font-bold text-accent">R$ {item.price.toFixed(2).replace(".", ",")}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>
-                      <Minus className="w-3 h-3" />
-                    </Button>
-                    <span className="w-6 text-center text-sm">{item.quantity}</span>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  </div>
+          <div className="space-y-3">
+            {cart.map((item) => (
+              <div key={item.cartKey} className="flex gap-3 p-3 bg-secondary/50 rounded-xl">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                  <Image src={item.image || ""} alt={item.name} fill className="object-cover" />
                 </div>
-              ))}
-            </div>
-            
-            <div className="border-t pt-4 mt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium line-clamp-1">{item.name}</p>
+                  {item.selectedCustomizations && item.selectedCustomizations.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {item.selectedCustomizations.map((customization) => (
+                        <p key={customization.id} className="text-xs text-muted-foreground line-clamp-1">
+                          {customization.name}: {customization.options.map((option) => option.name).join(", ")}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                  <p className="font-bold text-accent">{formatCurrency(getCartItemUnitPrice(item))}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.cartKey, item.quantity - 1)}>
+                    <Minus className="w-3 h-3" />
+                  </Button>
+                  <span className="w-6 text-center text-sm">{item.quantity}</span>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdateQuantity(item.cartKey, item.quantity + 1)}>
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Entrega</span>
-                <span className={deliveryFee === 0 ? "text-green-600" : ""}>
-                  {deliveryFee === 0 ? "Gratis" : `R$ ${deliveryFee.toFixed(2).replace(".", ",")}`}
-                </span>
-              </div>
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span className="text-accent">R$ {total.toFixed(2).replace(".", ",")}</span>
-              </div>
-              <Button className="w-full h-12 mt-2" onClick={onCheckout}>
-                Finalizar pedido
-              </Button>
-            </div>
-          </>
+            ))}
+          </div>
         )}
       </div>
     </ActionDrawer>
@@ -249,23 +415,29 @@ export function RestaurantFeed() {
   const [itemDrawerOpen, setItemDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>("address")
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>("delivery")
+  const [paymentMethod, setPaymentMethod] = useState("")
+  const [formData, setFormData] = useState({ address: "", complement: "", phone: "", note: "" })
   const [cart, setCart] = useState<CartItem[]>([])
   
-  const handleAddToCart = (item: MenuItem, qty: number = 1) => {
+  const handleAddToCart = (item: MenuItem, qty: number = 1, selectedCustomizations: SelectedCustomization[] = []) => {
+    const cartKey = getCartKey(item, selectedCustomizations)
+
     setCart(prev => {
-      const existing = prev.find(i => i.id === item.id)
+      const existing = prev.find(i => i.cartKey === cartKey)
       if (existing) {
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + qty } : i)
+        return prev.map(i => i.cartKey === cartKey ? { ...i, quantity: i.quantity + qty } : i)
       }
-      return [...prev, { ...item, quantity: qty }]
+      return [...prev, { ...item, cartKey, quantity: qty, selectedCustomizations }]
     })
   }
   
-  const handleUpdateQuantity = (id: string, qty: number) => {
+  const handleUpdateQuantity = (cartKey: string, qty: number) => {
     if (qty <= 0) {
-      setCart(prev => prev.filter(i => i.id !== id))
+      setCart(prev => prev.filter(i => i.cartKey !== cartKey))
     } else {
-      setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: qty } : i))
+      setCart(prev => prev.map(i => i.cartKey === cartKey ? { ...i, quantity: qty } : i))
     }
   }
   
@@ -318,6 +490,44 @@ export function RestaurantFeed() {
   ]
 
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
+  const subtotal = cart.reduce((sum, item) => sum + getCartItemUnitPrice(item) * item.quantity, 0)
+  const freeDeliveryMinimum = deliveryInfo.freeDeliveryMinimum ?? 0
+  const isFreeDelivery = freeDeliveryMinimum > 0 && subtotal >= freeDeliveryMinimum
+  const checkoutDeliveryFee = deliveryType === "delivery" && !isFreeDelivery ? deliveryInfo.deliveryFee : 0
+  const checkoutTotal = subtotal + checkoutDeliveryFee
+  const canChoosePayment = deliveryType === "pickup"
+    ? Boolean(formData.phone)
+    : Boolean(formData.address && formData.phone)
+  const checkoutTitle = checkoutStep === "address"
+    ? "Entrega do pedido"
+    : checkoutStep === "payment"
+      ? "Pagamento"
+      : "Confirmar pedido"
+  const checkoutCtaLabel = checkoutStep === "address"
+    ? "Escolher pagamento"
+    : checkoutStep === "payment"
+      ? "Selecione uma forma de pagamento"
+      : "Confirmar pedido"
+  const checkoutCtaDisabled = checkoutStep === "address"
+    ? !canChoosePayment
+    : checkoutStep === "payment"
+      ? true
+      : !paymentMethod
+
+  const handleCheckoutCta = () => {
+    if (checkoutStep === "address") {
+      setCheckoutStep("payment")
+      return
+    }
+
+    if (checkoutStep === "confirmation") {
+      setCheckoutOpen(false)
+      setCart([])
+      setCheckoutStep("address")
+      setPaymentMethod("")
+      setFormData({ address: "", complement: "", phone: "", note: "" })
+    }
+  }
   
   return (
     <>
@@ -348,7 +558,10 @@ export function RestaurantFeed() {
         item={selectedItem}
         isOpen={itemDrawerOpen}
         onClose={() => setItemDrawerOpen(false)}
-        onAddToCart={handleAddToCart}
+        onAddToCart={(item, quantity, selectedCustomizations) => {
+          handleAddToCart(item, quantity, selectedCustomizations)
+          setCartDrawerOpen(true)
+        }}
       />
       
       <CartDrawer
@@ -358,6 +571,8 @@ export function RestaurantFeed() {
         onUpdateQuantity={handleUpdateQuantity}
         onCheckout={() => {
           setCartDrawerOpen(false)
+          setCheckoutStep("address")
+          setPaymentMethod("")
           setCheckoutOpen(true)
         }}
       />
@@ -365,21 +580,127 @@ export function RestaurantFeed() {
       <ActionDrawer
         isOpen={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
-        title="Finalizar Pedido"
+        title={checkoutTitle}
         size="lg"
+        footer={
+          <OrderSummaryFooter
+            itemCount={cartCount}
+            subtotal={subtotal}
+            deliveryFee={checkoutDeliveryFee}
+            total={checkoutTotal}
+            ctaLabel={checkoutCtaLabel}
+            onCta={handleCheckoutCta}
+            disabled={checkoutCtaDisabled}
+          />
+        }
       >
-        <RestaurantCheckout
-          items={cart}
-          deliveryInfo={deliveryInfo}
-          onComplete={() => {
-            setCheckoutOpen(false)
-            setCart([])
-          }}
-          onBack={() => {
-            setCheckoutOpen(false)
-            setCartDrawerOpen(true)
-          }}
-        />
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm text-muted-foreground">Seu pedido</h4>
+            {cart.map((item) => (
+              <div key={item.cartKey} className="flex justify-between gap-3 text-sm">
+                <div>
+                  <span>{item.quantity}x {item.name}</span>
+                  {item.selectedCustomizations && item.selectedCustomizations.length > 0 && (
+                    <div className="mt-0.5 space-y-0.5">
+                      {item.selectedCustomizations.map((customization) => (
+                        <p key={customization.id} className="text-xs text-muted-foreground">
+                          {customization.name}: {customization.options.map((option) => option.name).join(", ")}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <span>{formatCurrency(getCartItemUnitPrice(item) * item.quantity)}</span>
+              </div>
+            ))}
+          </div>
+
+          {checkoutStep === "address" && (
+            <>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDeliveryType("delivery")}
+                  className={`flex-1 py-3 rounded-xl border text-sm font-medium transition-colors ${
+                    deliveryType === "delivery" ? "border-accent bg-accent/10 text-accent" : "border-border"
+                  }`}
+                >
+                  Delivery
+                </button>
+                <button
+                  onClick={() => setDeliveryType("pickup")}
+                  className={`flex-1 py-3 rounded-xl border text-sm font-medium transition-colors ${
+                    deliveryType === "pickup" ? "border-accent bg-accent/10 text-accent" : "border-border"
+                  }`}
+                >
+                  Retirada
+                </button>
+              </div>
+
+              {deliveryType === "delivery" && (
+                <div className="space-y-3">
+                  <Input
+                    placeholder="Endereco completo"
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                  />
+                  <Input
+                    placeholder="Complemento (apt, bloco...)"
+                    value={formData.complement}
+                    onChange={(e) => setFormData(prev => ({ ...prev, complement: e.target.value }))}
+                  />
+                </div>
+              )}
+
+              <Input
+                placeholder="Telefone para contato"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+              />
+
+              <Input
+                placeholder="Observacoes do pedido (opcional)"
+                value={formData.note}
+                onChange={(e) => setFormData(prev => ({ ...prev, note: e.target.value }))}
+              />
+            </>
+          )}
+
+          {checkoutStep === "payment" && (
+            <div className="space-y-2">
+              {["Cartao na entrega", "Dinheiro", "PIX"].map((method) => (
+                <button
+                  key={method}
+                  onClick={() => {
+                    setPaymentMethod(method)
+                    setCheckoutStep("confirmation")
+                  }}
+                  className="w-full flex items-center justify-between p-4 rounded-xl border border-border hover:border-accent transition-colors"
+                >
+                  <span>{method}</span>
+                  <Check className="w-5 h-5 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {checkoutStep === "confirmation" && (
+            <div className="text-center space-y-4 py-4">
+              <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
+                <Check className="w-8 h-8 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">Revise seu pedido</h3>
+                <p className="text-sm text-muted-foreground">
+                  {deliveryType === "delivery" ? `Entrega em ${deliveryInfo.estimatedTime}` : "Retirada no balcao"}
+                </p>
+                {paymentMethod && (
+                  <p className="text-sm text-muted-foreground mt-1">Pagamento: {paymentMethod}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </ActionDrawer>
     </>
   )
