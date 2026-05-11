@@ -336,10 +336,6 @@ export function AppointmentFeed() {
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [bookedDate, setBookedDate] = useState<string | null>(null)
   const [bookedTime, setBookedTime] = useState<string | null>(null)
-  const totalReviews = barbers.reduce((sum, barber) => sum + barber.reviewCount, 0)
-  const averageRating = (
-    barbers.reduce((sum, barber) => sum + barber.rating, 0) / barbers.length
-  ).toFixed(1)
   
   // Handlers
   const handleSelectBarber = (barber: Professional) => {
@@ -371,10 +367,17 @@ export function AppointmentFeed() {
       icon: <Calendar className="w-5 h-5 text-accent" />,
       type: "primary-action",
       customContent: (
-        <ScheduleModule 
-          onSelectBarber={handleSelectBarber}
-          onSelectService={() => setServicesDrawerOpen(true)}
-        />
+        <>
+          <ScheduleModule 
+            onSelectBarber={handleSelectBarber}
+            onSelectService={() => setServicesDrawerOpen(true)}
+          />
+          <SocialCompactHero
+            variant="editorial"
+            headline="Na Barba Negra, corte preciso e barba bem feita andam juntos."
+            subheadline="Agende rapido e continue explorando o feed."
+          />
+        </>
       )
     },
     {
@@ -418,22 +421,6 @@ export function AppointmentFeed() {
         config={barberShopConfig}
         stories={appointmentContent.stories}
         sections={sections}
-        topContent={
-          <SocialCompactHero
-            brandLogo={barberShopConfig.logo}
-            brandName={barberShopConfig.name}
-            eyebrow="Cortes, barba e horario rapido"
-            headline="Agende seu horario sem sair do feed."
-            subheadline="Escolha o barbeiro e reserve em poucos toques."
-            primaryActionLabel="Agendar horario"
-            onPrimaryAction={handlePrimaryBooking}
-            highlights={[
-              `${barbers.length} barbeiros especialistas`,
-              `${averageRating} em ${totalReviews}+ avaliacoes`,
-              barberShopConfig.openingHours || "Atendimento sob consulta",
-            ]}
-          />
-        }
         onStoryClick={(story) => {
           if (story.isMain) {
             handlePrimaryBooking()

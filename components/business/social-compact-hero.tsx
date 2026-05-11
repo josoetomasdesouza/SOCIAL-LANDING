@@ -5,17 +5,19 @@ import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface SocialCompactHeroProps {
-  brandLogo: string
-  brandName: string
+  variant?: "default" | "editorial"
+  brandLogo?: string
+  brandName?: string
   eyebrow?: string
   headline: string
-  subheadline: string
-  primaryActionLabel: string
-  onPrimaryAction: () => void
-  highlights: string[]
+  subheadline?: string
+  primaryActionLabel?: string
+  onPrimaryAction?: () => void
+  highlights?: string[]
 }
 
 export function SocialCompactHero({
+  variant = "default",
   brandLogo,
   brandName,
   eyebrow,
@@ -23,20 +25,40 @@ export function SocialCompactHero({
   subheadline,
   primaryActionLabel,
   onPrimaryAction,
-  highlights,
+  highlights = [],
 }: SocialCompactHeroProps) {
+  const safeBrandLogo = brandLogo || ""
+  const safeBrandName = brandName || ""
+
+  if (variant === "editorial") {
+    return (
+      <section className="pt-5">
+        <div className="space-y-1.5">
+          <p className="text-[15px] font-medium leading-6 text-foreground text-pretty">
+            {headline}
+          </p>
+          {subheadline && (
+            <p className="text-sm leading-5 text-muted-foreground text-pretty">
+              {subheadline}
+            </p>
+          )}
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="px-4 sm:px-5 pt-3">
       <div className="rounded-[24px] border border-border/60 bg-card/95 shadow-sm">
         <div className="p-4 sm:p-5">
           <div className="flex items-center gap-2.5">
             <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-border/60">
-              <Image src={brandLogo} alt={brandName} fill className="object-cover" />
+              <Image src={safeBrandLogo} alt={safeBrandName} fill className="object-cover" />
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-semibold text-foreground">{brandName}</p>
+                <p className="truncate text-sm font-semibold text-foreground">{safeBrandName}</p>
                 <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                   Destaque
                 </span>
