@@ -7,6 +7,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { SocialCompactHero } from "../social-compact-hero"
+import { SocialContactCTA } from "../social-contact-cta"
 import { 
   Target, Heart, Users, Award, Mail, Phone, MapPin,
   Building2, Linkedin, ChevronRight, Send, Check,
@@ -220,6 +222,14 @@ export function InstitutionalFeed() {
       posts: [],
       customContent: (
         <div className="space-y-4">
+          <SocialCompactHero
+            variant="editorial"
+            brandLogo={institutionalConfig.logo}
+            brandName={institutionalConfig.name}
+            contextLabel="Sobre o instituto"
+            headline="Educacao ambiental que vira impacto real nas comunidades."
+            subheadline="O Instituto Futuro Verde conecta formacao, projetos e mobilizacao para construir um futuro mais sustentavel."
+          />
           <p className="text-muted-foreground leading-relaxed">
             O Instituto Futuro Verde e uma organizacao sem fins lucrativos dedicada a 
             transformar vidas atraves da educacao ambiental. Desde 2010, trabalhamos 
@@ -441,20 +451,31 @@ export function InstitutionalFeed() {
       type: "custom" as const,
       posts: [],
       customContent: (
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
-            <Phone className="w-5 h-5 text-accent" />
-            <span>{institutionalConfig.phone}</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
-            <Mail className="w-5 h-5 text-accent" />
-            <span>{institutionalConfig.email}</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
-            <MapPin className="w-5 h-5 text-accent" />
-            <span>{institutionalConfig.address}</span>
-          </div>
-        </div>
+        <SocialContactCTA
+          contextLabel="Contato rapido"
+          headline="Quer apoiar um projeto, tirar duvidas ou falar com o Instituto Futuro Verde?"
+          subheadline="Fale com a equipe, acompanhe nossos canais e encontre o melhor jeito de participar."
+          primaryContact={{
+            label: "Email",
+            value: institutionalConfig.email,
+            href: `mailto:${institutionalConfig.email}`,
+            icon: "mail",
+          }}
+          secondaryItems={[
+            {
+              label: "Telefone",
+              value: institutionalConfig.phone,
+              icon: "phone",
+            },
+            {
+              label: "Local",
+              value: "Av. Paulista • Sao Paulo",
+              icon: "map-pin",
+            },
+          ]}
+          primaryActionLabel="Fale conosco"
+          onPrimaryAction={() => setContactDrawerOpen(true)}
+        />
       )
     }
   ]

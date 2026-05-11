@@ -53,6 +53,7 @@ interface BusinessSocialLandingProps {
   config: BusinessConfig
   stories: BusinessStory[]
   sections: BusinessSection[]
+  topContent?: ReactNode
   onPostClick?: (post: BusinessPost) => void
   onStoryClick?: (story: BusinessStory) => void
   onStoryAction?: (story: BusinessStory) => boolean | void
@@ -699,6 +700,7 @@ export function BusinessSocialLanding({
   config,
   stories,
   sections,
+  topContent,
   onPostClick,
   onStoryClick,
   onStoryAction,
@@ -773,6 +775,9 @@ export function BusinessSocialLanding({
         <div className={reserveHeaderSpace ? "-mt-3" : undefined}>
           <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
         </div>
+
+        {/* Top content slot */}
+        {topContent}
         
         {/* Search Bar */}
         <BusinessSearchBar placeholder={`Buscar em ${config.name}...`} />

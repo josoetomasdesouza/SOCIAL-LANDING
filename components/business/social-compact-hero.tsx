@@ -1,0 +1,149 @@
+"use client"
+
+import Image from "next/image"
+import { ArrowRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { socialPatternClasses } from "./social-patterns"
+
+interface SocialCompactHeroProps {
+  variant?: "default" | "editorial"
+  brandLogo?: string
+  brandName?: string
+  contextLabel?: string
+  eyebrow?: string
+  headline: string
+  subheadline?: string
+  mediaSrc?: string
+  mediaAlt?: string
+  primaryActionLabel?: string
+  onPrimaryAction?: () => void
+  highlights?: string[]
+}
+
+export function SocialCompactHero({
+  variant = "default",
+  brandLogo,
+  brandName,
+  contextLabel,
+  eyebrow,
+  headline,
+  subheadline,
+  mediaSrc,
+  mediaAlt,
+  primaryActionLabel,
+  onPrimaryAction,
+  highlights = [],
+}: SocialCompactHeroProps) {
+  const safeBrandLogo = brandLogo || ""
+  const safeBrandName = brandName || ""
+  const resolvedContextLabel = contextLabel || eyebrow || "Sobre a marca"
+
+  if (variant === "editorial") {
+    return (
+      <section className="pt-5">
+        <article className="border-y border-border/40 py-4">
+          <div className="flex items-center gap-3">
+            {brandLogo && (
+              <div className="relative h-10 w-10 overflow-hidden rounded-full ring-1 ring-border/60">
+                <Image src={safeBrandLogo} alt={safeBrandName} fill className="object-cover" />
+              </div>
+            )}
+
+            <div className="min-w-0">
+              {brandName && (
+                <p className="truncate text-sm font-semibold text-foreground">{safeBrandName}</p>
+              )}
+              <p className={socialPatternClasses.editorialContext}>{resolvedContextLabel}</p>
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-1.5">
+            <p className={socialPatternClasses.editorialHeadline}>{headline}</p>
+            {subheadline && (
+              <p className={socialPatternClasses.editorialSubheadline}>
+                {subheadline}
+              </p>
+            )}
+          </div>
+
+          {mediaSrc && (
+            <div className="relative mt-4 aspect-[4/3] overflow-hidden rounded-2xl">
+              <Image
+                src={mediaSrc}
+                alt={mediaAlt || headline}
+                fill
+                className="object-cover"
+              />
+            </div>
+          )}
+
+          {primaryActionLabel && onPrimaryAction && (
+            <div className="mt-4">
+              <Button
+                type="button"
+                className={socialPatternClasses.primaryAction}
+                onClick={onPrimaryAction}
+              >
+                {primaryActionLabel}
+              </Button>
+            </div>
+          )}
+        </article>
+      </section>
+    )
+  }
+
+  return (
+    <section className="px-4 sm:px-5 pt-3">
+      <div className="rounded-[24px] border border-border/60 bg-card/95 shadow-sm">
+        <div className="p-4 sm:p-5">
+          <div className="flex items-center gap-2.5">
+            <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-border/60">
+              <Image src={safeBrandLogo} alt={safeBrandName} fill className="object-cover" />
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="truncate text-sm font-semibold text-foreground">{safeBrandName}</p>
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                  Destaque
+                </span>
+              </div>
+
+              {resolvedContextLabel && (
+                <p className="truncate text-xs text-muted-foreground">{resolvedContextLabel}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-1.5">
+            <h2 className="text-[1.35rem] font-semibold leading-tight text-balance text-foreground">
+              {headline}
+            </h2>
+            <p className="text-[13px] leading-5 text-muted-foreground text-pretty">
+              {subheadline}
+            </p>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {highlights.slice(0, 2).map((highlight) => (
+              <span
+                key={highlight}
+                className="rounded-full border border-border/60 bg-secondary/70 px-2.5 py-1 text-[11px] font-medium text-foreground/80"
+              >
+                {highlight}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-4">
+            <Button type="button" className="h-10 rounded-2xl px-4 text-sm" onClick={onPrimaryAction}>
+              {primaryActionLabel}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
