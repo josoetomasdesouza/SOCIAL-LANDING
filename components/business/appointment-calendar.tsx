@@ -6,7 +6,8 @@ import { ChevronLeft, ChevronRight, Clock, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { DayAvailability, Professional } from "@/lib/business-types"
 
-type AvailabilityInput = DayAvailability[] | Record<string, string[]>
+type AvailabilityInput = DayAvailability[] | Record<string, string[]> | unknown
+type NormalizedAvailability = Record<string, Array<{ time: string; available: boolean }>>
 
 interface AppointmentCalendarProps {
   professionals?: Professional[]
@@ -27,6 +28,54 @@ const MONTHS = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ]
 
+function normalizeAvailability(availability: AvailabilityInput): NormalizedAvailability {
+  if (!availability) return {}
+
+  if (Array.isArray(availability)) {
+    return availability.reduce<NormalizedAvailability>((acc, dayAvailability) => {
+      if (
+        !dayAvailability ||
+        typeof dayAvailability !== "object" ||
+        !("date" in dayAvailability) ||
+        typeof dayAvailability.date !== "string"
+      ) {
+        return acc
+      }
+
+      const slots = Array.isArray(dayAvailability.slots) ? dayAvailability.slots : []
+      acc[dayAvailability.date] = slots
+        .filter((slot) => slot && typeof slot.time === "string")
+        .map((slot) => ({ time: slot.time, available: slot.available !== false }))
+
+      return acc
+    }, {})
+  }
+
+  if (typeof availability === "object") {
+    return Object.entries(availability as Record<string, unknown>).reduce<NormalizedAvailability>((acc, [date, slots]) => {
+      if (!Array.isArray(slots)) return acc
+
+      acc[date] = slots
+        .map((slot) => {
+          if (typeof slot === "string") {
+            return { time: slot, available: true }
+          }
+
+          if (slot && typeof slot === "object" && "time" in slot && typeof slot.time === "string") {
+            return { time: slot.time, available: (slot as { available?: boolean }).available !== false }
+          }
+
+          return null
+        })
+        .filter((slot): slot is { time: string; available: boolean } => Boolean(slot))
+
+      return acc
+    }, {})
+  }
+
+  return {}
+}
+
 export function AppointmentCalendar({
   professionals = [],
   availability = [],
@@ -44,7 +93,10 @@ export function AppointmentCalendar({
   
   const selectedProfessional = professionals.find(p => p.id === selectedProfessionalId)
   const hasProfessionalPicker = professionals.length > 0
-  const activeAvailability: AvailabilityInput = selectedProfessional?.availability || availability
+  const activeAvailability = useMemo(
+    () => normalizeAvailability(selectedProfessional?.availability || availability),
+    [selectedProfessional?.availability, availability]
+  )
 
   // Gera dias do mes
   const calendarDays = useMemo(() => {
@@ -89,20 +141,8 @@ export function AppointmentCalendar({
   // Horarios disponiveis para o dia selecionado
   const availableSlots = useMemo(() => {
     if (!selectedDate) return []
-    
-    if (!activeAvailability) {
-      return []
-    }
 
-    if (!Array.isArray(activeAvailability)) {
-      return activeAvailability[selectedDate]?.map((time) => ({ time, available: true })) || []
-    }
-    
-    const dayAvailability = activeAvailability.find(
-      a => a.date === selectedDate
-    )
-    
-    return dayAvailability?.slots?.filter(s => s.available) || []
+    return (activeAvailability[selectedDate] || []).filter((slot) => slot.available)
   }, [activeAvailability, selectedDate])
 
   const formatDate = (date: Date) => {
