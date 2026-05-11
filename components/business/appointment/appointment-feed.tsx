@@ -415,8 +415,8 @@ export function AppointmentFeed() {
           headline="Quer falar com a Barba Negra ou ja sair com horario marcado?"
           whatsapp={barberShopConfig.whatsapp || ""}
           openingHours={barberShopConfig.openingHours || "Consulte horarios"}
-          location="Rua Augusta, Sao Paulo"
-          primaryActionLabel="Agendar horario"
+          location="Rua Augusta • Sao Paulo"
+          primaryActionLabel="Agendar agora"
           onPrimaryAction={handlePrimaryBooking}
         />
       )
