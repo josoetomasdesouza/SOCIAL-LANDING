@@ -770,7 +770,7 @@ export function BusinessSocialLanding({
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
         {/* Stories */}
-        <div className={reserveHeaderSpace === "compact" ? "-mt-3" : undefined}>
+        <div className={reserveHeaderSpace ? "-mt-3" : undefined}>
           <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
         </div>
         
