@@ -422,14 +422,14 @@ export function AppointmentFeed() {
           <SocialCompactHero
             brandLogo={barberShopConfig.logo}
             brandName={barberShopConfig.name}
-            eyebrow="Cortes, barba e agendamento rapido"
-            headline="Seu horario na barbearia, sem sair do fluxo."
-            subheadline="Escolha o barbeiro, reserve o melhor horario e continue explorando estilos e bastidores da casa."
+            eyebrow="Cortes, barba e horario rapido"
+            headline="Agende seu horario sem sair do feed."
+            subheadline="Escolha o barbeiro e reserve em poucos toques."
             primaryActionLabel="Agendar horario"
             onPrimaryAction={handlePrimaryBooking}
             highlights={[
               `${barbers.length} barbeiros especialistas`,
-              `${averageRating} de media em ${totalReviews}+ avaliacoes`,
+              `${averageRating} em ${totalReviews}+ avaliacoes`,
               barberShopConfig.openingHours || "Atendimento sob consulta",
             ]}
           />

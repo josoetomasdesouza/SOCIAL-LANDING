@@ -26,11 +26,11 @@ export function SocialCompactHero({
   highlights,
 }: SocialCompactHeroProps) {
   return (
-    <section className="px-4 sm:px-5 pt-4">
-      <div className="rounded-[28px] border border-border/60 bg-card/95 shadow-sm">
-        <div className="p-5 sm:p-6">
-          <div className="flex items-center gap-3">
-            <div className="relative h-11 w-11 overflow-hidden rounded-full ring-2 ring-border/60">
+    <section className="px-4 sm:px-5 pt-3">
+      <div className="rounded-[24px] border border-border/60 bg-card/95 shadow-sm">
+        <div className="p-4 sm:p-5">
+          <div className="flex items-center gap-2.5">
+            <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-border/60">
               <Image src={brandLogo} alt={brandName} fill className="object-cover" />
             </div>
 
@@ -48,28 +48,28 @@ export function SocialCompactHero({
             </div>
           </div>
 
-          <div className="mt-4 space-y-2">
-            <h2 className="text-[1.6rem] font-semibold leading-tight text-balance text-foreground">
+          <div className="mt-3 space-y-1.5">
+            <h2 className="text-[1.35rem] font-semibold leading-tight text-balance text-foreground">
               {headline}
             </h2>
-            <p className="text-sm leading-relaxed text-muted-foreground text-pretty">
+            <p className="text-[13px] leading-5 text-muted-foreground text-pretty">
               {subheadline}
             </p>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {highlights.slice(0, 3).map((highlight) => (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {highlights.slice(0, 2).map((highlight) => (
               <span
                 key={highlight}
-                className="rounded-full border border-border/60 bg-secondary/70 px-3 py-1.5 text-xs font-medium text-foreground/80"
+                className="rounded-full border border-border/60 bg-secondary/70 px-2.5 py-1 text-[11px] font-medium text-foreground/80"
               >
                 {highlight}
               </span>
             ))}
           </div>
 
-          <div className="mt-5">
-            <Button className="h-11 rounded-2xl px-5" onClick={onPrimaryAction}>
+          <div className="mt-4">
+            <Button className="h-10 rounded-2xl px-4 text-sm" onClick={onPrimaryAction}>
               {primaryActionLabel}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
