@@ -52,19 +52,24 @@ export function ActionDrawer({
     ? `translate(-50%, ${isOpen ? "0" : "100%"})`
     : `translateY(${isOpen ? "0" : "100%"})`
   const innerWidthClasses = "w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
+  const composerInsetStyle = {
+    paddingBottom: "calc(var(--social-conversation-composer-height, 0px) + 12px)",
+  }
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-50 transition-opacity"
+        className="fixed inset-0 bg-background/88 backdrop-blur-sm z-50 transition-opacity"
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
         className={`fixed ${widthClasses} bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
-        style={{ transform: drawerTransform }}
+        style={{
+          transform: drawerTransform,
+        }}
       >
         {/* Handle */}
         <div className="flex flex-shrink-0 justify-center pt-3 pb-2">
@@ -92,7 +97,10 @@ export function ActionDrawer({
         </div>
 
         {/* Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div
+          className="min-h-0 flex-1 overflow-y-auto"
+          style={footer ? undefined : composerInsetStyle}
+        >
           <div className={`${innerWidthClasses} p-5`}>
             {children}
           </div>
@@ -101,7 +109,10 @@ export function ActionDrawer({
         {/* Footer */}
         {footer && (
           <div className="flex-shrink-0 border-t border-border/50 bg-card">
-            <div className={`${innerWidthClasses} p-5`}>
+            <div
+              className={`${innerWidthClasses} p-5`}
+              style={composerInsetStyle}
+            >
               {footer}
             </div>
           </div>

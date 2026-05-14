@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { Play, Clock, Users, Star, Award, ChevronRight, BookOpen, GraduationCap, Newspaper } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
@@ -11,66 +12,120 @@ import { CourseCheckout } from "../checkout-flows"
 import { coursesConfig, courses } from "@/lib/mock-data/courses-data"
 import { coursesContent } from "@/lib/mock-data/business-content"
 import type { Course } from "@/lib/business-types"
+import { type ConversationContextItem, useConversationContextSelectionState } from "../conversation-context"
+import { useConversationLongPress } from "../use-conversation-long-press"
 
 // ========================================
 // MODULO: CURSOS EM DESTAQUE (OBJETIVO PRINCIPAL)
 // ========================================
-function CoursesModule({ onSelectCourse }: { onSelectCourse: (course: Course) => void }) {
+function CourseCardButton({
+  course,
+  onSelectCourse,
+  isContextSelected,
+  onContextToggle,
+}: {
+  course: Course
+  onSelectCourse: (course: Course) => void
+  isContextSelected: boolean
+  onContextToggle: (item: ConversationContextItem) => void
+}) {
+  const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
+  const contextItem: ConversationContextItem = {
+    id: `course:${course.id}`,
+    type: "course",
+    title: course.title,
+    description: course.description,
+    fallbackLabel: "Curso",
+  }
+  const { longPressHandlers, shouldHandleActivation } = useConversationLongPress({
+    onLongPress: () => onContextToggle(contextItem),
+  })
+
+  return (
+    <button
+      onClick={() => {
+        if (!shouldHandleActivation()) return
+        onSelectCourse(course)
+      }}
+      className={cn(
+        "w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors",
+        isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+      )}
+      {...longPressHandlers}
+    >
+      {isContextSelected && (
+        <div className="px-4 pt-4">
+          <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            Na conversa
+          </div>
+        </div>
+      )}
+      <div className="relative aspect-video">
+        <Image src={course.thumbnail} alt={course.title} fill className="object-cover" />
+        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+          <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
+            <Play className="w-6 h-6 text-foreground ml-1" />
+          </div>
+        </div>
+        {discount > 0 && (
+          <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0">-{discount}%</Badge>
+        )}
+      </div>
+      <div className="p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="relative w-8 h-8 rounded-full overflow-hidden">
+            <Image src={course.instructor.avatar} alt={course.instructor.name} fill className="object-cover" />
+          </div>
+          <span className="text-sm text-muted-foreground">{course.instructor.name}</span>
+        </div>
+        <h3 className="font-semibold text-foreground line-clamp-2">{course.title}</h3>
+        <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            {course.rating}
+          </span>
+          <span className="flex items-center gap-1">
+            <Users className="w-4 h-4" />
+            {(course.studentsCount / 1000).toFixed(1)}k
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="w-4 h-4" />
+            {course.duration}
+          </span>
+        </div>
+        <div className="flex items-baseline gap-2 mt-3">
+          <span className="text-lg font-bold text-accent">R$ {course.price.toFixed(2).replace(".", ",")}</span>
+          {course.originalPrice && (
+            <span className="text-sm text-muted-foreground line-through">R$ {course.originalPrice.toFixed(2).replace(".", ",")}</span>
+          )}
+        </div>
+      </div>
+    </button>
+  )
+}
+
+function CoursesModule({
+  onSelectCourse,
+  selectedContextIds,
+  onContextToggle,
+}: {
+  onSelectCourse: (course: Course) => void
+  selectedContextIds: Set<string>
+  onContextToggle: (item: ConversationContextItem) => void
+}) {
   const featuredCourses = courses.slice(0, 3)
   
   return (
     <div className="space-y-4">
-      {featuredCourses.map((course) => {
-        const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
-        return (
-          <button
-            key={course.id}
-            onClick={() => onSelectCourse(course)}
-            className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors"
-          >
-            <div className="relative aspect-video">
-              <Image src={course.thumbnail} alt={course.title} fill className="object-cover" />
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
-                  <Play className="w-6 h-6 text-foreground ml-1" />
-                </div>
-              </div>
-              {discount > 0 && (
-                <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0">-{discount}%</Badge>
-              )}
-            </div>
-            <div className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                  <Image src={course.instructor.avatar} alt={course.instructor.name} fill className="object-cover" />
-                </div>
-                <span className="text-sm text-muted-foreground">{course.instructor.name}</span>
-              </div>
-              <h3 className="font-semibold text-foreground line-clamp-2">{course.title}</h3>
-              <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  {course.rating}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  {(course.studentsCount / 1000).toFixed(1)}k
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  {course.duration}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-2 mt-3">
-                <span className="text-lg font-bold text-accent">R$ {course.price.toFixed(2).replace(".", ",")}</span>
-                {course.originalPrice && (
-                  <span className="text-sm text-muted-foreground line-through">R$ {course.originalPrice.toFixed(2).replace(".", ",")}</span>
-                )}
-              </div>
-            </div>
-          </button>
-        )
-      })}
+      {featuredCourses.map((course) => (
+        <CourseCardButton
+          key={course.id}
+          course={course}
+          onSelectCourse={onSelectCourse}
+          isContextSelected={selectedContextIds.has(`course:${course.id}`)}
+          onContextToggle={onContextToggle}
+        />
+      ))}
     </div>
   )
 }
@@ -106,13 +161,30 @@ function CourseDetailDrawer({
   course, 
   isOpen, 
   onClose,
-  onEnroll
+  onEnroll,
+  selectedContextIds,
+  onContextToggle,
 }: { 
   course: Course | null
   isOpen: boolean
   onClose: () => void
   onEnroll: () => void
+  selectedContextIds: Set<string>
+  onContextToggle: (item: ConversationContextItem) => void
 }) {
+  const contextItem: ConversationContextItem = {
+    id: `course:${course?.id || "pending"}`,
+    type: "course",
+    title: course?.title,
+    description: course?.description,
+    fallbackLabel: "Curso",
+  }
+  const isContextSelected = selectedContextIds.has(contextItem.id)
+  const { longPressHandlers } = useConversationLongPress({
+    onLongPress: () => {
+      if (course) onContextToggle(contextItem)
+    },
+  })
   if (!course) return null
   
   const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
@@ -120,52 +192,65 @@ function CourseDetailDrawer({
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={course.title} size="lg">
       <div className="space-y-6">
-        {/* Video Preview */}
-        <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
-          <Image src={course.thumbnail} alt={course.title} fill className="object-cover" />
-          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
-              <Play className="w-7 h-7 text-foreground ml-1" />
+        <div
+          className={cn(
+            "space-y-6 rounded-[28px] transition-all duration-200",
+            isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+          )}
+          {...longPressHandlers}
+        >
+          {isContextSelected && (
+            <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+              Na conversa
+            </div>
+          )}
+          {/* Video Preview */}
+          <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
+            <Image src={course.thumbnail} alt={course.title} fill className="object-cover" />
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+                <Play className="w-7 h-7 text-foreground ml-1" />
+              </div>
             </div>
           </div>
-        </div>
-        
-        {/* Instrutor */}
-        <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl">
-          <div className="relative w-12 h-12 rounded-full overflow-hidden">
-            <Image src={course.instructor.avatar} alt={course.instructor.name} fill className="object-cover" />
+          
+          {/* Instrutor */}
+          <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl">
+            <div className="relative w-12 h-12 rounded-full overflow-hidden">
+              <Image src={course.instructor.avatar} alt={course.instructor.name} fill className="object-cover" />
+            </div>
+            <div>
+              <p className="font-medium">{course.instructor.name}</p>
+              <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
+            </div>
           </div>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-3 bg-secondary/50 rounded-xl">
+              <Star className="w-5 h-5 mx-auto text-yellow-400" />
+              <p className="font-bold mt-1">{course.rating}</p>
+              <p className="text-xs text-muted-foreground">Avaliacao</p>
+            </div>
+            <div className="text-center p-3 bg-secondary/50 rounded-xl">
+              <Users className="w-5 h-5 mx-auto text-accent" />
+              <p className="font-bold mt-1">{(course.studentsCount / 1000).toFixed(1)}k</p>
+              <p className="text-xs text-muted-foreground">Alunos</p>
+            </div>
+            <div className="text-center p-3 bg-secondary/50 rounded-xl">
+              <Clock className="w-5 h-5 mx-auto text-accent" />
+              <p className="font-bold mt-1">{course.duration}</p>
+              <p className="text-xs text-muted-foreground">Duracao</p>
+            </div>
+          </div>
+          
+          {/* Descricao */}
           <div>
-            <p className="font-medium">{course.instructor.name}</p>
-            <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
+            <h4 className="font-medium mb-2">Sobre o curso</h4>
+            <p className="text-muted-foreground text-sm">{course.description}</p>
           </div>
         </div>
-        
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="text-center p-3 bg-secondary/50 rounded-xl">
-            <Star className="w-5 h-5 mx-auto text-yellow-400" />
-            <p className="font-bold mt-1">{course.rating}</p>
-            <p className="text-xs text-muted-foreground">Avaliacao</p>
-          </div>
-          <div className="text-center p-3 bg-secondary/50 rounded-xl">
-            <Users className="w-5 h-5 mx-auto text-accent" />
-            <p className="font-bold mt-1">{(course.studentsCount / 1000).toFixed(1)}k</p>
-            <p className="text-xs text-muted-foreground">Alunos</p>
-          </div>
-          <div className="text-center p-3 bg-secondary/50 rounded-xl">
-            <Clock className="w-5 h-5 mx-auto text-accent" />
-            <p className="font-bold mt-1">{course.duration}</p>
-            <p className="text-xs text-muted-foreground">Duracao</p>
-          </div>
-        </div>
-        
-        {/* Descricao */}
-        <div>
-          <h4 className="font-medium mb-2">Sobre o curso</h4>
-          <p className="text-muted-foreground text-sm">{course.description}</p>
-        </div>
-        
+
         {/* Features */}
         {course.features && (
           <div>
@@ -214,6 +299,12 @@ export function CoursesFeed() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [courseDrawerOpen, setCourseDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const {
+    contextItems,
+    selectedContextIds,
+    toggleContextItem,
+    removeContextItem,
+  } = useConversationContextSelectionState()
   
   const handleSelectCourse = (course: Course) => {
     setSelectedCourse(course)
@@ -226,7 +317,13 @@ export function CoursesFeed() {
       title: "Cursos em Destaque",
       icon: <GraduationCap className="w-5 h-5 text-accent" />,
       type: "primary-action",
-      customContent: <CoursesModule onSelectCourse={handleSelectCourse} />
+      customContent: (
+        <CoursesModule
+          onSelectCourse={handleSelectCourse}
+          selectedContextIds={selectedContextIds}
+          onContextToggle={toggleContextItem}
+        />
+      )
     },
     {
       id: "tracks",
@@ -270,6 +367,9 @@ export function CoursesFeed() {
         config={coursesConfig}
         stories={coursesContent.stories}
         sections={sections}
+        conversationContextItems={contextItems}
+        onConversationContextToggle={toggleContextItem}
+        onConversationContextRemove={removeContextItem}
         onStoryClick={(story) => {
           if (story.isMain && courses[0]) {
             handleSelectCourse(courses[0])
@@ -286,6 +386,8 @@ export function CoursesFeed() {
         course={selectedCourse}
         isOpen={courseDrawerOpen}
         onClose={() => setCourseDrawerOpen(false)}
+        selectedContextIds={selectedContextIds}
+        onContextToggle={toggleContextItem}
         onEnroll={() => {
           setCourseDrawerOpen(false)
           setCheckoutOpen(true)
