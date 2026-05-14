@@ -684,7 +684,7 @@ function FixedConversationComposer({
   const hasSelection = selectedPosts.length > 0
   const composerRef = useRef<HTMLDivElement>(null)
   const composerPlaceholder = hasSelection
-    ? "O que voce quer saber sobre isso?"
+    ? "Converse sobre os itens selecionados..."
     : `Pergunte sobre ${brandName}...`
 
   useEffect(() => {
@@ -719,62 +719,63 @@ function FixedConversationComposer({
   return (
     <div
       ref={composerRef}
-      className="fixed inset-x-0 bottom-0 z-[70] bg-gradient-to-t from-background via-background/96 to-transparent"
+      className="fixed inset-x-0 bottom-0 z-[70]"
     >
       <div className="mx-auto max-w-lg px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+8px)] sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
-        <div className="rounded-[26px] border border-border/45 bg-background/98 px-3 py-2.5 shadow-[0_-12px_28px_-24px_rgba(0,0,0,0.3)] backdrop-blur-xl sm:px-3.5">
-          <div className="flex gap-2.5">
-            <div className="relative mt-1 h-8 w-8 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/35">
+        <div className="rounded-[26px] border border-border/55 bg-card/88 px-3 py-2.5 shadow-[0_-10px_24px_-18px_rgba(15,23,42,0.18),0_-2px_10px_-8px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:px-3.5">
+          <div className="grid grid-cols-[auto,minmax(0,1fr)] items-center gap-x-2.5 gap-y-1.5">
+            {hasSelection && (
+              <div className="col-start-2 min-w-0 overflow-x-auto scrollbar-hide">
+                <div className="flex w-max min-w-full items-center gap-1.5 pr-1">
+                  {selectedPosts.map((post) => (
+                    <button
+                      key={post.id}
+                      type="button"
+                      onClick={() => onRemovePost(post.id)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/72 px-2.5 py-1 text-[13px] font-medium text-foreground/90 transition-colors hover:bg-background"
+                      title={normalizeConversationChipText(post.title) || getConversationChipLabel(post)}
+                    >
+                      <span className="max-w-[132px] truncate sm:max-w-[170px]">
+                        {getConversationChipLabel(post)}
+                      </span>
+                      <X className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className={cn(
+              "relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/35",
+              hasSelection ? "row-start-2" : "row-start-1"
+            )}>
               <Image src={brandLogo} alt={brandName} fill className="object-cover" />
             </div>
 
-            <div className="min-w-0 flex-1 space-y-1.5">
-              {hasSelection && (
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                    Conversando sobre:
-                  </p>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {selectedPosts.map((post) => (
-                      <button
-                        key={post.id}
-                        type="button"
-                        onClick={() => onRemovePost(post.id)}
-                        className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/70 bg-secondary/65 px-2.5 py-1 text-[13px] font-medium text-foreground transition-colors hover:bg-secondary"
-                        title={normalizeConversationChipText(post.title) || getConversationChipLabel(post)}
-                      >
-                        <span className="max-w-[140px] truncate sm:max-w-[180px]">
-                          {getConversationChipLabel(post)}
-                        </span>
-                        <X className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <form
+              className={cn(
+                "flex min-w-0 items-center gap-1.5",
+                hasSelection ? "row-start-2" : "row-start-1"
               )}
+              onSubmit={(event) => event.preventDefault()}
+            >
+              <input
+                type="text"
+                value={draftMessage}
+                onChange={(event) => setDraftMessage(event.target.value)}
+                placeholder={composerPlaceholder}
+                className="h-9 min-w-0 flex-1 bg-transparent pr-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/90"
+              />
 
-              <form
-                className="flex items-center gap-1.5"
-                onSubmit={(event) => event.preventDefault()}
+              <Button
+                type="submit"
+                size="icon"
+                className="h-[34px] w-[34px] flex-shrink-0 rounded-full bg-foreground text-background shadow-none transition-colors hover:bg-foreground/90"
+                aria-label="Enviar mensagem"
               >
-                <input
-                  type="text"
-                  value={draftMessage}
-                  onChange={(event) => setDraftMessage(event.target.value)}
-                  placeholder={composerPlaceholder}
-                  className="h-9 min-w-0 flex-1 bg-transparent pr-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/90"
-                />
-
-                <Button
-                  type="submit"
-                  size="icon"
-                  className="h-9 w-9 flex-shrink-0 rounded-full bg-foreground text-background shadow-none transition-colors hover:bg-foreground/90"
-                  aria-label="Enviar mensagem"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </form>
-            </div>
+                <Send className="h-3.5 w-3.5" />
+              </Button>
+            </form>
           </div>
         </div>
       </div>
