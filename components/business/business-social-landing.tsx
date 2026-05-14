@@ -759,13 +759,18 @@ function FixedConversationComposer({
               )}
               onSubmit={(event) => event.preventDefault()}
             >
-              <div className="flex-1 min-w-0">
+              <div className="relative flex-1 min-w-0">
+                {!draftMessage && (
+                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center text-left text-sm text-muted-foreground/90">
+                    {composerPlaceholder}
+                  </span>
+                )}
                 <input
                   type="text"
                   value={draftMessage}
                   onChange={(event) => setDraftMessage(event.target.value)}
-                  placeholder={composerPlaceholder}
-                  className="block h-9 w-full min-w-0 appearance-none bg-transparent text-left text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/90"
+                  placeholder=""
+                  className="block h-9 w-full min-w-0 appearance-none bg-transparent text-left text-sm text-foreground outline-none transition-colors"
                   style={{ textAlign: "left" }}
                 />
               </div>
