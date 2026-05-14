@@ -800,7 +800,7 @@ function FixedConversationComposer({
       className="fixed inset-x-0 bottom-0 z-[70] px-3 pb-[calc(env(safe-area-inset-bottom)+12px)]"
     >
       <div className="mx-auto max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
-        <div className="overflow-hidden rounded-[30px] border border-border/70 bg-background/95 shadow-[0_-12px_40px_-24px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+        <div className="overflow-hidden rounded-[30px] border border-border/50 bg-background shadow-none">
           <div className="px-4 pt-3">
             {hasSelection ? (
               <>
