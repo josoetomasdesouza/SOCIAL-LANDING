@@ -719,15 +719,15 @@ function FixedConversationComposer({
       className="fixed inset-x-0 bottom-0 z-[70] bg-background"
     >
       <div className="mx-auto max-w-lg px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
-        <div className="rounded-[28px] border border-border/60 bg-background px-3 py-3 shadow-[0_-16px_36px_-26px_rgba(0,0,0,0.35)] sm:px-4">
-          <div className="flex items-end gap-3">
-            <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/50">
+        <div className="rounded-[28px] border border-border/50 bg-background px-3 py-3 shadow-[0_-14px_30px_-24px_rgba(0,0,0,0.28)] sm:px-4">
+          <div className="flex gap-3">
+            <div className="relative mt-0.5 h-9 w-9 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/40">
               <Image src={brandLogo} alt={brandName} fill className="object-cover" />
             </div>
 
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 space-y-2">
               {hasSelection && (
-                <div className="mb-3">
+                <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                     Conversando sobre:
                   </p>
@@ -754,24 +754,22 @@ function FixedConversationComposer({
                 className="flex items-center gap-2"
                 onSubmit={(event) => event.preventDefault()}
               >
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={draftMessage}
-                    onChange={(event) => setDraftMessage(event.target.value)}
-                    placeholder={
-                      hasSelection
-                        ? "Pergunte sobre os conteudos selecionados..."
-                        : `Converse com ${brandName}...`
-                    }
-                    className="h-11 w-full rounded-full border border-border/60 bg-secondary/60 px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-accent/40 focus:bg-secondary"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={draftMessage}
+                  onChange={(event) => setDraftMessage(event.target.value)}
+                  placeholder={
+                    hasSelection
+                      ? "Pergunte sobre os conteudos selecionados..."
+                      : `Converse com ${brandName}...`
+                  }
+                  className="h-11 min-w-0 flex-1 bg-transparent pr-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground"
+                />
 
                 <Button
                   type="submit"
                   size="icon"
-                  className="h-11 w-11 flex-shrink-0 rounded-full"
+                  className="h-10 w-10 flex-shrink-0 rounded-full shadow-sm"
                   aria-label="Enviar mensagem"
                 >
                   <Send className="h-4 w-4" />
