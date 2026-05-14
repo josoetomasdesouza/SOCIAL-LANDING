@@ -456,7 +456,7 @@ export function BusinessFeedDrawer({
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 bg-background/88 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
       <div 
