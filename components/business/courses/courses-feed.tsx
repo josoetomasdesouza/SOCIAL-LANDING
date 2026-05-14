@@ -172,20 +172,22 @@ function CourseDetailDrawer({
   selectedContextIds: Set<string>
   onContextToggle: (item: ConversationContextItem) => void
 }) {
-  if (!course) return null
-  
-  const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
   const contextItem: ConversationContextItem = {
-    id: `course:${course.id}`,
+    id: `course:${course?.id || "pending"}`,
     type: "course",
-    title: course.title,
-    description: course.description,
+    title: course?.title,
+    description: course?.description,
     fallbackLabel: "Curso",
   }
   const isContextSelected = selectedContextIds.has(contextItem.id)
   const { longPressHandlers } = useConversationLongPress({
-    onLongPress: () => onContextToggle(contextItem),
+    onLongPress: () => {
+      if (course) onContextToggle(contextItem)
+    },
   })
+  if (!course) return null
+  
+  const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={course.title} size="lg">

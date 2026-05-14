@@ -142,19 +142,21 @@ function ServiceDrawer({
 }) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
-  
-  if (!service) return null
   const contextItem: ConversationContextItem = {
-    id: `service:${service.id}`,
+    id: `service:${service?.id || "pending"}`,
     type: "service",
-    title: service.name,
-    description: service.description,
+    title: service?.name,
+    description: service?.description,
     fallbackLabel: "Servico",
   }
   const isContextSelected = selectedContextIds.has(contextItem.id)
   const { longPressHandlers } = useConversationLongPress({
-    onLongPress: () => onContextToggle(contextItem),
+    onLongPress: () => {
+      if (service) onContextToggle(contextItem)
+    },
   })
+  
+  if (!service) return null
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={service.name} size="lg">

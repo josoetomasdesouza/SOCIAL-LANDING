@@ -223,22 +223,24 @@ function PropertyDetailDrawer({
   onContextToggle: (item: ConversationContextItem) => void
 }) {
   const [currentImage, setCurrentImage] = useState(0)
+  const contextItem: ConversationContextItem = {
+    id: `property:${property?.id || "pending"}`,
+    type: "property",
+    title: property?.title,
+    description: property?.description,
+    fallbackLabel: "Imovel",
+  }
+  const isContextSelected = selectedContextIds.has(contextItem.id)
+  const { longPressHandlers } = useConversationLongPress({
+    onLongPress: () => {
+      if (property) onContextToggle(contextItem)
+    },
+  })
   
   if (!property) return null
 
   const address = getPropertyAddressParts(property)
   const purpose = getPropertyPurpose(property)
-  const contextItem: ConversationContextItem = {
-    id: `property:${property.id}`,
-    type: "property",
-    title: property.title,
-    description: property.description,
-    fallbackLabel: "Imovel",
-  }
-  const isContextSelected = selectedContextIds.has(contextItem.id)
-  const { longPressHandlers } = useConversationLongPress({
-    onLongPress: () => onContextToggle(contextItem),
-  })
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={property.title} size="lg">

@@ -307,6 +307,19 @@ function ProductDetailDrawer({
       setSelectedVariants({})
     }
   }, [isOpen, product?.id])
+  const contextItem: ConversationContextItem = {
+    id: `product:${product?.id || "pending"}`,
+    type: "product",
+    title: product?.name,
+    description: product?.fullDescription || product?.description,
+    fallbackLabel: "Produto",
+  }
+  const isContextSelected = selectedContextIds.has(contextItem.id)
+  const { longPressHandlers } = useConversationLongPress({
+    onLongPress: () => {
+      if (product) onContextToggle(contextItem)
+    },
+  })
   
   if (!product) return null
   
@@ -316,17 +329,6 @@ function ProductDetailDrawer({
   const missingRequiredVariant = product.variants?.some((variant) => !selectedVariants[variant.id]) || false
   const unitPrice = product.price + getVariantPriceModifier(resolvedVariants)
   const totalPrice = unitPrice * quantity
-  const contextItem: ConversationContextItem = {
-    id: `product:${product.id}`,
-    type: "product",
-    title: product.name,
-    description: product.fullDescription || product.description,
-    fallbackLabel: "Produto",
-  }
-  const isContextSelected = selectedContextIds.has(contextItem.id)
-  const { longPressHandlers } = useConversationLongPress({
-    onLongPress: () => onContextToggle(contextItem),
-  })
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={product.name} size="lg">

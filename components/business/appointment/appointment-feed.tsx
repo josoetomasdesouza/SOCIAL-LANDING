@@ -313,19 +313,21 @@ function BarberDetailsDrawer({
       setSelectedTime(null)
     }
   }, [isOpen, barber?.id, service?.id])
-  
-  if (!barber) return null
   const barberContextItem: ConversationContextItem = {
-    id: `barber:${barber.id}`,
+    id: `barber:${barber?.id || "pending"}`,
     type: "professional",
-    title: barber.name,
-    description: barber.role,
+    title: barber?.name,
+    description: barber?.role,
     fallbackLabel: "Profissional",
   }
   const isContextSelected = selectedContextIds.has(barberContextItem.id)
   const { longPressHandlers } = useConversationLongPress({
-    onLongPress: () => onContextToggle(barberContextItem),
+    onLongPress: () => {
+      if (barber) onContextToggle(barberContextItem)
+    },
   })
+  
+  if (!barber) return null
   
   return (
     <ActionDrawer
