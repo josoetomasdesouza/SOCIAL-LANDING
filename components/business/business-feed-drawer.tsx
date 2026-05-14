@@ -389,7 +389,6 @@ export function BusinessFeedDrawer({
       <div 
         ref={containerRef}
         className="absolute inset-x-0 bottom-0 top-0 md:top-auto md:max-h-[92vh] bg-background rounded-t-3xl overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300 shadow-2xl"
-        style={{ bottom: "var(--social-conversation-composer-height, 0px)" }}
       >
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background/98 backdrop-blur-xl border-b border-border/50">
@@ -414,7 +413,10 @@ export function BusinessFeedDrawer({
         </div>
 
         {/* Feed Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{ paddingBottom: "calc(var(--social-conversation-composer-height, 0px) + 12px)" }}
+        >
           <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6">
             <div className="space-y-8">
               {orderedPosts.map((post, index) => {
