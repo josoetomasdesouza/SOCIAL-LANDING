@@ -203,42 +203,15 @@ function ProductsModule({
 
 function ProductReviewSnippet({
   review,
-  isContextSelected,
-  onContextToggle,
 }: {
   review: (typeof productReviews)[number]
-  isContextSelected: boolean
-  onContextToggle: (item: ConversationContextItem) => void
 }) {
-  const contextItem: ConversationContextItem = {
-    id: `product-review:${review.id}`,
-    type: "review",
-    title: `Review ${review.userName}`,
-    description: review.comment,
-    reviewerName: review.userName,
-    fallbackLabel: "Review",
-  }
-  const { longPressHandlers } = useConversationLongPress({
-    onLongPress: () => onContextToggle(contextItem),
-  })
-
   return (
-    <div
-      className={cn(
-        "flex items-start gap-3 rounded-xl p-3 transition-all duration-200",
-        isContextSelected && "bg-background ring-2 ring-accent/20 shadow-sm"
-      )}
-      {...longPressHandlers}
-    >
+    <div className="flex items-start gap-3 rounded-xl p-3">
       <div className="relative w-8 h-8 rounded-full overflow-hidden">
         <Image src={review.userAvatar} alt={review.userName} fill className="object-cover" />
       </div>
       <div>
-        {isContextSelected && (
-          <div className="mb-2 inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-            Na conversa
-          </div>
-        )}
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{review.userName}</span>
           <div className="flex">
@@ -332,68 +305,70 @@ function ProductDetailDrawer({
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={product.name} size="lg">
-      <div
-        className={cn(
-          "space-y-6 rounded-[28px] transition-all duration-200",
-          isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
-        )}
-        {...longPressHandlers}
-      >
-        {isContextSelected && (
-          <div className="inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-            Na conversa
-          </div>
-        )}
-        {/* Imagens */}
-        <div className="space-y-3">
-          <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
-            <Image src={product.images[selectedImage]} alt={product.name} fill className="object-cover" />
-            {discount > 0 && (
-              <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0 text-sm">-{discount}%</Badge>
+      <div className="space-y-6">
+        <div
+          className={cn(
+            "space-y-6 rounded-[28px] transition-all duration-200",
+            isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+          )}
+          {...longPressHandlers}
+        >
+          {isContextSelected && (
+            <div className="inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+              Na conversa
+            </div>
+          )}
+          {/* Imagens */}
+          <div className="space-y-3">
+            <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
+              <Image src={product.images[selectedImage]} alt={product.name} fill className="object-cover" />
+              {discount > 0 && (
+                <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0 text-sm">-{discount}%</Badge>
+              )}
+              <button
+                onClick={onToggleFavorite}
+                className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+              >
+                <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
+              </button>
+            </div>
+            {product.images.length > 1 && (
+              <div className="flex gap-2">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={`relative w-16 h-16 rounded-lg overflow-hidden ring-2 transition-colors ${selectedImage === idx ? "ring-accent" : "ring-transparent"}`}
+                  >
+                    <Image src={img} alt="" fill className="object-cover" />
+                  </button>
+                ))}
+              </div>
             )}
-            <button
-              onClick={onToggleFavorite}
-              className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-            >
-              <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
-            </button>
           </div>
-          {product.images.length > 1 && (
-            <div className="flex gap-2">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`relative w-16 h-16 rounded-lg overflow-hidden ring-2 transition-colors ${selectedImage === idx ? "ring-accent" : "ring-transparent"}`}
-                >
-                  <Image src={img} alt="" fill className="object-cover" />
-                </button>
-              ))}
+          
+          {/* Info */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-medium">{product.rating}</span>
+              </div>
+              <span className="text-sm text-muted-foreground">({product.reviewCount} avaliacoes)</span>
             </div>
-          )}
-        </div>
-        
-        {/* Info */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{product.rating}</span>
-            </div>
-            <span className="text-sm text-muted-foreground">({product.reviewCount} avaliacoes)</span>
+            <h2 className="text-xl font-bold">{product.name}</h2>
+            <p className="text-muted-foreground mt-2">{product.fullDescription || product.description}</p>
           </div>
-          <h2 className="text-xl font-bold">{product.name}</h2>
-          <p className="text-muted-foreground mt-2">{product.fullDescription || product.description}</p>
+          
+          {/* Preco */}
+          <div className="flex items-baseline gap-3">
+            <span className="text-3xl font-bold text-accent">R$ {unitPrice.toFixed(2).replace(".", ",")}</span>
+            {product.originalPrice && (
+              <span className="text-lg text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
+            )}
+          </div>
         </div>
-        
-        {/* Preco */}
-        <div className="flex items-baseline gap-3">
-          <span className="text-3xl font-bold text-accent">R$ {unitPrice.toFixed(2).replace(".", ",")}</span>
-          {product.originalPrice && (
-            <span className="text-lg text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
-          )}
-        </div>
-        
+
         {/* Variacoes */}
         {product.variants && product.variants.length > 0 && (
           <div className="space-y-4">
@@ -455,8 +430,6 @@ function ProductDetailDrawer({
               <ProductReviewSnippet
                 key={review.id}
                 review={review}
-                isContextSelected={selectedContextIds.has(`product-review:${review.id}`)}
-                onContextToggle={onContextToggle}
               />
             ))}
           </div>

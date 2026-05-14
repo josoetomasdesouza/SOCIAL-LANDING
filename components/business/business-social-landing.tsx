@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import type { BusinessConfig } from "@/lib/business-types"
-import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
 import {
   createConversationContextItemFromPost,
@@ -404,54 +403,16 @@ function BusinessSearchBar({ placeholder }: { placeholder?: string }) {
 function PostCard({ 
   post, 
   index, 
-  brandLogo, 
   onClick,
-  showChat = true,
   isContextSelected = false,
   onContextToggle
 }: { 
   post: BusinessPost
   index: number
-  brandLogo: string
   onClick?: () => void
-  showChat?: boolean
   isContextSelected?: boolean
   onContextToggle?: (post: BusinessPost) => void
 }) {
-  const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
-  
-  const chatMessages: Record<string, { messages: { content: string; isUser: boolean }[]; placeholder: string }> = {
-    video: {
-      messages: [{ content: "Esse tutorial tem dicas incriveis! Quer que eu resuma os pontos principais?", isUser: false }],
-      placeholder: "O que achou do video?"
-    },
-    "video-vertical": {
-      messages: [{ content: "Esse conteudo viralizou essa semana! Quer ver mais como esse?", isUser: false }],
-      placeholder: "Curti! Tem mais?"
-    },
-    product: {
-      messages: [
-        { content: "Esse produto esta entre os mais vendidos! Sabia que ele tem ingredientes exclusivos da Amazonia?", isUser: false },
-        { content: "Serio? Conta mais!", isUser: true },
-        { content: "Sim! E feito com castanha e oleo de buriti. Quer que eu explique os beneficios?", isUser: false }
-      ],
-      placeholder: "Vale a pena pra mim?"
-    },
-    news: {
-      messages: [{ content: "Essa noticia saiu em varios portais essa semana. Quer saber mais detalhes?", isUser: false }],
-      placeholder: "Me conta mais"
-    },
-    review: {
-      messages: [{ content: "Essa avaliacao foi muito curtida! Voce ja experimentou esse produto?", isUser: false }],
-      placeholder: "Ainda nao, e bom?"
-    },
-    social: {
-      messages: [{ content: "Esse post teve muito engajamento! O que achou?", isUser: false }],
-      placeholder: "Adorei!"
-    }
-  }
-  
-  const chatConfig = chatMessages[post.type] || chatMessages.social
   const { longPressHandlers, shouldHandleActivation } = useConversationLongPress({
     onLongPress: () => onContextToggle?.(post),
   })
@@ -504,21 +465,6 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type={post.type} index={index} />
         <SocialActions />
-        {showChat && (index % 3 === 0) && (
-          <div className="mt-4">
-            <SimulatedChat
-              messages={chatConfig.messages}
-              brandLogo={brandLogo}
-              userAvatar={userAvatar}
-              placeholder={chatConfig.placeholder}
-            />
-          </div>
-        )}
-        {showChat && (index % 3 !== 0) && (
-          <div className="mt-4">
-            <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-          </div>
-        )}
       </article>
     )
   }
@@ -560,16 +506,6 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type="product" index={index} />
         <SocialActions />
-        {showChat && (
-          <div className="mt-4">
-            <SimulatedChat
-              messages={chatConfig.messages}
-              brandLogo={brandLogo}
-              userAvatar={userAvatar}
-              placeholder={chatConfig.placeholder}
-            />
-          </div>
-        )}
       </article>
     )
   }
@@ -609,11 +545,6 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type="news" index={index} />
         <SocialActions />
-        {showChat && (
-          <div className="mt-4">
-            <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-          </div>
-        )}
       </article>
     )
   }
@@ -656,11 +587,6 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type="review" index={index} />
         <SocialActions />
-        {showChat && (
-          <div className="mt-4">
-            <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-          </div>
-        )}
       </article>
     )
   }
@@ -691,11 +617,6 @@ function PostCard({
       </div>
       <SocialProofWithAvatars type="social" index={index} />
       <SocialActions />
-      {showChat && (
-        <div className="mt-4">
-          <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-        </div>
-      )}
     </article>
   )
 }
@@ -739,9 +660,7 @@ function BusinessSectionComponent({
           key={post.id}
           post={post}
           index={index}
-          brandLogo={config.logo}
           onClick={() => onPostClick?.(post)}
-          showChat={false}
           isContextSelected={selectedContextPostIds.has(post.id)}
           onContextToggle={onContextToggle}
         />
@@ -1127,7 +1046,6 @@ export function BusinessSocialLanding({
         posts={allContentPosts}
         initialPost={selectedPost}
         category={feedDrawerCategory}
-        brandLogo={config.logo}
         brandName={config.name}
         selectedContextIds={selectedContextIds}
         onContextToggle={handleContextToggle}

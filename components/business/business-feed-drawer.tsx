@@ -2,11 +2,10 @@
 
 import { useEffect, useMemo, useRef, useCallback, useState, type RefObject } from "react"
 import Image from "next/image"
-import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Send, Newspaper } from "lucide-react"
+import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Newspaper } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { BusinessPost } from "./business-social-landing"
-import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
 import { useConversationLongPress } from "./use-conversation-long-press"
 
 interface BusinessFeedDrawerProps {
@@ -15,15 +14,11 @@ interface BusinessFeedDrawerProps {
   posts: BusinessPost[]
   initialPost: BusinessPost | null
   category: string
-  brandLogo: string
   brandName: string
   onAddToCart?: (post: BusinessPost) => void
   selectedContextIds?: Set<string>
   onContextToggle?: (post: BusinessPost) => void
 }
-
-// Avatar do usuario
-const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
 
 // Avatares de usuarios para prova social
 const socialAvatars = [
@@ -83,49 +78,6 @@ const contextualSocialProof: Record<string, string[]> = {
   ],
 }
 
-// Input placeholders contextuais
-const inputPlaceholders: Record<string, string[]> = {
-  video: ["vale a pena assistir?", "tem mais videos assim?", "gostei, quero ver mais"],
-  "video-vertical": ["adorei esse!", "tem mais assim?", "quero ver mais"],
-  product: ["esse e bom pra mim?", "qual a diferenca desse?", "vale a pena?"],
-  news: ["onde posso ler mais?", "tem mais sobre isso?", "interessante, conta mais"],
-  review: ["posso confiar nessa avaliacao?", "tem mais avaliacoes?", "quero ver outras opinioes"],
-  social: ["quero saber mais!", "como participo?", "adorei, tem mais?"],
-}
-
-// Mensagens iniciais da IA
-const aiInitialMessages: Record<string, string[]> = {
-  video: [
-    "Esse video mostra tecnicas que poucas pessoas conhecem. Quer descobrir mais?",
-    "Curiosidade: esse tutorial foi um dos mais salvos da semana.",
-    "Sabia que esse conteudo ajudou milhares de pessoas?",
-  ],
-  "video-vertical": [
-    "Esse conteudo viralizou essa semana! Quer ver mais como esse?",
-    "Esse video tem dicas rapidas e praticas. Curtiu?",
-    "Conteudo rapido e direto ao ponto. Quer mais assim?",
-  ],
-  product: [
-    "Esse produto esta entre os mais vendidos! Quer saber mais?",
-    "Curiosidade: esse foi o favorito dos clientes esse mes.",
-    "Muita gente esta de olho nesse produto. Posso te ajudar?",
-  ],
-  news: [
-    "Essa noticia esta gerando muita repercussao. Quer saber mais?",
-    "Esse assunto esta em alta. Posso te contar os detalhes?",
-    "Muita gente comentou sobre isso. Quer participar da conversa?",
-  ],
-  review: [
-    "Muitas pessoas tiveram experiencia parecida. Quer ver mais avaliacoes?",
-    "Essa avaliacao foi marcada como util por centenas de pessoas.",
-    "Os clientes adoram compartilhar suas experiencias. Veja mais!",
-  ],
-  social: [
-    "Esse post ta gerando bastante conversa. O que voce achou?",
-    "A comunidade adorou isso. Quer participar tambem?",
-    "Esse conteudo teve muito engajamento. Curte?",
-  ],
-}
 
 const categoryLabels: Record<string, string> = {
   all: "Conteudos",
@@ -212,7 +164,6 @@ function FeedDrawerPostArticle({
   post,
   index,
   isInitial,
-  brandLogo,
   brandName,
   initialPostRef,
   onAddToCart,
@@ -222,18 +173,12 @@ function FeedDrawerPostArticle({
   post: BusinessPost
   index: number
   isInitial: boolean
-  brandLogo: string
   brandName: string
   initialPostRef: RefObject<HTMLElement | null>
   onAddToCart?: (post: BusinessPost) => void
   isContextSelected: boolean
   onContextToggle?: (post: BusinessPost) => void
 }) {
-  const placeholders = inputPlaceholders[post.type] || inputPlaceholders.social
-  const placeholder = placeholders[index % placeholders.length]
-  const aiMessages = aiInitialMessages[post.type] || aiInitialMessages.social
-  const aiMessage = aiMessages[index % aiMessages.length]
-  const showConversation = index % 3 === 0
   const { longPressHandlers, shouldHandleActivation } = useConversationLongPress({
     onLongPress: () => onContextToggle?.(post),
   })
@@ -368,23 +313,6 @@ function FeedDrawerPostArticle({
         <SocialActions />
       </div>
 
-      <div className="mt-4 pt-4 border-t border-border/30">
-        {showConversation ? (
-          <SimulatedChat
-            messages={[{ content: aiMessage, isUser: false }]}
-            brandLogo={brandLogo}
-            userAvatar={userAvatar}
-            placeholder={placeholder}
-          />
-        ) : (
-          <SimpleChatInput
-            brandLogo={brandLogo}
-            userAvatar={userAvatar}
-            placeholder={placeholder}
-          />
-        )}
-      </div>
-
       {post.type === "product" && (
         <Button
           onClick={() => {
@@ -406,7 +334,6 @@ export function BusinessFeedDrawer({
   posts, 
   initialPost, 
   category, 
-  brandLogo,
   brandName,
   onAddToCart,
   selectedContextIds,
@@ -500,7 +427,6 @@ export function BusinessFeedDrawer({
                     post={post}
                     index={index}
                     isInitial={isInitial}
-                    brandLogo={brandLogo}
                     brandName={brandName}
                     initialPostRef={initialPostRef}
                     onAddToCart={onAddToCart}

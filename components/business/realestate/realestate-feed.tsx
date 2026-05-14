@@ -244,80 +244,85 @@ function PropertyDetailDrawer({
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={property.title} size="lg">
-      <div
-        className={cn(
-          "space-y-6 rounded-[28px] transition-all duration-200",
-          isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
-        )}
-        {...longPressHandlers}
-      >
-        {isContextSelected && (
-          <div className="inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-            Na conversa
-          </div>
-        )}
-        {/* Galeria */}
-        <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
-          <Image src={property.images[currentImage]} alt={property.title} fill className="object-cover" />
-          {property.images.length > 1 && (
-            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1">
-              {property.images.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentImage(idx)}
-                  className={`w-2 h-2 rounded-full transition-colors ${idx === currentImage ? "bg-white" : "bg-white/50"}`}
-                />
-              ))}
+      <div className="space-y-6">
+        <div
+          className={cn(
+            "space-y-6 rounded-[28px] transition-all duration-200",
+            isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+          )}
+          {...longPressHandlers}
+        >
+          {isContextSelected && (
+            <div className="inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+              Na conversa
             </div>
           )}
-        </div>
-        
-        {/* Info */}
-        <div>
-          <Badge className="mb-2">{purpose === "sale" ? "Venda" : "Aluguel"}</Badge>
-          <h2 className="text-xl font-bold">{property.title}</h2>
-          <div className="flex items-center gap-1 text-muted-foreground mt-1">
-            <MapPin className="w-4 h-4" />
-            <span>{address.street}, {address.neighborhood} - {address.city}</span>
+          {/* Galeria */}
+          <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
+            <Image src={property.images[currentImage]} alt={property.title} fill className="object-cover" />
+            {property.images.length > 1 && (
+              <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1">
+                {property.images.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentImage(idx)}
+                    className={`w-2 h-2 rounded-full transition-colors ${idx === currentImage ? "bg-white" : "bg-white/50"}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Info */}
+          <div>
+            <Badge className="mb-2">{purpose === "sale" ? "Venda" : "Aluguel"}</Badge>
+            <h2 className="text-xl font-bold">{property.title}</h2>
+            <div className="flex items-center gap-1 text-muted-foreground mt-1">
+              <MapPin className="w-4 h-4" />
+              <span>{address.street}, {address.neighborhood} - {address.city}</span>
+            </div>
+          </div>
+          
+          {/* Caracteristicas */}
+          <div className="grid grid-cols-4 gap-3">
+            <div className="text-center p-3 bg-secondary/50 rounded-xl">
+              <Bed className="w-5 h-5 mx-auto text-accent" />
+              <p className="font-bold mt-1">{property.bedrooms}</p>
+              <p className="text-xs text-muted-foreground">Quartos</p>
+            </div>
+            <div className="text-center p-3 bg-secondary/50 rounded-xl">
+              <Bath className="w-5 h-5 mx-auto text-accent" />
+              <p className="font-bold mt-1">{property.bathrooms}</p>
+              <p className="text-xs text-muted-foreground">Banheiros</p>
+            </div>
+            <div className="text-center p-3 bg-secondary/50 rounded-xl">
+              <Car className="w-5 h-5 mx-auto text-accent" />
+              <p className="font-bold mt-1">{property.parkingSpaces || 0}</p>
+              <p className="text-xs text-muted-foreground">Vagas</p>
+            </div>
+            <div className="text-center p-3 bg-secondary/50 rounded-xl">
+              <Maximize className="w-5 h-5 mx-auto text-accent" />
+              <p className="font-bold mt-1">{property.area}</p>
+              <p className="text-xs text-muted-foreground">m2</p>
+            </div>
+          </div>
+          
+          {/* Descricao */}
+          <div>
+            <h4 className="font-medium mb-2">Descricao</h4>
+            <p className="text-sm text-muted-foreground">{property.description}</p>
+          </div>
+          
+          <div className="bg-secondary/50 rounded-xl p-4">
+            <p className="text-2xl font-bold text-accent">
+              R$ {property.price.toLocaleString("pt-BR")}
+              {purpose === "rent" && <span className="text-base font-normal text-muted-foreground">/mes</span>}
+            </p>
           </div>
         </div>
         
-        {/* Caracteristicas */}
-        <div className="grid grid-cols-4 gap-3">
-          <div className="text-center p-3 bg-secondary/50 rounded-xl">
-            <Bed className="w-5 h-5 mx-auto text-accent" />
-            <p className="font-bold mt-1">{property.bedrooms}</p>
-            <p className="text-xs text-muted-foreground">Quartos</p>
-          </div>
-          <div className="text-center p-3 bg-secondary/50 rounded-xl">
-            <Bath className="w-5 h-5 mx-auto text-accent" />
-            <p className="font-bold mt-1">{property.bathrooms}</p>
-            <p className="text-xs text-muted-foreground">Banheiros</p>
-          </div>
-          <div className="text-center p-3 bg-secondary/50 rounded-xl">
-            <Car className="w-5 h-5 mx-auto text-accent" />
-            <p className="font-bold mt-1">{property.parkingSpaces || 0}</p>
-            <p className="text-xs text-muted-foreground">Vagas</p>
-          </div>
-          <div className="text-center p-3 bg-secondary/50 rounded-xl">
-            <Maximize className="w-5 h-5 mx-auto text-accent" />
-            <p className="font-bold mt-1">{property.area}</p>
-            <p className="text-xs text-muted-foreground">m2</p>
-          </div>
-        </div>
-        
-        {/* Descricao */}
-        <div>
-          <h4 className="font-medium mb-2">Descricao</h4>
-          <p className="text-sm text-muted-foreground">{property.description}</p>
-        </div>
-        
-        {/* Preco e acoes */}
+        {/* Acoes */}
         <div className="bg-secondary/50 rounded-xl p-4">
-          <p className="text-2xl font-bold text-accent mb-3">
-            R$ {property.price.toLocaleString("pt-BR")}
-            {purpose === "rent" && <span className="text-base font-normal text-muted-foreground">/mes</span>}
-          </p>
           <div className="grid grid-cols-2 gap-3">
             <Button variant="outline" className="h-12" onClick={onContact}>
               <Phone className="w-5 h-5 mr-2" />

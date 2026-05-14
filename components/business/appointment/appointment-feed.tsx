@@ -79,51 +79,24 @@ function AppointmentServiceCard({
 function StyleCard({
   style,
   onSelectStyle,
-  isContextSelected,
-  onContextToggle,
 }: {
   style: StyleExample
   onSelectStyle: (style: StyleExample) => void
-  isContextSelected: boolean
-  onContextToggle: (item: ConversationContextItem) => void
 }) {
-  const contextItem: ConversationContextItem = {
-    id: `style:${style.id}`,
-    type: "content",
-    title: style.name,
-    description: "trend" in style && style.trend ? "Em alta" : style.category,
-    fallbackLabel: "Estilo",
-  }
-  const { longPressHandlers, shouldHandleActivation } = useConversationLongPress({
-    onLongPress: () => onContextToggle(contextItem),
-  })
-
   return (
     <button
       type="button"
       onClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
-        if (!shouldHandleActivation()) return
         onSelectStyle(style)
       }}
       className="flex-shrink-0 group"
-      {...longPressHandlers}
     >
-      <div
-        className={cn(
-          "relative w-32 h-40 rounded-xl overflow-hidden transition-all duration-200",
-          isContextSelected && "ring-2 ring-accent/30 ring-offset-2 ring-offset-background shadow-lg"
-        )}
-      >
+      <div className="relative w-32 h-40 rounded-xl overflow-hidden transition-all duration-200">
         <Image src={style.image} alt={style.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-3">
-          {isContextSelected && (
-            <div className="mb-2 inline-flex rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-              Na conversa
-            </div>
-          )}
           <p className="text-sm font-medium text-white">{style.name}</p>
           <Badge variant="secondary" className="mt-1 text-xs bg-white/20 text-white border-0">
             {"trend" in style && style.trend ? "Em alta" : style.category}
@@ -137,49 +110,24 @@ function StyleCard({
 function ProfessionalCard({
   barber,
   onSelectBarber,
-  isContextSelected,
-  onContextToggle,
 }: {
   barber: Professional
   onSelectBarber: (barber: Professional) => void
-  isContextSelected: boolean
-  onContextToggle: (item: ConversationContextItem) => void
 }) {
-  const contextItem: ConversationContextItem = {
-    id: `barber:${barber.id}`,
-    type: "professional",
-    title: barber.name,
-    description: barber.role,
-    fallbackLabel: "Profissional",
-  }
-  const { longPressHandlers, shouldHandleActivation } = useConversationLongPress({
-    onLongPress: () => onContextToggle(contextItem),
-  })
-
   return (
     <button
       type="button"
       onClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
-        if (!shouldHandleActivation()) return
         onSelectBarber(barber)
       }}
-      className={cn(
-        "w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors",
-        isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
-      )}
-      {...longPressHandlers}
+      className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
     >
       <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0">
         <Image src={barber.avatar} alt={barber.name} fill className="object-cover" />
       </div>
       <div className="flex-1 text-left">
-        {isContextSelected && (
-          <div className="mb-2 inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-            Na conversa
-          </div>
-        )}
         <p className="font-medium text-foreground">{barber.name}</p>
         <p className="text-sm text-muted-foreground">{barber.role}</p>
         <div className="flex items-center gap-1 mt-1">
@@ -262,12 +210,8 @@ function ScheduleModule({
 // ========================================
 function StylesModule({
   onSelectStyle,
-  selectedContextIds,
-  onContextToggle,
 }: {
   onSelectStyle: (style: StyleExample) => void
-  selectedContextIds: Set<string>
-  onContextToggle: (item: ConversationContextItem) => void
 }) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
@@ -276,8 +220,6 @@ function StylesModule({
           key={style.id}
           style={style}
           onSelectStyle={onSelectStyle}
-          isContextSelected={selectedContextIds.has(`style:${style.id}`)}
-          onContextToggle={onContextToggle}
         />
       ))}
     </div>
@@ -363,48 +305,50 @@ function BarberDetailsDrawer({
         </div>
       }
     >
-      <div
-        className={cn(
-          "space-y-6 rounded-[28px] transition-all duration-200",
-          isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
-        )}
-        {...longPressHandlers}
-      >
-        {isContextSelected && (
-          <div className="inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-            Na conversa
-          </div>
-        )}
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <div className="relative w-20 h-20 rounded-full overflow-hidden">
-            <Image src={barber.avatar} alt={barber.name} fill className="object-cover" />
-          </div>
-          <div>
-            <h3 className="font-bold text-lg">{barber.name}</h3>
-            <p className="text-sm text-muted-foreground">{barber.role}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-medium">{barber.rating}</span>
+      <div className="space-y-6">
+        <div
+          className={cn(
+            "space-y-6 rounded-[28px] transition-all duration-200",
+            isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+          )}
+          {...longPressHandlers}
+        >
+          {isContextSelected && (
+            <div className="inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+              Na conversa
+            </div>
+          )}
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <div className="relative w-20 h-20 rounded-full overflow-hidden">
+              <Image src={barber.avatar} alt={barber.name} fill className="object-cover" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">{barber.name}</h3>
+              <p className="text-sm text-muted-foreground">{barber.role}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span className="font-medium">{barber.rating}</span>
+                </div>
+                <span className="text-sm text-muted-foreground">({barber.reviewCount} avaliacoes)</span>
               </div>
-              <span className="text-sm text-muted-foreground">({barber.reviewCount} avaliacoes)</span>
             </div>
           </div>
+          
+          {service && (
+            <div className="bg-secondary/50 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h4 className="font-medium">{service.name}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{service.duration} minutos</p>
+                </div>
+                <p className="font-bold text-accent whitespace-nowrap">R$ {service.price}</p>
+              </div>
+            </div>
+          )}
         </div>
-        
-        {service && (
-          <div className="bg-secondary/50 rounded-xl p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h4 className="font-medium">{service.name}</h4>
-                <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
-                <p className="text-xs text-muted-foreground mt-2">{service.duration} minutos</p>
-              </div>
-              <p className="font-bold text-accent whitespace-nowrap">R$ {service.price}</p>
-            </div>
-          </div>
-        )}
         
         {/* Especialidades */}
         <div>
@@ -486,15 +430,11 @@ function ProfessionalsDrawer({
   isOpen,
   onClose,
   onSelectBarber,
-  selectedContextIds,
-  onContextToggle,
 }: {
   service: Service | null
   isOpen: boolean
   onClose: () => void
   onSelectBarber: (barber: Professional) => void
-  selectedContextIds: Set<string>
-  onContextToggle: (item: ConversationContextItem) => void
 }) {
   if (!service) return null
 
@@ -517,8 +457,6 @@ function ProfessionalsDrawer({
               key={barber.id}
               barber={barber}
               onSelectBarber={onSelectBarber}
-              isContextSelected={selectedContextIds.has(`barber:${barber.id}`)}
-              onContextToggle={onContextToggle}
             />
           ))}
         </div>
@@ -696,8 +634,6 @@ export function AppointmentFeed() {
       customContent: (
         <StylesModule
           onSelectStyle={handleSelectStyle}
-          selectedContextIds={selectedContextIds}
-          onContextToggle={toggleContextItem}
         />
       )
     },
@@ -794,8 +730,6 @@ export function AppointmentFeed() {
         isOpen={bookingStep === "professional"}
         onClose={() => setBookingStep(null)}
         onSelectBarber={handleSelectBarber}
-        selectedContextIds={selectedContextIds}
-        onContextToggle={toggleContextItem}
       />
       
       <ConfirmationDrawer

@@ -191,64 +191,66 @@ function CourseDetailDrawer({
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={course.title} size="lg">
-      <div
-        className={cn(
-          "space-y-6 rounded-[28px] transition-all duration-200",
-          isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
-        )}
-        {...longPressHandlers}
-      >
-        {isContextSelected && (
-          <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-            Na conversa
-          </div>
-        )}
-        {/* Video Preview */}
-        <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
-          <Image src={course.thumbnail} alt={course.title} fill className="object-cover" />
-          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
-              <Play className="w-7 h-7 text-foreground ml-1" />
+      <div className="space-y-6">
+        <div
+          className={cn(
+            "space-y-6 rounded-[28px] transition-all duration-200",
+            isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+          )}
+          {...longPressHandlers}
+        >
+          {isContextSelected && (
+            <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+              Na conversa
+            </div>
+          )}
+          {/* Video Preview */}
+          <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
+            <Image src={course.thumbnail} alt={course.title} fill className="object-cover" />
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+                <Play className="w-7 h-7 text-foreground ml-1" />
+              </div>
             </div>
           </div>
-        </div>
-        
-        {/* Instrutor */}
-        <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl">
-          <div className="relative w-12 h-12 rounded-full overflow-hidden">
-            <Image src={course.instructor.avatar} alt={course.instructor.name} fill className="object-cover" />
+          
+          {/* Instrutor */}
+          <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl">
+            <div className="relative w-12 h-12 rounded-full overflow-hidden">
+              <Image src={course.instructor.avatar} alt={course.instructor.name} fill className="object-cover" />
+            </div>
+            <div>
+              <p className="font-medium">{course.instructor.name}</p>
+              <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
+            </div>
           </div>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-3 bg-secondary/50 rounded-xl">
+              <Star className="w-5 h-5 mx-auto text-yellow-400" />
+              <p className="font-bold mt-1">{course.rating}</p>
+              <p className="text-xs text-muted-foreground">Avaliacao</p>
+            </div>
+            <div className="text-center p-3 bg-secondary/50 rounded-xl">
+              <Users className="w-5 h-5 mx-auto text-accent" />
+              <p className="font-bold mt-1">{(course.studentsCount / 1000).toFixed(1)}k</p>
+              <p className="text-xs text-muted-foreground">Alunos</p>
+            </div>
+            <div className="text-center p-3 bg-secondary/50 rounded-xl">
+              <Clock className="w-5 h-5 mx-auto text-accent" />
+              <p className="font-bold mt-1">{course.duration}</p>
+              <p className="text-xs text-muted-foreground">Duracao</p>
+            </div>
+          </div>
+          
+          {/* Descricao */}
           <div>
-            <p className="font-medium">{course.instructor.name}</p>
-            <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
+            <h4 className="font-medium mb-2">Sobre o curso</h4>
+            <p className="text-muted-foreground text-sm">{course.description}</p>
           </div>
         </div>
-        
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="text-center p-3 bg-secondary/50 rounded-xl">
-            <Star className="w-5 h-5 mx-auto text-yellow-400" />
-            <p className="font-bold mt-1">{course.rating}</p>
-            <p className="text-xs text-muted-foreground">Avaliacao</p>
-          </div>
-          <div className="text-center p-3 bg-secondary/50 rounded-xl">
-            <Users className="w-5 h-5 mx-auto text-accent" />
-            <p className="font-bold mt-1">{(course.studentsCount / 1000).toFixed(1)}k</p>
-            <p className="text-xs text-muted-foreground">Alunos</p>
-          </div>
-          <div className="text-center p-3 bg-secondary/50 rounded-xl">
-            <Clock className="w-5 h-5 mx-auto text-accent" />
-            <p className="font-bold mt-1">{course.duration}</p>
-            <p className="text-xs text-muted-foreground">Duracao</p>
-          </div>
-        </div>
-        
-        {/* Descricao */}
-        <div>
-          <h4 className="font-medium mb-2">Sobre o curso</h4>
-          <p className="text-muted-foreground text-sm">{course.description}</p>
-        </div>
-        
+
         {/* Features */}
         {course.features && (
           <div>
