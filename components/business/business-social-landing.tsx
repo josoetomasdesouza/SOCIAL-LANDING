@@ -719,68 +719,66 @@ function FixedConversationComposer({
       className="fixed inset-x-0 bottom-0 z-[70] bg-background"
     >
       <div className="mx-auto max-w-lg px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
-        <div className="border-t border-border/50 bg-background shadow-[0_-14px_32px_-28px_rgba(0,0,0,0.28)]">
-          <div className="px-1 pb-1">
-            {hasSelection ? (
-              <>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  Conversando sobre:
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {selectedPosts.map((post) => (
-                    <button
-                      key={post.id}
-                      type="button"
-                      onClick={() => onRemovePost(post.id)}
-                      className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/70 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-                      title={normalizeConversationChipText(post.title) || getConversationChipLabel(post)}
-                    >
-                      <span className="max-w-[140px] truncate sm:max-w-[180px]">
-                        {getConversationChipLabel(post)}
-                      </span>
-                      <X className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className="text-sm font-medium text-foreground">
-                Aperte e segure um post e converse sobre ele
-              </p>
-            )}
-          </div>
-
-          <form
-            className="mt-2 flex items-center gap-3 px-1 py-1"
-            onSubmit={(event) => event.preventDefault()}
-          >
+        <div className="rounded-[28px] border border-border/60 bg-background px-3 py-3 shadow-[0_-16px_36px_-26px_rgba(0,0,0,0.35)] sm:px-4">
+          <div className="flex items-end gap-3">
             <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/50">
               <Image src={brandLogo} alt={brandName} fill className="object-cover" />
             </div>
 
-            <div className="flex-1">
-              <input
-                type="text"
-                value={draftMessage}
-                onChange={(event) => setDraftMessage(event.target.value)}
-                placeholder={
-                  hasSelection
-                    ? "Pergunte sobre os conteudos selecionados..."
-                    : `Converse com ${brandName}...`
-                }
-                className="h-11 w-full rounded-full border border-border/60 bg-secondary/60 px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-accent/40 focus:bg-secondary"
-              />
-            </div>
+            <div className="min-w-0 flex-1">
+              {hasSelection && (
+                <div className="mb-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    Conversando sobre:
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {selectedPosts.map((post) => (
+                      <button
+                        key={post.id}
+                        type="button"
+                        onClick={() => onRemovePost(post.id)}
+                        className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-secondary/70 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                        title={normalizeConversationChipText(post.title) || getConversationChipLabel(post)}
+                      >
+                        <span className="max-w-[140px] truncate sm:max-w-[180px]">
+                          {getConversationChipLabel(post)}
+                        </span>
+                        <X className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-            <Button
-              type="submit"
-              size="icon"
-              className="h-11 w-11 rounded-full"
-              aria-label="Enviar mensagem"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
+              <form
+                className="flex items-center gap-2"
+                onSubmit={(event) => event.preventDefault()}
+              >
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={draftMessage}
+                    onChange={(event) => setDraftMessage(event.target.value)}
+                    placeholder={
+                      hasSelection
+                        ? "Pergunte sobre os conteudos selecionados..."
+                        : `Converse com ${brandName}...`
+                    }
+                    className="h-11 w-full rounded-full border border-border/60 bg-secondary/60 px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-accent/40 focus:bg-secondary"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="h-11 w-11 flex-shrink-0 rounded-full"
+                  aria-label="Enviar mensagem"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>
