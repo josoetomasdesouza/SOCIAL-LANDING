@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, ReactNode } from "react"
+import { useState, useCallback, useMemo, useEffect, useRef, type PointerEvent as ReactPointerEvent, type ReactNode } from "react"
 import Image from "next/image"
-import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
+import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, Send } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -83,6 +83,17 @@ const contextualSocialProof: Record<string, string[]> = {
   news: ["leram essa materia", "compartilharam essa noticia", "estao acompanhando"],
   review: ["acharam essa avaliacao util", "concordaram com essa opiniao", "tiveram experiencia parecida"],
   social: ["curtiram essa publicacao", "comentaram aqui", "compartilharam com alguem"],
+}
+
+const LONG_PRESS_DURATION_MS = 450
+
+const conversationChipLabels: Record<BusinessPost["type"], string> = {
+  video: "Video",
+  "video-vertical": "Video",
+  product: "Produto",
+  news: "Noticia",
+  review: "Review",
+  social: "Post",
 }
 
 // ========================================
@@ -396,15 +407,22 @@ function PostCard({
   index, 
   brandLogo, 
   onClick,
-  showChat = true
+  showChat = true,
+  isContextSelected = false,
+  onContextToggle
 }: { 
   post: BusinessPost
   index: number
   brandLogo: string
   onClick?: () => void
   showChat?: boolean
+  isContextSelected?: boolean
+  onContextToggle?: (post: BusinessPost) => void
 }) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
+  const longPressTimerRef = useRef<number | null>(null)
+  const longPressTriggeredRef = useRef(false)
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null)
   
   const chatMessages: Record<string, { messages: { content: string; isUser: boolean }[]; placeholder: string }> = {
     video: {
@@ -438,14 +456,83 @@ function PostCard({
   }
   
   const chatConfig = chatMessages[post.type] || chatMessages.social
+
+  const clearLongPressTimer = useCallback(() => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }, [])
+
+  useEffect(() => clearLongPressTimer, [clearLongPressTimer])
+
+  const handlePostActivation = useCallback(() => {
+    if (longPressTriggeredRef.current) {
+      longPressTriggeredRef.current = false
+      return
+    }
+
+    onClick?.()
+  }, [onClick])
+
+  const shouldIgnoreLongPress = (event: ReactPointerEvent<HTMLElement>) => {
+    return event.target instanceof HTMLElement
+      ? Boolean(event.target.closest("button, input, textarea, a"))
+      : false
+  }
+
+  const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    if (shouldIgnoreLongPress(event)) return
+    if (event.pointerType === "mouse" && event.button !== 0) return
+
+    longPressTriggeredRef.current = false
+    pointerStartRef.current = { x: event.clientX, y: event.clientY }
+    clearLongPressTimer()
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTriggeredRef.current = true
+      onContextToggle?.(post)
+    }, LONG_PRESS_DURATION_MS)
+  }
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (!pointerStartRef.current || longPressTimerRef.current === null) return
+
+    const distanceX = Math.abs(event.clientX - pointerStartRef.current.x)
+    const distanceY = Math.abs(event.clientY - pointerStartRef.current.y)
+
+    if (distanceX > 10 || distanceY > 10) {
+      clearLongPressTimer()
+    }
+  }
+
+  const handlePointerEnd = () => {
+    pointerStartRef.current = null
+    clearLongPressTimer()
+  }
   
   // Renderiza card baseado no tipo
   if (post.type === "video" || post.type === "video-vertical") {
     const isVertical = post.type === "video-vertical"
     return (
-      <article className="mb-8">
+      <article
+        className={cn(
+          "relative mb-8 rounded-[28px] transition-all duration-200",
+          isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+        )}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onPointerLeave={handlePointerEnd}
+      >
+        {isContextSelected && (
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            <MessageCircle className="h-3.5 w-3.5" />
+            Na conversa
+          </div>
+        )}
         <div 
-          onClick={onClick}
+          onClick={handlePostActivation}
           className={cn(
             "relative rounded-2xl overflow-hidden cursor-pointer group",
             isVertical ? "aspect-[9/16]" : "aspect-video"
@@ -492,8 +579,24 @@ function PostCard({
   if (post.type === "product") {
     const discount = post.originalPrice ? Math.round((1 - post.price! / post.originalPrice) * 100) : 0
     return (
-      <article className="mb-8">
-        <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group">
+      <article
+        className={cn(
+          "relative mb-8 rounded-[28px] transition-all duration-200",
+          isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+        )}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onPointerLeave={handlePointerEnd}
+      >
+        {isContextSelected && (
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            <MessageCircle className="h-3.5 w-3.5" />
+            Na conversa
+          </div>
+        )}
+        <div onClick={handlePostActivation} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group">
           <Image src={post.image} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
           {discount > 0 && (
             <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0">-{discount}%</Badge>
@@ -530,9 +633,25 @@ function PostCard({
   
   if (post.type === "news") {
     return (
-      <article className="mb-8">
+      <article
+        className={cn(
+          "relative mb-8 rounded-[28px] transition-all duration-200",
+          isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+        )}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onPointerLeave={handlePointerEnd}
+      >
+        {isContextSelected && (
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            <MessageCircle className="h-3.5 w-3.5" />
+            Na conversa
+          </div>
+        )}
         {post.image && (
-          <div onClick={onClick} className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group">
+          <div onClick={handlePostActivation} className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group">
             <Image src={post.image} alt={post.title} fill className="object-cover" />
             {post.source && (
               <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground border-0">{post.source}</Badge>
@@ -562,7 +681,23 @@ function PostCard({
   
   if (post.type === "review") {
     return (
-      <article className="mb-8 p-4 bg-card rounded-2xl border border-border/50">
+      <article
+        className={cn(
+          "relative mb-8 rounded-[28px] p-4 bg-card border border-border/50 transition-all duration-200",
+          isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+        )}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onPointerLeave={handlePointerEnd}
+      >
+        {isContextSelected && (
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            <MessageCircle className="h-3.5 w-3.5" />
+            Na conversa
+          </div>
+        )}
         <div className="flex items-start gap-3">
           {post.reviewerAvatar && (
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
@@ -597,9 +732,25 @@ function PostCard({
   
   // Social post (default)
   return (
-    <article className="mb-8">
+    <article
+      className={cn(
+        "relative mb-8 rounded-[28px] transition-all duration-200",
+        isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+      )}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerEnd}
+      onPointerCancel={handlePointerEnd}
+      onPointerLeave={handlePointerEnd}
+    >
+      {isContextSelected && (
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+          <MessageCircle className="h-3.5 w-3.5" />
+          Na conversa
+        </div>
+      )}
       {post.image && (
-        <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer">
+        <div onClick={handlePostActivation} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer">
           <Image src={post.image} alt={post.title} fill className="object-cover" />
         </div>
       )}
@@ -624,11 +775,15 @@ function PostCard({
 function BusinessSectionComponent({ 
   section, 
   config, 
-  onPostClick 
+  onPostClick,
+  selectedContextPostIds,
+  onContextToggle
 }: { 
   section: BusinessSection
   config: BusinessConfig
   onPostClick?: (post: BusinessPost) => void
+  selectedContextPostIds: Set<string>
+  onContextToggle: (post: BusinessPost) => void
 }) {
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
@@ -655,9 +810,93 @@ function BusinessSectionComponent({
           index={index}
           brandLogo={config.logo}
           onClick={() => onPostClick?.(post)}
+          showChat={false}
+          isContextSelected={selectedContextPostIds.has(post.id)}
+          onContextToggle={onContextToggle}
         />
       ))}
     </section>
+  )
+}
+
+function FixedConversationComposer({
+  brandName,
+  brandLogo,
+  selectedPosts,
+  onRemovePost,
+}: {
+  brandName: string
+  brandLogo: string
+  selectedPosts: BusinessPost[]
+  onRemovePost: (postId: string) => void
+}) {
+  const [draftMessage, setDraftMessage] = useState("")
+  const hasSelection = selectedPosts.length > 0
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-[70] px-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
+      <div className="mx-auto max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
+        <div className="overflow-hidden rounded-[30px] border border-border/70 bg-background/95 shadow-[0_-12px_40px_-24px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+          <div className="px-4 pt-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Conversando sobre:
+            </p>
+            {hasSelection ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {selectedPosts.map((post) => (
+                  <button
+                    key={post.id}
+                    type="button"
+                    onClick={() => onRemovePost(post.id)}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/70 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                    title={post.title}
+                  >
+                    <span>{conversationChipLabels[post.type]}</span>
+                    <X className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Segure um post do feed para trazer contexto visual para a conversa com {brandName}.
+              </p>
+            )}
+          </div>
+
+          <form
+            className="mt-3 flex items-center gap-3 border-t border-border/60 px-3 py-3"
+            onSubmit={(event) => event.preventDefault()}
+          >
+            <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/50">
+              <Image src={brandLogo} alt={brandName} fill className="object-cover" />
+            </div>
+
+            <div className="flex-1">
+              <input
+                type="text"
+                value={draftMessage}
+                onChange={(event) => setDraftMessage(event.target.value)}
+                placeholder={
+                  hasSelection
+                    ? "Pergunte sobre os conteudos selecionados..."
+                    : `Converse com ${brandName}...`
+                }
+                className="h-11 w-full rounded-full border border-border/60 bg-secondary/60 px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-accent/40 focus:bg-secondary"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              size="icon"
+              className="h-11 w-11 rounded-full"
+              aria-label="Enviar mensagem"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -710,6 +949,7 @@ export function BusinessSocialLanding({
   reserveHeaderSpace = true
 }: BusinessSocialLandingProps) {
   const [selectedPost, setSelectedPost] = useState<BusinessPost | null>(null)
+  const [contextPosts, setContextPosts] = useState<BusinessPost[]>([])
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [feedDrawerOpen, setFeedDrawerOpen] = useState(false)
   const [feedDrawerCategory, setFeedDrawerCategory] = useState<string>("all")
@@ -729,6 +969,11 @@ export function BusinessSocialLanding({
     })
     return posts
   }, [sections])
+
+  const selectedContextPostIds = useMemo(
+    () => new Set(contextPosts.map((post) => post.id)),
+    [contextPosts]
+  )
   
   const handlePostClick = useCallback((post: BusinessPost) => {
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
@@ -744,6 +989,22 @@ export function BusinessSocialLanding({
       onPostClick?.(post)
     }
   }, [onPostClick])
+
+  const handleContextToggle = useCallback((post: BusinessPost) => {
+    setContextPosts((currentPosts) => {
+      const isAlreadySelected = currentPosts.some((currentPost) => currentPost.id === post.id)
+
+      if (isAlreadySelected) {
+        return currentPosts.filter((currentPost) => currentPost.id !== post.id)
+      }
+
+      return [...currentPosts, post]
+    })
+  }, [])
+
+  const handleRemoveContextPost = useCallback((postId: string) => {
+    setContextPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId))
+  }, [])
   
   const handleCloseDrawer = useCallback(() => {
     setDrawerOpen(false)
@@ -762,7 +1023,7 @@ export function BusinessSocialLanding({
   }, [onStoryClick])
   
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-40">
       {/* Fixed Header */}
       <BusinessHeader config={config} />
       
@@ -790,6 +1051,8 @@ export function BusinessSocialLanding({
               section={section}
               config={config}
               onPostClick={handlePostClick}
+              selectedContextPostIds={selectedContextPostIds}
+              onContextToggle={handleContextToggle}
             />
           ))}
         </div>
@@ -800,6 +1063,13 @@ export function BusinessSocialLanding({
       
       {/* Footer */}
       <BusinessFooter config={config} links={footerLinks} />
+
+      <FixedConversationComposer
+        brandName={config.name}
+        brandLogo={config.logo}
+        selectedPosts={contextPosts}
+        onRemovePost={handleRemoveContextPost}
+      />
       
       {/* Story Viewer Modal */}
       <StoryViewer
