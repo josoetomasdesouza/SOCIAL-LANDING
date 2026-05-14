@@ -1,10 +1,18 @@
 "use client"
 
-import { Clock3, Mail, MapPin, MessageCircle, Phone } from "lucide-react"
+import { Clock3, Instagram, Link2, Mail, MapPin, MessageCircle, Phone, Youtube } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { socialPatternClasses } from "./social-patterns"
 
-type SocialContactIcon = "message-circle" | "mail" | "phone" | "clock" | "map-pin"
+type SocialContactIcon =
+  | "message-circle"
+  | "mail"
+  | "phone"
+  | "clock"
+  | "map-pin"
+  | "instagram"
+  | "youtube"
+  | "link-2"
 
 interface SocialContactItem {
   label: string
@@ -44,6 +52,12 @@ function formatWhatsAppLabel(whatsapp: string) {
 
 function renderContactIcon(icon: SocialContactIcon) {
   switch (icon) {
+    case "instagram":
+      return <Instagram className="h-4 w-4 text-accent" />
+    case "youtube":
+      return <Youtube className="h-4 w-4 text-accent" />
+    case "link-2":
+      return <Link2 className="h-4 w-4 text-accent" />
     case "mail":
       return <Mail className="h-4 w-4 text-accent" />
     case "phone":
