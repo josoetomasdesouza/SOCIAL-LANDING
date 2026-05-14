@@ -64,7 +64,10 @@ export function ActionDrawer({
       {/* Drawer */}
       <div
         className={`fixed ${widthClasses} bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
-        style={{ transform: drawerTransform }}
+        style={{
+          bottom: "var(--social-conversation-composer-height, 0px)",
+          transform: drawerTransform,
+        }}
       >
         {/* Handle */}
         <div className="flex flex-shrink-0 justify-center pt-3 pb-2">

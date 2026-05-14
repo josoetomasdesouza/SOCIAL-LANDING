@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, type ReactNode } from "react"
+import { useState, useCallback, useMemo, useEffect, useRef, type ReactNode } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, Send } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -763,9 +763,42 @@ function FixedConversationComposer({
 }) {
   const [draftMessage, setDraftMessage] = useState("")
   const hasSelection = selectedPosts.length > 0
+  const composerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const composerElement = composerRef.current
+    if (!composerElement) return
+
+    const rootStyle = document.documentElement.style
+    const updateComposerHeight = () => {
+      rootStyle.setProperty("--social-conversation-composer-height", `${composerElement.offsetHeight}px`)
+    }
+
+    updateComposerHeight()
+
+    if (typeof ResizeObserver === "undefined") {
+      return () => {
+        rootStyle.setProperty("--social-conversation-composer-height", "0px")
+      }
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateComposerHeight()
+    })
+
+    resizeObserver.observe(composerElement)
+
+    return () => {
+      resizeObserver.disconnect()
+      rootStyle.setProperty("--social-conversation-composer-height", "0px")
+    }
+  }, [hasSelection, selectedPosts.length])
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[70] px-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
+    <div
+      ref={composerRef}
+      className="fixed inset-x-0 bottom-0 z-[70] px-3 pb-[calc(env(safe-area-inset-bottom)+12px)]"
+    >
       <div className="mx-auto max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
         <div className="overflow-hidden rounded-[30px] border border-border/70 bg-background/95 shadow-[0_-12px_40px_-24px_rgba(0,0,0,0.45)] backdrop-blur-xl">
           <div className="px-4 pt-3">
@@ -971,7 +1004,10 @@ export function BusinessSocialLanding({
   }, [onStoryClick])
   
   return (
-    <div className="min-h-screen bg-background pb-40">
+    <div
+      className="min-h-screen bg-background"
+      style={{ paddingBottom: "calc(var(--social-conversation-composer-height, 0px) + 16px)" }}
+    >
       {/* Fixed Header */}
       <BusinessHeader config={config} />
       
