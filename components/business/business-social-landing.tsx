@@ -725,8 +725,8 @@ function FixedConversationComposer({
         <div className="rounded-[26px] border border-border/55 bg-card/88 px-3 py-2.5 shadow-[0_-10px_24px_-18px_rgba(15,23,42,0.18),0_-2px_10px_-8px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:px-3.5">
           <div className="grid grid-cols-[auto,minmax(0,1fr)] items-center gap-x-2.5 gap-y-1.5">
             {hasSelection && (
-              <div className="col-start-2 min-w-0 overflow-x-auto scrollbar-hide">
-                <div className="flex w-max min-w-full items-center gap-1.5 pr-1">
+              <div className="col-span-2 min-w-0 overflow-x-auto scrollbar-hide">
+                <div className="flex w-max items-center gap-1.5 pr-1">
                   {selectedPosts.map((post) => (
                     <button
                       key={post.id}
