@@ -751,10 +751,12 @@ function BusinessSectionComponent({
 }
 
 function FixedConversationComposer({
+  brandName,
   brandLogo,
   selectedPosts,
   onRemovePost,
 }: {
+  brandName: string
   brandLogo: string
   selectedPosts: ConversationContextItem[]
   onRemovePost: (postId: string) => void
@@ -1011,6 +1013,7 @@ export function BusinessSocialLanding({
       <BusinessFooter config={config} links={footerLinks} />
 
       <FixedConversationComposer
+        brandName={config.name}
         brandLogo={config.logo}
         selectedPosts={contextItems}
         onRemovePost={handleRemoveContextPost}
