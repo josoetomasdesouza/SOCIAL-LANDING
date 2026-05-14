@@ -754,7 +754,7 @@ function FixedConversationComposer({
 
             <form
               className={cn(
-                "flex min-w-0 items-center gap-1.5",
+                "flex w-full min-w-0 items-center justify-start gap-1.5 text-left",
                 hasSelection ? "row-start-2" : "row-start-1"
               )}
               onSubmit={(event) => event.preventDefault()}
@@ -764,7 +764,8 @@ function FixedConversationComposer({
                 value={draftMessage}
                 onChange={(event) => setDraftMessage(event.target.value)}
                 placeholder={composerPlaceholder}
-                className="h-9 min-w-0 flex-1 bg-transparent pr-2 text-left text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/90"
+                className="block h-9 w-full min-w-0 flex-1 appearance-none bg-transparent pr-2 text-left text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/90"
+                style={{ textAlign: "left" }}
               />
 
               <Button
