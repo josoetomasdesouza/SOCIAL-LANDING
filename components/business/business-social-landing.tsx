@@ -871,29 +871,31 @@ function FixedConversationComposer({
       <div className="mx-auto max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
         <div className="overflow-hidden rounded-[30px] border border-border/70 bg-background/95 shadow-[0_-12px_40px_-24px_rgba(0,0,0,0.45)] backdrop-blur-xl">
           <div className="px-4 pt-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Conversando sobre:
-            </p>
             {hasSelection ? (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {selectedPosts.map((post) => (
-                  <button
-                    key={post.id}
-                    type="button"
-                    onClick={() => onRemovePost(post.id)}
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/70 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-                    title={normalizeConversationChipText(post.title) || getConversationChipLabel(post)}
-                  >
-                    <span className="max-w-[140px] truncate sm:max-w-[180px]">
-                      {getConversationChipLabel(post)}
-                    </span>
-                    <X className="h-3.5 w-3.5 text-muted-foreground" />
-                  </button>
-                ))}
-              </div>
+              <>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Conversando sobre:
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {selectedPosts.map((post) => (
+                    <button
+                      key={post.id}
+                      type="button"
+                      onClick={() => onRemovePost(post.id)}
+                      className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/70 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                      title={normalizeConversationChipText(post.title) || getConversationChipLabel(post)}
+                    >
+                      <span className="max-w-[140px] truncate sm:max-w-[180px]">
+                        {getConversationChipLabel(post)}
+                      </span>
+                      <X className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
+                  ))}
+                </div>
+              </>
             ) : (
-              <p className="mt-2 text-sm text-muted-foreground">
-                Segure um post do feed para trazer contexto visual para a conversa com {brandName}.
+              <p className="text-sm font-medium text-foreground">
+                Aperte e segure um post e converse sobre ele
               </p>
             )}
           </div>
