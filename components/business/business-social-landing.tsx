@@ -683,6 +683,9 @@ function FixedConversationComposer({
   const [draftMessage, setDraftMessage] = useState("")
   const hasSelection = selectedPosts.length > 0
   const composerRef = useRef<HTMLDivElement>(null)
+  const composerPlaceholder = hasSelection
+    ? "O que voce quer saber sobre isso?"
+    : `Pergunte sobre ${brandName}...`
 
   useEffect(() => {
     const composerElement = composerRef.current
@@ -716,34 +719,34 @@ function FixedConversationComposer({
   return (
     <div
       ref={composerRef}
-      className="fixed inset-x-0 bottom-0 z-[70] bg-background"
+      className="fixed inset-x-0 bottom-0 z-[70] bg-gradient-to-t from-background via-background/96 to-transparent"
     >
-      <div className="mx-auto max-w-lg px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
-        <div className="rounded-[28px] border border-border/50 bg-background px-3 py-3 shadow-[0_-14px_30px_-24px_rgba(0,0,0,0.28)] sm:px-4">
-          <div className="flex gap-3">
-            <div className="relative mt-0.5 h-9 w-9 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/40">
+      <div className="mx-auto max-w-lg px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+8px)] sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
+        <div className="rounded-[26px] border border-border/45 bg-background/98 px-3 py-2.5 shadow-[0_-12px_28px_-24px_rgba(0,0,0,0.3)] backdrop-blur-xl sm:px-3.5">
+          <div className="flex gap-2.5">
+            <div className="relative mt-1 h-8 w-8 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/35">
               <Image src={brandLogo} alt={brandName} fill className="object-cover" />
             </div>
 
-            <div className="min-w-0 flex-1 space-y-2">
+            <div className="min-w-0 flex-1 space-y-1.5">
               {hasSelection && (
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                     Conversando sobre:
                   </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {selectedPosts.map((post) => (
                       <button
                         key={post.id}
                         type="button"
                         onClick={() => onRemovePost(post.id)}
-                        className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-secondary/70 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                        className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/70 bg-secondary/65 px-2.5 py-1 text-[13px] font-medium text-foreground transition-colors hover:bg-secondary"
                         title={normalizeConversationChipText(post.title) || getConversationChipLabel(post)}
                       >
                         <span className="max-w-[140px] truncate sm:max-w-[180px]">
                           {getConversationChipLabel(post)}
                         </span>
-                        <X className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                        <X className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
                       </button>
                     ))}
                   </div>
@@ -751,25 +754,21 @@ function FixedConversationComposer({
               )}
 
               <form
-                className="flex items-center gap-2"
+                className="flex items-center gap-1.5"
                 onSubmit={(event) => event.preventDefault()}
               >
                 <input
                   type="text"
                   value={draftMessage}
                   onChange={(event) => setDraftMessage(event.target.value)}
-                  placeholder={
-                    hasSelection
-                      ? "Pergunte sobre os conteudos selecionados..."
-                      : `Converse com ${brandName}...`
-                  }
-                  className="h-11 min-w-0 flex-1 bg-transparent pr-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground"
+                  placeholder={composerPlaceholder}
+                  className="h-9 min-w-0 flex-1 bg-transparent pr-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/90"
                 />
 
                 <Button
                   type="submit"
                   size="icon"
-                  className="h-10 w-10 flex-shrink-0 rounded-full shadow-sm"
+                  className="h-9 w-9 flex-shrink-0 rounded-full bg-foreground text-background shadow-none transition-colors hover:bg-foreground/90"
                   aria-label="Enviar mensagem"
                 >
                   <Send className="h-4 w-4" />
