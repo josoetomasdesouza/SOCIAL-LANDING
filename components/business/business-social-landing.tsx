@@ -681,8 +681,10 @@ function FixedConversationComposer({
   onRemovePost: (postId: string) => void
 }) {
   const [draftMessage, setDraftMessage] = useState("")
+  const [isComposerFocused, setIsComposerFocused] = useState(false)
   const hasSelection = selectedPosts.length > 0
   const composerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const composerPlaceholder = hasSelection
     ? "Converse sobre os itens selecionados..."
     : `Pergunte sobre ${brandName}...`
@@ -716,6 +718,12 @@ function FixedConversationComposer({
     }
   }, [hasSelection, selectedPosts.length])
 
+  useEffect(() => {
+    if (isComposerFocused) {
+      inputRef.current?.focus()
+    }
+  }, [isComposerFocused])
+
   return (
     <div
       ref={composerRef}
@@ -723,9 +731,9 @@ function FixedConversationComposer({
     >
       <div className="mx-auto max-w-lg px-3 pt-3 pb-[calc(env(safe-area-inset-bottom)+8px)] sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
         <div className="rounded-[26px] border border-border/55 bg-card/88 px-3 py-2.5 text-left shadow-[0_-10px_24px_-18px_rgba(15,23,42,0.18),0_-2px_10px_-8px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:px-3.5">
-          <div className="grid grid-cols-[auto,minmax(0,1fr)] items-center gap-x-2.5 gap-y-1.5 text-left">
+          <div className="space-y-1.5 text-left">
             {hasSelection && (
-              <div className="col-span-2 min-w-0 overflow-x-auto scrollbar-hide">
+              <div className="min-w-0 overflow-x-auto scrollbar-hide">
                 <div className="flex w-max items-center gap-1.5 pr-1">
                   {selectedPosts.map((post) => (
                     <button
@@ -745,40 +753,43 @@ function FixedConversationComposer({
               </div>
             )}
 
-            <div className={cn(
-              "relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/35",
-              hasSelection ? "row-start-2" : "row-start-1"
-            )}>
-              <Image src={brandLogo} alt={brandName} fill className="object-cover" />
-            </div>
-
             <form
-              className={cn(
-                "flex w-full min-w-0 items-center gap-1.5 text-left",
-                hasSelection ? "row-start-2" : "row-start-1"
-              )}
+              className="grid w-full min-w-0 grid-cols-[auto,minmax(0,1fr),auto] items-center gap-x-2.5 text-left"
               onSubmit={(event) => event.preventDefault()}
             >
-              <div className="relative flex-1 min-w-0">
-                {!draftMessage && (
-                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center text-left text-sm text-muted-foreground/90">
+              <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/35">
+                <Image src={brandLogo} alt={brandName} fill className="object-cover" />
+              </div>
+
+              <div className="min-w-0">
+                {draftMessage || isComposerFocused ? (
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={draftMessage}
+                    onChange={(event) => setDraftMessage(event.target.value)}
+                    onBlur={() => {
+                      if (!draftMessage) {
+                        setIsComposerFocused(false)
+                      }
+                    }}
+                    className="block h-9 w-full min-w-0 appearance-none bg-transparent text-left text-sm text-foreground outline-none transition-colors"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setIsComposerFocused(true)}
+                    className="flex h-9 w-full items-center text-left text-sm text-muted-foreground/90"
+                  >
                     {composerPlaceholder}
-                  </span>
+                  </button>
                 )}
-                <input
-                  type="text"
-                  value={draftMessage}
-                  onChange={(event) => setDraftMessage(event.target.value)}
-                  placeholder=""
-                  className="block h-9 w-full min-w-0 appearance-none bg-transparent text-left text-sm text-foreground outline-none transition-colors"
-                  style={{ textAlign: "left" }}
-                />
               </div>
 
               <Button
                 type="submit"
                 size="icon"
-                className="ml-auto h-[34px] w-[34px] flex-shrink-0 rounded-full bg-foreground text-background shadow-none transition-colors hover:bg-foreground/90"
+                className="h-[34px] w-[34px] flex-shrink-0 rounded-full bg-foreground text-background shadow-none transition-colors hover:bg-foreground/90"
                 aria-label="Enviar mensagem"
               >
                 <Send className="h-3.5 w-3.5" />
