@@ -797,7 +797,7 @@ function FixedConversationComposer({
   return (
     <div
       ref={composerRef}
-      className="fixed inset-x-0 bottom-0 z-[70] bg-background"
+      className="fixed inset-x-0 bottom-0 z-[70] border-t border-border/50 bg-background shadow-[0_-14px_32px_-28px_rgba(0,0,0,0.28)]"
     >
       <div className="mx-auto max-w-lg px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
         <div className="bg-background">
