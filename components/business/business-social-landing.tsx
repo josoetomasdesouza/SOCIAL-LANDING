@@ -754,20 +754,21 @@ function FixedConversationComposer({
             )}
 
             <form
-              className="grid w-full min-w-0 grid-cols-[auto,minmax(0,1fr),auto] items-center gap-x-2.5 text-left"
+              className="flex w-full min-w-0 flex-nowrap items-center gap-2.5 text-left"
               onSubmit={(event) => event.preventDefault()}
             >
               <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/35">
                 <Image src={brandLogo} alt={brandName} fill className="object-cover" />
               </div>
 
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 {draftMessage || isComposerFocused ? (
                   <input
                     ref={inputRef}
                     type="text"
                     value={draftMessage}
                     onChange={(event) => setDraftMessage(event.target.value)}
+                    onFocus={() => setIsComposerFocused(true)}
                     onBlur={() => {
                       if (!draftMessage) {
                         setIsComposerFocused(false)
@@ -779,7 +780,7 @@ function FixedConversationComposer({
                   <button
                     type="button"
                     onClick={() => setIsComposerFocused(true)}
-                    className="flex h-9 w-full items-center text-left text-sm text-muted-foreground/90"
+                    className="flex h-9 w-full min-w-0 items-center text-left text-sm text-muted-foreground/90"
                   >
                     {composerPlaceholder}
                   </button>
@@ -789,7 +790,7 @@ function FixedConversationComposer({
               <Button
                 type="submit"
                 size="icon"
-                className="h-[34px] w-[34px] flex-shrink-0 rounded-full bg-foreground text-background shadow-none transition-colors hover:bg-foreground/90"
+                className="ml-auto h-[34px] w-[34px] flex-shrink-0 rounded-full bg-foreground text-background shadow-none transition-colors hover:bg-foreground/90"
                 aria-label="Enviar mensagem"
               >
                 <Send className="h-3.5 w-3.5" />
