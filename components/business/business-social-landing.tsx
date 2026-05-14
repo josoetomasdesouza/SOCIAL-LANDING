@@ -87,13 +87,46 @@ const contextualSocialProof: Record<string, string[]> = {
 
 const LONG_PRESS_DURATION_MS = 450
 
-const conversationChipLabels: Record<BusinessPost["type"], string> = {
+const conversationChipFallbackLabels: Record<BusinessPost["type"], string> = {
   video: "Video",
   "video-vertical": "Video",
   product: "Produto",
   news: "Noticia",
   review: "Review",
   social: "Post",
+}
+
+function normalizeConversationChipText(value?: string) {
+  return value?.replace(/\s+/g, " ").trim() || ""
+}
+
+function compactConversationLabel(value?: string) {
+  const normalizedValue = normalizeConversationChipText(value)
+  if (!normalizedValue) return ""
+
+  const firstSentence = normalizedValue.split(/[.!?]/)[0]?.trim() || normalizedValue
+  const withoutTrailingDetails = firstSentence.split(/\s[-|:]\s/)[0]?.trim() || firstSentence
+
+  return withoutTrailingDetails
+}
+
+function getConversationChipLabel(post: BusinessPost) {
+  const titleLabel = compactConversationLabel(post.title)
+  const descriptionLabel = compactConversationLabel(post.description)
+  const reviewerLabel = post.reviewerName
+    ? compactConversationLabel(`Review ${post.reviewerName}`)
+    : ""
+  const newsLabel = post.source ? compactConversationLabel(post.source) : ""
+
+  if (post.type === "review") {
+    return reviewerLabel || titleLabel || descriptionLabel || conversationChipFallbackLabels.review
+  }
+
+  if (post.type === "news") {
+    return titleLabel || descriptionLabel || newsLabel || conversationChipFallbackLabels.news
+  }
+
+  return titleLabel || descriptionLabel || conversationChipFallbackLabels[post.type]
 }
 
 // ========================================
@@ -849,9 +882,11 @@ function FixedConversationComposer({
                     type="button"
                     onClick={() => onRemovePost(post.id)}
                     className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/70 px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-                    title={post.title}
+                    title={normalizeConversationChipText(post.title) || getConversationChipLabel(post)}
                   >
-                    <span>{conversationChipLabels[post.type]}</span>
+                    <span className="max-w-[140px] truncate sm:max-w-[180px]">
+                      {getConversationChipLabel(post)}
+                    </span>
                     <X className="h-3.5 w-3.5 text-muted-foreground" />
                   </button>
                 ))}
