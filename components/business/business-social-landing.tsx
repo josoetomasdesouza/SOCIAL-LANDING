@@ -764,7 +764,7 @@ function FixedConversationComposer({
                 value={draftMessage}
                 onChange={(event) => setDraftMessage(event.target.value)}
                 placeholder={composerPlaceholder}
-                className="h-9 min-w-0 flex-1 bg-transparent pr-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/90"
+                className="h-9 min-w-0 flex-1 bg-transparent pr-2 text-left text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/90"
               />
 
               <Button
