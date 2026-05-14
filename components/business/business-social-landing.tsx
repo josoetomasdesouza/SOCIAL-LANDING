@@ -797,11 +797,11 @@ function FixedConversationComposer({
   return (
     <div
       ref={composerRef}
-      className="fixed inset-x-0 bottom-0 z-[70] px-3 pb-[calc(env(safe-area-inset-bottom)+12px)]"
+      className="fixed inset-x-0 bottom-0 z-[70] bg-background"
     >
-      <div className="mx-auto max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
-        <div className="overflow-hidden rounded-[30px] border border-border/50 bg-background shadow-none">
-          <div className="px-4 pt-3">
+      <div className="mx-auto max-w-lg px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
+        <div className="bg-background">
+          <div className="px-1 pb-1">
             {hasSelection ? (
               <>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -832,7 +832,7 @@ function FixedConversationComposer({
           </div>
 
           <form
-            className="mt-3 flex items-center gap-3 border-t border-border/60 px-3 py-3"
+            className="mt-2 flex items-center gap-3 px-1 py-1"
             onSubmit={(event) => event.preventDefault()}
           >
             <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full ring-1 ring-border/50">
