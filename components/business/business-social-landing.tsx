@@ -1,16 +1,23 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, useRef, type PointerEvent as ReactPointerEvent, type ReactNode } from "react"
+import { useState, useCallback, useMemo, useEffect, type ReactNode } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, Send } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import type { BusinessConfig, BusinessModel } from "@/lib/business-types"
+import type { BusinessConfig } from "@/lib/business-types"
 import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
-import { ActionDrawer } from "./action-drawer"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
+import {
+  createConversationContextItemFromPost,
+  getConversationChipLabel,
+  normalizeConversationChipText,
+  type ConversationContextItem,
+  useConversationContextSelectionState,
+} from "./conversation-context"
+import { useConversationLongPress } from "./use-conversation-long-press"
 
 // ========================================
 // TIPOS
@@ -61,6 +68,9 @@ interface BusinessSocialLandingProps {
   footerLinks?: { label: string; href: string }[]
   conversationalAI?: ReactNode
   reserveHeaderSpace?: boolean | "compact"
+  conversationContextItems?: ConversationContextItem[]
+  onConversationContextToggle?: (item: ConversationContextItem) => void
+  onConversationContextRemove?: (itemId: string) => void
 }
 
 // ========================================
@@ -83,50 +93,6 @@ const contextualSocialProof: Record<string, string[]> = {
   news: ["leram essa materia", "compartilharam essa noticia", "estao acompanhando"],
   review: ["acharam essa avaliacao util", "concordaram com essa opiniao", "tiveram experiencia parecida"],
   social: ["curtiram essa publicacao", "comentaram aqui", "compartilharam com alguem"],
-}
-
-const LONG_PRESS_DURATION_MS = 450
-
-const conversationChipFallbackLabels: Record<BusinessPost["type"], string> = {
-  video: "Video",
-  "video-vertical": "Video",
-  product: "Produto",
-  news: "Noticia",
-  review: "Review",
-  social: "Post",
-}
-
-function normalizeConversationChipText(value?: string) {
-  return value?.replace(/\s+/g, " ").trim() || ""
-}
-
-function compactConversationLabel(value?: string) {
-  const normalizedValue = normalizeConversationChipText(value)
-  if (!normalizedValue) return ""
-
-  const firstSentence = normalizedValue.split(/[.!?]/)[0]?.trim() || normalizedValue
-  const withoutTrailingDetails = firstSentence.split(/\s[-|:]\s/)[0]?.trim() || firstSentence
-
-  return withoutTrailingDetails
-}
-
-function getConversationChipLabel(post: BusinessPost) {
-  const titleLabel = compactConversationLabel(post.title)
-  const descriptionLabel = compactConversationLabel(post.description)
-  const reviewerLabel = post.reviewerName
-    ? compactConversationLabel(`Review ${post.reviewerName}`)
-    : ""
-  const newsLabel = post.source ? compactConversationLabel(post.source) : ""
-
-  if (post.type === "review") {
-    return reviewerLabel || titleLabel || descriptionLabel || conversationChipFallbackLabels.review
-  }
-
-  if (post.type === "news") {
-    return titleLabel || descriptionLabel || newsLabel || conversationChipFallbackLabels.news
-  }
-
-  return titleLabel || descriptionLabel || conversationChipFallbackLabels[post.type]
 }
 
 // ========================================
@@ -453,9 +419,6 @@ function PostCard({
   onContextToggle?: (post: BusinessPost) => void
 }) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
-  const longPressTimerRef = useRef<number | null>(null)
-  const longPressTriggeredRef = useRef(false)
-  const pointerStartRef = useRef<{ x: number; y: number } | null>(null)
   
   const chatMessages: Record<string, { messages: { content: string; isUser: boolean }[]; placeholder: string }> = {
     video: {
@@ -489,59 +452,14 @@ function PostCard({
   }
   
   const chatConfig = chatMessages[post.type] || chatMessages.social
-
-  const clearLongPressTimer = useCallback(() => {
-    if (longPressTimerRef.current !== null) {
-      window.clearTimeout(longPressTimerRef.current)
-      longPressTimerRef.current = null
-    }
-  }, [])
-
-  useEffect(() => clearLongPressTimer, [clearLongPressTimer])
+  const { longPressHandlers, shouldHandleActivation } = useConversationLongPress({
+    onLongPress: () => onContextToggle?.(post),
+  })
 
   const handlePostActivation = useCallback(() => {
-    if (longPressTriggeredRef.current) {
-      longPressTriggeredRef.current = false
-      return
-    }
-
+    if (!shouldHandleActivation()) return
     onClick?.()
-  }, [onClick])
-
-  const shouldIgnoreLongPress = (event: ReactPointerEvent<HTMLElement>) => {
-    return event.target instanceof HTMLElement
-      ? Boolean(event.target.closest("button, input, textarea, a"))
-      : false
-  }
-
-  const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
-    if (shouldIgnoreLongPress(event)) return
-    if (event.pointerType === "mouse" && event.button !== 0) return
-
-    longPressTriggeredRef.current = false
-    pointerStartRef.current = { x: event.clientX, y: event.clientY }
-    clearLongPressTimer()
-    longPressTimerRef.current = window.setTimeout(() => {
-      longPressTriggeredRef.current = true
-      onContextToggle?.(post)
-    }, LONG_PRESS_DURATION_MS)
-  }
-
-  const handlePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
-    if (!pointerStartRef.current || longPressTimerRef.current === null) return
-
-    const distanceX = Math.abs(event.clientX - pointerStartRef.current.x)
-    const distanceY = Math.abs(event.clientY - pointerStartRef.current.y)
-
-    if (distanceX > 10 || distanceY > 10) {
-      clearLongPressTimer()
-    }
-  }
-
-  const handlePointerEnd = () => {
-    pointerStartRef.current = null
-    clearLongPressTimer()
-  }
+  }, [onClick, shouldHandleActivation])
   
   // Renderiza card baseado no tipo
   if (post.type === "video" || post.type === "video-vertical") {
@@ -552,11 +470,7 @@ function PostCard({
           "relative mb-8 rounded-[28px] transition-all duration-200",
           isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
         )}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-        onPointerLeave={handlePointerEnd}
+        {...longPressHandlers}
       >
         {isContextSelected && (
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
@@ -617,11 +531,7 @@ function PostCard({
           "relative mb-8 rounded-[28px] transition-all duration-200",
           isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
         )}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-        onPointerLeave={handlePointerEnd}
+        {...longPressHandlers}
       >
         {isContextSelected && (
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
@@ -671,11 +581,7 @@ function PostCard({
           "relative mb-8 rounded-[28px] transition-all duration-200",
           isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
         )}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-        onPointerLeave={handlePointerEnd}
+        {...longPressHandlers}
       >
         {isContextSelected && (
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
@@ -719,11 +625,7 @@ function PostCard({
           "relative mb-8 rounded-[28px] p-4 bg-card border border-border/50 transition-all duration-200",
           isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
         )}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-        onPointerLeave={handlePointerEnd}
+        {...longPressHandlers}
       >
         {isContextSelected && (
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
@@ -770,11 +672,7 @@ function PostCard({
         "relative mb-8 rounded-[28px] transition-all duration-200",
         isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
       )}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerEnd}
-      onPointerCancel={handlePointerEnd}
-      onPointerLeave={handlePointerEnd}
+      {...longPressHandlers}
     >
       {isContextSelected && (
         <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
@@ -853,14 +751,12 @@ function BusinessSectionComponent({
 }
 
 function FixedConversationComposer({
-  brandName,
   brandLogo,
   selectedPosts,
   onRemovePost,
 }: {
-  brandName: string
   brandLogo: string
-  selectedPosts: BusinessPost[]
+  selectedPosts: ConversationContextItem[]
   onRemovePost: (postId: string) => void
 }) {
   const [draftMessage, setDraftMessage] = useState("")
@@ -983,10 +879,17 @@ export function BusinessSocialLanding({
   renderPostDrawer,
   footerLinks,
   conversationalAI,
-  reserveHeaderSpace = true
+  reserveHeaderSpace = true,
+  conversationContextItems,
+  onConversationContextToggle,
+  onConversationContextRemove,
 }: BusinessSocialLandingProps) {
+  const {
+    contextItems: internalContextItems,
+    toggleContextItem: toggleInternalContextItem,
+    removeContextItem: removeInternalContextItem,
+  } = useConversationContextSelectionState()
   const [selectedPost, setSelectedPost] = useState<BusinessPost | null>(null)
-  const [contextPosts, setContextPosts] = useState<BusinessPost[]>([])
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [feedDrawerOpen, setFeedDrawerOpen] = useState(false)
   const [feedDrawerCategory, setFeedDrawerCategory] = useState<string>("all")
@@ -1006,10 +909,10 @@ export function BusinessSocialLanding({
     })
     return posts
   }, [sections])
-
-  const selectedContextPostIds = useMemo(
-    () => new Set(contextPosts.map((post) => post.id)),
-    [contextPosts]
+  const contextItems = conversationContextItems ?? internalContextItems
+  const selectedContextIds = useMemo(
+    () => new Set(contextItems.map((item) => item.id)),
+    [contextItems]
   )
   
   const handlePostClick = useCallback((post: BusinessPost) => {
@@ -1027,21 +930,27 @@ export function BusinessSocialLanding({
     }
   }, [onPostClick])
 
+  const handleContextItemToggle = useCallback((item: ConversationContextItem) => {
+    if (onConversationContextToggle) {
+      onConversationContextToggle(item)
+      return
+    }
+
+    toggleInternalContextItem(item)
+  }, [onConversationContextToggle, toggleInternalContextItem])
+
   const handleContextToggle = useCallback((post: BusinessPost) => {
-    setContextPosts((currentPosts) => {
-      const isAlreadySelected = currentPosts.some((currentPost) => currentPost.id === post.id)
-
-      if (isAlreadySelected) {
-        return currentPosts.filter((currentPost) => currentPost.id !== post.id)
-      }
-
-      return [...currentPosts, post]
-    })
-  }, [])
+    handleContextItemToggle(createConversationContextItemFromPost(post))
+  }, [handleContextItemToggle])
 
   const handleRemoveContextPost = useCallback((postId: string) => {
-    setContextPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId))
-  }, [])
+    if (onConversationContextRemove) {
+      onConversationContextRemove(postId)
+      return
+    }
+
+    removeInternalContextItem(postId)
+  }, [onConversationContextRemove, removeInternalContextItem])
   
   const handleCloseDrawer = useCallback(() => {
     setDrawerOpen(false)
@@ -1088,7 +997,7 @@ export function BusinessSocialLanding({
               section={section}
               config={config}
               onPostClick={handlePostClick}
-              selectedContextPostIds={selectedContextPostIds}
+              selectedContextPostIds={selectedContextIds}
               onContextToggle={handleContextToggle}
             />
           ))}
@@ -1102,9 +1011,8 @@ export function BusinessSocialLanding({
       <BusinessFooter config={config} links={footerLinks} />
 
       <FixedConversationComposer
-        brandName={config.name}
         brandLogo={config.logo}
-        selectedPosts={contextPosts}
+        selectedPosts={contextItems}
         onRemovePost={handleRemoveContextPost}
       />
       
@@ -1182,6 +1090,8 @@ export function BusinessSocialLanding({
         category={feedDrawerCategory}
         brandLogo={config.logo}
         brandName={config.name}
+        selectedContextIds={selectedContextIds}
+        onContextToggle={handleContextToggle}
       />
       
       {/* Custom Post Drawer - para itens especificos do negocio */}

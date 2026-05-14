@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useCallback, useState } from "react"
+import { useEffect, useMemo, useRef, useCallback, useState, type RefObject } from "react"
 import Image from "next/image"
 import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Send, Newspaper } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { BusinessPost } from "./business-social-landing"
 import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
+import { useConversationLongPress } from "./use-conversation-long-press"
 
 interface BusinessFeedDrawerProps {
   isOpen: boolean
@@ -17,6 +18,8 @@ interface BusinessFeedDrawerProps {
   brandLogo: string
   brandName: string
   onAddToCart?: (post: BusinessPost) => void
+  selectedContextIds?: Set<string>
+  onContextToggle?: (post: BusinessPost) => void
 }
 
 // Avatar do usuario
@@ -205,6 +208,198 @@ function SocialActions() {
   )
 }
 
+function FeedDrawerPostArticle({
+  post,
+  index,
+  isInitial,
+  brandLogo,
+  brandName,
+  initialPostRef,
+  onAddToCart,
+  isContextSelected,
+  onContextToggle,
+}: {
+  post: BusinessPost
+  index: number
+  isInitial: boolean
+  brandLogo: string
+  brandName: string
+  initialPostRef: RefObject<HTMLElement | null>
+  onAddToCart?: (post: BusinessPost) => void
+  isContextSelected: boolean
+  onContextToggle?: (post: BusinessPost) => void
+}) {
+  const placeholders = inputPlaceholders[post.type] || inputPlaceholders.social
+  const placeholder = placeholders[index % placeholders.length]
+  const aiMessages = aiInitialMessages[post.type] || aiInitialMessages.social
+  const aiMessage = aiMessages[index % aiMessages.length]
+  const showConversation = index % 3 === 0
+  const { longPressHandlers, shouldHandleActivation } = useConversationLongPress({
+    onLongPress: () => onContextToggle?.(post),
+  })
+
+  return (
+    <article
+      ref={isInitial ? initialPostRef : undefined}
+      className={cn(
+        "rounded-[28px] pb-8 border-b border-border/30 transition-all duration-200",
+        isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg",
+        index === 0 && "scroll-mt-20"
+      )}
+      {...longPressHandlers}
+    >
+      {isContextSelected && (
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+          <MessageCircle className="h-3.5 w-3.5" />
+          Na conversa
+        </div>
+      )}
+      {/* MIDIA */}
+      {post.image && (
+        <div className={cn(
+          "relative overflow-hidden rounded-2xl mb-4",
+          post.type === "video-vertical"
+            ? "aspect-[9/16] max-h-[500px]"
+            : post.type === "video"
+              ? "aspect-video"
+              : post.type === "product"
+                ? "aspect-square"
+                : "aspect-video"
+        )}>
+          <Image
+            src={post.image}
+            alt={post.title}
+            fill
+            className="object-cover"
+          />
+
+          {(post.type === "video" || post.type === "video-vertical") && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+              <div className="w-16 h-16 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                <Play className="w-7 h-7 fill-white text-white ml-1" />
+              </div>
+            </div>
+          )}
+
+          {(post.type === "video" || post.type === "video-vertical") && post.duration && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-black/80 text-white text-sm rounded-lg font-medium">
+              <Play className="w-3 h-3 fill-white" />
+              {post.duration}
+            </div>
+          )}
+
+          {post.type === "product" && post.originalPrice && post.price && (
+            <div className="absolute top-3 left-3 px-2.5 py-1 bg-red-500 text-white text-sm font-bold rounded-lg">
+              -{Math.round((1 - post.price / post.originalPrice) * 100)}%
+            </div>
+          )}
+
+          {post.type === "news" && post.source && (
+            <div className="absolute top-3 left-3 px-2.5 py-1 bg-accent text-accent-foreground text-sm font-medium rounded-lg">
+              {post.source}
+            </div>
+          )}
+        </div>
+      )}
+
+      {post.type === "news" && !post.image && (
+        <div className="p-4 bg-secondary/50 rounded-2xl mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Newspaper className="w-4 h-4 text-accent" />
+            <span className="text-xs font-medium text-accent">{post.source || brandName}</span>
+          </div>
+        </div>
+      )}
+
+      <h3 className="text-lg font-semibold text-foreground mb-2 tracking-tight leading-snug">
+        {post.title}
+      </h3>
+
+      {post.description && (
+        <p className="text-[15px] text-muted-foreground mb-4 leading-relaxed">
+          {post.description}
+        </p>
+      )}
+
+      {post.type === "product" && post.price && (
+        <div className="mb-4">
+          {post.originalPrice && (
+            <span className="text-sm text-muted-foreground line-through mr-2">
+              R$ {post.originalPrice.toFixed(2).replace(".", ",")}
+            </span>
+          )}
+          <span className="text-xl font-bold text-accent">
+            R$ {post.price.toFixed(2).replace(".", ",")}
+          </span>
+          {post.price && (
+            <span className="text-sm text-muted-foreground ml-2">
+              ou 3x de R$ {(post.price / 3).toFixed(2).replace(".", ",")}
+            </span>
+          )}
+        </div>
+      )}
+
+      {post.type === "review" && post.rating && (
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-0.5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                className={cn(
+                  "w-5 h-5",
+                  i < post.rating!
+                    ? "text-yellow-400 fill-yellow-400"
+                    : "text-muted-foreground/20"
+                )}
+              />
+            ))}
+          </div>
+          {post.reviewerName && (
+            <span className="text-sm text-muted-foreground">
+              por {post.reviewerName}
+            </span>
+          )}
+        </div>
+      )}
+
+      <SocialProofWithAvatars type={post.type} index={index} />
+
+      <div className="mt-3">
+        <SocialActions />
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-border/30">
+        {showConversation ? (
+          <SimulatedChat
+            messages={[{ content: aiMessage, isUser: false }]}
+            brandLogo={brandLogo}
+            userAvatar={userAvatar}
+            placeholder={placeholder}
+          />
+        ) : (
+          <SimpleChatInput
+            brandLogo={brandLogo}
+            userAvatar={userAvatar}
+            placeholder={placeholder}
+          />
+        )}
+      </div>
+
+      {post.type === "product" && (
+        <Button
+          onClick={() => {
+            if (!shouldHandleActivation()) return
+            onAddToCart?.(post)
+          }}
+          className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-base font-semibold rounded-xl"
+        >
+          Adicionar ao carrinho
+        </Button>
+      )}
+    </article>
+  )
+}
+
 export function BusinessFeedDrawer({ 
   isOpen, 
   onClose, 
@@ -213,10 +408,12 @@ export function BusinessFeedDrawer({
   category, 
   brandLogo,
   brandName,
-  onAddToCart
+  onAddToCart,
+  selectedContextIds,
+  onContextToggle,
 }: BusinessFeedDrawerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const initialPostRef = useRef<HTMLDivElement>(null)
+  const initialPostRef = useRef<HTMLElement>(null)
 
   const filteredPosts = useMemo(() => {
     if (category === "all") return posts
@@ -294,174 +491,21 @@ export function BusinessFeedDrawer({
             <div className="space-y-8">
               {orderedPosts.map((post, index) => {
                 const isInitial = initialPost?.id === post.id
-                const placeholders = inputPlaceholders[post.type] || inputPlaceholders.social
-                const placeholder = placeholders[index % placeholders.length]
-                const aiMessages = aiInitialMessages[post.type] || aiInitialMessages.social
-                const aiMessage = aiMessages[index % aiMessages.length]
-                const showConversation = index % 3 === 0
+                const isContextSelected = selectedContextIds?.has(post.id) || false
 
                 return (
-                  <article 
+                  <FeedDrawerPostArticle
                     key={post.id}
-                    ref={isInitial ? initialPostRef : undefined}
-                    className={cn(
-                      "pb-8 border-b border-border/30",
-                      index === 0 && "scroll-mt-20"
-                    )}
-                  >
-                    {/* MIDIA */}
-                    {post.image && (
-                      <div className={cn(
-                        "relative overflow-hidden rounded-2xl mb-4",
-                        post.type === "video-vertical" 
-                          ? "aspect-[9/16] max-h-[500px]" 
-                          : post.type === "video"
-                            ? "aspect-video"
-                            : post.type === "product"
-                              ? "aspect-square"
-                              : "aspect-video"
-                      )}>
-                        <Image
-                          src={post.image}
-                          alt={post.title}
-                          fill
-                          className="object-cover"
-                        />
-                        
-                        {/* Video Play Button */}
-                        {(post.type === "video" || post.type === "video-vertical") && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                            <div className="w-16 h-16 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
-                              <Play className="w-7 h-7 fill-white text-white ml-1" />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Video Duration */}
-                        {(post.type === "video" || post.type === "video-vertical") && post.duration && (
-                          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-black/80 text-white text-sm rounded-lg font-medium">
-                            <Play className="w-3 h-3 fill-white" />
-                            {post.duration}
-                          </div>
-                        )}
-
-                        {/* Product Discount Badge */}
-                        {post.type === "product" && post.originalPrice && post.price && (
-                          <div className="absolute top-3 left-3 px-2.5 py-1 bg-red-500 text-white text-sm font-bold rounded-lg">
-                            -{Math.round((1 - post.price / post.originalPrice) * 100)}%
-                          </div>
-                        )}
-                        
-                        {/* News Source Badge */}
-                        {post.type === "news" && post.source && (
-                          <div className="absolute top-3 left-3 px-2.5 py-1 bg-accent text-accent-foreground text-sm font-medium rounded-lg">
-                            {post.source}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* News sem imagem */}
-                    {post.type === "news" && !post.image && (
-                      <div className="p-4 bg-secondary/50 rounded-2xl mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Newspaper className="w-4 h-4 text-accent" />
-                          <span className="text-xs font-medium text-accent">{post.source || brandName}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* TITULO */}
-                    <h3 className="text-lg font-semibold text-foreground mb-2 tracking-tight leading-snug">
-                      {post.title}
-                    </h3>
-
-                    {/* DESCRICAO */}
-                    {post.description && (
-                      <p className="text-[15px] text-muted-foreground mb-4 leading-relaxed">
-                        {post.description}
-                      </p>
-                    )}
-
-                    {/* PRECO (apenas produtos) */}
-                    {post.type === "product" && post.price && (
-                      <div className="mb-4">
-                        {post.originalPrice && (
-                          <span className="text-sm text-muted-foreground line-through mr-2">
-                            R$ {post.originalPrice.toFixed(2).replace(".", ",")}
-                          </span>
-                        )}
-                        <span className="text-xl font-bold text-accent">
-                          R$ {post.price.toFixed(2).replace(".", ",")}
-                        </span>
-                        {post.price && (
-                          <span className="text-sm text-muted-foreground ml-2">
-                            ou 3x de R$ {(post.price / 3).toFixed(2).replace(".", ",")}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* RATING (apenas reviews) */}
-                    {post.type === "review" && post.rating && (
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star 
-                              key={i}
-                              className={cn(
-                                "w-5 h-5",
-                                i < post.rating! 
-                                  ? "text-yellow-400 fill-yellow-400" 
-                                  : "text-muted-foreground/20"
-                              )}
-                            />
-                          ))}
-                        </div>
-                        {post.reviewerName && (
-                          <span className="text-sm text-muted-foreground">
-                            por {post.reviewerName}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* PROVA SOCIAL COM AVATARES */}
-                    <SocialProofWithAvatars type={post.type} index={index} />
-
-                    {/* BOTOES DE INTERACAO */}
-                    <div className="mt-3">
-                      <SocialActions />
-                    </div>
-
-                    {/* CONVERSA COM IA */}
-                    <div className="mt-4 pt-4 border-t border-border/30">
-                      {showConversation ? (
-                        <SimulatedChat
-                          messages={[{ content: aiMessage, isUser: false }]}
-                          brandLogo={brandLogo}
-                          userAvatar={userAvatar}
-                          placeholder={placeholder}
-                        />
-                      ) : (
-                        <SimpleChatInput
-                          brandLogo={brandLogo}
-                          userAvatar={userAvatar}
-                          placeholder={placeholder}
-                        />
-                      )}
-                    </div>
-
-                    {/* CTA (apenas produtos) */}
-                    {post.type === "product" && (
-                      <Button 
-                        onClick={() => onAddToCart?.(post)}
-                        className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-base font-semibold rounded-xl"
-                      >
-                        Adicionar ao carrinho
-                      </Button>
-                    )}
-                  </article>
+                    post={post}
+                    index={index}
+                    isInitial={isInitial}
+                    brandLogo={brandLogo}
+                    brandName={brandName}
+                    initialPostRef={initialPostRef}
+                    onAddToCart={onAddToCart}
+                    isContextSelected={isContextSelected}
+                    onContextToggle={onContextToggle}
+                  />
                 )
               })}
             </div>

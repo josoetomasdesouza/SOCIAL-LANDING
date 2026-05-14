@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { Clock, Star, Calendar, Briefcase, FileText, Play, Newspaper, Phone } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
@@ -12,33 +13,87 @@ import { AppointmentConfirmation } from "../checkout-flows"
 import { professionalsConfig, professionalServices, professionalAvailability } from "@/lib/mock-data/professionals-data"
 import { professionalsContent } from "@/lib/mock-data/business-content"
 import type { ProfessionalService } from "@/lib/business-types"
+import { type ConversationContextItem, useConversationContextSelectionState } from "../conversation-context"
+import { useConversationLongPress } from "../use-conversation-long-press"
 
 // ========================================
 // MODULO: SERVICOS (OBJETIVO PRINCIPAL)
 // ========================================
-function ServicesModule({ onSelectService }: { onSelectService: (service: ProfessionalService) => void }) {
+function ServiceCardButton({
+  service,
+  onSelectService,
+  isContextSelected,
+  onContextToggle,
+}: {
+  service: ProfessionalService
+  onSelectService: (service: ProfessionalService) => void
+  isContextSelected: boolean
+  onContextToggle: (item: ConversationContextItem) => void
+}) {
+  const contextItem: ConversationContextItem = {
+    id: `service:${service.id}`,
+    type: "service",
+    title: service.name,
+    description: service.description,
+    fallbackLabel: "Servico",
+  }
+  const { longPressHandlers, shouldHandleActivation } = useConversationLongPress({
+    onLongPress: () => onContextToggle(contextItem),
+  })
+
+  return (
+    <button
+      onClick={() => {
+        if (!shouldHandleActivation()) return
+        onSelectService(service)
+      }}
+      className={cn(
+        "w-full flex items-center justify-between p-4 bg-card rounded-xl border border-border/50 hover:border-accent/50 transition-colors text-left",
+        isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+      )}
+      {...longPressHandlers}
+    >
+      <div className="flex-1">
+        {isContextSelected && (
+          <div className="mb-2 inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            Na conversa
+          </div>
+        )}
+        <h3 className="font-medium">{service.name}</h3>
+        <p className="text-sm text-muted-foreground line-clamp-1">{service.description}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Clock className="w-3 h-3" />
+            {service.duration}
+          </Badge>
+        </div>
+      </div>
+      <div className="text-right ml-4">
+        <p className="font-bold text-accent">R$ {service.price.toFixed(2).replace(".", ",")}</p>
+      </div>
+    </button>
+  )
+}
+
+function ServicesModule({
+  onSelectService,
+  selectedContextIds,
+  onContextToggle,
+}: {
+  onSelectService: (service: ProfessionalService) => void
+  selectedContextIds: Set<string>
+  onContextToggle: (item: ConversationContextItem) => void
+}) {
   return (
     <div className="space-y-3">
       {professionalServices.slice(0, 4).map((service) => (
-        <button
+        <ServiceCardButton
           key={service.id}
-          onClick={() => onSelectService(service)}
-          className="w-full flex items-center justify-between p-4 bg-card rounded-xl border border-border/50 hover:border-accent/50 transition-colors text-left"
-        >
-          <div className="flex-1">
-            <h3 className="font-medium">{service.name}</h3>
-            <p className="text-sm text-muted-foreground line-clamp-1">{service.description}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="secondary" className="text-xs gap-1">
-                <Clock className="w-3 h-3" />
-                {service.duration}
-              </Badge>
-            </div>
-          </div>
-          <div className="text-right ml-4">
-            <p className="font-bold text-accent">R$ {service.price.toFixed(2).replace(".", ",")}</p>
-          </div>
-        </button>
+          service={service}
+          onSelectService={onSelectService}
+          isContextSelected={selectedContextIds.has(`service:${service.id}`)}
+          onContextToggle={onContextToggle}
+        />
       ))}
     </div>
   )
@@ -74,22 +129,48 @@ function ServiceDrawer({
   service, 
   isOpen, 
   onClose,
-  onSchedule
+  onSchedule,
+  selectedContextIds,
+  onContextToggle,
 }: { 
   service: ProfessionalService | null
   isOpen: boolean
   onClose: () => void
   onSchedule: (date: string, time: string) => void
+  selectedContextIds: Set<string>
+  onContextToggle: (item: ConversationContextItem) => void
 }) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   
   if (!service) return null
+  const contextItem: ConversationContextItem = {
+    id: `service:${service.id}`,
+    type: "service",
+    title: service.name,
+    description: service.description,
+    fallbackLabel: "Servico",
+  }
+  const isContextSelected = selectedContextIds.has(contextItem.id)
+  const { longPressHandlers } = useConversationLongPress({
+    onLongPress: () => onContextToggle(contextItem),
+  })
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={service.name} size="lg">
       <div className="space-y-6">
-        <div className="bg-secondary/50 rounded-xl p-4">
+        <div
+          className={cn(
+            "bg-secondary/50 rounded-xl p-4 transition-all duration-200",
+            isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+          )}
+          {...longPressHandlers}
+        >
+          {isContextSelected && (
+            <div className="mb-3 inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+              Na conversa
+            </div>
+          )}
           <h3 className="font-semibold mb-2">{service.name}</h3>
           <p className="text-sm text-muted-foreground">{service.description}</p>
           <div className="flex items-center gap-4 mt-3">
@@ -138,6 +219,12 @@ export function ProfessionalsFeed() {
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [bookedDate, setBookedDate] = useState<string | null>(null)
   const [bookedTime, setBookedTime] = useState<string | null>(null)
+  const {
+    contextItems,
+    selectedContextIds,
+    toggleContextItem,
+    removeContextItem,
+  } = useConversationContextSelectionState()
   
   const handleSchedule = (date: string, time: string) => {
     setBookedDate(date)
@@ -153,7 +240,11 @@ export function ProfessionalsFeed() {
       icon: <Briefcase className="w-5 h-5 text-accent" />,
       type: "primary-action",
       customContent: (
-        <ServicesModule onSelectService={(s) => { setSelectedService(s); setServiceDrawerOpen(true) }} />
+        <ServicesModule
+          onSelectService={(s) => { setSelectedService(s); setServiceDrawerOpen(true) }}
+          selectedContextIds={selectedContextIds}
+          onContextToggle={toggleContextItem}
+        />
       )
     },
     {
@@ -198,6 +289,9 @@ export function ProfessionalsFeed() {
         config={professionalsConfig}
         stories={professionalsContent.stories}
         sections={sections}
+        conversationContextItems={contextItems}
+        onConversationContextToggle={toggleContextItem}
+        onConversationContextRemove={removeContextItem}
         footerLinks={[
           { label: "Sobre", href: "#" },
           { label: "Servicos", href: "#" },
@@ -209,6 +303,8 @@ export function ProfessionalsFeed() {
         service={selectedService}
         isOpen={serviceDrawerOpen}
         onClose={() => setServiceDrawerOpen(false)}
+        selectedContextIds={selectedContextIds}
+        onContextToggle={toggleContextItem}
         onSchedule={handleSchedule}
       />
       
