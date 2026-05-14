@@ -754,24 +754,26 @@ function FixedConversationComposer({
 
             <form
               className={cn(
-                "flex w-full min-w-0 items-center justify-start gap-1.5 text-left",
+                "flex w-full min-w-0 items-center gap-1.5 text-left",
                 hasSelection ? "row-start-2" : "row-start-1"
               )}
               onSubmit={(event) => event.preventDefault()}
             >
-              <input
-                type="text"
-                value={draftMessage}
-                onChange={(event) => setDraftMessage(event.target.value)}
-                placeholder={composerPlaceholder}
-                className="block h-9 w-full min-w-0 flex-1 appearance-none bg-transparent pr-2 text-left text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/90"
-                style={{ textAlign: "left" }}
-              />
+              <div className="flex-1 min-w-0">
+                <input
+                  type="text"
+                  value={draftMessage}
+                  onChange={(event) => setDraftMessage(event.target.value)}
+                  placeholder={composerPlaceholder}
+                  className="block h-9 w-full min-w-0 appearance-none bg-transparent text-left text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/90"
+                  style={{ textAlign: "left" }}
+                />
+              </div>
 
               <Button
                 type="submit"
                 size="icon"
-                className="h-[34px] w-[34px] flex-shrink-0 rounded-full bg-foreground text-background shadow-none transition-colors hover:bg-foreground/90"
+                className="ml-auto h-[34px] w-[34px] flex-shrink-0 rounded-full bg-foreground text-background shadow-none transition-colors hover:bg-foreground/90"
                 aria-label="Enviar mensagem"
               >
                 <Send className="h-3.5 w-3.5" />
