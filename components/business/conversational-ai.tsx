@@ -263,7 +263,7 @@ export function ConversationalAI({
             <button
               type="button"
               onClick={() => setIsConversationOpen(true)}
-              className="w-full rounded-2xl border border-border/50 bg-card/95 px-4 py-3 text-left shadow-sm backdrop-blur-xl"
+              className="w-full rounded-[24px] border border-border/60 bg-background/95 px-4 py-3 text-left shadow-xl backdrop-blur-xl"
             >
               <div className="flex items-start gap-3">
                 <Image
@@ -275,6 +275,7 @@ export function ConversationalAI({
                 />
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-2 text-sm text-foreground">{lastAiMessage.content}</p>
+                  <p className="mt-1 text-xs font-medium text-accent">Toque para continuar a conversa</p>
                 </div>
               </div>
             </button>
@@ -282,8 +283,8 @@ export function ConversationalAI({
         )}
 
         {isConversationOpen && (messages.length > 0 || isTyping) && (
-          <div className="mb-2 overflow-hidden rounded-2xl border border-border/50 bg-card/95 shadow-sm backdrop-blur-xl pointer-events-auto">
-            <div className="flex items-center justify-between border-b border-border/50 bg-secondary/20 px-4 py-3">
+          <div className="mb-2 overflow-hidden rounded-[28px] border border-border/60 bg-background/95 shadow-2xl backdrop-blur-xl pointer-events-auto">
+            <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
               <div className="flex items-center gap-3">
                 <Image
                   src={brandLogo}
@@ -294,7 +295,7 @@ export function ConversationalAI({
                 />
                 <div>
                   <p className="text-sm font-medium text-foreground">{brandName}</p>
-                  <p className="text-xs text-muted-foreground">Online agora</p>
+                  <p className="text-xs text-muted-foreground">Conversa contextual simulada</p>
                 </div>
               </div>
               <button
@@ -351,7 +352,7 @@ export function ConversationalAI({
           </div>
         )}
 
-        <div className="rounded-[28px] border border-border/60 bg-background/95 p-3 shadow-2xl backdrop-blur-xl pointer-events-auto">
+        <div className="rounded-[30px] border border-border/60 bg-background/95 p-3 shadow-2xl backdrop-blur-xl pointer-events-auto">
           {contextItems.length > 0 && (
             <div className="mb-3">
               <div className="mb-2 flex items-center justify-between">
@@ -387,6 +388,12 @@ export function ConversationalAI({
                 ))}
               </div>
             </div>
+          )}
+
+          {contextItems.length === 0 && (
+            <p className="mb-3 text-xs text-muted-foreground">
+              Toque no icone de comentario de um card para levar aquele conteudo para a conversa.
+            </p>
           )}
 
           <div className="flex items-end gap-2">
