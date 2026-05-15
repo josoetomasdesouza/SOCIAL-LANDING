@@ -4,12 +4,11 @@ import { useState, useCallback, useMemo, useEffect, ReactNode } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import type { BusinessConfig, BusinessModel } from "@/lib/business-types"
+import type { BusinessConfig } from "@/lib/business-types"
 import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
-import { ActionDrawer } from "./action-drawer"
+import { ConversationalAI } from "./conversational-ai"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
 
 // ========================================
@@ -115,7 +114,13 @@ function SocialProofWithAvatars({ type, index }: { type: string; index: number }
   )
 }
 
-function SocialActions({ onComment }: { onComment?: () => void }) {
+function SocialActions({
+  onComment,
+  commentActive = false,
+}: {
+  onComment?: () => void
+  commentActive?: boolean
+}) {
   const [liked, setLiked] = useState(false)
   const [saved, setSaved] = useState(false)
   
@@ -125,8 +130,14 @@ function SocialActions({ onComment }: { onComment?: () => void }) {
         <button onClick={() => setLiked(!liked)} className="p-1.5 hover:bg-secondary rounded-full transition-colors">
           <Heart className={cn("w-5 h-5", liked ? "fill-red-500 text-red-500" : "text-foreground")} />
         </button>
-        <button onClick={onComment} className="p-1.5 hover:bg-secondary rounded-full transition-colors">
-          <MessageCircle className="w-5 h-5 text-foreground" />
+        <button
+          onClick={onComment}
+          className={cn(
+            "p-1.5 rounded-full transition-colors",
+            commentActive ? "bg-accent/10 hover:bg-accent/15" : "hover:bg-secondary"
+          )}
+        >
+          <MessageCircle className={cn("w-5 h-5", commentActive ? "text-accent" : "text-foreground")} />
         </button>
         <button className="p-1.5 hover:bg-secondary rounded-full transition-colors">
           <Share className="w-5 h-5 text-foreground" />
@@ -396,13 +407,17 @@ function PostCard({
   index, 
   brandLogo, 
   onClick,
-  showChat = true
+  showChat = false,
+  onComment,
+  isConversationContext = false,
 }: { 
   post: BusinessPost
   index: number
   brandLogo: string
   onClick?: () => void
   showChat?: boolean
+  onComment?: () => void
+  isConversationContext?: boolean
 }) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
   
@@ -469,7 +484,7 @@ function PostCard({
           {post.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{post.description}</p>}
         </div>
         <SocialProofWithAvatars type={post.type} index={index} />
-        <SocialActions />
+        <SocialActions onComment={onComment} commentActive={isConversationContext} />
         {showChat && (index % 3 === 0) && (
           <div className="mt-4">
             <SimulatedChat
@@ -513,7 +528,7 @@ function PostCard({
           </div>
         </div>
         <SocialProofWithAvatars type="product" index={index} />
-        <SocialActions />
+        <SocialActions onComment={onComment} commentActive={isConversationContext} />
         {showChat && (
           <div className="mt-4">
             <SimulatedChat
@@ -550,7 +565,7 @@ function PostCard({
           {post.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{post.description}</p>}
         </div>
         <SocialProofWithAvatars type="news" index={index} />
-        <SocialActions />
+        <SocialActions onComment={onComment} commentActive={isConversationContext} />
         {showChat && (
           <div className="mt-4">
             <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
@@ -585,7 +600,7 @@ function PostCard({
           </div>
         </div>
         <SocialProofWithAvatars type="review" index={index} />
-        <SocialActions />
+        <SocialActions onComment={onComment} commentActive={isConversationContext} />
         {showChat && (
           <div className="mt-4">
             <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
@@ -608,7 +623,7 @@ function PostCard({
         {post.description && <p className="text-sm text-muted-foreground mt-1">{post.description}</p>}
       </div>
       <SocialProofWithAvatars type="social" index={index} />
-      <SocialActions />
+      <SocialActions onComment={onComment} commentActive={isConversationContext} />
       {showChat && (
         <div className="mt-4">
           <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
@@ -624,11 +639,15 @@ function PostCard({
 function BusinessSectionComponent({ 
   section, 
   config, 
-  onPostClick 
+  onPostClick,
+  onComment,
+  selectedConversationContextIds,
 }: { 
   section: BusinessSection
   config: BusinessConfig
   onPostClick?: (post: BusinessPost) => void
+  onComment?: (post: BusinessPost) => void
+  selectedConversationContextIds?: Set<string>
 }) {
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
@@ -655,6 +674,8 @@ function BusinessSectionComponent({
           index={index}
           brandLogo={config.logo}
           onClick={() => onPostClick?.(post)}
+          onComment={() => onComment?.(post)}
+          isConversationContext={selectedConversationContextIds?.has(post.id) || false}
         />
       ))}
     </section>
@@ -666,7 +687,7 @@ function BusinessSectionComponent({
 // ========================================
 function BusinessFooter({ config, links }: { config: BusinessConfig; links?: { label: string; href: string }[] }) {
   return (
-    <footer className="bg-card border-t border-border/50 py-16">
+    <footer className="bg-card border-t border-border/50 pb-40 pt-16">
       <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="relative w-10 h-10 rounded-full overflow-hidden">
@@ -713,6 +734,7 @@ export function BusinessSocialLanding({
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [feedDrawerOpen, setFeedDrawerOpen] = useState(false)
   const [feedDrawerCategory, setFeedDrawerCategory] = useState<string>("all")
+  const [conversationContextPosts, setConversationContextPosts] = useState<BusinessPost[]>([])
   
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
@@ -760,6 +782,39 @@ export function BusinessSocialLanding({
     setStoryViewerOpen(true)
     onStoryClick?.(story)
   }, [onStoryClick])
+
+  const handleToggleConversationContext = useCallback((post: BusinessPost) => {
+    setConversationContextPosts((previous) => {
+      if (previous.some((item) => item.id === post.id)) {
+        return previous.filter((item) => item.id !== post.id)
+      }
+
+      return [...previous, post].slice(-3)
+    })
+  }, [])
+
+  const selectedConversationContextIds = useMemo(
+    () => new Set(conversationContextPosts.map((post) => post.id)),
+    [conversationContextPosts]
+  )
+
+  const resolvedConversationalAI = conversationalAI ?? (
+    <ConversationalAI
+      brandLogo={config.logo}
+      brandName={config.name}
+      businessModel={config.model}
+      contextItems={conversationContextPosts.map((post) => ({
+        id: post.id,
+        title: post.title,
+        type: post.type,
+        description: post.description,
+      }))}
+      onRemoveContext={(id) => {
+        setConversationContextPosts((previous) => previous.filter((post) => post.id !== id))
+      }}
+      onClearContext={() => setConversationContextPosts([])}
+    />
+  )
   
   return (
     <div className="min-h-screen bg-background">
@@ -790,12 +845,14 @@ export function BusinessSocialLanding({
               section={section}
               config={config}
               onPostClick={handlePostClick}
+              onComment={handleToggleConversationContext}
+              selectedConversationContextIds={selectedConversationContextIds}
             />
           ))}
         </div>
         
         {/* Conversational AI (fixed or inline) */}
-        {conversationalAI}
+        {resolvedConversationalAI}
       </main>
       
       {/* Footer */}
