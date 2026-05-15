@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect, ReactNode } from "react"
 import Image from "next/image"
-import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
+import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -114,13 +114,7 @@ function SocialProofWithAvatars({ type, index }: { type: string; index: number }
   )
 }
 
-function SocialActions({
-  onComment,
-  commentActive = false,
-}: {
-  onComment?: () => void
-  commentActive?: boolean
-}) {
+function SocialActions() {
   const [liked, setLiked] = useState(false)
   const [saved, setSaved] = useState(false)
   
@@ -130,14 +124,8 @@ function SocialActions({
         <button onClick={() => setLiked(!liked)} className="p-1.5 hover:bg-secondary rounded-full transition-colors">
           <Heart className={cn("w-5 h-5", liked ? "fill-red-500 text-red-500" : "text-foreground")} />
         </button>
-        <button
-          onClick={onComment}
-          className={cn(
-            "p-1.5 rounded-full transition-colors",
-            commentActive ? "bg-accent/10 hover:bg-accent/15" : "hover:bg-secondary"
-          )}
-        >
-          <MessageCircle className={cn("w-5 h-5", commentActive ? "text-accent" : "text-foreground")} />
+        <button className="p-1.5 hover:bg-secondary rounded-full transition-colors">
+          <MessageCircle className="w-5 h-5 text-foreground" />
         </button>
         <button className="p-1.5 hover:bg-secondary rounded-full transition-colors">
           <Share className="w-5 h-5 text-foreground" />
@@ -408,7 +396,6 @@ function PostCard({
   brandLogo, 
   onClick,
   showChat = false,
-  onComment,
   isConversationContext = false,
 }: { 
   post: BusinessPost
@@ -416,7 +403,6 @@ function PostCard({
   brandLogo: string
   onClick?: () => void
   showChat?: boolean
-  onComment?: () => void
   isConversationContext?: boolean
 }) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
@@ -458,11 +444,18 @@ function PostCard({
   if (post.type === "video" || post.type === "video-vertical") {
     const isVertical = post.type === "video-vertical"
     return (
-      <article className="mb-8">
+      <article className={cn("mb-8", isConversationContext && "relative")}>
+        {isConversationContext && (
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            <Sparkles className="h-3.5 w-3.5" />
+            No contexto
+          </div>
+        )}
         <div 
           onClick={onClick}
           className={cn(
-            "relative rounded-2xl overflow-hidden cursor-pointer group",
+            "relative rounded-2xl overflow-hidden cursor-pointer group transition-all",
+            isConversationContext && "ring-2 ring-accent/25 ring-offset-2 ring-offset-background",
             isVertical ? "aspect-[9/16]" : "aspect-video"
           )}
         >
@@ -484,7 +477,7 @@ function PostCard({
           {post.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{post.description}</p>}
         </div>
         <SocialProofWithAvatars type={post.type} index={index} />
-        <SocialActions onComment={onComment} commentActive={isConversationContext} />
+        <SocialActions />
         {showChat && (index % 3 === 0) && (
           <div className="mt-4">
             <SimulatedChat
@@ -508,7 +501,19 @@ function PostCard({
     const discount = post.originalPrice ? Math.round((1 - post.price! / post.originalPrice) * 100) : 0
     return (
       <article className="mb-8">
-        <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group">
+        {isConversationContext && (
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            <Sparkles className="h-3.5 w-3.5" />
+            No contexto
+          </div>
+        )}
+        <div
+          onClick={onClick}
+          className={cn(
+            "relative aspect-square rounded-2xl overflow-hidden cursor-pointer group transition-all",
+            isConversationContext && "ring-2 ring-accent/25 ring-offset-2 ring-offset-background"
+          )}
+        >
           <Image src={post.image} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
           {discount > 0 && (
             <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0">-{discount}%</Badge>
@@ -528,7 +533,7 @@ function PostCard({
           </div>
         </div>
         <SocialProofWithAvatars type="product" index={index} />
-        <SocialActions onComment={onComment} commentActive={isConversationContext} />
+        <SocialActions />
         {showChat && (
           <div className="mt-4">
             <SimulatedChat
@@ -546,8 +551,20 @@ function PostCard({
   if (post.type === "news") {
     return (
       <article className="mb-8">
+        {isConversationContext && (
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            <Sparkles className="h-3.5 w-3.5" />
+            No contexto
+          </div>
+        )}
         {post.image && (
-          <div onClick={onClick} className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group">
+          <div
+            onClick={onClick}
+            className={cn(
+              "relative aspect-video rounded-2xl overflow-hidden cursor-pointer group transition-all",
+              isConversationContext && "ring-2 ring-accent/25 ring-offset-2 ring-offset-background"
+            )}
+          >
             <Image src={post.image} alt={post.title} fill className="object-cover" />
             {post.source && (
               <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground border-0">{post.source}</Badge>
@@ -565,7 +582,7 @@ function PostCard({
           {post.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{post.description}</p>}
         </div>
         <SocialProofWithAvatars type="news" index={index} />
-        <SocialActions onComment={onComment} commentActive={isConversationContext} />
+        <SocialActions />
         {showChat && (
           <div className="mt-4">
             <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
@@ -577,7 +594,16 @@ function PostCard({
   
   if (post.type === "review") {
     return (
-      <article className="mb-8 p-4 bg-card rounded-2xl border border-border/50">
+      <article className={cn(
+        "mb-8 p-4 bg-card rounded-2xl border border-border/50 transition-all",
+        isConversationContext && "border-accent/30 ring-2 ring-accent/20 ring-offset-2 ring-offset-background"
+      )}>
+        {isConversationContext && (
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            <Sparkles className="h-3.5 w-3.5" />
+            No contexto
+          </div>
+        )}
         <div className="flex items-start gap-3">
           {post.reviewerAvatar && (
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
@@ -600,7 +626,7 @@ function PostCard({
           </div>
         </div>
         <SocialProofWithAvatars type="review" index={index} />
-        <SocialActions onComment={onComment} commentActive={isConversationContext} />
+        <SocialActions />
         {showChat && (
           <div className="mt-4">
             <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
@@ -613,8 +639,20 @@ function PostCard({
   // Social post (default)
   return (
     <article className="mb-8">
+      {isConversationContext && (
+        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+          <Sparkles className="h-3.5 w-3.5" />
+          No contexto
+        </div>
+      )}
       {post.image && (
-        <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer">
+        <div
+          onClick={onClick}
+          className={cn(
+            "relative aspect-square rounded-2xl overflow-hidden cursor-pointer transition-all",
+            isConversationContext && "ring-2 ring-accent/25 ring-offset-2 ring-offset-background"
+          )}
+        >
           <Image src={post.image} alt={post.title} fill className="object-cover" />
         </div>
       )}
@@ -623,7 +661,7 @@ function PostCard({
         {post.description && <p className="text-sm text-muted-foreground mt-1">{post.description}</p>}
       </div>
       <SocialProofWithAvatars type="social" index={index} />
-      <SocialActions onComment={onComment} commentActive={isConversationContext} />
+      <SocialActions />
       {showChat && (
         <div className="mt-4">
           <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
@@ -640,13 +678,11 @@ function BusinessSectionComponent({
   section, 
   config, 
   onPostClick,
-  onComment,
   selectedConversationContextIds,
 }: { 
   section: BusinessSection
   config: BusinessConfig
   onPostClick?: (post: BusinessPost) => void
-  onComment?: (post: BusinessPost) => void
   selectedConversationContextIds?: Set<string>
 }) {
   // Gera ID para scroll baseado no titulo da secao
@@ -674,7 +710,6 @@ function BusinessSectionComponent({
           index={index}
           brandLogo={config.logo}
           onClick={() => onPostClick?.(post)}
-          onComment={() => onComment?.(post)}
           isConversationContext={selectedConversationContextIds?.has(post.id) || false}
         />
       ))}
@@ -752,7 +787,19 @@ export function BusinessSocialLanding({
     return posts
   }, [sections])
   
+  const addConversationContextPost = useCallback((post: BusinessPost) => {
+    setConversationContextPosts((previous) => {
+      if (previous.some((item) => item.id === post.id)) {
+        return previous
+      }
+
+      return [...previous, post].slice(-3)
+    })
+  }, [])
+
   const handlePostClick = useCallback((post: BusinessPost) => {
+    addConversationContextPost(post)
+
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
     const contentTypes = ["video", "video-vertical", "news", "review", "social"]
     if (contentTypes.includes(post.type)) {
@@ -765,7 +812,7 @@ export function BusinessSocialLanding({
       setDrawerOpen(true)
       onPostClick?.(post)
     }
-  }, [onPostClick])
+  }, [addConversationContextPost, onPostClick])
   
   const handleCloseDrawer = useCallback(() => {
     setDrawerOpen(false)
@@ -782,16 +829,6 @@ export function BusinessSocialLanding({
     setStoryViewerOpen(true)
     onStoryClick?.(story)
   }, [onStoryClick])
-
-  const handleToggleConversationContext = useCallback((post: BusinessPost) => {
-    setConversationContextPosts((previous) => {
-      if (previous.some((item) => item.id === post.id)) {
-        return previous.filter((item) => item.id !== post.id)
-      }
-
-      return [...previous, post].slice(-3)
-    })
-  }, [])
 
   const selectedConversationContextIds = useMemo(
     () => new Set(conversationContextPosts.map((post) => post.id)),
@@ -845,7 +882,6 @@ export function BusinessSocialLanding({
               section={section}
               config={config}
               onPostClick={handlePostClick}
-              onComment={handleToggleConversationContext}
               selectedConversationContextIds={selectedConversationContextIds}
             />
           ))}
