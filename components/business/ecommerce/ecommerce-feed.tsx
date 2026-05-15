@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { ShoppingBag, Heart, Star, Truck, ChevronRight, Plus, Minus, Check, X, Play, Newspaper } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
@@ -11,6 +12,8 @@ import { EcommerceCheckout } from "../checkout-flows"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product, VariantOption } from "@/lib/business-types"
+import { type ConversationContextItem, useConversationContextSelectionState } from "../conversation-context"
+import { useConversationLongPress } from "../use-conversation-long-press"
 
 type SelectedVariantsById = Record<string, string>
 type SelectedVariant = {
@@ -64,16 +67,107 @@ function getCartKey(product: Product, selectedVariants: SelectedVariant[]) {
 // ========================================
 // MODULO: PRODUTOS EM DESTAQUE (OBJETIVO PRINCIPAL)
 // ========================================
+function ProductCard({
+  product,
+  favorites,
+  onSelectProduct,
+  onAddToCart,
+  onToggleFavorite,
+  isContextSelected,
+  onContextToggle,
+}: {
+  product: Product
+  favorites: Set<string>
+  onSelectProduct: (product: Product) => void
+  onAddToCart: (product: Product) => void
+  onToggleFavorite: (id: string) => void
+  isContextSelected: boolean
+  onContextToggle: (item: ConversationContextItem) => void
+}) {
+  const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
+  const contextItem: ConversationContextItem = {
+    id: `product:${product.id}`,
+    type: "product",
+    title: product.name,
+    description: product.description,
+    fallbackLabel: "Produto",
+  }
+  const { longPressHandlers, shouldHandleActivation } = useConversationLongPress({
+    onLongPress: () => onContextToggle(contextItem),
+  })
+
+  return (
+    <div
+      className={cn(
+        "relative group rounded-[24px] transition-all duration-200",
+        isContextSelected && "ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+      )}
+      {...longPressHandlers}
+    >
+      <button
+        onClick={() => {
+          if (!shouldHandleActivation()) return
+          onSelectProduct(product)
+        }}
+        className="w-full text-left"
+      >
+        {isContextSelected && (
+          <div className="mb-3 inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+            Na conversa
+          </div>
+        )}
+        <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
+          <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+          {discount > 0 && (
+            <Badge className="absolute top-2 left-2 bg-red-500 text-white border-0">-{discount}%</Badge>
+          )}
+        </div>
+        <div className="mt-2">
+          <p className="text-sm font-medium text-foreground line-clamp-2">{product.name}</p>
+          <div className="flex items-center gap-1 mt-1">
+            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+            <span className="text-xs text-muted-foreground">{product.rating} ({product.reviewCount})</span>
+          </div>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="font-bold text-accent">R$ {product.price.toFixed(2).replace(".", ",")}</span>
+            {product.originalPrice && (
+              <span className="text-xs text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
+            )}
+          </div>
+        </div>
+      </button>
+      <button
+        onClick={() => onToggleFavorite(product.id)}
+        className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+      >
+        <Heart className={`w-4 h-4 ${favorites.has(product.id) ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
+      </button>
+      <Button
+        size="sm"
+        className="w-full mt-2 h-9"
+        onClick={() => onAddToCart(product)}
+      >
+        <ShoppingBag className="w-4 h-4 mr-1" />
+        Adicionar
+      </Button>
+    </div>
+  )
+}
+
 function ProductsModule({ 
   onSelectProduct,
   onAddToCart,
   favorites,
-  onToggleFavorite
+  onToggleFavorite,
+  selectedContextIds,
+  onContextToggle,
 }: { 
   onSelectProduct: (product: Product) => void
   onAddToCart: (product: Product) => void
   favorites: Set<string>
   onToggleFavorite: (id: string) => void
+  selectedContextIds: Set<string>
+  onContextToggle: (item: ConversationContextItem) => void
 }) {
   const featuredProducts = products.filter(p => p.originalPrice && p.originalPrice > p.price).slice(0, 4)
   
@@ -81,51 +175,18 @@ function ProductsModule({
     <div className="space-y-6">
       {/* Ofertas em destaque */}
       <div className="grid grid-cols-2 gap-3">
-        {featuredProducts.map((product) => {
-          const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
-          return (
-            <div key={product.id} className="relative group">
-              <button
-                onClick={() => onSelectProduct(product)}
-                className="w-full text-left"
-              >
-                <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
-                  <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                  {discount > 0 && (
-                    <Badge className="absolute top-2 left-2 bg-red-500 text-white border-0">-{discount}%</Badge>
-                  )}
-                </div>
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-foreground line-clamp-2">{product.name}</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs text-muted-foreground">{product.rating} ({product.reviewCount})</span>
-                  </div>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="font-bold text-accent">R$ {product.price.toFixed(2).replace(".", ",")}</span>
-                    {product.originalPrice && (
-                      <span className="text-xs text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
-                    )}
-                  </div>
-                </div>
-              </button>
-              <button
-                onClick={() => onToggleFavorite(product.id)}
-                className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-              >
-                <Heart className={`w-4 h-4 ${favorites.has(product.id) ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
-              </button>
-              <Button
-                size="sm"
-                className="w-full mt-2 h-9"
-                onClick={() => onAddToCart(product)}
-              >
-                <ShoppingBag className="w-4 h-4 mr-1" />
-                Adicionar
-              </Button>
-            </div>
-          )
-        })}
+        {featuredProducts.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            favorites={favorites}
+            onSelectProduct={onSelectProduct}
+            onAddToCart={onAddToCart}
+            onToggleFavorite={onToggleFavorite}
+            isContextSelected={selectedContextIds.has(`product:${product.id}`)}
+            onContextToggle={onContextToggle}
+          />
+        ))}
       </div>
       
       {/* Frete gratis */}
@@ -135,6 +196,31 @@ function ProductsModule({
           <p className="font-medium text-green-700 dark:text-green-400">Frete gratis</p>
           <p className="text-sm text-green-600 dark:text-green-500">Em compras acima de R$ 199</p>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function ProductReviewSnippet({
+  review,
+}: {
+  review: (typeof productReviews)[number]
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl p-3">
+      <div className="relative w-8 h-8 rounded-full overflow-hidden">
+        <Image src={review.userAvatar} alt={review.userName} fill className="object-cover" />
+      </div>
+      <div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">{review.userName}</span>
+          <div className="flex">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
+            ))}
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground line-clamp-2">{review.comment}</p>
       </div>
     </div>
   )
@@ -170,7 +256,9 @@ function ProductDetailDrawer({
   onClose,
   onAddToCart,
   isFavorite,
-  onToggleFavorite
+  onToggleFavorite,
+  selectedContextIds,
+  onContextToggle,
 }: { 
   product: Product | null
   isOpen: boolean
@@ -178,6 +266,8 @@ function ProductDetailDrawer({
   onAddToCart: (product: Product, quantity: number, selectedVariants: SelectedVariant[]) => void
   isFavorite: boolean
   onToggleFavorite: () => void
+  selectedContextIds: Set<string>
+  onContextToggle: (item: ConversationContextItem) => void
 }) {
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
@@ -190,6 +280,19 @@ function ProductDetailDrawer({
       setSelectedVariants({})
     }
   }, [isOpen, product?.id])
+  const contextItem: ConversationContextItem = {
+    id: `product:${product?.id || "pending"}`,
+    type: "product",
+    title: product?.name,
+    description: product?.fullDescription || product?.description,
+    fallbackLabel: "Produto",
+  }
+  const isContextSelected = selectedContextIds.has(contextItem.id)
+  const { longPressHandlers } = useConversationLongPress({
+    onLongPress: () => {
+      if (product) onContextToggle(contextItem)
+    },
+  })
   
   if (!product) return null
   
@@ -203,56 +306,69 @@ function ProductDetailDrawer({
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={product.name} size="lg">
       <div className="space-y-6">
-        {/* Imagens */}
-        <div className="space-y-3">
-          <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
-            <Image src={product.images[selectedImage]} alt={product.name} fill className="object-cover" />
-            {discount > 0 && (
-              <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0 text-sm">-{discount}%</Badge>
+        <div
+          className={cn(
+            "space-y-6 rounded-[28px] transition-all duration-200",
+            isContextSelected && "bg-accent/5 ring-2 ring-accent/20 ring-offset-2 ring-offset-background shadow-lg"
+          )}
+          {...longPressHandlers}
+        >
+          {isContextSelected && (
+            <div className="inline-flex rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+              Na conversa
+            </div>
+          )}
+          {/* Imagens */}
+          <div className="space-y-3">
+            <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
+              <Image src={product.images[selectedImage]} alt={product.name} fill className="object-cover" />
+              {discount > 0 && (
+                <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0 text-sm">-{discount}%</Badge>
+              )}
+              <button
+                onClick={onToggleFavorite}
+                className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+              >
+                <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
+              </button>
+            </div>
+            {product.images.length > 1 && (
+              <div className="flex gap-2">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={`relative w-16 h-16 rounded-lg overflow-hidden ring-2 transition-colors ${selectedImage === idx ? "ring-accent" : "ring-transparent"}`}
+                  >
+                    <Image src={img} alt="" fill className="object-cover" />
+                  </button>
+                ))}
+              </div>
             )}
-            <button
-              onClick={onToggleFavorite}
-              className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-            >
-              <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
-            </button>
           </div>
-          {product.images.length > 1 && (
-            <div className="flex gap-2">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`relative w-16 h-16 rounded-lg overflow-hidden ring-2 transition-colors ${selectedImage === idx ? "ring-accent" : "ring-transparent"}`}
-                >
-                  <Image src={img} alt="" fill className="object-cover" />
-                </button>
-              ))}
+          
+          {/* Info */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-medium">{product.rating}</span>
+              </div>
+              <span className="text-sm text-muted-foreground">({product.reviewCount} avaliacoes)</span>
             </div>
-          )}
-        </div>
-        
-        {/* Info */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{product.rating}</span>
-            </div>
-            <span className="text-sm text-muted-foreground">({product.reviewCount} avaliacoes)</span>
+            <h2 className="text-xl font-bold">{product.name}</h2>
+            <p className="text-muted-foreground mt-2">{product.fullDescription || product.description}</p>
           </div>
-          <h2 className="text-xl font-bold">{product.name}</h2>
-          <p className="text-muted-foreground mt-2">{product.fullDescription || product.description}</p>
+          
+          {/* Preco */}
+          <div className="flex items-baseline gap-3">
+            <span className="text-3xl font-bold text-accent">R$ {unitPrice.toFixed(2).replace(".", ",")}</span>
+            {product.originalPrice && (
+              <span className="text-lg text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
+            )}
+          </div>
         </div>
-        
-        {/* Preco */}
-        <div className="flex items-baseline gap-3">
-          <span className="text-3xl font-bold text-accent">R$ {unitPrice.toFixed(2).replace(".", ",")}</span>
-          {product.originalPrice && (
-            <span className="text-lg text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
-          )}
-        </div>
-        
+
         {/* Variacoes */}
         {product.variants && product.variants.length > 0 && (
           <div className="space-y-4">
@@ -311,22 +427,10 @@ function ProductDetailDrawer({
           <div className="bg-secondary/50 rounded-xl p-4">
             <h4 className="font-medium mb-3">Avaliacoes recentes</h4>
             {reviews.slice(0, 2).map((review) => (
-              <div key={review.id} className="flex items-start gap-3 mb-3 last:mb-0">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                  <Image src={review.userAvatar} alt={review.userName} fill className="object-cover" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{review.userName}</span>
-                    <div className="flex">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{review.comment}</p>
-                </div>
-              </div>
+              <ProductReviewSnippet
+                key={review.id}
+                review={review}
+              />
             ))}
           </div>
         )}
@@ -458,6 +562,12 @@ export function EcommerceFeed() {
   const [checkoutDrawerOpen, setCheckoutDrawerOpen] = useState(false)
   const [cart, setCart] = useState<CartItem[]>([])
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
+  const {
+    contextItems,
+    selectedContextIds,
+    toggleContextItem,
+    removeContextItem,
+  } = useConversationContextSelectionState()
   
   // Handlers
   const handleAddToCart = (product: Product, quantity: number = 1, selectedVariants: SelectedVariant[] = []) => {
@@ -515,6 +625,8 @@ export function EcommerceFeed() {
           }}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
+          selectedContextIds={selectedContextIds}
+          onContextToggle={toggleContextItem}
         />
       )
     },
@@ -561,6 +673,9 @@ export function EcommerceFeed() {
         config={ecommerceConfig}
         stories={ecommerceContent.stories}
         sections={sections}
+        conversationContextItems={contextItems}
+        onConversationContextToggle={toggleContextItem}
+        onConversationContextRemove={removeContextItem}
         onStoryClick={(story) => {
           if (story.isMain) {
             // Abre carrinho ou produtos
@@ -575,7 +690,10 @@ export function EcommerceFeed() {
       
       {/* Barra fixa do carrinho */}
       {cartItemCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-40">
+        <div
+          className="fixed left-0 right-0 bg-background border-t border-border p-4 z-40"
+          style={{ bottom: "var(--social-conversation-composer-height, 0px)" }}
+        >
           <div className="max-w-lg mx-auto">
             <Button className="w-full h-12" onClick={() => setCartDrawerOpen(true)}>
               <ShoppingBag className="w-5 h-5 mr-2" />
@@ -593,6 +711,8 @@ export function EcommerceFeed() {
         onAddToCart={handleAddToCartAndOpenCart}
         isFavorite={selectedProduct ? favorites.has(selectedProduct.id) : false}
         onToggleFavorite={() => selectedProduct && handleToggleFavorite(selectedProduct.id)}
+        selectedContextIds={selectedContextIds}
+        onContextToggle={toggleContextItem}
       />
       
       <CartDrawerComponent
