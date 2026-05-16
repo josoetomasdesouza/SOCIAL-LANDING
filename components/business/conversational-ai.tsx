@@ -73,7 +73,8 @@ export function ConversationalAI({
   const [isMinimized, setIsMinimized] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
-  const previousContextIdsRef = useRef<string[]>([])
+  const activeContextIdsRef = useRef<string[]>([])
+  const pendingContextIdsRef = useRef<string[]>([])
 
   useEffect(() => {
     if (!isMinimized) {
@@ -94,56 +95,83 @@ export function ConversationalAI({
   const showContextRow = !hasConversation && contextItems.length > 0
   const showExpandedConversation = hasConversation && !isMinimized
 
+  const buildContextEvent = (items: ConversationContextItem[]): ConversationMessage => ({
+    id: `context-${Date.now()}`,
+    role: "context_event",
+    content: items.map((item) => item.title).join(", "),
+    contexts: items,
+  })
+
+  const appendContextEvent = (previousMessages: ConversationMessage[], items: ConversationContextItem[]) => {
+    if (items.length === 0) {
+      return previousMessages
+    }
+
+    const lastMessage = previousMessages[previousMessages.length - 1]
+
+    if (lastMessage?.role === "context_event") {
+      const lastContexts = lastMessage.contexts ?? (lastMessage.context ? [lastMessage.context] : [])
+      const nextItemsById = new Set(items.map((item) => item.id))
+      const mergedContexts = [...items, ...lastContexts.filter((item) => !nextItemsById.has(item.id))]
+
+      return [
+        ...previousMessages.slice(0, -1),
+        {
+          ...lastMessage,
+          content: mergedContexts.map((item) => item.title).join(", "),
+          contexts: mergedContexts,
+          context: mergedContexts[0],
+        },
+      ]
+    }
+
+    return [...previousMessages, buildContextEvent(items)]
+  }
+
+  const clearPendingContextIds = (contextIds: string[]) => {
+    if (contextIds.length === 0) return
+
+    const idsToClear = new Set(contextIds)
+    pendingContextIdsRef.current = pendingContextIdsRef.current.filter((id) => !idsToClear.has(id))
+  }
+
   useEffect(() => {
-    const previousContextIds = new Set(previousContextIdsRef.current)
+    const previousActiveContextIds = new Set(activeContextIdsRef.current)
     const nextContextIds = contextItems.map((item) => item.id)
+    const removedContextIds = activeContextIdsRef.current.filter((id) => !nextContextIds.includes(id))
+    const addedContextItems = contextItems.filter((item) => !previousActiveContextIds.has(item.id))
 
-    if (hasConversation) {
-      const addedContextItems = contextItems.filter((item) => !previousContextIds.has(item.id))
+    clearPendingContextIds(removedContextIds)
 
-      if (addedContextItems.length > 0) {
-        setMessages((prev) => {
-          const lastMessage = prev[prev.length - 1]
+    if (addedContextItems.length > 0) {
+      const addedIds = new Set(addedContextItems.map((item) => item.id))
+      pendingContextIdsRef.current = [
+        ...addedContextItems.map((item) => item.id),
+        ...pendingContextIdsRef.current.filter((id) => !addedIds.has(id)),
+      ]
 
-          if (lastMessage?.role === "context_event") {
-            const lastContexts = lastMessage.contexts ?? (lastMessage.context ? [lastMessage.context] : [])
-
-            return [
-              ...prev.slice(0, -1),
-              {
-                ...lastMessage,
-                contexts: [...lastContexts, ...addedContextItems],
-              },
-            ]
-          }
-
-          return [
-            ...prev,
-            {
-              id: `context-${Date.now()}`,
-              role: "context_event" as const,
-              content: addedContextItems.map((item) => item.title).join(", "),
-              contexts: addedContextItems,
-            },
-          ]
-        })
+      if (hasConversation) {
+        setMessages((prev) => appendContextEvent(prev, addedContextItems))
+        clearPendingContextIds(addedContextItems.map((item) => item.id))
       }
     }
 
-    previousContextIdsRef.current = nextContextIds
+    activeContextIdsRef.current = nextContextIds
   }, [contextItems, hasConversation])
 
   const handleSendMessage = () => {
     const nextMessage = inputValue.trim()
     if (!nextMessage || isTyping) return
 
+    const pendingContextItems = contextItems.filter((item) => pendingContextIdsRef.current.includes(item.id))
     const userMessage: ConversationMessage = {
       id: `user-${Date.now()}`,
       role: "user",
       content: nextMessage,
     }
 
-    setMessages((prev) => [...prev, userMessage])
+    clearPendingContextIds(pendingContextItems.map((item) => item.id))
+    setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
     setInputValue("")
     setIsTyping(true)
     setIsMinimized(false)
@@ -177,10 +205,14 @@ export function ConversationalAI({
     setInputValue("")
     setIsTyping(false)
     setIsMinimized(false)
+    activeContextIdsRef.current = []
+    pendingContextIdsRef.current = []
     onCloseConversation?.()
   }
 
   const handleRemoveContextItem = (contextId: string) => {
+    clearPendingContextIds([contextId])
+    activeContextIdsRef.current = activeContextIdsRef.current.filter((id) => id !== contextId)
     onRemoveContext?.(contextId)
     setMessages((prev) =>
       prev.flatMap((message) => {
