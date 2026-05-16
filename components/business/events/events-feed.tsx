@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Calendar, Clock, MapPin, Users, Ticket, Heart, Star, Play, Newspaper, Music } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { TicketCheckout } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { eventsConfig, events } from "@/lib/mock-data/events-data"
 import { eventsContent } from "@/lib/mock-data/business-content"
 import type { Event } from "@/lib/business-types"
@@ -71,11 +74,15 @@ function getEventArtists(event: Event) {
 function EventsModule({ 
   onSelectEvent,
   favorites,
-  onToggleFavorite
+  onToggleFavorite,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   onSelectEvent: (event: Event) => void
   favorites: Set<string>
   onToggleFavorite: (id: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   return (
     <div className="space-y-4">
@@ -85,10 +92,19 @@ function EventsModule({
         const eventLocation = getEventLocation(event)
         const eventPrice = getEventPrice(event)
         const eventCapacity = getEventCapacity(event)
+        const contextItem = {
+          id: `event-${event.id}`,
+          title: eventTitle,
+          image: event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop",
+          subtitle: "Evento",
+        }
         return (
-          <div
+          <ContextSelectable
+            as="div"
             key={event.id}
             onClick={() => onSelectEvent(event)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors cursor-pointer"
           >
             <div className="relative aspect-[2/1]">
@@ -130,7 +146,7 @@ function EventsModule({
                 </Badge>
               </div>
             </div>
-          </div>
+          </ContextSelectable>
         )
       })}
     </div>
@@ -140,7 +156,13 @@ function EventsModule({
 // ========================================
 // MODULO: CATEGORIAS DE EVENTOS
 // ========================================
-function CategoriesModule() {
+function CategoriesModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   const categories = [
     { id: "1", name: "Shows", icon: "🎵", count: 15 },
     { id: "2", name: "Teatro", icon: "🎭", count: 8 },
@@ -150,12 +172,27 @@ function CategoriesModule() {
   
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {categories.map((cat) => (
-        <button key={cat.id} className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]">
-          <span className="text-2xl">{cat.icon}</span>
-          <span className="text-sm font-medium text-foreground">{cat.name}</span>
-        </button>
-      ))}
+      {categories.map((cat) => {
+        const contextItem = {
+          id: `event-category-${cat.id}`,
+          title: cat.name,
+          image: eventsConfig.logo,
+          subtitle: "Categoria",
+        }
+
+        return (
+          <ContextSelectable
+            key={cat.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
+          >
+            <span className="text-2xl">{cat.icon}</span>
+            <span className="text-sm font-medium text-foreground">{cat.name}</span>
+          </ContextSelectable>
+        )
+      })}
     </div>
   )
 }
@@ -167,12 +204,16 @@ function EventDetailDrawer({
   event, 
   isOpen, 
   onClose,
-  onBuyTicket
+  onBuyTicket,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   event: Event | null
   isOpen: boolean
   onClose: () => void
   onBuyTicket: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   if (!event) return null
   
@@ -181,21 +222,42 @@ function EventDetailDrawer({
   const eventLocation = getEventLocation(event)
   const eventPrice = getEventPrice(event)
   const eventArtists = getEventArtists(event)
+  const eventContextItem = {
+    id: `event-${event.id}`,
+    title: eventTitle,
+    image: event.image || eventsConfig.logo,
+    subtitle: "Evento",
+  }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={eventTitle} size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={eventTitle}
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
           <Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={eventTitle} fill className="object-cover" />
         </div>
         
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(eventContextItem)}
+          selected={isInConversation?.(eventContextItem.id) ?? false}
+        >
           <Badge variant="secondary" className="mb-2">{event.category}</Badge>
           <h2 className="text-xl font-bold">{eventTitle}</h2>
           <p className="text-muted-foreground mt-2">{event.description}</p>
-        </div>
+        </ContextSelectable>
         
-        <div className="grid grid-cols-2 gap-3">
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(eventContextItem)}
+          selected={isInConversation?.(eventContextItem.id) ?? false}
+          className="grid grid-cols-2 gap-3"
+        >
           <div className="p-3 bg-secondary/50 rounded-xl">
             <Calendar className="w-5 h-5 text-accent mb-1" />
             <p className="font-medium">{eventDate.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</p>
@@ -205,17 +267,21 @@ function EventDetailDrawer({
             <MapPin className="w-5 h-5 text-accent mb-1" />
             <p className="font-medium text-sm line-clamp-2">{eventLocation}</p>
           </div>
-        </div>
+        </ContextSelectable>
         
         {eventArtists.length > 0 && (
-          <div>
+          <ContextSelectable
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(eventContextItem)}
+            selected={isInConversation?.(eventContextItem.id) ?? false}
+          >
             <h4 className="font-medium mb-3">Artistas</h4>
             <div className="flex flex-wrap gap-2">
               {eventArtists.map((artist, idx) => (
                 <Badge key={idx} variant="outline">{artist}</Badge>
               ))}
             </div>
-          </div>
+          </ContextSelectable>
         )}
         
         <div className="bg-secondary/50 rounded-xl p-4">
@@ -237,10 +303,21 @@ function EventDetailDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function EventsFeed() {
+  const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [eventDrawerOpen, setEventDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    const nextMode = checkoutOpen ? "hidden" : eventDrawerOpen ? "overlay" : "default"
+    setComposerMode(nextMode)
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [checkoutOpen, eventDrawerOpen, setComposerMode])
   
   const handleToggleFavorite = (id: string) => {
     setFavorites(prev => {
@@ -301,7 +378,8 @@ export function EventsFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={eventsConfig}
         stories={eventsContent.stories}
@@ -321,6 +399,8 @@ export function EventsFeed() {
           setEventDrawerOpen(false)
           setCheckoutOpen(true)
         }}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <ActionDrawer
@@ -347,6 +427,7 @@ export function EventsFeed() {
           />
         )}
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

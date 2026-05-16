@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { EcommerceCheckout } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product, VariantOption } from "@/lib/business-types"
@@ -68,12 +71,16 @@ function ProductsModule({
   onSelectProduct,
   onAddToCart,
   favorites,
-  onToggleFavorite
+  onToggleFavorite,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   onSelectProduct: (product: Product) => void
   onAddToCart: (product: Product) => void
   favorites: Set<string>
   onToggleFavorite: (id: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const featuredProducts = products.filter(p => p.originalPrice && p.originalPrice > p.price).slice(0, 4)
   
@@ -83,12 +90,22 @@ function ProductsModule({
       <div className="grid grid-cols-2 gap-3">
         {featuredProducts.map((product) => {
           const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
+          const contextItem = {
+            id: `ecommerce-product-${product.id}`,
+            title: product.name,
+            image: product.images[0],
+            subtitle: "Produto",
+          }
           return (
-            <div key={product.id} className="relative group">
-              <button
-                onClick={() => onSelectProduct(product)}
-                className="w-full text-left"
-              >
+            <ContextSelectable
+              key={product.id}
+              as="div"
+              onClick={() => onSelectProduct(product)}
+              onLongPress={() => onToggleConversationContext?.(contextItem)}
+              selected={isInConversation?.(contextItem.id) ?? false}
+              className="relative group"
+            >
+              <div className="w-full text-left">
                 <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
                   <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                   {discount > 0 && (
@@ -108,7 +125,7 @@ function ProductsModule({
                     )}
                   </div>
                 </div>
-              </button>
+              </div>
               <button
                 onClick={() => onToggleFavorite(product.id)}
                 className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
@@ -123,7 +140,7 @@ function ProductsModule({
                 <ShoppingBag className="w-4 h-4 mr-1" />
                 Adicionar
               </Button>
-            </div>
+            </ContextSelectable>
           )
         })}
       </div>
@@ -143,20 +160,40 @@ function ProductsModule({
 // ========================================
 // MODULO: CATEGORIAS
 // ========================================
-function CategoriesModule({ onSelectCategory }: { onSelectCategory: (category: string) => void }) {
+function CategoriesModule({
+  onSelectCategory,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onSelectCategory: (category: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {productCategories.map((category) => (
-        <button
-          key={category.id}
-          onClick={() => onSelectCategory(category.id)}
-          className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[100px]"
-        >
-          <span className="text-2xl">{category.icon}</span>
-          <span className="text-sm font-medium text-foreground">{category.name}</span>
-          <span className="text-xs text-muted-foreground">{category.count} itens</span>
-        </button>
-      ))}
+      {productCategories.map((category) => {
+        const contextItem = {
+          id: `ecommerce-category-${category.id}`,
+          title: category.name,
+          image: ecommerceConfig.logo,
+          subtitle: "Categoria",
+        }
+
+        return (
+          <ContextSelectable
+            key={category.id}
+            as="div"
+            onClick={() => onSelectCategory(category.id)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[100px]"
+          >
+            <span className="text-2xl">{category.icon}</span>
+            <span className="text-sm font-medium text-foreground">{category.name}</span>
+            <span className="text-xs text-muted-foreground">{category.count} itens</span>
+          </ContextSelectable>
+        )
+      })}
     </div>
   )
 }
@@ -170,7 +207,9 @@ function ProductDetailDrawer({
   onClose,
   onAddToCart,
   isFavorite,
-  onToggleFavorite
+  onToggleFavorite,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   product: Product | null
   isOpen: boolean
@@ -178,6 +217,8 @@ function ProductDetailDrawer({
   onAddToCart: (product: Product, quantity: number, selectedVariants: SelectedVariant[]) => void
   isFavorite: boolean
   onToggleFavorite: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
@@ -199,9 +240,21 @@ function ProductDetailDrawer({
   const missingRequiredVariant = product.variants?.some((variant) => !selectedVariants[variant.id]) || false
   const unitPrice = product.price + getVariantPriceModifier(resolvedVariants)
   const totalPrice = unitPrice * quantity
+  const productContextItem = {
+    id: `ecommerce-product-${product.id}`,
+    title: product.name,
+    image: product.images[0],
+    subtitle: "Produto",
+  }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={product.name} size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={product.name}
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         {/* Imagens */}
         <div className="space-y-3">
@@ -233,7 +286,11 @@ function ProductDetailDrawer({
         </div>
         
         {/* Info */}
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(productContextItem)}
+          selected={isInConversation?.(productContextItem.id) ?? false}
+        >
           <div className="flex items-center gap-2 mb-2">
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -243,7 +300,7 @@ function ProductDetailDrawer({
           </div>
           <h2 className="text-xl font-bold">{product.name}</h2>
           <p className="text-muted-foreground mt-2">{product.fullDescription || product.description}</p>
-        </div>
+        </ContextSelectable>
         
         {/* Preco */}
         <div className="flex items-baseline gap-3">
@@ -308,7 +365,12 @@ function ProductDetailDrawer({
         
         {/* Avaliacoes resumidas */}
         {reviews.length > 0 && (
-          <div className="bg-secondary/50 rounded-xl p-4">
+          <ContextSelectable
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(productContextItem)}
+            selected={isInConversation?.(productContextItem.id) ?? false}
+            className="bg-secondary/50 rounded-xl p-4"
+          >
             <h4 className="font-medium mb-3">Avaliacoes recentes</h4>
             {reviews.slice(0, 2).map((review) => (
               <div key={review.id} className="flex items-start gap-3 mb-3 last:mb-0">
@@ -328,7 +390,7 @@ function ProductDetailDrawer({
                 </div>
               </div>
             ))}
-          </div>
+          </ContextSelectable>
         )}
         
         {/* Botao de compra */}
@@ -452,6 +514,8 @@ function CartDrawerComponent({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function EcommerceFeed() {
+  const conversationSelection = useConversationSelectionState()
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [productDrawerOpen, setProductDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
@@ -554,9 +618,27 @@ export function EcommerceFeed() {
   ]
 
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+
+  useEffect(() => {
+    const nextMode =
+      checkoutDrawerOpen || cartDrawerOpen
+        ? "hidden"
+        : productDrawerOpen
+          ? "overlay"
+          : "default"
+
+    setComposerMode(nextMode)
+    setComposerOffsetClassName(!productDrawerOpen && cartItemCount > 0 ? "bottom-[88px]" : undefined)
+
+    return () => {
+      setComposerMode("default")
+      setComposerOffsetClassName(undefined)
+    }
+  }, [cartDrawerOpen, cartItemCount, checkoutDrawerOpen, productDrawerOpen, setComposerMode, setComposerOffsetClassName])
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={ecommerceConfig}
         stories={ecommerceContent.stories}
@@ -593,6 +675,8 @@ export function EcommerceFeed() {
         onAddToCart={handleAddToCartAndOpenCart}
         isFavorite={selectedProduct ? favorites.has(selectedProduct.id) : false}
         onToggleFavorite={() => selectedProduct && handleToggleFavorite(selectedProduct.id)}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <CartDrawerComponent
@@ -631,6 +715,7 @@ export function EcommerceFeed() {
           }}
         />
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

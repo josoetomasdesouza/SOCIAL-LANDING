@@ -13,6 +13,7 @@ interface ActionDrawerProps {
   footer?: React.ReactNode
   size?: "sm" | "md" | "lg" | "full"
   matchFeedWidth?: boolean
+  reserveComposerSpace?: boolean
 }
 
 export function ActionDrawer({
@@ -23,7 +24,8 @@ export function ActionDrawer({
   children,
   footer,
   size = "md",
-  matchFeedWidth = false
+  matchFeedWidth = false,
+  reserveComposerSpace = false,
 }: ActionDrawerProps) {
   // Bloqueia scroll do body quando aberto
   useEffect(() => {
@@ -93,7 +95,7 @@ export function ActionDrawer({
 
         {/* Content */}
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className={`${innerWidthClasses} p-5`}>
+          <div className={`${innerWidthClasses} px-5 pt-5 ${reserveComposerSpace ? "pb-32" : "pb-5"}`}>
             {children}
           </div>
         </div>
