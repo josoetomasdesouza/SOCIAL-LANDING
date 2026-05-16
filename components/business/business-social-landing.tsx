@@ -9,11 +9,6 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import type { BusinessConfig, BusinessModel } from "@/lib/business-types"
 import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
-import {
-  getContextualSpotlightClasses,
-  type ContextualReferenceItem,
-  useContextualNavigation,
-} from "@/components/social-landing/use-contextual-navigation"
 import { ActionDrawer } from "./action-drawer"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
 
@@ -88,74 +83,6 @@ const contextualSocialProof: Record<string, string[]> = {
   news: ["leram essa materia", "compartilharam essa noticia", "estao acompanhando"],
   review: ["acharam essa avaliacao util", "concordaram com essa opiniao", "tiveram experiencia parecida"],
   social: ["curtiram essa publicacao", "comentaram aqui", "compartilharam com alguem"],
-}
-
-const contentTypeLabels: Record<string, string> = {
-  video: "Video",
-  "video-vertical": "Short",
-  product: "Produto",
-  news: "Conteudo",
-  review: "Avaliacao",
-  social: "Post",
-}
-
-const relatedTypePriority: Record<string, string[]> = {
-  video: ["product", "news", "social"],
-  "video-vertical": ["product", "social", "video"],
-  product: ["review", "video", "social"],
-  news: ["video", "social", "review"],
-  review: ["product", "news", "social"],
-  social: ["product", "video", "news"],
-}
-
-const getContextualDescription = (post: BusinessPost) => {
-  if (post.type === "product" && post.price) {
-    return `R$ ${post.price.toFixed(2).replace(".", ",")}`
-  }
-
-  if ((post.type === "video" || post.type === "video-vertical") && post.duration) {
-    return post.duration
-  }
-
-  if (post.type === "news" && post.source) {
-    return post.source
-  }
-
-  if (post.type === "review" && post.reviewerName) {
-    return `por ${post.reviewerName}`
-  }
-
-  return post.description
-}
-
-const buildContextualReferences = (
-  currentPost: BusinessPost,
-  candidates: BusinessPost[]
-): ContextualReferenceItem[] => {
-  const otherPosts = candidates.filter((candidate) => candidate.id !== currentPost.id)
-  const priorityOrder = [currentPost.type, ...(relatedTypePriority[currentPost.type] || [])]
-
-  const prioritizedPosts = priorityOrder.flatMap((type) =>
-    otherPosts.filter((candidate) => candidate.type === type)
-  )
-
-  const orderedPosts = [...prioritizedPosts, ...otherPosts]
-  const uniquePosts = Array.from(new Map(orderedPosts.map((post) => [post.id, post])).values())
-
-  return uniquePosts.slice(0, 2).map((post) => ({
-    id: post.id,
-    title: post.title,
-    eyebrow: contentTypeLabels[post.type] || "Conteudo",
-    image: post.image,
-    description: getContextualDescription(post),
-  }))
-}
-
-interface ContextAwareBusinessCardProps {
-  itemRef?: (node: HTMLArticleElement | null) => void
-  isHighlighted?: boolean
-  relatedContent?: ContextualReferenceItem[]
-  onNavigateToContext?: (contentId: string) => void
 }
 
 // ========================================
@@ -469,18 +396,14 @@ function PostCard({
   index, 
   brandLogo, 
   onClick,
-  showChat = true,
-  itemRef,
-  isHighlighted = false,
-  relatedContent = [],
-  onNavigateToContext,
+  showChat = true
 }: { 
   post: BusinessPost
   index: number
   brandLogo: string
   onClick?: () => void
   showChat?: boolean
-} & ContextAwareBusinessCardProps) {
+}) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
   
   const chatMessages: Record<string, { messages: { content: string; isUser: boolean }[]; placeholder: string }> = {
@@ -520,11 +443,7 @@ function PostCard({
   if (post.type === "video" || post.type === "video-vertical") {
     const isVertical = post.type === "video-vertical"
     return (
-      <article
-        ref={itemRef}
-        tabIndex={-1}
-        className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-      >
+      <article className="mb-8">
         <div 
           onClick={onClick}
           className={cn(
@@ -558,8 +477,6 @@ function PostCard({
               brandLogo={brandLogo}
               userAvatar={userAvatar}
               placeholder={chatConfig.placeholder}
-              relatedContent={relatedContent}
-              onNavigateToContext={onNavigateToContext}
             />
           </div>
         )}
@@ -575,11 +492,7 @@ function PostCard({
   if (post.type === "product") {
     const discount = post.originalPrice ? Math.round((1 - post.price! / post.originalPrice) * 100) : 0
     return (
-      <article
-        ref={itemRef}
-        tabIndex={-1}
-        className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-      >
+      <article className="mb-8">
         <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group">
           <Image src={post.image} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
           {discount > 0 && (
@@ -608,8 +521,6 @@ function PostCard({
               brandLogo={brandLogo}
               userAvatar={userAvatar}
               placeholder={chatConfig.placeholder}
-              relatedContent={relatedContent}
-              onNavigateToContext={onNavigateToContext}
             />
           </div>
         )}
@@ -619,11 +530,7 @@ function PostCard({
   
   if (post.type === "news") {
     return (
-      <article
-        ref={itemRef}
-        tabIndex={-1}
-        className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-      >
+      <article className="mb-8">
         {post.image && (
           <div onClick={onClick} className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group">
             <Image src={post.image} alt={post.title} fill className="object-cover" />
@@ -655,14 +562,7 @@ function PostCard({
   
   if (post.type === "review") {
     return (
-      <article
-        ref={itemRef}
-        tabIndex={-1}
-        className={cn(
-          "mb-8 p-4 bg-card rounded-2xl border border-border/50",
-          getContextualSpotlightClasses(isHighlighted)
-        )}
-      >
+      <article className="mb-8 p-4 bg-card rounded-2xl border border-border/50">
         <div className="flex items-start gap-3">
           {post.reviewerAvatar && (
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
@@ -697,11 +597,7 @@ function PostCard({
   
   // Social post (default)
   return (
-    <article
-      ref={itemRef}
-      tabIndex={-1}
-      className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-    >
+    <article className="mb-8">
       {post.image && (
         <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer">
           <Image src={post.image} alt={post.title} fill className="object-cover" />
@@ -728,19 +624,11 @@ function PostCard({
 function BusinessSectionComponent({ 
   section, 
   config, 
-  onPostClick,
-  allPosts,
-  highlightedContentId,
-  onNavigateToContext,
-  registerContentNode,
+  onPostClick 
 }: { 
   section: BusinessSection
   config: BusinessConfig
   onPostClick?: (post: BusinessPost) => void
-  allPosts: BusinessPost[]
-  highlightedContentId: string | null
-  onNavigateToContext: (contentId: string) => boolean
-  registerContentNode: (contentId: string) => (node: HTMLArticleElement | null) => void
 }) {
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
@@ -767,10 +655,6 @@ function BusinessSectionComponent({
           index={index}
           brandLogo={config.logo}
           onClick={() => onPostClick?.(post)}
-          itemRef={registerContentNode(post.id)}
-          isHighlighted={highlightedContentId === post.id}
-          relatedContent={index % 3 === 0 ? buildContextualReferences(post, allPosts) : []}
-          onNavigateToContext={onNavigateToContext}
         />
       ))}
     </section>
@@ -829,8 +713,6 @@ export function BusinessSocialLanding({
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [feedDrawerOpen, setFeedDrawerOpen] = useState(false)
   const [feedDrawerCategory, setFeedDrawerCategory] = useState<string>("all")
-  const { highlightedContentId, navigateToContent, registerContentNode } =
-    useContextualNavigation<HTMLArticleElement>()
   
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
@@ -842,16 +724,6 @@ export function BusinessSocialLanding({
     const posts: BusinessPost[] = []
     sections.forEach(section => {
       if (section.type === "content" && section.posts) {
-        posts.push(...section.posts)
-      }
-    })
-    return posts
-  }, [sections])
-
-  const allRenderedPosts = useMemo(() => {
-    const posts: BusinessPost[] = []
-    sections.forEach((section) => {
-      if (section.posts) {
         posts.push(...section.posts)
       }
     })
@@ -918,10 +790,6 @@ export function BusinessSocialLanding({
               section={section}
               config={config}
               onPostClick={handlePostClick}
-              allPosts={allRenderedPosts}
-              highlightedContentId={highlightedContentId}
-              onNavigateToContext={navigateToContent}
-              registerContentNode={registerContentNode}
             />
           ))}
         </div>

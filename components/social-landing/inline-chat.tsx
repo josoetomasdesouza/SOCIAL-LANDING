@@ -2,15 +2,13 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { ChevronRight, Send } from "lucide-react"
-import type { ContextualReferenceItem } from "./use-contextual-navigation"
+import { Send } from "lucide-react"
 
 // Avatar padrao do usuario
 const DEFAULT_USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"
 
 interface ChatMessage {
-  text?: string
-  content?: string
+  text: string
   isUser: boolean
 }
 
@@ -19,8 +17,6 @@ interface SimulatedChatProps {
   userAvatar?: string
   messages: ChatMessage[]
   placeholder?: string
-  relatedContent?: ContextualReferenceItem[]
-  onNavigateToContext?: (contentId: string) => void
 }
 
 // Chat com conversa ja simulada entre usuario e IA
@@ -28,9 +24,7 @@ export function SimulatedChat({
   brandLogo, 
   userAvatar = DEFAULT_USER_AVATAR,
   messages, 
-  placeholder = "Digite aqui...",
-  relatedContent = [],
-  onNavigateToContext
+  placeholder = "Digite aqui..." 
 }: SimulatedChatProps) {
   const [inputValue, setInputValue] = useState("")
 
@@ -58,59 +52,10 @@ export function SimulatedChat({
                 : "bg-secondary text-foreground rounded-2xl rounded-bl-md"
             }`}
           >
-            {message.text ?? message.content}
+            {message.text}
           </div>
         </div>
       ))}
-
-      {relatedContent.length > 0 && (
-        <div className="space-y-2 pt-1">
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground/80">
-            Ver no feed
-          </p>
-
-          <div className="grid gap-2">
-            {relatedContent.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onNavigateToContext?.(item.id)}
-                className="group flex items-center gap-3 rounded-2xl border border-border/60 bg-background/80 px-3 py-2.5 text-left transition-all duration-200 hover:border-accent/30 hover:bg-accent/5 active:scale-[0.99]"
-              >
-                {item.image ? (
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    width={52}
-                    height={52}
-                    className="h-[52px] w-[52px] rounded-xl object-cover"
-                  />
-                ) : (
-                  <div className="flex h-[52px] w-[52px] items-center justify-center rounded-xl bg-accent/10 text-[11px] font-semibold uppercase tracking-wide text-accent">
-                    {item.eyebrow.slice(0, 3)}
-                  </div>
-                )}
-
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-accent/80">
-                    {item.eyebrow}
-                  </p>
-                  <p className="mt-0.5 line-clamp-2 text-sm font-medium text-foreground">
-                    {item.title}
-                  </p>
-                  {item.description && (
-                    <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-                      {item.description}
-                    </p>
-                  )}
-                </div>
-
-                <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-accent" />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Input para continuar a conversa - Avatar do USUARIO (quem vai escrever) */}
       <div className="flex items-center gap-2.5 pt-1">

@@ -1,6 +1,5 @@
 "use client"
 
-import { useMemo } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Play, Star, Bookmark, Newspaper, Flame, Sparkles, Globe } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -8,11 +7,6 @@ import { cn } from "@/lib/utils"
 import type { Post } from "@/lib/types"
 import { formatDateShort } from "@/lib/format-date"
 import { SimpleChatInput, SimulatedChat } from "./inline-chat"
-import {
-  getContextualSpotlightClasses,
-  type ContextualReferenceItem,
-  useContextualNavigation,
-} from "./use-contextual-navigation"
 
 interface SectionFeedProps {
   posts: Post[]
@@ -190,80 +184,6 @@ const getSimulatedConversation = (type: string, index: number) => {
   return conversations[index % conversations.length]
 }
 
-const contentTypeLabels: Record<string, string> = {
-  video: "Video",
-  "video-vertical": "Short",
-  product: "Produto",
-  news: "Conteudo",
-  review: "Avaliacao",
-  social: "Post",
-}
-
-const relatedTypePriority: Record<string, string[]> = {
-  video: ["product", "news", "social"],
-  "video-vertical": ["product", "social", "video"],
-  product: ["review", "video", "social"],
-  news: ["video", "social", "review"],
-  review: ["product", "news", "social"],
-  social: ["product", "video", "news"],
-}
-
-const getPostDisplayType = (post: Post) => {
-  if (post.type === "video" && post.isVertical) {
-    return "video-vertical"
-  }
-
-  return post.type
-}
-
-const getContextualDescription = (post: Post) => {
-  if (post.type === "product" && post.price) {
-    return `R$ ${post.price.toFixed(2).replace(".", ",")}`
-  }
-
-  if (post.type === "video" && post.duration) {
-    return post.duration
-  }
-
-  if (post.type === "news" && post.source) {
-    return post.source
-  }
-
-  if (post.type === "review" && post.author?.name) {
-    return `por ${post.author.name}`
-  }
-
-  return post.description
-}
-
-const buildContextualReferences = (currentPost: Post, candidates: Post[]): ContextualReferenceItem[] => {
-  const currentType = getPostDisplayType(currentPost)
-  const otherPosts = candidates.filter((candidate) => candidate.id !== currentPost.id)
-  const priorityOrder = [currentType, ...(relatedTypePriority[currentType] || [])]
-
-  const prioritizedPosts = priorityOrder.flatMap((type) =>
-    otherPosts.filter((candidate) => getPostDisplayType(candidate) === type)
-  )
-
-  const orderedPosts = [...prioritizedPosts, ...otherPosts]
-  const uniquePosts = Array.from(new Map(orderedPosts.map((post) => [post.id, post])).values())
-
-  return uniquePosts.slice(0, 2).map((post) => ({
-    id: post.id,
-    title: post.title,
-    eyebrow: contentTypeLabels[getPostDisplayType(post)] || "Conteudo",
-    image: post.image || post.thumbnail,
-    description: getContextualDescription(post),
-  }))
-}
-
-interface ContextAwareCardProps {
-  itemRef?: (node: HTMLArticleElement | null) => void
-  isHighlighted?: boolean
-  relatedContent?: ContextualReferenceItem[]
-  onNavigateToContext?: (contentId: string) => void
-}
-
 // Section Header
 function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
   return (
@@ -307,31 +227,11 @@ function SocialActions({ className }: { className?: string }) {
 // =============================================================================
 
 // Video Horizontal Card (YouTube style)
-function VideoHorizontalCard({
-  post,
-  index,
-  brandLogo,
-  showConversation,
-  onClick,
-  itemRef,
-  isHighlighted = false,
-  relatedContent = [],
-  onNavigateToContext,
-}: {
-  post: Post
-  index: number
-  brandLogo: string
-  showConversation?: boolean
-  onClick: () => void
-} & ContextAwareCardProps) {
+function VideoHorizontalCard({ post, index, brandLogo, showConversation, onClick }: { post: Post; index: number; brandLogo: string; showConversation?: boolean; onClick: () => void }) {
   const conversation = showConversation ? getSimulatedConversation("video", index) : null
   
   return (
-    <article
-      ref={itemRef}
-      tabIndex={-1}
-      className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-    >
+    <article className="mb-8">
       {/* 1. MIDIA */}
       <div 
         className="group cursor-pointer"
@@ -387,8 +287,6 @@ function VideoHorizontalCard({
           brandLogo={brandLogo} 
           messages={conversation.messages} 
           placeholder={conversation.placeholder}
-          relatedContent={relatedContent}
-          onNavigateToContext={onNavigateToContext}
         />
       ) : (
         <SimpleChatInput placeholder={getPlaceholder("video", index)} />
@@ -398,31 +296,11 @@ function VideoHorizontalCard({
 }
 
 // Video Vertical Card (TikTok style)
-function VideoVerticalCard({
-  post,
-  index,
-  brandLogo,
-  showConversation,
-  onClick,
-  itemRef,
-  isHighlighted = false,
-  relatedContent = [],
-  onNavigateToContext,
-}: {
-  post: Post
-  index: number
-  brandLogo: string
-  showConversation?: boolean
-  onClick: () => void
-} & ContextAwareCardProps) {
+function VideoVerticalCard({ post, index, brandLogo, showConversation, onClick }: { post: Post; index: number; brandLogo: string; showConversation?: boolean; onClick: () => void }) {
   const conversation = showConversation ? getSimulatedConversation("video", index) : null
   
   return (
-    <article
-      ref={itemRef}
-      tabIndex={-1}
-      className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-    >
+    <article className="mb-8">
       {/* 1. MIDIA */}
       <div 
         className="group cursor-pointer"
@@ -479,8 +357,6 @@ function VideoVerticalCard({
           brandLogo={brandLogo} 
           messages={conversation.messages} 
           placeholder={conversation.placeholder}
-          relatedContent={relatedContent}
-          onNavigateToContext={onNavigateToContext}
         />
       ) : (
         <SimpleChatInput placeholder={getPlaceholder("video", index)} />
@@ -490,31 +366,11 @@ function VideoVerticalCard({
 }
 
 // Product Card
-function ProductCard({
-  post,
-  index,
-  brandLogo,
-  showConversation,
-  onClick,
-  itemRef,
-  isHighlighted = false,
-  relatedContent = [],
-  onNavigateToContext,
-}: {
-  post: Post
-  index: number
-  brandLogo: string
-  showConversation?: boolean
-  onClick: () => void
-} & ContextAwareCardProps) {
+function ProductCard({ post, index, brandLogo, showConversation, onClick }: { post: Post; index: number; brandLogo: string; showConversation?: boolean; onClick: () => void }) {
   const conversation = showConversation ? getSimulatedConversation("product", index) : null
   
   return (
-    <article
-      ref={itemRef}
-      tabIndex={-1}
-      className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-    >
+    <article className="mb-8">
       {/* 1. MIDIA */}
       <div 
         className="group cursor-pointer"
@@ -571,8 +427,6 @@ function ProductCard({
           brandLogo={brandLogo} 
           messages={conversation.messages} 
           placeholder={conversation.placeholder}
-          relatedContent={relatedContent}
-          onNavigateToContext={onNavigateToContext}
         />
       ) : (
         <SimpleChatInput placeholder={getPlaceholder("product", index)} />
@@ -582,31 +436,11 @@ function ProductCard({
 }
 
 // News Card with Image
-function NewsImageCard({
-  post,
-  index,
-  brandLogo,
-  showConversation,
-  onClick,
-  itemRef,
-  isHighlighted = false,
-  relatedContent = [],
-  onNavigateToContext,
-}: {
-  post: Post
-  index: number
-  brandLogo: string
-  showConversation?: boolean
-  onClick: () => void
-} & ContextAwareCardProps) {
+function NewsImageCard({ post, index, brandLogo, showConversation, onClick }: { post: Post; index: number; brandLogo: string; showConversation?: boolean; onClick: () => void }) {
   const conversation = showConversation ? getSimulatedConversation("news", index) : null
   
   return (
-    <article
-      ref={itemRef}
-      tabIndex={-1}
-      className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-    >
+    <article className="mb-8">
       {/* 1. MIDIA */}
       <div 
         className="group cursor-pointer"
@@ -653,8 +487,6 @@ function NewsImageCard({
           brandLogo={brandLogo} 
           messages={conversation.messages} 
           placeholder={conversation.placeholder}
-          relatedContent={relatedContent}
-          onNavigateToContext={onNavigateToContext}
         />
       ) : (
         <SimpleChatInput placeholder={getPlaceholder("news", index)} />
@@ -664,31 +496,11 @@ function NewsImageCard({
 }
 
 // News Card without Image
-function NewsTextCard({
-  post,
-  index,
-  brandLogo,
-  showConversation,
-  onClick,
-  itemRef,
-  isHighlighted = false,
-  relatedContent = [],
-  onNavigateToContext,
-}: {
-  post: Post
-  index: number
-  brandLogo: string
-  showConversation?: boolean
-  onClick: () => void
-} & ContextAwareCardProps) {
+function NewsTextCard({ post, index, brandLogo, showConversation, onClick }: { post: Post; index: number; brandLogo: string; showConversation?: boolean; onClick: () => void }) {
   const conversation = showConversation ? getSimulatedConversation("news", index) : null
   
   return (
-    <article
-      ref={itemRef}
-      tabIndex={-1}
-      className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-    >
+    <article className="mb-8">
       <div 
         className="group cursor-pointer p-5 rounded-2xl bg-secondary/40 hover:bg-secondary/60 transition-all duration-200 shadow-sm"
         onClick={onClick}
@@ -728,8 +540,6 @@ function NewsTextCard({
           brandLogo={brandLogo} 
           messages={conversation.messages} 
           placeholder={conversation.placeholder}
-          relatedContent={relatedContent}
-          onNavigateToContext={onNavigateToContext}
         />
       ) : (
         <SimpleChatInput placeholder={getPlaceholder("news", index)} />
@@ -739,25 +549,9 @@ function NewsTextCard({
 }
 
 // Review Card
-function ReviewCard({
-  post,
-  index,
-  brandLogo,
-  onClick,
-  itemRef,
-  isHighlighted = false,
-}: {
-  post: Post
-  index: number
-  brandLogo: string
-  onClick: () => void
-} & ContextAwareCardProps) {
+function ReviewCard({ post, index, brandLogo, onClick }: { post: Post; index: number; brandLogo: string; onClick: () => void }) {
   return (
-    <article
-      ref={itemRef}
-      tabIndex={-1}
-      className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-    >
+    <article className="mb-8">
       <div 
         className="group cursor-pointer p-5 rounded-2xl border border-border/50 hover:border-border hover:shadow-sm transition-all duration-200"
         onClick={onClick}
@@ -815,25 +609,9 @@ function ReviewCard({
 }
 
 // Social Card (Instagram style)
-function SocialCard({
-  post,
-  index,
-  brandLogo,
-  onClick,
-  itemRef,
-  isHighlighted = false,
-}: {
-  post: Post
-  index: number
-  brandLogo: string
-  onClick: () => void
-} & ContextAwareCardProps) {
+function SocialCard({ post, index, brandLogo, onClick }: { post: Post; index: number; brandLogo: string; onClick: () => void }) {
   return (
-    <article
-      ref={itemRef}
-      tabIndex={-1}
-      className={cn("mb-8", getContextualSpotlightClasses(isHighlighted))}
-    >
+    <article className="mb-8">
       {/* 1. MIDIA */}
       <div 
         className="group cursor-pointer"
@@ -888,24 +666,6 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
   const newsWithoutImage = posts.filter(p => p.type === "news" && (p.hasImage === false || !p.image))
   const reviews = posts.filter(p => p.type === "review")
   const social = posts.filter(p => p.type === "social")
-  const { highlightedContentId, navigateToContent, registerContentNode } =
-    useContextualNavigation<HTMLArticleElement>()
-
-  const visiblePosts = useMemo(() => {
-    const renderedPosts = [
-      ...videoHorizontal.slice(0, 2),
-      ...newsWithoutImage.slice(0, 1),
-      ...newsWithImage.slice(0, 1),
-      ...products.slice(0, 2),
-      ...videoVertical.slice(0, 2),
-      ...reviews.slice(0, 3),
-      ...social.slice(0, 2),
-      ...products.slice(2, 4),
-      ...newsWithImage.slice(1, 3),
-    ]
-
-    return Array.from(new Map(renderedPosts.map((post) => [post.id, post])).values())
-  }, [newsWithImage, newsWithoutImage, products, reviews, social, videoHorizontal, videoVertical])
 
   return (
     <div className="space-y-10 px-4 sm:px-5 py-6">
@@ -921,10 +681,6 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
               brandLogo={brandLogo}
               showConversation={index === 0}
               onClick={() => onPostClick(post)}
-              itemRef={registerContentNode(post.id)}
-              isHighlighted={highlightedContentId === post.id}
-              relatedContent={index === 0 ? buildContextualReferences(post, visiblePosts) : []}
-              onNavigateToContext={navigateToContent}
             />
           ))}
         </section>
@@ -942,10 +698,6 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
               brandLogo={brandLogo}
               showConversation={index === 0}
               onClick={() => onPostClick(post)}
-              itemRef={registerContentNode(post.id)}
-              isHighlighted={highlightedContentId === post.id}
-              relatedContent={index === 0 ? buildContextualReferences(post, visiblePosts) : []}
-              onNavigateToContext={navigateToContent}
             />
           ))}
           {newsWithImage.slice(0, 1).map((post, index) => (
@@ -956,10 +708,6 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
               brandLogo={brandLogo}
               showConversation
               onClick={() => onPostClick(post)}
-              itemRef={registerContentNode(post.id)}
-              isHighlighted={highlightedContentId === post.id}
-              relatedContent={buildContextualReferences(post, visiblePosts)}
-              onNavigateToContext={navigateToContent}
             />
           ))}
         </section>
@@ -977,10 +725,6 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
               brandLogo={brandLogo}
               showConversation={index === 0}
               onClick={() => onPostClick(post)}
-              itemRef={registerContentNode(post.id)}
-              isHighlighted={highlightedContentId === post.id}
-              relatedContent={index === 0 ? buildContextualReferences(post, visiblePosts) : []}
-              onNavigateToContext={navigateToContent}
             />
           ))}
         </section>
@@ -998,10 +742,6 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
               brandLogo={brandLogo}
               showConversation={index === 0}
               onClick={() => onPostClick(post)}
-              itemRef={registerContentNode(post.id)}
-              isHighlighted={highlightedContentId === post.id}
-              relatedContent={index === 0 ? buildContextualReferences(post, visiblePosts) : []}
-              onNavigateToContext={navigateToContent}
             />
           ))}
         </section>
@@ -1018,8 +758,6 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
               index={index} 
               brandLogo={brandLogo}
               onClick={() => onPostClick(post)}
-              itemRef={registerContentNode(post.id)}
-              isHighlighted={highlightedContentId === post.id}
             />
           ))}
         </section>
@@ -1036,8 +774,6 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
               index={index} 
               brandLogo={brandLogo}
               onClick={() => onPostClick(post)}
-              itemRef={registerContentNode(post.id)}
-              isHighlighted={highlightedContentId === post.id}
             />
           ))}
         </section>
@@ -1055,10 +791,6 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
               brandLogo={brandLogo}
               showConversation={index === 0}
               onClick={() => onPostClick(post)}
-              itemRef={registerContentNode(post.id)}
-              isHighlighted={highlightedContentId === post.id}
-              relatedContent={index === 0 ? buildContextualReferences(post, visiblePosts) : []}
-              onNavigateToContext={navigateToContent}
             />
           ))}
         </section>
@@ -1075,8 +807,6 @@ export function SectionFeed({ posts, brandLogo, onPostClick }: SectionFeedProps)
               index={index + 1} 
               brandLogo={brandLogo}
               onClick={() => onPostClick(post)}
-              itemRef={registerContentNode(post.id)}
-              isHighlighted={highlightedContentId === post.id}
             />
           ))}
         </section>
