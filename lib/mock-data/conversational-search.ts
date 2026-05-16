@@ -59,7 +59,7 @@ const MOCK_FACIAL_PRODUCTS: ConversationalSearchProductResult[] = [
     ctaLabel: "Explorar",
     action: {
       type: "navigate-to-section",
-      targetId: "categories",
+      targetId: "categorias",
     },
   },
   {
@@ -70,7 +70,7 @@ const MOCK_FACIAL_PRODUCTS: ConversationalSearchProductResult[] = [
     ctaLabel: "Explorar",
     action: {
       type: "navigate-to-section",
-      targetId: "categories",
+      targetId: "categorias",
     },
   },
   {
