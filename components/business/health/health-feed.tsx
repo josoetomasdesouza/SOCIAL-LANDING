@@ -11,6 +11,7 @@ import { AppointmentCalendar } from "../appointment-calendar"
 import { AppointmentConfirmation } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { healthConfig, healthProfessionals, healthServices } from "@/lib/mock-data/health-data"
 import { healthContent } from "@/lib/mock-data/business-content"
 import type { HealthProfessional } from "@/lib/business-types"
@@ -126,22 +127,38 @@ function ProfessionalDrawer({
   professional, 
   isOpen, 
   onClose,
-  onSchedule
+  onSchedule,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   professional: HealthProfessional | null
   isOpen: boolean
   onClose: () => void
   onSchedule: (date: string, time: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   
   if (!professional) return null
+
+  const professionalContextItem = {
+    id: `health-professional-${professional.id}`,
+    title: professional.name,
+    image: professional.avatar,
+    subtitle: "Profissional",
+  }
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title="Agendar Consulta" size="lg">
       <div className="space-y-6">
-        <div className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl">
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(professionalContextItem)}
+          selected={isInConversation?.(professionalContextItem.id) ?? false}
+          className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl"
+        >
           <div className="relative w-16 h-16 rounded-full overflow-hidden">
             <Image src={professional.avatar} alt={professional.name} fill className="object-cover" />
           </div>
@@ -153,13 +170,17 @@ function ProfessionalDrawer({
               <span className="text-sm">{professional.rating} ({professional.reviewCount} avaliacoes)</span>
             </div>
           </div>
-        </div>
+        </ContextSelectable>
         
         {professional.bio && (
-          <div>
+          <ContextSelectable
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(professionalContextItem)}
+            selected={isInConversation?.(professionalContextItem.id) ?? false}
+          >
             <h4 className="font-medium mb-2">Sobre</h4>
             <p className="text-sm text-muted-foreground">{professional.bio}</p>
-          </div>
+          </ContextSelectable>
         )}
         
         <div>
@@ -200,6 +221,7 @@ function ProfessionalDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function HealthFeed() {
+  const conversationSelection = useConversationSelectionState()
   const [selectedProfessional, setSelectedProfessional] = useState<HealthProfessional | null>(null)
   const [professionalDrawerOpen, setProfessionalDrawerOpen] = useState(false)
   const [confirmationOpen, setConfirmationOpen] = useState(false)
@@ -259,7 +281,8 @@ export function HealthFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={healthConfig}
         stories={healthContent.stories}
@@ -276,6 +299,8 @@ export function HealthFeed() {
         isOpen={professionalDrawerOpen}
         onClose={() => setProfessionalDrawerOpen(false)}
         onSchedule={handleSchedule}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <ActionDrawer
@@ -298,6 +323,7 @@ export function HealthFeed() {
           />
         )}
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

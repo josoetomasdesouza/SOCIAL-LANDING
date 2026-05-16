@@ -10,6 +10,7 @@ import { BusinessSocialLanding, type BusinessSection } from "../business-social-
 import { ActionDrawer } from "../action-drawer"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { restaurantConfig, menuItems, deliveryInfo } from "@/lib/mock-data/restaurant-data"
 import { restaurantContent } from "@/lib/mock-data/business-content"
 import type { CustomizationOption, MenuItem } from "@/lib/business-types"
@@ -191,12 +192,16 @@ function ItemDetailDrawer({
   item, 
   isOpen, 
   onClose,
-  onAddToCart
+  onAddToCart,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   item: MenuItem | null
   isOpen: boolean
   onClose: () => void
   onAddToCart: (item: MenuItem, qty: number, selectedCustomizations: SelectedCustomization[]) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const [quantity, setQuantity] = useState(1)
   const [selectedCustomizations, setSelectedCustomizations] = useState<SelectedCustomizationsById>({})
@@ -216,6 +221,12 @@ function ItemDetailDrawer({
   const missingRequiredCustomization = item.customizations?.some(
     (customization) => customization.required && !selectedCustomizations[customization.id]?.length
   ) || false
+  const itemContextItem = {
+    id: `menu-item-${item.id}`,
+    title: item.name,
+    image: item.image || restaurantConfig.logo,
+    subtitle: "Prato",
+  }
 
   const handleSelectCustomization = (customizationId: string, optionId: string, maxSelections: number) => {
     setSelectedCustomizations((prev) => {
@@ -241,7 +252,11 @@ function ItemDetailDrawer({
           <Image src={item.image || ""} alt={item.name} fill className="object-cover" />
         </div>
         
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(itemContextItem)}
+          selected={isInConversation?.(itemContextItem.id) ?? false}
+        >
           <div className="flex flex-wrap gap-2 mb-2">
             {item.tags?.map((tag) => (
               <Badge key={tag} variant="secondary">{tag}</Badge>
@@ -249,7 +264,7 @@ function ItemDetailDrawer({
           </div>
           <h3 className="text-xl font-bold">{item.name}</h3>
           <p className="text-muted-foreground mt-2">{item.description}</p>
-        </div>
+        </ContextSelectable>
 
         {item.customizations && item.customizations.length > 0 && (
           <div className="space-y-4">
@@ -448,6 +463,7 @@ function CartDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function RestaurantFeed() {
+  const conversationSelection = useConversationSelectionState()
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
   const [itemDrawerOpen, setItemDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
@@ -567,7 +583,8 @@ export function RestaurantFeed() {
   }
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={restaurantConfig}
         stories={restaurantContent.stories}
@@ -599,6 +616,8 @@ export function RestaurantFeed() {
           handleAddToCart(item, quantity, selectedCustomizations)
           setCartDrawerOpen(true)
         }}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <CartDrawer
@@ -739,6 +758,7 @@ export function RestaurantFeed() {
           )}
         </div>
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

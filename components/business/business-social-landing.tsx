@@ -11,6 +11,7 @@ import type { BusinessConfig } from "@/lib/business-types"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
 import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
 import { ContextSelectable } from "./context-selectable"
+import { useConversationSelectionContext, useConversationSelectionState } from "./conversation-selection-context"
 
 // ========================================
 // TIPOS
@@ -700,11 +701,22 @@ export function BusinessSocialLanding({
   conversationalAI,
   reserveHeaderSpace = true
 }: BusinessSocialLandingProps) {
+  const sharedConversationSelection = useConversationSelectionContext()
+  const localConversationSelection = useConversationSelectionState()
+  const conversationSelection = sharedConversationSelection || localConversationSelection
   const [selectedPost, setSelectedPost] = useState<BusinessPost | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [feedDrawerOpen, setFeedDrawerOpen] = useState(false)
   const [feedDrawerCategory, setFeedDrawerCategory] = useState<string>("all")
-  const [conversationContext, setConversationContext] = useState<ConversationContextItem[]>([])
+  const {
+    conversationContext,
+    selectedContextIds,
+    upsertConversationContextItem,
+    toggleConversationContextItem,
+    removeConversationContext,
+    clearConversationContext,
+    isConversationSelected,
+  } = conversationSelection
   
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
@@ -722,41 +734,18 @@ export function BusinessSocialLanding({
     return posts
   }, [sections])
 
-  const selectedContextIds = useMemo(
-    () => new Set(conversationContext.map((item) => item.id)),
-    [conversationContext]
-  )
-
-  const upsertConversationContextItem = useCallback((nextContext: ConversationContextItem) => {
-    setConversationContext((prev) => {
-      const deduped = prev.filter((item) => item.id !== nextContext.id)
-      return [nextContext, ...deduped].slice(0, 6)
-    })
-  }, [])
-
   const addConversationContext = useCallback((post: BusinessPost) => {
     upsertConversationContextItem(toConversationContextItem(post, config.logo))
   }, [config.logo, upsertConversationContextItem])
 
-  const toggleConversationContextItem = useCallback((contextItem: ConversationContextItem) => {
-    if (selectedContextIds.has(contextItem.id)) {
-      setConversationContext((prev) => prev.filter((item) => item.id !== contextItem.id))
-      return
-    }
-
-    upsertConversationContextItem(contextItem)
-  }, [selectedContextIds, upsertConversationContextItem])
-
   const toggleConversationContext = useCallback((post: BusinessPost) => {
     if (selectedContextIds.has(post.id)) {
-      setConversationContext((prev) => prev.filter((item) => item.id !== post.id))
+      removeConversationContext(post.id)
       return
     }
 
     addConversationContext(post)
-  }, [addConversationContext, selectedContextIds])
-
-  const isConversationSelected = useCallback((id: string) => selectedContextIds.has(id), [selectedContextIds])
+  }, [addConversationContext, removeConversationContext, selectedContextIds])
   
   const handlePostClick = useCallback((post: BusinessPost) => {
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
@@ -790,12 +779,12 @@ export function BusinessSocialLanding({
   }, [onStoryClick])
 
   const handleRemoveConversationContext = useCallback((contextId: string) => {
-    setConversationContext((prev) => prev.filter((item) => item.id !== contextId))
-  }, [])
+    removeConversationContext(contextId)
+  }, [removeConversationContext])
 
   const handleCloseConversation = useCallback(() => {
-    setConversationContext([])
-  }, [])
+    clearConversationContext()
+  }, [clearConversationContext])
   
   return (
     <div className="min-h-screen bg-background pb-32">

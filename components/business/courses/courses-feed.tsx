@@ -10,6 +10,7 @@ import { ActionDrawer } from "../action-drawer"
 import { CourseCheckout } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { coursesConfig, courses } from "@/lib/mock-data/courses-data"
 import { coursesContent } from "@/lib/mock-data/business-content"
 import type { Course } from "@/lib/business-types"
@@ -146,16 +147,26 @@ function CourseDetailDrawer({
   course, 
   isOpen, 
   onClose,
-  onEnroll
+  onEnroll,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   course: Course | null
   isOpen: boolean
   onClose: () => void
   onEnroll: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   if (!course) return null
   
   const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
+  const courseContextItem = {
+    id: `course-${course.id}`,
+    title: course.title,
+    image: course.thumbnail,
+    subtitle: "Curso",
+  }
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={course.title} size="lg">
@@ -171,7 +182,12 @@ function CourseDetailDrawer({
         </div>
         
         {/* Instrutor */}
-        <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl">
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(courseContextItem)}
+          selected={isInConversation?.(courseContextItem.id) ?? false}
+          className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl"
+        >
           <div className="relative w-12 h-12 rounded-full overflow-hidden">
             <Image src={course.instructor.avatar} alt={course.instructor.name} fill className="object-cover" />
           </div>
@@ -179,7 +195,7 @@ function CourseDetailDrawer({
             <p className="font-medium">{course.instructor.name}</p>
             <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
           </div>
-        </div>
+        </ContextSelectable>
         
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
@@ -201,14 +217,22 @@ function CourseDetailDrawer({
         </div>
         
         {/* Descricao */}
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(courseContextItem)}
+          selected={isInConversation?.(courseContextItem.id) ?? false}
+        >
           <h4 className="font-medium mb-2">Sobre o curso</h4>
           <p className="text-muted-foreground text-sm">{course.description}</p>
-        </div>
+        </ContextSelectable>
         
         {/* Features */}
         {course.features && (
-          <div>
+          <ContextSelectable
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(courseContextItem)}
+            selected={isInConversation?.(courseContextItem.id) ?? false}
+          >
             <h4 className="font-medium mb-2">O que voce vai aprender</h4>
             <ul className="space-y-2">
               {course.features.slice(0, 4).map((feature, idx) => (
@@ -218,7 +242,7 @@ function CourseDetailDrawer({
                 </li>
               ))}
             </ul>
-          </div>
+          </ContextSelectable>
         )}
         
         {/* Preco e CTA */}
@@ -251,6 +275,7 @@ function CourseDetailDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function CoursesFeed() {
+  const conversationSelection = useConversationSelectionState()
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [courseDrawerOpen, setCourseDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
@@ -305,7 +330,8 @@ export function CoursesFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={coursesConfig}
         stories={coursesContent.stories}
@@ -330,6 +356,8 @@ export function CoursesFeed() {
           setCourseDrawerOpen(false)
           setCheckoutOpen(true)
         }}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <ActionDrawer
@@ -355,6 +383,7 @@ export function CoursesFeed() {
           />
         )}
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

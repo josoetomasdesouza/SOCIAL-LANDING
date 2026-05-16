@@ -10,6 +10,7 @@ import { ActionDrawer } from "../action-drawer"
 import { GymSignupForm } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { gymConfig, gymPlans, gymClasses } from "@/lib/mock-data/gym-data"
 import { gymContent } from "@/lib/mock-data/business-content"
 import type { GymPlan, GymClass } from "@/lib/business-types"
@@ -119,27 +120,47 @@ function PlanDetailDrawer({
   plan, 
   isOpen, 
   onClose,
-  onSignup
+  onSignup,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   plan: GymPlan | null
   isOpen: boolean
   onClose: () => void
   onSignup: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   if (!plan) return null
+
+  const planContextItem = {
+    id: `gym-plan-${plan.id}`,
+    title: plan.name,
+    image: gymConfig.logo,
+    subtitle: "Plano",
+  }
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={plan.name} size="lg">
       <div className="space-y-6">
-        <div className={`p-4 rounded-xl ${plan.popular ? "bg-accent/10" : "bg-secondary/50"}`}>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(planContextItem)}
+          selected={isInConversation?.(planContextItem.id) ?? false}
+          className={`p-4 rounded-xl ${plan.popular ? "bg-accent/10" : "bg-secondary/50"}`}
+        >
           <div className="flex items-baseline gap-1 mb-2">
             <span className="text-3xl font-bold text-accent">R$ {plan.price.toFixed(2).replace(".", ",")}</span>
             <span className="text-muted-foreground">/mes</span>
           </div>
           <p className="text-muted-foreground">{plan.description}</p>
-        </div>
+        </ContextSelectable>
         
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(planContextItem)}
+          selected={isInConversation?.(planContextItem.id) ?? false}
+        >
           <h4 className="font-medium mb-3">O que esta incluso</h4>
           <ul className="space-y-3">
             {plan.features.map((feature, idx) => (
@@ -151,7 +172,7 @@ function PlanDetailDrawer({
               </li>
             ))}
           </ul>
-        </div>
+        </ContextSelectable>
         
         <Button className="w-full h-12" onClick={onSignup}>
           <Zap className="w-5 h-5 mr-2" />
@@ -166,6 +187,7 @@ function PlanDetailDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function GymFeed() {
+  const conversationSelection = useConversationSelectionState()
   const [selectedPlan, setSelectedPlan] = useState<GymPlan | null>(null)
   const [planDrawerOpen, setPlanDrawerOpen] = useState(false)
   const [signupOpen, setSignupOpen] = useState(false)
@@ -217,7 +239,8 @@ export function GymFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={gymConfig}
         stories={gymContent.stories}
@@ -237,6 +260,8 @@ export function GymFeed() {
           setPlanDrawerOpen(false)
           setSignupOpen(true)
         }}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <ActionDrawer
@@ -260,6 +285,7 @@ export function GymFeed() {
           />
         )}
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

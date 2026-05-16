@@ -10,6 +10,7 @@ import { ActionDrawer } from "../action-drawer"
 import { ScheduleVisitForm } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { realestateConfig, properties, propertyTypes } from "@/lib/mock-data/realestate-data"
 import { realestateContent } from "@/lib/mock-data/business-content"
 import type { Property } from "@/lib/business-types"
@@ -182,13 +183,17 @@ function PropertyDetailDrawer({
   isOpen, 
   onClose,
   onScheduleVisit,
-  onContact
+  onContact,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   property: Property | null
   isOpen: boolean
   onClose: () => void
   onScheduleVisit: () => void
   onContact: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const [currentImage, setCurrentImage] = useState(0)
   
@@ -196,6 +201,12 @@ function PropertyDetailDrawer({
 
   const address = getPropertyAddressParts(property)
   const purpose = getPropertyPurpose(property)
+  const propertyContextItem = {
+    id: `property-${property.id}`,
+    title: property.title,
+    image: property.images[0],
+    subtitle: "Imovel",
+  }
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={property.title} size="lg">
@@ -217,17 +228,26 @@ function PropertyDetailDrawer({
         </div>
         
         {/* Info */}
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
+          selected={isInConversation?.(propertyContextItem.id) ?? false}
+        >
           <Badge className="mb-2">{purpose === "sale" ? "Venda" : "Aluguel"}</Badge>
           <h2 className="text-xl font-bold">{property.title}</h2>
           <div className="flex items-center gap-1 text-muted-foreground mt-1">
             <MapPin className="w-4 h-4" />
             <span>{address.street}, {address.neighborhood} - {address.city}</span>
           </div>
-        </div>
+        </ContextSelectable>
         
         {/* Caracteristicas */}
-        <div className="grid grid-cols-4 gap-3">
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
+          selected={isInConversation?.(propertyContextItem.id) ?? false}
+          className="grid grid-cols-4 gap-3"
+        >
           <div className="text-center p-3 bg-secondary/50 rounded-xl">
             <Bed className="w-5 h-5 mx-auto text-accent" />
             <p className="font-bold mt-1">{property.bedrooms}</p>
@@ -248,13 +268,17 @@ function PropertyDetailDrawer({
             <p className="font-bold mt-1">{property.area}</p>
             <p className="text-xs text-muted-foreground">m2</p>
           </div>
-        </div>
+        </ContextSelectable>
         
         {/* Descricao */}
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
+          selected={isInConversation?.(propertyContextItem.id) ?? false}
+        >
           <h4 className="font-medium mb-2">Descricao</h4>
           <p className="text-sm text-muted-foreground">{property.description}</p>
-        </div>
+        </ContextSelectable>
         
         {/* Preco e acoes */}
         <div className="bg-secondary/50 rounded-xl p-4">
@@ -282,6 +306,7 @@ function PropertyDetailDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function RealEstateFeed() {
+  const conversationSelection = useConversationSelectionState()
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [propertyDrawerOpen, setPropertyDrawerOpen] = useState(false)
   const [visitDrawerOpen, setVisitDrawerOpen] = useState(false)
@@ -347,7 +372,8 @@ export function RealEstateFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={realestateConfig}
         stories={realestateContent.stories}
@@ -371,6 +397,8 @@ export function RealEstateFeed() {
           // Abre WhatsApp
           window.open(`https://wa.me/${realestateConfig.whatsapp}`, "_blank")
         }}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <ActionDrawer
@@ -394,6 +422,7 @@ export function RealEstateFeed() {
           />
         )}
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

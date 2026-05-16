@@ -11,6 +11,7 @@ import { AppointmentCalendar } from "../appointment-calendar"
 import { AppointmentConfirmation } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { professionalsConfig, professionalServices, professionalAvailability } from "@/lib/mock-data/professionals-data"
 import { professionalsContent } from "@/lib/mock-data/business-content"
 import type { ProfessionalService } from "@/lib/business-types"
@@ -116,22 +117,38 @@ function ServiceDrawer({
   service, 
   isOpen, 
   onClose,
-  onSchedule
+  onSchedule,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   service: ProfessionalService | null
   isOpen: boolean
   onClose: () => void
   onSchedule: (date: string, time: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   
   if (!service) return null
+
+  const serviceContextItem = {
+    id: `professional-service-${service.id}`,
+    title: service.name,
+    image: professionalsConfig.logo,
+    subtitle: "Servico",
+  }
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={service.name} size="lg">
       <div className="space-y-6">
-        <div className="bg-secondary/50 rounded-xl p-4">
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(serviceContextItem)}
+          selected={isInConversation?.(serviceContextItem.id) ?? false}
+          className="bg-secondary/50 rounded-xl p-4"
+        >
           <h3 className="font-semibold mb-2">{service.name}</h3>
           <p className="text-sm text-muted-foreground">{service.description}</p>
           <div className="flex items-center gap-4 mt-3">
@@ -141,7 +158,7 @@ function ServiceDrawer({
             </Badge>
             <span className="font-bold text-accent">R$ {service.price.toFixed(2).replace(".", ",")}</span>
           </div>
-        </div>
+        </ContextSelectable>
         
         <div>
           <h4 className="font-medium mb-3">Escolha data e horario</h4>
@@ -175,6 +192,7 @@ function ServiceDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function ProfessionalsFeed() {
+  const conversationSelection = useConversationSelectionState()
   const [selectedService, setSelectedService] = useState<ProfessionalService | null>(null)
   const [serviceDrawerOpen, setServiceDrawerOpen] = useState(false)
   const [confirmationOpen, setConfirmationOpen] = useState(false)
@@ -235,7 +253,8 @@ export function ProfessionalsFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={professionalsConfig}
         stories={professionalsContent.stories}
@@ -252,6 +271,8 @@ export function ProfessionalsFeed() {
         isOpen={serviceDrawerOpen}
         onClose={() => setServiceDrawerOpen(false)}
         onSchedule={handleSchedule}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <ActionDrawer
@@ -274,6 +295,7 @@ export function ProfessionalsFeed() {
           />
         )}
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

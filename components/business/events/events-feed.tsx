@@ -10,6 +10,7 @@ import { ActionDrawer } from "../action-drawer"
 import { TicketCheckout } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { eventsConfig, events } from "@/lib/mock-data/events-data"
 import { eventsContent } from "@/lib/mock-data/business-content"
 import type { Event } from "@/lib/business-types"
@@ -203,12 +204,16 @@ function EventDetailDrawer({
   event, 
   isOpen, 
   onClose,
-  onBuyTicket
+  onBuyTicket,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   event: Event | null
   isOpen: boolean
   onClose: () => void
   onBuyTicket: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   if (!event) return null
   
@@ -217,6 +222,12 @@ function EventDetailDrawer({
   const eventLocation = getEventLocation(event)
   const eventPrice = getEventPrice(event)
   const eventArtists = getEventArtists(event)
+  const eventContextItem = {
+    id: `event-${event.id}`,
+    title: eventTitle,
+    image: event.image || eventsConfig.logo,
+    subtitle: "Evento",
+  }
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title={eventTitle} size="lg">
@@ -225,13 +236,22 @@ function EventDetailDrawer({
           <Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={eventTitle} fill className="object-cover" />
         </div>
         
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(eventContextItem)}
+          selected={isInConversation?.(eventContextItem.id) ?? false}
+        >
           <Badge variant="secondary" className="mb-2">{event.category}</Badge>
           <h2 className="text-xl font-bold">{eventTitle}</h2>
           <p className="text-muted-foreground mt-2">{event.description}</p>
-        </div>
+        </ContextSelectable>
         
-        <div className="grid grid-cols-2 gap-3">
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(eventContextItem)}
+          selected={isInConversation?.(eventContextItem.id) ?? false}
+          className="grid grid-cols-2 gap-3"
+        >
           <div className="p-3 bg-secondary/50 rounded-xl">
             <Calendar className="w-5 h-5 text-accent mb-1" />
             <p className="font-medium">{eventDate.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</p>
@@ -241,17 +261,21 @@ function EventDetailDrawer({
             <MapPin className="w-5 h-5 text-accent mb-1" />
             <p className="font-medium text-sm line-clamp-2">{eventLocation}</p>
           </div>
-        </div>
+        </ContextSelectable>
         
         {eventArtists.length > 0 && (
-          <div>
+          <ContextSelectable
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(eventContextItem)}
+            selected={isInConversation?.(eventContextItem.id) ?? false}
+          >
             <h4 className="font-medium mb-3">Artistas</h4>
             <div className="flex flex-wrap gap-2">
               {eventArtists.map((artist, idx) => (
                 <Badge key={idx} variant="outline">{artist}</Badge>
               ))}
             </div>
-          </div>
+          </ContextSelectable>
         )}
         
         <div className="bg-secondary/50 rounded-xl p-4">
@@ -273,6 +297,7 @@ function EventDetailDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function EventsFeed() {
+  const conversationSelection = useConversationSelectionState()
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [eventDrawerOpen, setEventDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
@@ -337,7 +362,8 @@ export function EventsFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={eventsConfig}
         stories={eventsContent.stories}
@@ -357,6 +383,8 @@ export function EventsFeed() {
           setEventDrawerOpen(false)
           setCheckoutOpen(true)
         }}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <ActionDrawer
@@ -383,6 +411,7 @@ export function EventsFeed() {
           />
         )}
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }
