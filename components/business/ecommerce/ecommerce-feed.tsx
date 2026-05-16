@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { ShoppingBag, Heart, Star, Truck, ChevronRight, Plus, Minus, Check, X, Play, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,9 +9,9 @@ import { BusinessSocialLanding, type BusinessSection } from "../business-social-
 import { ActionDrawer } from "../action-drawer"
 import { EcommerceCheckout } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
-import { renderConversationalSearchVisualBlock } from "../conversational-search-results"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
+import { createEcommerceConversationVisualBlockRenderer } from "./ecommerce-conversation-actions"
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
@@ -559,6 +559,33 @@ export function EcommerceFeed() {
       return newSet
     })
   }
+
+  const openConversationProductDrawer = (productId: string) => {
+    const product = products.find((item) => item.id === productId)
+
+    if (!product) return
+
+    setSelectedProduct(product)
+    setProductDrawerOpen(true)
+  }
+
+  const navigateConversationSection = (sectionId: string) => {
+    const sectionElement =
+      document.querySelector(`[data-section="${sectionId}"]`) ?? document.getElementById(`section-${sectionId}`)
+
+    if (sectionElement instanceof HTMLElement) {
+      sectionElement.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }
+
+  const renderConversationVisualBlock = useMemo(
+    () =>
+      createEcommerceConversationVisualBlockRenderer({
+        openProductDrawer: openConversationProductDrawer,
+        navigateToSection: navigateConversationSection,
+      }),
+    []
+  )
   
   // Secoes do feed
   const sections: BusinessSection[] = [
@@ -646,7 +673,7 @@ export function EcommerceFeed() {
         stories={ecommerceContent.stories}
         sections={sections}
         conversationResponseResolver={ecommerceMockConversationResolver}
-        renderConversationVisualBlock={renderConversationalSearchVisualBlock}
+        renderConversationVisualBlock={renderConversationVisualBlock}
         onStoryClick={(story) => {
           if (story.isMain) {
             // Abre carrinho ou produtos

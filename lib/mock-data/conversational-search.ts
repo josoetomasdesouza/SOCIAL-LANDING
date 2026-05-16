@@ -7,7 +7,18 @@ export interface ConversationalSearchProductResult {
   image: string
   price?: number
   ctaLabel?: string
+  action?: ConversationalSearchCardAction
 }
+
+export type ConversationalSearchCardAction =
+  | {
+      type: "open-product-drawer"
+      targetId: string
+    }
+  | {
+      type: "navigate-to-section"
+      targetId: string
+    }
 
 export interface ConversationVisualBlock {
   kind: string
@@ -45,21 +56,33 @@ const MOCK_FACIAL_PRODUCTS: ConversationalSearchProductResult[] = [
     title: "Gel de Limpeza Facial",
     image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=600&h=600&fit=crop",
     price: 49.90,
-    ctaLabel: "Ver",
+    ctaLabel: "Explorar",
+    action: {
+      type: "navigate-to-section",
+      targetId: "categories",
+    },
   },
   {
     id: "facial-serum",
     title: "Serum Uniformizador",
     image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&h=600&fit=crop",
     price: 79.90,
-    ctaLabel: "Ver",
+    ctaLabel: "Explorar",
+    action: {
+      type: "navigate-to-section",
+      targetId: "categories",
+    },
   },
   {
     id: "facial-sunscreen",
     title: "Protetor Solar Facial FPS 70",
     image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=600&fit=crop",
     price: 89.90,
-    ctaLabel: "Ver",
+    ctaLabel: "Abrir",
+    action: {
+      type: "open-product-drawer",
+      targetId: "prod-5",
+    },
   },
 ]
 
