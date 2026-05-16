@@ -4,7 +4,12 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronDown, ChevronUp, Loader2, Send, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ConversationalSearchResults } from "./conversational-search-results"
 import type { ConversationContextPayload, ConversationMessage } from "@/lib/business-types"
+import type {
+  ConversationResponseResolver,
+  ConversationalSearchVisualBlock,
+} from "@/lib/mock-data/conversational-search"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
 
@@ -20,6 +25,11 @@ interface ConversationalAIProps {
   contextItems?: ConversationContextItem[]
   onRemoveContext?: (contextId: string) => void
   onCloseConversation?: () => void
+  responseResolver?: ConversationResponseResolver
+}
+
+type ConversationRuntimeMessage = ConversationMessage & {
+  visualBlock?: ConversationalSearchVisualBlock
 }
 
 function summarizeContext(items: ConversationContextItem[]) {
@@ -66,8 +76,9 @@ export function ConversationalAI({
   contextItems = [],
   onRemoveContext,
   onCloseConversation,
+  responseResolver,
 }: ConversationalAIProps) {
-  const [messages, setMessages] = useState<ConversationMessage[]>(initialMessages || [])
+  const [messages, setMessages] = useState<ConversationRuntimeMessage[]>(initialMessages || [])
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
@@ -95,14 +106,14 @@ export function ConversationalAI({
   const showContextRow = !hasConversation && contextItems.length > 0
   const showExpandedConversation = hasConversation && !isMinimized
 
-  const buildContextEvent = (items: ConversationContextItem[]): ConversationMessage => ({
+  const buildContextEvent = (items: ConversationContextItem[]): ConversationRuntimeMessage => ({
     id: `context-${Date.now()}`,
     role: "context_event",
     content: items.map((item) => item.title).join(", "),
     contexts: items,
   })
 
-  const appendContextEvent = (previousMessages: ConversationMessage[], items: ConversationContextItem[]) => {
+  const appendContextEvent = (previousMessages: ConversationRuntimeMessage[], items: ConversationContextItem[]) => {
     if (items.length === 0) {
       return previousMessages
     }
@@ -159,6 +170,29 @@ export function ConversationalAI({
     activeContextIdsRef.current = nextContextIds
   }, [contextItems, hasConversation])
 
+  const buildResolvedReply = (userMessage: string): ConversationRuntimeMessage => {
+    const resolvedReply = responseResolver?.({
+      message: userMessage,
+      brandName,
+      contextItems,
+    })
+
+    if (resolvedReply) {
+      return {
+        id: `ai-${Date.now()}`,
+        role: "ai",
+        content: resolvedReply.text,
+        visualBlock: resolvedReply.visualBlock,
+      }
+    }
+
+    return {
+      id: `ai-${Date.now()}`,
+      role: "ai",
+      content: buildMockReply(brandName, userMessage, contextItems),
+    }
+  }
+
   const handleSendMessage = () => {
     const nextMessage = inputValue.trim()
     if (!nextMessage || isTyping) return
@@ -178,11 +212,7 @@ export function ConversationalAI({
     onSendMessage?.(nextMessage)
 
     replyTimeoutRef.current = window.setTimeout(() => {
-      const aiMessage: ConversationMessage = {
-        id: `ai-${Date.now()}`,
-        role: "ai",
-        content: buildMockReply(brandName, nextMessage, contextItems),
-      }
+      const aiMessage = buildResolvedReply(nextMessage)
 
       setMessages((prev) => [...prev, aiMessage])
       setIsTyping(false)
@@ -334,15 +364,21 @@ export function ConversationalAI({
                           />
                         ) : null}
 
-                        <div
-                          className={cn(
-                            "max-w-[82%] rounded-[22px] px-4 py-3 text-sm leading-relaxed shadow-sm",
-                            message.role === "user"
-                              ? "rounded-br-md bg-foreground text-background"
-                              : "rounded-bl-md bg-secondary text-foreground"
-                          )}
-                        >
-                          {message.content}
+                        <div className={cn("flex max-w-[82%] flex-col gap-2", message.role === "user" && "items-end")}>
+                          <div
+                            className={cn(
+                              "rounded-[22px] px-4 py-3 text-sm leading-relaxed shadow-sm",
+                              message.role === "user"
+                                ? "rounded-br-md bg-foreground text-background"
+                                : "rounded-bl-md bg-secondary text-foreground"
+                            )}
+                          >
+                            {message.content}
+                          </div>
+
+                          {message.role === "ai" && message.visualBlock?.type === "product-carousel" ? (
+                            <ConversationalSearchResults products={message.visualBlock.products} />
+                          ) : null}
                         </div>
 
                         {message.role === "user" ? (

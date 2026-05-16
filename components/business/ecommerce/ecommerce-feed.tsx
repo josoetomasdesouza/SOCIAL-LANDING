@@ -11,6 +11,7 @@ import { EcommerceCheckout } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
+import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product, VariantOption } from "@/lib/business-types"
@@ -643,6 +644,7 @@ export function EcommerceFeed() {
         config={ecommerceConfig}
         stories={ecommerceContent.stories}
         sections={sections}
+        conversationResponseResolver={ecommerceMockConversationResolver}
         onStoryClick={(story) => {
           if (story.isMain) {
             // Abre carrinho ou produtos
