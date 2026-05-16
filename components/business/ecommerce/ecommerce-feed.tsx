@@ -16,6 +16,8 @@ import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversationa
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product, VariantOption } from "@/lib/business-types"
+import { planProductFlow } from "@/lib/surface-flow/product-flow"
+import type { ProductFlowResult } from "@/lib/surface-flow/contracts"
 
 type SelectedVariantsById = Record<string, string>
 type SelectedVariant = {
@@ -559,6 +561,33 @@ export function EcommerceFeed() {
       return newSet
     })
   }
+
+  const executeProductFlow = (result: ProductFlowResult, product?: Product) => {
+    switch (result.type) {
+      case "open_detail":
+        if (!product) return
+        setSelectedProduct(product)
+        setProductDrawerOpen(true)
+        return
+
+      case "add_to_cart":
+        if (!product) return
+        if (result.openCartAfterAdd) {
+          handleAddToCartAndOpenCart(product, result.quantity, getSelectedVariants(product, result.selectedVariants || {}))
+          return
+        }
+        handleAddToCart(product, result.quantity, getSelectedVariants(product, result.selectedVariants || {}))
+        return
+
+      case "start_checkout":
+        setCartDrawerOpen(false)
+        setCheckoutDrawerOpen(true)
+        return
+
+      case "noop":
+        return
+    }
+  }
   
   // Secoes do feed
   const sections: BusinessSection[] = [
@@ -569,15 +598,39 @@ export function EcommerceFeed() {
       type: "primary-action",
       customContent: (
         <ProductsModule 
-          onSelectProduct={(p) => { setSelectedProduct(p); setProductDrawerOpen(true) }}
-          onAddToCart={(product) => {
-            if (product.variants && product.variants.length > 0) {
-              setSelectedProduct(product)
-              setProductDrawerOpen(true)
-              return
-            }
+          onSelectProduct={(product) => {
+            const flowResult = planProductFlow(
+              {
+                productId: product.id,
+                action: "open_detail",
+                sourceSurface: "feed",
+                intent: "deepen",
+              },
+              {
+                hasVariants: Boolean(product.variants?.length),
+                requiredVariantIds: product.variants?.map((variant) => variant.id),
+              }
+            )
 
-            handleAddToCartAndOpenCart(product)
+            executeProductFlow(flowResult, product)
+          }}
+          onAddToCart={(product) => {
+            const flowResult = planProductFlow(
+              {
+                productId: product.id,
+                action: "add_to_cart",
+                sourceSurface: "feed",
+                intent: "execute",
+                quantity: 1,
+                openCartAfterAdd: true,
+              },
+              {
+                hasVariants: Boolean(product.variants?.length),
+                requiredVariantIds: product.variants?.map((variant) => variant.id),
+              }
+            )
+
+            executeProductFlow(flowResult, product)
           }}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
@@ -690,8 +743,18 @@ export function EcommerceFeed() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemove={(cartKey) => setCart(prev => prev.filter(item => item.cartKey !== cartKey))}
         onCheckout={() => {
-          setCartDrawerOpen(false)
-          setCheckoutDrawerOpen(true)
+          const flowResult = planProductFlow(
+            {
+              action: "start_checkout",
+              sourceSurface: "drawer",
+              intent: "execute",
+            },
+            {
+              hasVariants: false,
+            }
+          )
+
+          executeProductFlow(flowResult)
         }}
       />
       
