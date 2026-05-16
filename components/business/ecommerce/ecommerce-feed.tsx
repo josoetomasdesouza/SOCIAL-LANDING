@@ -16,7 +16,6 @@ import { ConversationSelectionProvider, useConversationSelectionState } from "..
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
-import { cn } from "@/lib/utils"
 import type { Product, VariantOption } from "@/lib/business-types"
 import { useConversationOperationalFlow } from "@/hooks/use-conversation-operational-flow"
 import { useConversationProductFlow } from "@/hooks/use-conversation-product-flow"
@@ -525,9 +524,7 @@ export function EcommerceFeed() {
     conversationContext,
     removeConversationContext,
     clearConversationContext,
-    composerMode,
     setComposerMode,
-    composerOffsetClassName,
     setComposerOffsetClassName,
   } = conversationSelection
   const conversationOperationalFlow = useConversationOperationalFlow()
@@ -595,17 +592,10 @@ export function EcommerceFeed() {
     [handleConversationProductCtaClick]
   )
 
-  const conversationShellClassName = cn(
-    composerMode === "overlay" ? "z-[70]" : "z-30",
-    composerMode === "hidden" ? "hidden" : undefined,
-    composerOffsetClassName
-  )
-
   const conversationShell = (
     <ConversationOSShell
       brandLogo={ecommerceConfig.logo}
       brandName={ecommerceConfig.name}
-      className={conversationShellClassName}
       placeholder={`Pergunte sobre ${ecommerceConfig.name}...`}
       contextItems={conversationContext}
       onRemoveContext={removeConversationContext}

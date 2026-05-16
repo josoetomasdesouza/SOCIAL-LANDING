@@ -799,6 +799,18 @@ export function BusinessSocialLanding({
   const handleCloseConversation = useCallback(() => {
     clearConversationContext()
   }, [clearConversationContext])
+
+  const conversationClassName = cn(
+    composerMode === "overlay" ? "z-[70]" : feedDrawerOpen ? "z-[60]" : "z-30",
+    (drawerOpen && !feedDrawerOpen) || composerMode === "hidden" ? "hidden" : undefined,
+    composerOffsetClassName
+  )
+
+  const resolvedConversationalAI = isValidElement<{ className?: string }>(conversationalAI)
+    ? cloneElement(conversationalAI, {
+        className: cn(conversationalAI.props.className, conversationClassName),
+      })
+    : conversationalAI
   
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -843,15 +855,11 @@ export function BusinessSocialLanding({
       <BusinessFooter config={config} links={footerLinks} />
 
       {/* Conversational AI (fixed or inline) */}
-      {conversationalAI || (
+      {resolvedConversationalAI || (
         <ConversationalAI
           brandLogo={config.logo}
           brandName={config.name}
-          className={cn(
-            composerMode === "overlay" ? "z-[70]" : feedDrawerOpen ? "z-[60]" : "z-30",
-            (drawerOpen && !feedDrawerOpen) || composerMode === "hidden" ? "hidden" : undefined,
-            composerOffsetClassName
-          )}
+          className={conversationClassName}
           placeholder={`Pergunte sobre ${config.name}...`}
           contextItems={conversationContext}
           onRemoveContext={handleRemoveConversationContext}
