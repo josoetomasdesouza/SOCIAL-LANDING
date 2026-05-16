@@ -246,7 +246,13 @@ function ItemDetailDrawer({
   }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={item.name} size="md">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={item.name}
+      size="md"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
           <Image src={item.image || ""} alt={item.name} fill className="object-cover" />
@@ -464,6 +470,7 @@ function CartDrawer({
 // ========================================
 export function RestaurantFeed() {
   const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
   const [itemDrawerOpen, setItemDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
@@ -566,6 +573,23 @@ export function RestaurantFeed() {
     : checkoutStep === "payment"
       ? true
       : !paymentMethod
+
+  useEffect(() => {
+    const nextMode =
+      checkoutOpen || cartDrawerOpen
+        ? "hidden"
+        : itemDrawerOpen
+          ? "overlay"
+          : cartCount > 0
+            ? "hidden"
+            : "default"
+
+    setComposerMode(nextMode)
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [cartCount, cartDrawerOpen, checkoutOpen, itemDrawerOpen, setComposerMode])
 
   const handleCheckoutCta = () => {
     if (checkoutStep === "address") {

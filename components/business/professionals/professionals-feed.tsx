@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Clock, Star, Calendar, Briefcase, FileText, Play, Newspaper, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -193,11 +193,20 @@ function ServiceDrawer({
 // ========================================
 export function ProfessionalsFeed() {
   const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedService, setSelectedService] = useState<ProfessionalService | null>(null)
   const [serviceDrawerOpen, setServiceDrawerOpen] = useState(false)
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [bookedDate, setBookedDate] = useState<string | null>(null)
   const [bookedTime, setBookedTime] = useState<string | null>(null)
+
+  useEffect(() => {
+    setComposerMode(serviceDrawerOpen || confirmationOpen ? "hidden" : "default")
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [confirmationOpen, serviceDrawerOpen, setComposerMode])
   
   const handleSchedule = (date: string, time: string) => {
     setBookedDate(date)

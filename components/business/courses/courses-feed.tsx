@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Play, Clock, Users, Star, Award, ChevronRight, BookOpen, GraduationCap, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -169,7 +169,13 @@ function CourseDetailDrawer({
   }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={course.title} size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={course.title}
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         {/* Video Preview */}
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
@@ -276,9 +282,19 @@ function CourseDetailDrawer({
 // ========================================
 export function CoursesFeed() {
   const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [courseDrawerOpen, setCourseDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+
+  useEffect(() => {
+    const nextMode = checkoutOpen ? "hidden" : courseDrawerOpen ? "overlay" : "default"
+    setComposerMode(nextMode)
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [checkoutOpen, courseDrawerOpen, setComposerMode])
   
   const handleSelectCourse = (course: Course) => {
     setSelectedCourse(course)

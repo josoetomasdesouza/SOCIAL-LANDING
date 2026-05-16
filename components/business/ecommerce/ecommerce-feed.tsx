@@ -248,7 +248,13 @@ function ProductDetailDrawer({
   }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={product.name} size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={product.name}
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         {/* Imagens */}
         <div className="space-y-3">
@@ -509,6 +515,7 @@ function CartDrawerComponent({
 // ========================================
 export function EcommerceFeed() {
   const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [productDrawerOpen, setProductDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
@@ -611,6 +618,23 @@ export function EcommerceFeed() {
   ]
 
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+
+  useEffect(() => {
+    const nextMode =
+      checkoutDrawerOpen || cartDrawerOpen
+        ? "hidden"
+        : productDrawerOpen
+          ? "overlay"
+          : cartItemCount > 0
+            ? "hidden"
+            : "default"
+
+    setComposerMode(nextMode)
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [cartDrawerOpen, cartItemCount, checkoutDrawerOpen, productDrawerOpen, setComposerMode])
   
   return (
     <ConversationSelectionProvider value={conversationSelection}>

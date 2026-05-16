@@ -3,6 +3,8 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react"
 import type { ConversationContextItem } from "./conversational-ai"
 
+export type ConversationComposerMode = "default" | "overlay" | "hidden"
+
 interface ConversationSelectionController {
   conversationContext: ConversationContextItem[]
   selectedContextIds: Set<string>
@@ -11,12 +13,15 @@ interface ConversationSelectionController {
   removeConversationContext: (contextId: string) => void
   clearConversationContext: () => void
   isConversationSelected: (id: string) => boolean
+  composerMode: ConversationComposerMode
+  setComposerMode: (mode: ConversationComposerMode) => void
 }
 
 const ConversationSelectionContext = createContext<ConversationSelectionController | null>(null)
 
 export function useConversationSelectionState(): ConversationSelectionController {
   const [conversationContext, setConversationContext] = useState<ConversationContextItem[]>([])
+  const [composerMode, setComposerMode] = useState<ConversationComposerMode>("default")
 
   const selectedContextIds = useMemo(
     () => new Set(conversationContext.map((item) => item.id)),
@@ -62,6 +67,8 @@ export function useConversationSelectionState(): ConversationSelectionController
     removeConversationContext,
     clearConversationContext,
     isConversationSelected,
+    composerMode,
+    setComposerMode,
   }
 }
 

@@ -325,7 +325,13 @@ function ServicesDrawer({
   const categories = [...new Set(barberServices.map(s => s.category))]
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Escolha o servico" size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Escolha o servico"
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         {categories.map((category) => (
           <div key={category}>
@@ -398,7 +404,13 @@ function ProfessionalsDrawer({
   }
 
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Escolha o profissional" size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Escolha o profissional"
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-5">
         <ContextSelectable
           as="div"
@@ -543,12 +555,28 @@ function ConfirmationDrawer({
 // ========================================
 export function AppointmentFeed() {
   const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedBarber, setSelectedBarber] = useState<Professional | null>(null)
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [bookingStep, setBookingStep] = useState<BookingStep>(null)
   const [bookedDate, setBookedDate] = useState<string | null>(null)
   const [bookedTime, setBookedTime] = useState<string | null>(null)
   const [bookedService, setBookedService] = useState<Service | null>(null)
+
+  useEffect(() => {
+    const nextMode =
+      bookingStep === "service" || bookingStep === "professional"
+        ? "overlay"
+        : bookingStep === "datetime" || bookingStep === "confirmation"
+          ? "hidden"
+          : "default"
+
+    setComposerMode(nextMode)
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [bookingStep, setComposerMode])
   
   // Handlers
   const handleStartBooking = () => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { MapPin, Bed, Bath, Car, Maximize, Heart, Phone, Home, Building, Star, Play, Newspaper, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -209,7 +209,13 @@ function PropertyDetailDrawer({
   }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={property.title} size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={property.title}
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         {/* Galeria */}
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
@@ -307,10 +313,20 @@ function PropertyDetailDrawer({
 // ========================================
 export function RealEstateFeed() {
   const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [propertyDrawerOpen, setPropertyDrawerOpen] = useState(false)
   const [visitDrawerOpen, setVisitDrawerOpen] = useState(false)
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    const nextMode = visitDrawerOpen ? "hidden" : propertyDrawerOpen ? "overlay" : "default"
+    setComposerMode(nextMode)
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [propertyDrawerOpen, setComposerMode, visitDrawerOpen])
   
   const handleToggleFavorite = (id: string) => {
     setFavorites(prev => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Calendar, Clock, MapPin, Users, Ticket, Heart, Star, Play, Newspaper, Music } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -230,7 +230,13 @@ function EventDetailDrawer({
   }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={eventTitle} size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={eventTitle}
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
           <Image src={event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop"} alt={eventTitle} fill className="object-cover" />
@@ -298,10 +304,20 @@ function EventDetailDrawer({
 // ========================================
 export function EventsFeed() {
   const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [eventDrawerOpen, setEventDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    const nextMode = checkoutOpen ? "hidden" : eventDrawerOpen ? "overlay" : "default"
+    setComposerMode(nextMode)
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [checkoutOpen, eventDrawerOpen, setComposerMode])
   
   const handleToggleFavorite = (id: string) => {
     setFavorites(prev => {

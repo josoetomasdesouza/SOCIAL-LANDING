@@ -716,6 +716,7 @@ export function BusinessSocialLanding({
     removeConversationContext,
     clearConversationContext,
     isConversationSelected,
+    composerMode,
   } = conversationSelection
   
   // Story viewer state
@@ -833,7 +834,10 @@ export function BusinessSocialLanding({
         <ConversationalAI
           brandLogo={config.logo}
           brandName={config.name}
-          className={cn(feedDrawerOpen ? "z-[60]" : "z-30", drawerOpen && !feedDrawerOpen && "hidden")}
+          className={cn(
+            composerMode === "overlay" ? "z-[70]" : feedDrawerOpen ? "z-[60]" : "z-30",
+            (drawerOpen && !feedDrawerOpen) || composerMode === "hidden" ? "hidden" : undefined
+          )}
           placeholder={`Pergunte sobre ${config.name}...`}
           contextItems={conversationContext}
           onRemoveContext={handleRemoveConversationContext}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Clock, Dumbbell, Users, Calendar, Star, Zap, Check, Play, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -141,7 +141,13 @@ function PlanDetailDrawer({
   }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={plan.name} size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={plan.name}
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         <ContextSelectable
           as="div"
@@ -188,9 +194,19 @@ function PlanDetailDrawer({
 // ========================================
 export function GymFeed() {
   const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedPlan, setSelectedPlan] = useState<GymPlan | null>(null)
   const [planDrawerOpen, setPlanDrawerOpen] = useState(false)
   const [signupOpen, setSignupOpen] = useState(false)
+
+  useEffect(() => {
+    const nextMode = signupOpen ? "hidden" : planDrawerOpen ? "overlay" : "default"
+    setComposerMode(nextMode)
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [planDrawerOpen, setComposerMode, signupOpen])
   
   const sections: BusinessSection[] = [
     {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, type ReactNode } from "react"
+import { useRef, useState, type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 const LONG_PRESS_MS = 420
@@ -33,6 +33,7 @@ export function ContextSelectable({
   const timerRef = useRef<number | null>(null)
   const longPressTriggeredRef = useRef(false)
   const ignoreInteractionRef = useRef(false)
+  const [isPressing, setIsPressing] = useState(false)
 
   const clearTimer = () => {
     if (timerRef.current !== null) {
@@ -44,6 +45,7 @@ export function ContextSelectable({
   const handlePointerDown = (event: React.PointerEvent<HTMLElement>) => {
     ignoreInteractionRef.current = isInteractiveTarget(event.target)
     longPressTriggeredRef.current = false
+    setIsPressing(!ignoreInteractionRef.current && Boolean(onLongPress))
 
     if (ignoreInteractionRef.current || !onLongPress) return
 
@@ -59,6 +61,7 @@ export function ContextSelectable({
 
   const handlePointerEnd = () => {
     clearTimer()
+    setIsPressing(false)
   }
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -109,9 +112,10 @@ export function ContextSelectable({
           }
         : {})}
       className={cn(
-        "relative transition-[background-color,border-color,box-shadow,transform]",
+        "relative will-change-transform transition-[background-color,border-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        isPressing && "scale-[0.988] shadow-[0_22px_46px_-34px_rgba(15,23,42,0.38)]",
         selected &&
-          "rounded-[28px] bg-accent/[0.035] ring-2 ring-accent/35 ring-offset-2 ring-offset-background shadow-[0_14px_32px_-28px_rgba(0,0,0,0.45)]",
+          "rounded-[28px] bg-accent/[0.045] ring-1 ring-accent/35 ring-offset-1 ring-offset-background shadow-[0_18px_40px_-32px_rgba(15,23,42,0.42)]",
         className
       )}
     >
