@@ -159,20 +159,40 @@ function ProductsModule({
 // ========================================
 // MODULO: CATEGORIAS
 // ========================================
-function CategoriesModule({ onSelectCategory }: { onSelectCategory: (category: string) => void }) {
+function CategoriesModule({
+  onSelectCategory,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onSelectCategory: (category: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {productCategories.map((category) => (
-        <button
-          key={category.id}
-          onClick={() => onSelectCategory(category.id)}
-          className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[100px]"
-        >
-          <span className="text-2xl">{category.icon}</span>
-          <span className="text-sm font-medium text-foreground">{category.name}</span>
-          <span className="text-xs text-muted-foreground">{category.count} itens</span>
-        </button>
-      ))}
+      {productCategories.map((category) => {
+        const contextItem = {
+          id: `ecommerce-category-${category.id}`,
+          title: category.name,
+          image: ecommerceConfig.logo,
+          subtitle: "Categoria",
+        }
+
+        return (
+          <ContextSelectable
+            key={category.id}
+            as="div"
+            onClick={() => onSelectCategory(category.id)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[100px]"
+          >
+            <span className="text-2xl">{category.icon}</span>
+            <span className="text-sm font-medium text-foreground">{category.name}</span>
+            <span className="text-xs text-muted-foreground">{category.count} itens</span>
+          </ContextSelectable>
+        )
+      })}
     </div>
   )
 }

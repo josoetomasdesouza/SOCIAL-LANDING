@@ -133,7 +133,13 @@ function PropertiesModule({
 // ========================================
 // MODULO: TIPOS DE IMOVEL
 // ========================================
-function PropertyTypesModule() {
+function PropertyTypesModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   const types = [
     { id: "1", name: "Apartamento", icon: "🏢" },
     { id: "2", name: "Casa", icon: "🏠" },
@@ -143,12 +149,27 @@ function PropertyTypesModule() {
   
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {types.map((type) => (
-        <button key={type.id} className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]">
-          <span className="text-2xl">{type.icon}</span>
-          <span className="text-sm font-medium text-foreground">{type.name}</span>
-        </button>
-      ))}
+      {types.map((type) => {
+        const contextItem = {
+          id: `property-type-${type.id}`,
+          title: type.name,
+          image: realestateConfig.logo,
+          subtitle: "Tipo",
+        }
+
+        return (
+          <ContextSelectable
+            key={type.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
+          >
+            <span className="text-2xl">{type.icon}</span>
+            <span className="text-sm font-medium text-foreground">{type.name}</span>
+          </ContextSelectable>
+        )
+      })}
     </div>
   )
 }

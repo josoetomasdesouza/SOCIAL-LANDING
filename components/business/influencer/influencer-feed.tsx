@@ -5,6 +5,8 @@ import { BusinessSocialLanding } from "../business-social-landing"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
 import { 
   Link2, Instagram, Youtube, Twitter, Mail, 
   ExternalLink, Copy, Check, Users, Eye, Heart,
@@ -59,6 +61,139 @@ const influencerCollabs = [
   { id: "4", brand: "Airbnb", logo: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=100&h=100&fit=crop", type: "Parceria" }
 ]
 
+function LinksModule({
+  onOpenAllLinks,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onOpenAllLinks: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  return (
+    <div className="space-y-3">
+      {influencerLinks.map((link) => {
+        const Icon = link.icon
+        const contextItem = {
+          id: `influencer-link-${link.id}`,
+          title: link.title,
+          image: influencerConfig.logo,
+          subtitle: "Link",
+        }
+
+        return (
+          <ContextSelectable
+            key={link.id}
+            as="div"
+            onClick={() => window.open(link.url, "_blank")}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="w-full flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all group"
+          >
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: `${link.color}20` }}
+            >
+              <Icon className="w-6 h-6" style={{ color: link.color }} />
+            </div>
+            <span className="flex-1 text-left font-medium">{link.title}</span>
+            <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          </ContextSelectable>
+        )
+      })}
+      <button
+        onClick={() => onOpenAllLinks()}
+        className="w-full p-3 text-sm text-accent hover:text-accent/80 transition-colors"
+      >
+        Ver todos os links
+      </button>
+    </div>
+  )
+}
+
+function MetricsModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  const metrics = [
+    { id: "followers", value: influencerMetrics.followers, label: "Seguidores", icon: Users, color: "text-accent" },
+    { id: "engagement", value: influencerMetrics.engagement, label: "Engajamento", icon: Heart, color: "text-pink-500" },
+    { id: "views", value: influencerMetrics.avgViews, label: "Views/post", icon: Eye, color: "text-blue-500" },
+    { id: "likes", value: influencerMetrics.avgLikes, label: "Likes/post", icon: MessageCircle, color: "text-green-500" },
+  ]
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {metrics.map((metric) => {
+        const Icon = metric.icon
+        const contextItem = {
+          id: `influencer-metric-${metric.id}`,
+          title: `${metric.label}: ${metric.value}`,
+          image: influencerConfig.logo,
+          subtitle: "Metrica",
+        }
+
+        return (
+          <ContextSelectable
+            key={metric.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="p-4 rounded-xl bg-card border border-border text-center"
+          >
+            <Icon className={`w-5 h-5 mx-auto mb-2 ${metric.color}`} />
+            <p className="text-2xl font-bold">{metric.value}</p>
+            <p className="text-xs text-muted-foreground">{metric.label}</p>
+          </ContextSelectable>
+        )
+      })}
+    </div>
+  )
+}
+
+function CollabsModule({
+  onOpenCollabs,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onOpenCollabs: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  return (
+    <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+      {influencerCollabs.map((collab) => {
+        const contextItem = {
+          id: `influencer-collab-${collab.id}`,
+          title: collab.brand,
+          image: collab.logo,
+          subtitle: collab.type,
+        }
+
+        return (
+          <ContextSelectable
+            key={collab.id}
+            as="div"
+            onClick={() => onOpenCollabs()}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all"
+          >
+            <div className="w-16 h-16 rounded-xl overflow-hidden">
+              <Image src={collab.logo} alt={collab.brand} width={64} height={64} className="object-cover" />
+            </div>
+            <p className="text-sm font-medium">{collab.brand}</p>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent">{collab.type}</span>
+          </ContextSelectable>
+        )
+      })}
+    </div>
+  )
+}
+
 export function InfluencerFeed() {
   const [selectedLink, setSelectedLink] = useState<typeof influencerLinks[0] | null>(null)
   const [linksDrawerOpen, setLinksDrawerOpen] = useState(false)
@@ -82,35 +217,7 @@ export function InfluencerFeed() {
       title: "Meus Links",
       type: "custom" as const,
       posts: [],
-      customContent: (
-        <div className="space-y-3">
-          {influencerLinks.map((link) => {
-            const Icon = link.icon
-            return (
-              <button
-                key={link.id}
-                onClick={() => window.open(link.url, "_blank")}
-                className="w-full flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all group"
-              >
-                <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: `${link.color}20` }}
-                >
-                  <Icon className="w-6 h-6" style={{ color: link.color }} />
-                </div>
-                <span className="flex-1 text-left font-medium">{link.title}</span>
-                <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </button>
-            )
-          })}
-          <button
-            onClick={() => setLinksDrawerOpen(true)}
-            className="w-full p-3 text-sm text-accent hover:text-accent/80 transition-colors"
-          >
-            Ver todos os links
-          </button>
-        </div>
-      )
+      customContent: <LinksModule onOpenAllLinks={() => setLinksDrawerOpen(true)} />
     },
     // Metricas
     {
@@ -118,30 +225,7 @@ export function InfluencerFeed() {
       title: "Numeros",
       type: "custom" as const,
       posts: [],
-      customContent: (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-4 rounded-xl bg-card border border-border text-center">
-            <Users className="w-5 h-5 mx-auto mb-2 text-accent" />
-            <p className="text-2xl font-bold">{influencerMetrics.followers}</p>
-            <p className="text-xs text-muted-foreground">Seguidores</p>
-          </div>
-          <div className="p-4 rounded-xl bg-card border border-border text-center">
-            <Heart className="w-5 h-5 mx-auto mb-2 text-pink-500" />
-            <p className="text-2xl font-bold">{influencerMetrics.engagement}</p>
-            <p className="text-xs text-muted-foreground">Engajamento</p>
-          </div>
-          <div className="p-4 rounded-xl bg-card border border-border text-center">
-            <Eye className="w-5 h-5 mx-auto mb-2 text-blue-500" />
-            <p className="text-2xl font-bold">{influencerMetrics.avgViews}</p>
-            <p className="text-xs text-muted-foreground">Views/post</p>
-          </div>
-          <div className="p-4 rounded-xl bg-card border border-border text-center">
-            <MessageCircle className="w-5 h-5 mx-auto mb-2 text-green-500" />
-            <p className="text-2xl font-bold">{influencerMetrics.avgLikes}</p>
-            <p className="text-xs text-muted-foreground">Likes/post</p>
-          </div>
-        </div>
-      )
+      customContent: <MetricsModule />
     },
     // Parcerias
     {
@@ -149,23 +233,7 @@ export function InfluencerFeed() {
       title: "Parcerias",
       type: "custom" as const,
       posts: [],
-      customContent: (
-        <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-          {influencerCollabs.map((collab) => (
-            <button
-              key={collab.id}
-              onClick={() => setCollabDrawerOpen(true)}
-              className="flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all"
-            >
-              <div className="w-16 h-16 rounded-xl overflow-hidden">
-                <Image src={collab.logo} alt={collab.brand} width={64} height={64} className="object-cover" />
-              </div>
-              <p className="text-sm font-medium">{collab.brand}</p>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent">{collab.type}</span>
-            </button>
-          ))}
-        </div>
-      )
+      customContent: <CollabsModule onOpenCollabs={() => setCollabDrawerOpen(true)} />
     },
     // Videos
     {

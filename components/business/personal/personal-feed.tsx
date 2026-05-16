@@ -7,6 +7,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
 import { 
   Link2, Instagram, Linkedin, Github, Mail, 
   MapPin, Briefcase, GraduationCap, Heart, Music,
@@ -88,6 +90,167 @@ const personalPhotos = [
   "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=400&fit=crop"
 ]
 
+function AboutModule({
+  onContact,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onContact: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  const contextItem = {
+    id: "personal-about",
+    title: "Sobre mim",
+    image: personalConfig.logo,
+    subtitle: "Sobre",
+  }
+
+  return (
+    <div className="space-y-4">
+      <ContextSelectable
+        as="div"
+        onLongPress={() => onToggleConversationContext?.(contextItem)}
+        selected={isInConversation?.(contextItem.id) ?? false}
+        className="p-4 rounded-xl bg-card border border-border"
+      >
+        <div className="flex items-center gap-3 mb-3">
+          <MapPin className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm">{personalConfig.location}</span>
+        </div>
+        <div className="flex items-center gap-3 mb-4">
+          <Briefcase className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm">{personalConfig.occupation}</span>
+        </div>
+        <p className="text-muted-foreground">
+          Ola! Sou um desenvolvedor apaixonado por criar solucoes que fazem diferenca.
+          Quando nao estou codando, voce me encontra viajando, fotografando ou
+          experimentando cafes especiais pela cidade.
+        </p>
+      </ContextSelectable>
+      <Button className="w-full" onClick={() => onContact()}>
+        <Mail className="w-4 h-4 mr-2" />
+        Entrar em contato
+      </Button>
+    </div>
+  )
+}
+
+function InterestsModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {personalInterests.map((interest) => {
+        const Icon = interest.icon
+        const contextItem = {
+          id: `personal-interest-${interest.id}`,
+          title: interest.name,
+          image: personalConfig.logo,
+          subtitle: "Interesse",
+        }
+
+        return (
+          <ContextSelectable
+            key={interest.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex items-center gap-2 px-3 py-2 rounded-full border border-border bg-card"
+          >
+            <Icon className="w-4 h-4 text-accent" />
+            <span className="text-sm">{interest.name}</span>
+          </ContextSelectable>
+        )
+      })}
+    </div>
+  )
+}
+
+function ProjectsModule({
+  onSelectProject,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onSelectProject: (project: (typeof personalProjects)[0]) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  return (
+    <div className="space-y-3">
+      {personalProjects.map((project) => {
+        const contextItem = {
+          id: `personal-project-${project.id}`,
+          title: project.title,
+          image: project.image,
+          subtitle: "Projeto",
+        }
+
+        return (
+          <ContextSelectable
+            key={project.id}
+            as="div"
+            onClick={() => onSelectProject(project)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="w-full flex gap-4 p-3 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all text-left"
+          >
+            <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+              <Image src={project.image} alt={project.title} width={80} height={80} className="object-cover w-full h-full" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium line-clamp-1">{project.title}</h4>
+              <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+              <div className="flex gap-1 mt-2">
+                {project.tags.map((tag) => (
+                  <span key={tag} className="text-xs px-2 py-0.5 rounded bg-secondary">{tag}</span>
+                ))}
+              </div>
+            </div>
+          </ContextSelectable>
+        )
+      })}
+    </div>
+  )
+}
+
+function PhotosModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
+      {personalPhotos.map((photo, index) => {
+        const contextItem = {
+          id: `personal-photo-${index}`,
+          title: `Momento ${index + 1}`,
+          image: photo,
+          subtitle: "Foto",
+        }
+
+        return (
+          <ContextSelectable
+            key={photo}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="aspect-square overflow-hidden"
+          >
+            <Image src={photo} alt={`Foto ${index + 1}`} width={200} height={200} className="object-cover w-full h-full hover:scale-110 transition-transform duration-300" />
+          </ContextSelectable>
+        )
+      })}
+    </div>
+  )
+}
+
 export function PersonalFeed() {
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false)
   const [projectDrawerOpen, setProjectDrawerOpen] = useState(false)
@@ -112,32 +275,7 @@ export function PersonalFeed() {
       title: "Sobre mim",
       type: "custom" as const,
       posts: [],
-      customContent: (
-        <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-card border border-border">
-            <div className="flex items-center gap-3 mb-3">
-              <MapPin className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{personalConfig.location}</span>
-            </div>
-            <div className="flex items-center gap-3 mb-4">
-              <Briefcase className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{personalConfig.occupation}</span>
-            </div>
-            <p className="text-muted-foreground">
-              Ola! Sou um desenvolvedor apaixonado por criar solucoes que fazem diferenca. 
-              Quando nao estou codando, voce me encontra viajando, fotografando ou 
-              experimentando cafes especiais pela cidade.
-            </p>
-          </div>
-          <Button 
-            className="w-full" 
-            onClick={() => setContactDrawerOpen(true)}
-          >
-            <Mail className="w-4 h-4 mr-2" />
-            Entrar em contato
-          </Button>
-        </div>
-      )
+      customContent: <AboutModule onContact={() => setContactDrawerOpen(true)} />
     },
     // Links
     {
@@ -169,22 +307,7 @@ export function PersonalFeed() {
       title: "Interesses",
       type: "custom" as const,
       posts: [],
-      customContent: (
-        <div className="flex flex-wrap gap-2">
-          {personalInterests.map((interest) => {
-            const Icon = interest.icon
-            return (
-              <div
-                key={interest.id}
-                className="flex items-center gap-2 px-3 py-2 rounded-full border border-border bg-card"
-              >
-                <Icon className="w-4 h-4 text-accent" />
-                <span className="text-sm">{interest.name}</span>
-              </div>
-            )
-          })}
-        </div>
-      )
+      customContent: <InterestsModule />
     },
     // Projetos/Portfolio
     {
@@ -193,31 +316,12 @@ export function PersonalFeed() {
       type: "custom" as const,
       posts: [],
       customContent: (
-        <div className="space-y-3">
-          {personalProjects.map((project) => (
-            <button
-              key={project.id}
-              onClick={() => {
-                setSelectedProject(project)
-                setProjectDrawerOpen(true)
-              }}
-              className="w-full flex gap-4 p-3 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all text-left"
-            >
-              <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                <Image src={project.image} alt={project.title} width={80} height={80} className="object-cover w-full h-full" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium line-clamp-1">{project.title}</h4>
-                <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
-                <div className="flex gap-1 mt-2">
-                  {project.tags.map((tag) => (
-                    <span key={tag} className="text-xs px-2 py-0.5 rounded bg-secondary">{tag}</span>
-                  ))}
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
+        <ProjectsModule
+          onSelectProject={(project) => {
+            setSelectedProject(project)
+            setProjectDrawerOpen(true)
+          }}
+        />
       )
     },
     // Galeria de fotos
@@ -226,15 +330,7 @@ export function PersonalFeed() {
       title: "Momentos",
       type: "custom" as const,
       posts: [],
-      customContent: (
-        <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">
-          {personalPhotos.map((photo, index) => (
-            <div key={index} className="aspect-square overflow-hidden">
-              <Image src={photo} alt={`Foto ${index + 1}`} width={200} height={200} className="object-cover w-full h-full hover:scale-110 transition-transform duration-300" />
-            </div>
-          ))}
-        </div>
-      )
+      customContent: <PhotosModule />
     }
   ]
   

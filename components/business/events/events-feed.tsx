@@ -155,7 +155,13 @@ function EventsModule({
 // ========================================
 // MODULO: CATEGORIAS DE EVENTOS
 // ========================================
-function CategoriesModule() {
+function CategoriesModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   const categories = [
     { id: "1", name: "Shows", icon: "🎵", count: 15 },
     { id: "2", name: "Teatro", icon: "🎭", count: 8 },
@@ -165,12 +171,27 @@ function CategoriesModule() {
   
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {categories.map((cat) => (
-        <button key={cat.id} className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]">
-          <span className="text-2xl">{cat.icon}</span>
-          <span className="text-sm font-medium text-foreground">{cat.name}</span>
-        </button>
-      ))}
+      {categories.map((cat) => {
+        const contextItem = {
+          id: `event-category-${cat.id}`,
+          title: cat.name,
+          image: eventsConfig.logo,
+          subtitle: "Categoria",
+        }
+
+        return (
+          <ContextSelectable
+            key={cat.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
+          >
+            <span className="text-2xl">{cat.icon}</span>
+            <span className="text-sm font-medium text-foreground">{cat.name}</span>
+          </ContextSelectable>
+        )
+      })}
     </div>
   )
 }

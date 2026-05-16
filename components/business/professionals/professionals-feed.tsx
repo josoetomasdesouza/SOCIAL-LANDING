@@ -68,22 +68,43 @@ function ServicesModule({
 // ========================================
 // MODULO: AREAS DE ATUACAO
 // ========================================
-function AreasModule() {
+function AreasModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   const areas = [
     { id: "1", name: "Consultoria", icon: "💼" },
     { id: "2", name: "Contratos", icon: "📄" },
     { id: "3", name: "Defesa", icon: "⚖️" },
     { id: "4", name: "Assessoria", icon: "🤝" },
   ]
-  
+
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {areas.map((area) => (
-        <button key={area.id} className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]">
-          <span className="text-2xl">{area.icon}</span>
-          <span className="text-sm font-medium text-foreground">{area.name}</span>
-        </button>
-      ))}
+      {areas.map((area) => {
+        const contextItem = {
+          id: `professional-area-${area.id}`,
+          title: area.name,
+          image: professionalsConfig.logo,
+          subtitle: "Area",
+        }
+
+        return (
+          <ContextSelectable
+            key={area.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
+          >
+            <span className="text-2xl">{area.icon}</span>
+            <span className="text-sm font-medium text-foreground">{area.name}</span>
+          </ContextSelectable>
+        )
+      })}
     </div>
   )
 }

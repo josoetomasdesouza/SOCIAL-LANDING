@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { SocialCompactHero } from "../social-compact-hero"
 import { SocialContactCTA } from "../social-contact-cta"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
 import { 
   Target, Heart, Users, Award, Mail, Phone, MapPin,
   Building2, Linkedin, ChevronRight, Send, Check,
@@ -194,6 +196,280 @@ const institutionalNews = [
   }
 ]
 
+function AboutModule({
+  onOpenContact,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onOpenContact: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  const contextItem = {
+    id: "institutional-about",
+    title: "Quem Somos",
+    image: institutionalConfig.logo,
+    subtitle: "Sobre",
+  }
+
+  return (
+    <div className="space-y-4">
+      <ContextSelectable
+        as="div"
+        onLongPress={() => onToggleConversationContext?.(contextItem)}
+        selected={isInConversation?.(contextItem.id) ?? false}
+        className="space-y-4"
+      >
+        <SocialCompactHero
+          variant="editorial"
+          brandLogo={institutionalConfig.logo}
+          brandName={institutionalConfig.name}
+          contextLabel="Sobre o instituto"
+          headline="Educacao ambiental que vira impacto real nas comunidades."
+          subheadline="O Instituto Futuro Verde conecta formacao, projetos e mobilizacao para construir um futuro mais sustentavel."
+        />
+        <p className="text-muted-foreground leading-relaxed">
+          O Instituto Futuro Verde e uma organizacao sem fins lucrativos dedicada a
+          transformar vidas atraves da educacao ambiental. Desde 2010, trabalhamos
+          incansavelmente para criar um futuro mais sustentavel para as proximas geracoes.
+        </p>
+      </ContextSelectable>
+      <div className="flex gap-3">
+        <Button onClick={() => onOpenContact()}>
+          <Mail className="w-4 h-4 mr-2" />
+          Fale conosco
+        </Button>
+        <Button variant="outline">
+          <Download className="w-4 h-4 mr-2" />
+          Relatorio Anual
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function PillarsModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  return (
+    <div className="space-y-3">
+      {institutionalPillars.map((pillar) => {
+        const Icon = pillar.icon
+        const contextItem = {
+          id: `institutional-pillar-${pillar.id}`,
+          title: pillar.title,
+          image: institutionalConfig.logo,
+          subtitle: "Proposito",
+        }
+
+        return (
+          <ContextSelectable
+            key={pillar.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex gap-4 p-4 rounded-xl border border-border bg-card"
+          >
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: `${pillar.color}15` }}
+            >
+              <Icon className="w-6 h-6" style={{ color: pillar.color }} />
+            </div>
+            <div>
+              <h4 className="font-semibold mb-1">{pillar.title}</h4>
+              <p className="text-sm text-muted-foreground">{pillar.description}</p>
+            </div>
+          </ContextSelectable>
+        )
+      })}
+    </div>
+  )
+}
+
+function ImpactModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {institutionalImpact.map((item) => {
+        const contextItem = {
+          id: `institutional-impact-${item.id}`,
+          title: `${item.value} ${item.label}`,
+          image: institutionalConfig.logo,
+          subtitle: "Impacto",
+        }
+
+        return (
+          <ContextSelectable
+            key={item.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="p-4 rounded-xl bg-accent/5 border border-accent/20 text-center"
+          >
+            <p className="text-2xl font-bold text-accent">{item.value}</p>
+            <p className="text-xs text-muted-foreground">{item.label}</p>
+          </ContextSelectable>
+        )
+      })}
+    </div>
+  )
+}
+
+function TeamModule({
+  onOpenTeam,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onOpenTeam: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  return (
+    <div>
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+        {institutionalTeam.map((member) => {
+          const contextItem = {
+            id: `institutional-team-${member.id}`,
+            title: member.name,
+            image: member.image,
+            subtitle: member.role,
+          }
+
+          return (
+            <ContextSelectable
+              key={member.id}
+              as="div"
+              onLongPress={() => onToggleConversationContext?.(contextItem)}
+              selected={isInConversation?.(contextItem.id) ?? false}
+              className="flex-shrink-0 text-center"
+            >
+              <div className="w-20 h-20 rounded-full overflow-hidden mb-2 mx-auto ring-2 ring-border">
+                <Image src={member.image} alt={member.name} width={80} height={80} className="object-cover" />
+              </div>
+              <p className="text-sm font-medium line-clamp-1 max-w-20">{member.name.split(" ")[0]}</p>
+              <p className="text-xs text-muted-foreground line-clamp-1 max-w-20">{member.role.split(" ")[0]}</p>
+            </ContextSelectable>
+          )
+        })}
+      </div>
+      <button
+        onClick={() => onOpenTeam()}
+        className="w-full mt-3 text-sm text-accent hover:text-accent/80 transition-colors"
+      >
+        Ver equipe completa
+      </button>
+    </div>
+  )
+}
+
+function ProjectsModule({
+  onSelectProject,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onSelectProject: (project: (typeof institutionalProjects)[0]) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  return (
+    <div className="space-y-3">
+      {institutionalProjects.map((project) => {
+        const contextItem = {
+          id: `institutional-project-${project.id}`,
+          title: project.title,
+          image: project.image,
+          subtitle: "Projeto",
+        }
+
+        return (
+          <ContextSelectable
+            key={project.id}
+            as="div"
+            onClick={() => onSelectProject(project)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="w-full flex gap-4 p-3 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all text-left"
+          >
+            <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+              <Image src={project.image} alt={project.title} width={80} height={80} className="object-cover w-full h-full" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-medium line-clamp-1">{project.title}</h4>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  project.status === "Em andamento"
+                    ? "bg-blue-500/10 text-blue-500"
+                    : "bg-green-500/10 text-green-500"
+                }`}>
+                  {project.status}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 self-center" />
+          </ContextSelectable>
+        )
+      })}
+    </div>
+  )
+}
+
+function FaqModule({
+  faqOpen,
+  onToggleFaq,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  faqOpen: string | null
+  onToggleFaq: (faqId: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
+  return (
+    <div className="space-y-2">
+      {institutionalFAQs.map((faq) => {
+        const contextItem = {
+          id: `institutional-faq-${faq.id}`,
+          title: faq.question,
+          image: institutionalConfig.logo,
+          subtitle: "FAQ",
+        }
+
+        return (
+          <ContextSelectable
+            key={faq.id}
+            as="div"
+            onClick={() => onToggleFaq(faq.id)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{faq.question}</span>
+              <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform ${
+                faqOpen === faq.id ? "rotate-90" : ""
+              }`} />
+            </div>
+            {faqOpen === faq.id && (
+              <p className="mt-3 text-sm text-muted-foreground">{faq.answer}</p>
+            )}
+          </ContextSelectable>
+        )
+      })}
+    </div>
+  )
+}
+
 export function InstitutionalFeed() {
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false)
   const [teamDrawerOpen, setTeamDrawerOpen] = useState(false)
@@ -221,31 +497,7 @@ export function InstitutionalFeed() {
       type: "custom" as const,
       posts: [],
       customContent: (
-        <div className="space-y-4">
-          <SocialCompactHero
-            variant="editorial"
-            brandLogo={institutionalConfig.logo}
-            brandName={institutionalConfig.name}
-            contextLabel="Sobre o instituto"
-            headline="Educacao ambiental que vira impacto real nas comunidades."
-            subheadline="O Instituto Futuro Verde conecta formacao, projetos e mobilizacao para construir um futuro mais sustentavel."
-          />
-          <p className="text-muted-foreground leading-relaxed">
-            O Instituto Futuro Verde e uma organizacao sem fins lucrativos dedicada a 
-            transformar vidas atraves da educacao ambiental. Desde 2010, trabalhamos 
-            incansavelmente para criar um futuro mais sustentavel para as proximas geracoes.
-          </p>
-          <div className="flex gap-3">
-            <Button onClick={() => setContactDrawerOpen(true)}>
-              <Mail className="w-4 h-4 mr-2" />
-              Fale conosco
-            </Button>
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Relatorio Anual
-            </Button>
-          </div>
-        </div>
+        <AboutModule onOpenContact={() => setContactDrawerOpen(true)} />
       )
     },
     // Missao, Visao, Valores
@@ -254,27 +506,7 @@ export function InstitutionalFeed() {
       title: "Proposito",
       type: "custom" as const,
       posts: [],
-      customContent: (
-        <div className="space-y-3">
-          {institutionalPillars.map((pillar) => {
-            const Icon = pillar.icon
-            return (
-              <div key={pillar.id} className="flex gap-4 p-4 rounded-xl border border-border bg-card">
-                <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: `${pillar.color}15` }}
-                >
-                  <Icon className="w-6 h-6" style={{ color: pillar.color }} />
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-1">{pillar.title}</h4>
-                  <p className="text-sm text-muted-foreground">{pillar.description}</p>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )
+      customContent: <PillarsModule />
     },
     // Numeros de Impacto
     {
@@ -282,16 +514,7 @@ export function InstitutionalFeed() {
       title: "Nosso Impacto",
       type: "custom" as const,
       posts: [],
-      customContent: (
-        <div className="grid grid-cols-2 gap-3">
-          {institutionalImpact.map((item) => (
-            <div key={item.id} className="p-4 rounded-xl bg-accent/5 border border-accent/20 text-center">
-              <p className="text-2xl font-bold text-accent">{item.value}</p>
-              <p className="text-xs text-muted-foreground">{item.label}</p>
-            </div>
-          ))}
-        </div>
-      )
+      customContent: <ImpactModule />
     },
     // Equipe
     {
@@ -299,27 +522,7 @@ export function InstitutionalFeed() {
       title: "Nossa Equipe",
       type: "custom" as const,
       posts: [],
-      customContent: (
-        <div>
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-            {institutionalTeam.map((member) => (
-              <div key={member.id} className="flex-shrink-0 text-center">
-                <div className="w-20 h-20 rounded-full overflow-hidden mb-2 mx-auto ring-2 ring-border">
-                  <Image src={member.image} alt={member.name} width={80} height={80} className="object-cover" />
-                </div>
-                <p className="text-sm font-medium line-clamp-1 max-w-20">{member.name.split(" ")[0]}</p>
-                <p className="text-xs text-muted-foreground line-clamp-1 max-w-20">{member.role.split(" ")[0]}</p>
-              </div>
-            ))}
-          </div>
-          <button 
-            onClick={() => setTeamDrawerOpen(true)}
-            className="w-full mt-3 text-sm text-accent hover:text-accent/80 transition-colors"
-          >
-            Ver equipe completa
-          </button>
-        </div>
-      )
+      customContent: <TeamModule onOpenTeam={() => setTeamDrawerOpen(true)} />
     },
     // Projetos
     {
@@ -328,36 +531,12 @@ export function InstitutionalFeed() {
       type: "custom" as const,
       posts: [],
       customContent: (
-        <div className="space-y-3">
-          {institutionalProjects.map((project) => (
-            <button
-              key={project.id}
-              onClick={() => {
-                setSelectedProject(project)
-                setProjectDrawerOpen(true)
-              }}
-              className="w-full flex gap-4 p-3 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all text-left"
-            >
-              <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                <Image src={project.image} alt={project.title} width={80} height={80} className="object-cover w-full h-full" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium line-clamp-1">{project.title}</h4>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    project.status === "Em andamento" 
-                      ? "bg-blue-500/10 text-blue-500" 
-                      : "bg-green-500/10 text-green-500"
-                  }`}>
-                    {project.status}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 self-center" />
-            </button>
-          ))}
-        </div>
+        <ProjectsModule
+          onSelectProject={(project) => {
+            setSelectedProject(project)
+            setProjectDrawerOpen(true)
+          }}
+        />
       )
     },
     // Videos com chat - usa renderContent para permitir abrir drawer
@@ -422,27 +601,7 @@ export function InstitutionalFeed() {
       title: "Perguntas Frequentes",
       type: "custom" as const,
       posts: [],
-      customContent: (
-        <div className="space-y-2">
-          {institutionalFAQs.map((faq) => (
-            <button
-              key={faq.id}
-              onClick={() => setFaqOpen(faqOpen === faq.id ? null : faq.id)}
-              className="w-full text-left p-4 rounded-xl border border-border bg-card hover:bg-secondary/50 transition-all"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-medium">{faq.question}</span>
-                <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform ${
-                  faqOpen === faq.id ? "rotate-90" : ""
-                }`} />
-              </div>
-              {faqOpen === faq.id && (
-                <p className="mt-3 text-sm text-muted-foreground">{faq.answer}</p>
-              )}
-            </button>
-          ))}
-        </div>
-      )
+      customContent: <FaqModule faqOpen={faqOpen} onToggleFaq={(faqId) => setFaqOpen(faqOpen === faqId ? null : faqId)} />
     },
     // Contato
     {
