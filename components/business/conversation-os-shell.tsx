@@ -319,20 +319,21 @@ export function ConversationOSShell({
   return (
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
       {isImmersive ? (
-        <div className="pointer-events-none fixed inset-0 bg-background/18 backdrop-blur-[2px]" />
+        <div className="pointer-events-none fixed inset-0 bg-background/34 backdrop-blur-[8px]" />
       ) : null}
       <div className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
         <section
           className={cn(
             "pointer-events-auto overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl",
-            isImmersive && "flex h-[82vh] flex-col border-border/80 bg-background/98 shadow-[0_32px_90px_-32px_rgba(0,0,0,0.42)]"
+            isImmersive &&
+              "flex h-[82vh] max-h-[calc(100dvh-24px)] flex-col border-border/75 bg-background/97 shadow-[0_32px_90px_-32px_rgba(0,0,0,0.42)]"
           )}
         >
           {hasConversationSurface && (
-            <div className="border-b border-border/50">
+            <div className="flex min-h-0 flex-1 flex-col">
               <div
                 className={cn(
-                  "px-4 pt-3 pb-2",
+                  "relative z-10 flex-shrink-0 border-b border-border/50 px-4 pt-3 pb-2",
                   hasActiveProductFlow &&
                     "bg-gradient-to-b from-secondary/55 via-background to-background"
                 )}
@@ -380,24 +381,38 @@ export function ConversationOSShell({
               </div>
 
               {showExpandedConversation ? (
-                <div className={cn(isImmersive && "min-h-0 flex flex-1 flex-col")}>
+                <div
+                  className={cn(
+                    "min-h-0",
+                    isImmersive
+                      ? "flex flex-1 flex-col overflow-y-auto overscroll-contain"
+                      : "flex flex-col"
+                  )}
+                >
                   <div
                     className={cn(
-                      "overflow-y-auto px-4 py-4 transition-all duration-300",
+                      "px-4 py-4 transition-all duration-300",
                       isImmersive
-                        ? "min-h-0 max-h-[18vh] flex-shrink-0 border-b border-border/40 bg-secondary/10 opacity-65 saturate-50"
-                        : "max-h-[32vh]"
+                        ? "flex-shrink-0 border-b border-border/40 bg-secondary/10 pb-3 opacity-65 saturate-50"
+                        : "max-h-[32vh] overflow-y-auto"
                     )}
                   >
-                    <ConversationTimeline
-                      brandLogo={brandLogo}
-                      brandName={brandName}
-                      messages={messages}
-                      isTyping={isTyping}
-                      renderTimelineVisualBlock={renderTimelineVisualBlock}
-                      onRemoveContext={handleRemoveContextItem}
-                    />
-                    <div ref={messagesEndRef} />
+                    <div
+                      className={cn(
+                        isImmersive &&
+                          "rounded-[24px] border border-border/40 bg-background/55 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
+                      )}
+                    >
+                      <ConversationTimeline
+                        brandLogo={brandLogo}
+                        brandName={brandName}
+                        messages={messages}
+                        isTyping={isTyping}
+                        renderTimelineVisualBlock={renderTimelineVisualBlock}
+                        onRemoveContext={handleRemoveContextItem}
+                      />
+                      <div ref={messagesEndRef} />
+                    </div>
                   </div>
 
                   <ConversationOperationalPanel
@@ -410,50 +425,46 @@ export function ConversationOSShell({
                     onBack={operationalActions.back}
                   >
                     {activeProductPreview ? (
-                      <div className="space-y-5">
-                        <div className="rounded-[28px] border border-border/70 bg-card/95 p-3 shadow-[0_26px_60px_-34px_rgba(0,0,0,0.35)]">
-                          <div className="grid gap-4 md:grid-cols-[148px,1fr]">
-                            <div className="relative aspect-square overflow-hidden rounded-[22px] bg-secondary">
-                              <Image
-                                src={activeProductPreview.image}
-                                alt={activeProductPreview.title}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
+                      <div className="space-y-6 pb-1">
+                        <div className="grid gap-5 md:grid-cols-[168px,1fr] md:items-start">
+                          <div className="relative aspect-square overflow-hidden rounded-[24px] bg-secondary/70 shadow-[0_24px_60px_-36px_rgba(0,0,0,0.45)]">
+                            <Image
+                              src={activeProductPreview.image}
+                              alt={activeProductPreview.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
 
-                            <div className="flex min-w-0 flex-col justify-between">
-                              <div>
-                                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                                  Visao inicial
-                                </p>
-                                <h3 className="mt-1 text-xl font-semibold leading-tight tracking-tight text-foreground">
-                                  {activeProductPreview.title}
-                                </h3>
-                                {typeof activeProductPreview.price === "number" ? (
-                                  <p className="mt-3 text-lg font-semibold text-foreground">
-                                    R$ {activeProductPreview.price.toFixed(2).replace(".", ",")}
-                                  </p>
-                                ) : null}
-                                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                                  {activeProductPreview.description ||
-                                    "Em seguida, o detalhe completo deste produto vai assumir esta area da conversa."}
-                                </p>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                              Visao inicial
+                            </p>
+                            <h3 className="mt-2 text-[26px] font-semibold leading-tight tracking-[-0.02em] text-foreground">
+                              {activeProductPreview.title}
+                            </h3>
+                            {typeof activeProductPreview.price === "number" ? (
+                              <p className="mt-4 text-xl font-semibold text-foreground">
+                                R$ {activeProductPreview.price.toFixed(2).replace(".", ",")}
+                              </p>
+                            ) : null}
+                            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                              {activeProductPreview.description ||
+                                "Em seguida, o detalhe completo deste produto vai assumir esta area da conversa."}
+                            </p>
+
+                            <div className="mt-5 flex flex-wrap gap-2">
+                              <div className="inline-flex items-center rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+                                Fluxo iniciado na conversa
                               </div>
-
-                              <div className="mt-4 flex flex-wrap gap-2">
-                                <div className="inline-flex items-center rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-                                  Fluxo iniciado na conversa
-                                </div>
-                                <div className="inline-flex items-center rounded-full border border-border/70 bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
-                                  Detalhes completos em breve
-                                </div>
+                              <div className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
+                                Detalhes completos em breve
                               </div>
                             </div>
                           </div>
                         </div>
 
-                        <div className="rounded-[24px] border border-dashed border-border/70 bg-background/75 p-4">
+                        <div className="rounded-[24px] border border-border/55 bg-background/65 p-4 shadow-[0_20px_46px_-36px_rgba(0,0,0,0.4)]">
                           <p className="text-sm font-medium text-foreground">
                             Este espaco agora funciona como sua area principal para continuar a jornada.
                           </p>
@@ -464,7 +475,7 @@ export function ConversationOSShell({
                         </div>
                       </div>
                     ) : (
-                      <div className="rounded-[24px] border border-dashed border-border/70 bg-background/75 p-4">
+                      <div className="rounded-[24px] border border-border/55 bg-background/65 p-4 shadow-[0_20px_46px_-36px_rgba(0,0,0,0.4)]">
                         <p className="text-sm font-medium text-foreground">
                           O modo assistido da conversa ja esta pronto.
                         </p>
@@ -476,7 +487,7 @@ export function ConversationOSShell({
                   </ConversationOperationalPanel>
                 </div>
               ) : (
-                <div className="px-4 pb-3">
+                <div className="px-4 py-3">
                   <p className="text-xs text-muted-foreground">
                     {showContextRow
                       ? "Contexto pronto para continuar a conversa."
@@ -495,7 +506,8 @@ export function ConversationOSShell({
 
           <div
             className={cn(
-              hasActiveProductFlow && "border-t border-border/50 bg-secondary/15"
+              "relative z-10 flex-shrink-0 border-t border-border/50 bg-background/94 backdrop-blur-xl",
+              hasActiveProductFlow && "bg-gradient-to-b from-secondary/10 via-background to-background"
             )}
           >
             {hasActiveProductFlow ? (

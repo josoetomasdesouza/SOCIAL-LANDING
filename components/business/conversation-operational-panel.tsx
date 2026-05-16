@@ -29,11 +29,11 @@ export function ConversationOperationalPanel({
   return (
     <section
       className={cn(
-        "border-t border-border/60 bg-gradient-to-b from-background via-background to-secondary/20 px-4 py-4",
-        mode === "immersive" && "min-h-0 flex-1 overflow-y-auto"
+        "bg-gradient-to-b from-background via-background to-secondary/15 px-4 py-4",
+        mode === "immersive" && "min-h-0"
       )}
     >
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div className="flex items-start gap-3">
           {canGoBack && onBack ? (
             <button
@@ -49,7 +49,7 @@ export function ConversationOperationalPanel({
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {eyebrow || "Produto selecionado"}
             </p>
-            <h3 className="text-base font-semibold tracking-tight text-foreground">
+            <h3 className="text-lg font-semibold tracking-tight text-foreground">
               {title || "Painel operacional"}
             </h3>
             {subtitle ? (
