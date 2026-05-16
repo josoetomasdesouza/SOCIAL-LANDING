@@ -87,21 +87,21 @@ export function ContextSelectable({
   const selectionStyles = {
     default: {
       pressing:
-        "scale-[0.998] shadow-[0_10px_24px_-20px_rgba(15,23,42,0.14)] after:opacity-100 after:bg-foreground/[0.012] dark:after:bg-white/[0.022]",
+        "scale-[0.998] shadow-[0_12px_28px_-20px_rgba(15,23,42,0.16)] after:opacity-100 after:bg-foreground/[0.012] dark:after:bg-white/[0.022]",
       selected:
-        "z-[1] -translate-y-[1px] scale-[1.004] bg-background/80 shadow-[0_18px_34px_-24px_rgba(15,23,42,0.16)] after:opacity-100 after:bg-accent/[0.024]",
+        "z-[1] -translate-y-[2px] scale-[1.005] bg-background/82 shadow-[0_22px_40px_-22px_rgba(15,23,42,0.2)] after:opacity-100 after:bg-accent/[0.026]",
     },
     media: {
       pressing:
-        "scale-[0.997] shadow-[0_14px_28px_-20px_rgba(15,23,42,0.16)] after:opacity-100 after:bg-black/[0.028] dark:after:bg-white/[0.026]",
+        "scale-[0.997] shadow-[0_16px_32px_-20px_rgba(15,23,42,0.18)] after:opacity-100 after:bg-black/[0.028] dark:after:bg-white/[0.026]",
       selected:
-        "z-[1] -translate-y-[1px] scale-[1.003] shadow-[0_22px_42px_-28px_rgba(15,23,42,0.2)] after:opacity-100 after:bg-black/[0.032] dark:after:bg-white/[0.03]",
+        "z-[1] -translate-y-[2px] scale-[1.004] shadow-[0_28px_52px_-26px_rgba(15,23,42,0.24)] after:opacity-100 after:bg-black/[0.034] dark:after:bg-white/[0.03]",
     },
     textual: {
       pressing:
-        "scale-[0.999] shadow-[0_10px_22px_-20px_rgba(15,23,42,0.12)] after:opacity-100 after:bg-background/38 dark:after:bg-white/[0.022]",
+        "scale-[0.999] shadow-[0_12px_24px_-20px_rgba(15,23,42,0.13)] after:opacity-100 after:bg-background/38 dark:after:bg-white/[0.022]",
       selected:
-        "z-[1] -translate-y-[1px] scale-[1.002] bg-background/88 shadow-[0_16px_30px_-26px_rgba(15,23,42,0.14)] after:opacity-100 after:bg-accent/[0.018]",
+        "z-[1] -translate-y-[1.5px] scale-[1.003] bg-background/90 shadow-[0_20px_36px_-26px_rgba(15,23,42,0.17)] after:opacity-100 after:bg-accent/[0.02]",
     },
   } as const
 
