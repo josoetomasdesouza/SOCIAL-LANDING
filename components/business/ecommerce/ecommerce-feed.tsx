@@ -10,12 +10,16 @@ import { ActionDrawer } from "../action-drawer"
 import { EcommerceCheckout } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
 import { createConversationalSearchVisualBlockRenderer } from "../conversational-search-results"
+import { ConversationOSShell } from "../conversation-os-shell"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
+import { cn } from "@/lib/utils"
 import type { Product, VariantOption } from "@/lib/business-types"
+import { useConversationOperationalFlow } from "@/hooks/use-conversation-operational-flow"
+import { useConversationProductFlow } from "@/hooks/use-conversation-product-flow"
 
 type SelectedVariantsById = Record<string, string>
 type SelectedVariant = {
@@ -517,7 +521,17 @@ function CartDrawerComponent({
 // ========================================
 export function EcommerceFeed() {
   const conversationSelection = useConversationSelectionState()
-  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
+  const {
+    conversationContext,
+    removeConversationContext,
+    clearConversationContext,
+    composerMode,
+    setComposerMode,
+    composerOffsetClassName,
+    setComposerOffsetClassName,
+  } = conversationSelection
+  const conversationOperationalFlow = useConversationOperationalFlow()
+  const conversationProductFlow = useConversationProductFlow()
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [productDrawerOpen, setProductDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
@@ -569,8 +583,9 @@ export function EcommerceFeed() {
     const product = products.find((candidate) => candidate.id === productId)
     if (!product) return
 
-    handleOpenProductDrawer(product)
-  }, [handleOpenProductDrawer])
+    conversationProductFlow.actions.openProduct(product.id)
+    conversationOperationalFlow.actions.openProductFlow()
+  }, [conversationOperationalFlow.actions, conversationProductFlow.actions])
 
   const renderConversationVisualBlock = useMemo(
     () =>
@@ -578,6 +593,30 @@ export function EcommerceFeed() {
         onProductCtaClick: handleConversationProductCtaClick,
       }),
     [handleConversationProductCtaClick]
+  )
+
+  const conversationShellClassName = cn(
+    composerMode === "overlay" ? "z-[70]" : "z-30",
+    composerMode === "hidden" ? "hidden" : undefined,
+    composerOffsetClassName
+  )
+
+  const conversationShell = (
+    <ConversationOSShell
+      brandLogo={ecommerceConfig.logo}
+      brandName={ecommerceConfig.name}
+      className={conversationShellClassName}
+      placeholder={`Pergunte sobre ${ecommerceConfig.name}...`}
+      contextItems={conversationContext}
+      onRemoveContext={removeConversationContext}
+      onCloseConversation={clearConversationContext}
+      responseResolver={ecommerceMockConversationResolver}
+      renderTimelineVisualBlock={renderConversationVisualBlock}
+      operationalState={conversationOperationalFlow.state}
+      operationalActions={conversationOperationalFlow.actions}
+      productFlowState={conversationProductFlow.state}
+      productFlowActions={conversationProductFlow.actions}
+    />
   )
   
   // Secoes do feed
@@ -664,8 +703,7 @@ export function EcommerceFeed() {
         config={ecommerceConfig}
         stories={ecommerceContent.stories}
         sections={sections}
-        conversationResponseResolver={ecommerceMockConversationResolver}
-        renderConversationVisualBlock={renderConversationVisualBlock}
+        conversationalAI={conversationShell}
         onStoryClick={(story) => {
           if (story.isMain) {
             // Abre carrinho ou produtos
