@@ -351,15 +351,39 @@ export function ConversationalAI({
                       )
                     }
 
-                    if (message.role === "user") {
-                      return (
-                        <div key={message.id} className="flex items-end justify-end gap-2.5">
-                          <div className="flex max-w-[82%] flex-col items-end gap-2">
-                            <div className="rounded-[22px] rounded-br-md bg-foreground px-4 py-3 text-sm leading-relaxed text-background shadow-sm">
-                              {message.content}
-                            </div>
+                    return (
+                      <div
+                        key={message.id}
+                        className={cn("flex items-end gap-2.5", message.role === "user" && "justify-end")}
+                      >
+                        {message.role !== "user" ? (
+                          <Image
+                            src={brandLogo}
+                            alt={brandName}
+                            width={28}
+                            height={28}
+                            className="rounded-full border border-border/60 object-cover"
+                          />
+                        ) : null}
+
+                        <div className={cn("flex max-w-[82%] flex-col gap-2", message.role === "user" && "items-end")}>
+                          <div
+                            className={cn(
+                              "rounded-[22px] px-4 py-3 text-sm leading-relaxed shadow-sm",
+                              message.role === "user"
+                                ? "rounded-br-md bg-foreground text-background"
+                                : "rounded-bl-md bg-secondary text-foreground"
+                            )}
+                          >
+                            {message.content}
                           </div>
 
+                          {message.role === "ai" && message.visualBlock
+                            ? renderVisualBlock?.(message.visualBlock)
+                            : null}
+                        </div>
+
+                        {message.role === "user" ? (
                           <Image
                             src={USER_AVATAR}
                             alt="Voce"
@@ -367,31 +391,7 @@ export function ConversationalAI({
                             height={28}
                             className="rounded-full border border-border/60 object-cover"
                           />
-                        </div>
-                      )
-                    }
-
-                    return (
-                      <div key={message.id} className="flex items-start gap-2.5">
-                        <Image
-                          src={brandLogo}
-                          alt={brandName}
-                          width={28}
-                          height={28}
-                          className="rounded-full border border-border/60 object-cover"
-                        />
-
-                        <div className="flex min-w-0 flex-1 flex-col gap-2">
-                          <div className="max-w-[82%] rounded-[22px] rounded-bl-md bg-secondary px-4 py-3 text-sm leading-relaxed text-foreground shadow-sm">
-                            {message.content}
-                          </div>
-
-                          {message.visualBlock ? (
-                            <div className="w-full min-w-0">
-                              {renderVisualBlock?.(message.visualBlock)}
-                            </div>
-                          ) : null}
-                        </div>
+                        ) : null}
                       </div>
                     )
                   })}
