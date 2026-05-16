@@ -6,13 +6,11 @@ import { ShoppingBag, Heart, Star, Truck, ChevronRight, Plus, Minus, Check, X, P
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
-import { ConversationalAI } from "../conversational-ai"
 import { ActionDrawer } from "../action-drawer"
 import { EcommerceCheckout } from "../checkout-flows"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product, VariantOption } from "@/lib/business-types"
-import type { ConversationFeedCarouselProduct } from "../conversation-feed-carousel"
 
 type SelectedVariantsById = Record<string, string>
 type SelectedVariant = {
@@ -30,30 +28,6 @@ interface CartItem {
   quantity: number
   selectedVariants?: SelectedVariant[]
 }
-
-const mockFacialProducts: ConversationFeedCarouselProduct[] = [
-  {
-    id: "mock-facial-1",
-    title: "Gel de Limpeza Facial",
-    image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=600&h=600&fit=crop",
-    price: 49.90,
-    ctaLabel: "Ver",
-  },
-  {
-    id: "mock-facial-2",
-    title: "Serum Uniformizador",
-    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&h=600&fit=crop",
-    price: 79.90,
-    ctaLabel: "Ver",
-  },
-  {
-    id: "mock-facial-3",
-    title: "Protetor Solar Facial FPS 70",
-    image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=600&fit=crop",
-    price: 89.90,
-    ctaLabel: "Ver",
-  },
-]
 
 function getSelectedVariants(product: Product, selectedById: SelectedVariantsById): SelectedVariant[] {
   return product.variants
@@ -587,18 +561,6 @@ export function EcommerceFeed() {
         config={ecommerceConfig}
         stories={ecommerceContent.stories}
         sections={sections}
-        conversationalAI={
-          <div className="px-4 sm:px-5 pb-6">
-            <ConversationalAI
-              brandLogo={ecommerceConfig.logo}
-              brandName={ecommerceConfig.name}
-              businessModel={ecommerceConfig.model}
-              placeholder="Pergunte sobre um tipo de produto..."
-              mockSearchProducts={mockFacialProducts}
-              autoScrollMessages={false}
-            />
-          </div>
-        }
         onStoryClick={(story) => {
           if (story.isMain) {
             // Abre carrinho ou produtos

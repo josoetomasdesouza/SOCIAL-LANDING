@@ -4,10 +4,6 @@ import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Send, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  ConversationFeedCarousel,
-  type ConversationFeedCarouselProduct,
-} from "@/components/business/conversation-feed-carousel"
 import type { ConversationMessage, ConversationOption, ConversationAction, BusinessModel } from "@/lib/business-types"
 
 // Avatar do usuario (padrao)
@@ -18,16 +14,10 @@ interface ConversationalAIProps {
   brandName: string
   businessModel: BusinessModel
   initialMessages?: ConversationMessage[]
-  mockSearchProducts?: ConversationFeedCarouselProduct[]
   placeholder?: string
   onAction?: (action: ConversationAction) => void
   onSendMessage?: (message: string) => void
   className?: string
-  autoScrollMessages?: boolean
-}
-
-type ChatMessage = ConversationMessage & {
-  mockProducts?: ConversationFeedCarouselProduct[]
 }
 
 // Fluxos pre-definidos por modelo de negocio
@@ -94,14 +84,12 @@ export function ConversationalAI({
   brandName,
   businessModel,
   initialMessages,
-  mockSearchProducts = [],
   placeholder = "Digite sua mensagem...",
   onAction,
   onSendMessage,
-  className = "",
-  autoScrollMessages = true,
+  className = ""
 }: ConversationalAIProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>(
+  const [messages, setMessages] = useState<ConversationMessage[]>(
     initialMessages || AI_FLOWS[businessModel] || []
   )
   const [inputValue, setInputValue] = useState("")
@@ -114,43 +102,8 @@ export function ConversationalAI({
   }
 
   useEffect(() => {
-    if (!autoScrollMessages) return
     scrollToBottom()
-  }, [autoScrollMessages, messages])
-
-  const shouldShowMockProductResults = (message: string) => {
-    if (businessModel !== "ecommerce" || mockSearchProducts.length === 0) return false
-
-    const lowerMessage = message.toLowerCase()
-    const isProductIntent =
-      lowerMessage.includes("produto") ||
-      lowerMessage.includes("produtos") ||
-      lowerMessage.includes("skincare")
-    const isFacialIntent =
-      lowerMessage.includes("facial") ||
-      lowerMessage.includes("faciais") ||
-      lowerMessage.includes("rosto") ||
-      lowerMessage.includes("pele")
-
-    return isProductIntent && isFacialIntent
-  }
-
-  const buildAiResponse = (message: string): ChatMessage => {
-    if (shouldShowMockProductResults(message)) {
-      return {
-        id: `ai-${Date.now()}`,
-        role: "ai",
-        content: "Encontrei alguns produtos que combinam com isso.",
-        mockProducts: mockSearchProducts,
-      }
-    }
-
-    return {
-      id: `ai-${Date.now()}`,
-      role: "ai",
-      content: findContextualResponse(message),
-    }
-  }
+  }, [messages])
 
   const findContextualResponse = (message: string): string => {
     const lowerMessage = message.toLowerCase()
@@ -173,29 +126,32 @@ export function ConversationalAI({
   const handleSendMessage = () => {
     if (!inputValue.trim()) return
 
-    const trimmedValue = inputValue.trim()
-    const userMessage: ChatMessage = {
+    const userMessage: ConversationMessage = {
       id: `user-${Date.now()}`,
       role: "user",
-      content: trimmedValue,
+      content: inputValue.trim()
     }
 
     setMessages(prev => [...prev, userMessage])
     setInputValue("")
     setIsTyping(true)
     
-    onSendMessage?.(trimmedValue)
+    onSendMessage?.(inputValue.trim())
 
     // Simula resposta da IA apos delay
     setTimeout(() => {
-      const aiResponse = buildAiResponse(userMessage.content)
+      const aiResponse: ConversationMessage = {
+        id: `ai-${Date.now()}`,
+        role: "ai",
+        content: findContextualResponse(userMessage.content)
+      }
       setMessages(prev => [...prev, aiResponse])
       setIsTyping(false)
     }, 1000 + Math.random() * 1000)
   }
 
   const handleOptionClick = (option: ConversationOption) => {
-    const userMessage: ChatMessage = {
+    const userMessage: ConversationMessage = {
       id: `user-${Date.now()}`,
       role: "user",
       content: option.label
@@ -287,20 +243,14 @@ export function ConversationalAI({
               height={28}
               className="rounded-full flex-shrink-0"
             />
-            <div className={`flex max-w-[80%] flex-col space-y-2 ${message.role === "user" ? "items-end" : ""}`}>
-              <div
-                className={`px-3 py-2 rounded-2xl text-sm ${
-                  message.role === "user"
-                    ? "bg-accent text-accent-foreground rounded-br-md"
-                    : "bg-secondary text-foreground rounded-bl-md"
-                }`}
-              >
-                {message.content}
-              </div>
-
-              {message.role === "ai" && message.mockProducts && message.mockProducts.length > 0 && (
-                <ConversationFeedCarousel products={message.mockProducts} />
-              )}
+            <div
+              className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
+                message.role === "user"
+                  ? "bg-accent text-accent-foreground rounded-br-md"
+                  : "bg-secondary text-foreground rounded-bl-md"
+              }`}
+            >
+              {message.content}
             </div>
           </div>
         ))}
