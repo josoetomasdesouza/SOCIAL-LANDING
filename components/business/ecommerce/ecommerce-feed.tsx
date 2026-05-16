@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { ShoppingBag, Heart, Star, Truck, ChevronRight, Plus, Minus, Check, X, Play, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { BusinessSocialLanding, type BusinessSection } from "../business-social-
 import { ActionDrawer } from "../action-drawer"
 import { EcommerceCheckout } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
-import { renderConversationalSearchVisualBlock } from "../conversational-search-results"
+import { createConversationalSearchVisualBlockRenderer } from "../conversational-search-results"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
@@ -559,6 +559,26 @@ export function EcommerceFeed() {
       return newSet
     })
   }
+
+  const handleOpenProductDrawer = useCallback((product: Product) => {
+    setSelectedProduct(product)
+    setProductDrawerOpen(true)
+  }, [])
+
+  const handleConversationProductCtaClick = useCallback((productId: string) => {
+    const product = products.find((candidate) => candidate.id === productId)
+    if (!product) return
+
+    handleOpenProductDrawer(product)
+  }, [handleOpenProductDrawer])
+
+  const renderConversationVisualBlock = useMemo(
+    () =>
+      createConversationalSearchVisualBlockRenderer({
+        onProductCtaClick: handleConversationProductCtaClick,
+      }),
+    [handleConversationProductCtaClick]
+  )
   
   // Secoes do feed
   const sections: BusinessSection[] = [
@@ -569,11 +589,10 @@ export function EcommerceFeed() {
       type: "primary-action",
       customContent: (
         <ProductsModule 
-          onSelectProduct={(p) => { setSelectedProduct(p); setProductDrawerOpen(true) }}
+          onSelectProduct={handleOpenProductDrawer}
           onAddToCart={(product) => {
             if (product.variants && product.variants.length > 0) {
-              setSelectedProduct(product)
-              setProductDrawerOpen(true)
+              handleOpenProductDrawer(product)
               return
             }
 
@@ -646,7 +665,7 @@ export function EcommerceFeed() {
         stories={ecommerceContent.stories}
         sections={sections}
         conversationResponseResolver={ecommerceMockConversationResolver}
-        renderConversationVisualBlock={renderConversationalSearchVisualBlock}
+        renderConversationVisualBlock={renderConversationVisualBlock}
         onStoryClick={(story) => {
           if (story.isMain) {
             // Abre carrinho ou produtos

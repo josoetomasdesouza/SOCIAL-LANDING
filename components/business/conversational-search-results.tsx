@@ -11,6 +11,7 @@ import { CONVERSATIONAL_SEARCH_RESULTS_KIND } from "@/lib/mock-data/conversation
 
 interface ConversationalSearchResultsProps {
   products: ConversationalSearchProductResult[]
+  onProductCtaClick?: (productId: string) => void
 }
 
 function formatPrice(price?: number) {
@@ -18,7 +19,10 @@ function formatPrice(price?: number) {
   return `R$ ${price.toFixed(2).replace(".", ",")}`
 }
 
-export function ConversationalSearchResults({ products }: ConversationalSearchResultsProps) {
+export function ConversationalSearchResults({
+  products,
+  onProductCtaClick,
+}: ConversationalSearchResultsProps) {
   if (products.length === 0) return null
 
   return (
@@ -43,9 +47,20 @@ export function ConversationalSearchResults({ products }: ConversationalSearchRe
                   <p className="mt-1 text-[11px] font-medium text-foreground/80">{formatPrice(product.price)}</p>
                 ) : null}
 
-                <span className="mt-1.5 inline-flex items-center text-[11px] font-medium text-muted-foreground">
-                  {product.ctaLabel || "Ver"}
-                </span>
+                {onProductCtaClick ? (
+                  <button
+                    type="button"
+                    onClick={() => onProductCtaClick(product.id)}
+                    className="mt-1.5 inline-flex items-center bg-transparent p-0 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label={`Ver ${product.title}`}
+                  >
+                    {product.ctaLabel || "Ver"}
+                  </button>
+                ) : (
+                  <span className="mt-1.5 inline-flex items-center text-[11px] font-medium text-muted-foreground">
+                    {product.ctaLabel || "Ver"}
+                  </span>
+                )}
               </div>
             </div>
           </article>
@@ -65,16 +80,29 @@ function isConversationalSearchResultsPayload(
   return Array.isArray(candidateProducts)
 }
 
-export const renderConversationalSearchVisualBlock: ConversationVisualBlockRenderer = (
-  visualBlock: ConversationVisualBlock
-) => {
-  if (visualBlock.kind !== CONVERSATIONAL_SEARCH_RESULTS_KIND) {
-    return null
-  }
-
-  if (!isConversationalSearchResultsPayload(visualBlock.payload)) {
-    return null
-  }
-
-  return <ConversationalSearchResults products={visualBlock.payload.products} />
+interface ConversationalSearchVisualBlockRendererOptions {
+  onProductCtaClick?: (productId: string) => void
 }
+
+export function createConversationalSearchVisualBlockRenderer(
+  options: ConversationalSearchVisualBlockRendererOptions = {}
+): ConversationVisualBlockRenderer {
+  return (visualBlock: ConversationVisualBlock) => {
+    if (visualBlock.kind !== CONVERSATIONAL_SEARCH_RESULTS_KIND) {
+      return null
+    }
+
+    if (!isConversationalSearchResultsPayload(visualBlock.payload)) {
+      return null
+    }
+
+    return (
+      <ConversationalSearchResults
+        products={visualBlock.payload.products}
+        onProductCtaClick={options.onProductCtaClick}
+      />
+    )
+  }
+}
+
+export const renderConversationalSearchVisualBlock = createConversationalSearchVisualBlockRenderer()
