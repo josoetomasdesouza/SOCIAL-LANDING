@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronDown, ChevronUp, Loader2, Plus, Send, X } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import type { ConversationMessage } from "@/lib/business-types"
 
@@ -133,33 +132,10 @@ export function ConversationalAI({
         <section className="pointer-events-auto overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl">
           {hasConversation && (
             <div className="border-b border-border/50">
-              <div className="px-4 pt-3">
-                <div className="mx-auto mb-2.5 h-1 w-11 rounded-full bg-border/80" />
-              </div>
-
-              <div className="flex items-center gap-3 px-4 pb-3">
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <Image
-                    src={brandLogo}
-                    alt={brandName}
-                    width={34}
-                    height={34}
-                    className="rounded-full border border-border/60 object-cover"
-                  />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-semibold text-foreground">{brandName}</p>
-                      <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-[10px] font-medium">
-                        Na conversa
-                      </Badge>
-                    </div>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {isMinimized ? "Conversa minimizada" : "Conversa principal"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1">
+              <div className="px-4 pt-3 pb-2">
+                <div className="relative flex items-center justify-center">
+                  <div className="h-1 w-11 rounded-full bg-border/80" />
+                  <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setIsMinimized((prev) => !prev)}
@@ -176,6 +152,7 @@ export function ConversationalAI({
                   >
                     <X className="h-4 w-4" />
                   </button>
+                  </div>
                 </div>
               </div>
 

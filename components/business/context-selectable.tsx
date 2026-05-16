@@ -92,12 +92,17 @@ export function ContextSelectable({
       onPointerLeave={handlePointerEnd}
       onPointerUp={handlePointerEnd}
       className={cn(
-        "transition-[background-color,border-color,box-shadow,transform]",
+        "relative transition-[background-color,border-color,box-shadow,transform]",
         selected &&
           "rounded-[28px] bg-accent/[0.035] ring-2 ring-accent/35 ring-offset-2 ring-offset-background shadow-[0_14px_32px_-28px_rgba(0,0,0,0.45)]",
         className
       )}
     >
+      {selected ? (
+        <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-medium text-background shadow-sm">
+          Na conversa
+        </div>
+      ) : null}
       {children}
     </Component>
   )

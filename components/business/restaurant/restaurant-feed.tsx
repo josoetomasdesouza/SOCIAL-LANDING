@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
 import { restaurantConfig, menuItems, deliveryInfo } from "@/lib/mock-data/restaurant-data"
 import { restaurantContent } from "@/lib/mock-data/business-content"
 import type { CustomizationOption, MenuItem } from "@/lib/business-types"
@@ -64,10 +66,14 @@ function getCartKey(item: MenuItem, selectedCustomizations: SelectedCustomizatio
 // ========================================
 function MenuModule({ 
   onSelectItem,
-  onAddToCart
+  onAddToCart,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   onSelectItem: (item: MenuItem) => void
   onAddToCart: (item: MenuItem) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const popularItems = menuItems.filter(item => item.popular).slice(0, 4)
   
@@ -75,10 +81,21 @@ function MenuModule({
     <div className="space-y-4">
       {/* Destaques */}
       <div className="grid grid-cols-2 gap-3">
-        {popularItems.map((item) => (
-          <button
+        {popularItems.map((item) => {
+          const contextItem = {
+            id: `menu-item-${item.id}`,
+            title: item.name,
+            image: item.image || restaurantConfig.logo,
+            subtitle: "Prato",
+          }
+
+          return (
+          <ContextSelectable
+            as="div"
             key={item.id}
             onClick={() => onSelectItem(item)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
             className="text-left group"
           >
             <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
@@ -101,8 +118,8 @@ function MenuModule({
               <p className="text-sm text-muted-foreground line-clamp-1">{item.description}</p>
               <p className="font-bold text-accent mt-1">R$ {item.price.toFixed(2).replace(".", ",")}</p>
             </div>
-          </button>
-        ))}
+          </ContextSelectable>
+        )})}
       </div>
       
       {/* Info de delivery */}

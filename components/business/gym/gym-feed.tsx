@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { GymSignupForm } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
 import { gymConfig, gymPlans, gymClasses } from "@/lib/mock-data/gym-data"
 import { gymContent } from "@/lib/mock-data/business-content"
 import type { GymPlan, GymClass } from "@/lib/business-types"
@@ -15,13 +17,32 @@ import type { GymPlan, GymClass } from "@/lib/business-types"
 // ========================================
 // MODULO: PLANOS (OBJETIVO PRINCIPAL)
 // ========================================
-function PlansModule({ onSelectPlan }: { onSelectPlan: (plan: GymPlan) => void }) {
+function PlansModule({
+  onSelectPlan,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onSelectPlan: (plan: GymPlan) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   return (
     <div className="space-y-4">
-      {gymPlans.map((plan) => (
-        <button
+      {gymPlans.map((plan) => {
+        const contextItem = {
+          id: `gym-plan-${plan.id}`,
+          title: plan.name,
+          image: gymConfig.logo,
+          subtitle: "Plano",
+        }
+
+        return (
+        <ContextSelectable
           key={plan.id}
+          as="div"
           onClick={() => onSelectPlan(plan)}
+          onLongPress={() => onToggleConversationContext?.(contextItem)}
+          selected={isInConversation?.(contextItem.id) ?? false}
           className={`w-full text-left p-4 rounded-xl border-2 transition-colors ${plan.popular ? "border-accent bg-accent/5" : "border-border/50 hover:border-accent/50"}`}
         >
           <div className="flex items-start justify-between mb-3">
@@ -43,8 +64,8 @@ function PlansModule({ onSelectPlan }: { onSelectPlan: (plan: GymPlan) => void }
               </li>
             ))}
           </ul>
-        </button>
-      ))}
+        </ContextSelectable>
+      )})}
     </div>
   )
 }
@@ -52,11 +73,31 @@ function PlansModule({ onSelectPlan }: { onSelectPlan: (plan: GymPlan) => void }
 // ========================================
 // MODULO: AULAS
 // ========================================
-function ClassesModule() {
+function ClassesModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {gymClasses.slice(0, 5).map((cls) => (
-        <div key={cls.id} className="flex-shrink-0 w-40">
+      {gymClasses.slice(0, 5).map((cls) => {
+        const contextItem = {
+          id: `gym-class-${cls.id}`,
+          title: cls.name,
+          image: cls.image || gymConfig.logo,
+          subtitle: "Aula",
+        }
+
+        return (
+        <ContextSelectable
+          key={cls.id}
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(contextItem)}
+          selected={isInConversation?.(contextItem.id) ?? false}
+          className="flex-shrink-0 w-40"
+        >
           <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
             <Image src={cls.image || ""} alt={cls.name} fill className="object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
@@ -65,8 +106,8 @@ function ClassesModule() {
               <p className="text-xs text-white/80">{cls.duration} min</p>
             </div>
           </div>
-        </div>
-      ))}
+        </ContextSelectable>
+      )})}
     </div>
   )
 }

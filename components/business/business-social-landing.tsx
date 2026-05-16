@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, ReactNode } from "react"
+import { useState, useCallback, useMemo, useEffect, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -603,15 +603,25 @@ function BusinessSectionComponent({
   onPostClick,
   onPostLongPress,
   selectedContextIds,
+  onToggleConversationContext,
+  isConversationSelected,
 }: { 
   section: BusinessSection
   config: BusinessConfig
   onPostClick?: (post: BusinessPost) => void
   onPostLongPress?: (post: BusinessPost) => void
   selectedContextIds: Set<string>
+  onToggleConversationContext: (item: ConversationContextItem) => void
+  isConversationSelected: (id: string) => boolean
 }) {
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
+  const renderedCustomContent = isValidElement(section.customContent)
+    ? cloneElement(section.customContent, {
+        onToggleConversationContext,
+        isInConversation: isConversationSelected,
+      } as Record<string, unknown>)
+    : section.customContent
   
   return (
     <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
@@ -622,7 +632,7 @@ function BusinessSectionComponent({
       </div>
       
       {/* Custom Content (for specific modules - sem drawer) */}
-      {section.customContent && section.customContent}
+      {renderedCustomContent}
       
       {/* Render Content (com drawer) - passa onPostClick para o conteudo */}
       {section.renderContent && onPostClick && section.renderContent(onPostClick)}
@@ -717,14 +727,25 @@ export function BusinessSocialLanding({
     [conversationContext]
   )
 
-  const addConversationContext = useCallback((post: BusinessPost) => {
-    const nextContext = toConversationContextItem(post, config.logo)
-
+  const upsertConversationContextItem = useCallback((nextContext: ConversationContextItem) => {
     setConversationContext((prev) => {
       const deduped = prev.filter((item) => item.id !== nextContext.id)
       return [nextContext, ...deduped].slice(0, 6)
     })
-  }, [config.logo])
+  }, [])
+
+  const addConversationContext = useCallback((post: BusinessPost) => {
+    upsertConversationContextItem(toConversationContextItem(post, config.logo))
+  }, [config.logo, upsertConversationContextItem])
+
+  const toggleConversationContextItem = useCallback((contextItem: ConversationContextItem) => {
+    if (selectedContextIds.has(contextItem.id)) {
+      setConversationContext((prev) => prev.filter((item) => item.id !== contextItem.id))
+      return
+    }
+
+    upsertConversationContextItem(contextItem)
+  }, [selectedContextIds, upsertConversationContextItem])
 
   const toggleConversationContext = useCallback((post: BusinessPost) => {
     if (selectedContextIds.has(post.id)) {
@@ -734,6 +755,8 @@ export function BusinessSocialLanding({
 
     addConversationContext(post)
   }, [addConversationContext, selectedContextIds])
+
+  const isConversationSelected = useCallback((id: string) => selectedContextIds.has(id), [selectedContextIds])
   
   const handlePostClick = useCallback((post: BusinessPost) => {
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
@@ -801,6 +824,8 @@ export function BusinessSocialLanding({
               onPostClick={handlePostClick}
               onPostLongPress={toggleConversationContext}
               selectedContextIds={selectedContextIds}
+              onToggleConversationContext={toggleConversationContextItem}
+              isConversationSelected={isConversationSelected}
             />
           ))}
         </div>
@@ -815,7 +840,7 @@ export function BusinessSocialLanding({
         <ConversationalAI
           brandLogo={config.logo}
           brandName={config.name}
-          className={cn(feedDrawerOpen ? "z-[60]" : "z-30", drawerOpen && "hidden")}
+          className={cn(feedDrawerOpen || drawerOpen ? "z-[60]" : "z-30")}
           placeholder={`Pergunte sobre ${config.name}...`}
           contextItems={conversationContext}
           onRemoveContext={handleRemoveConversationContext}

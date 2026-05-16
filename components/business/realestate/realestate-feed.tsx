@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { ScheduleVisitForm } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
 import { realestateConfig, properties, propertyTypes } from "@/lib/mock-data/realestate-data"
 import { realestateContent } from "@/lib/mock-data/business-content"
 import type { Property } from "@/lib/business-types"
@@ -47,30 +49,35 @@ function getPropertyPurpose(property: Property) {
 function PropertiesModule({ 
   onSelectProperty,
   favorites,
-  onToggleFavorite
+  onToggleFavorite,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   onSelectProperty: (property: Property) => void
   favorites: Set<string>
   onToggleFavorite: (id: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   return (
     <div className="space-y-4">
       {properties.slice(0, 3).map((property) => {
         const address = getPropertyAddressParts(property)
         const purpose = getPropertyPurpose(property)
+        const contextItem = {
+          id: `property-${property.id}`,
+          title: property.title,
+          image: property.images[0],
+          subtitle: "Imovel",
+        }
 
         return (
-          <div
+          <ContextSelectable
+            as="div"
             key={property.id}
-            role="button"
-            tabIndex={0}
             onClick={() => onSelectProperty(property)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault()
-                onSelectProperty(property)
-              }
-            }}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors"
           >
             <div className="relative aspect-[16/9]">
@@ -116,7 +123,7 @@ function PropertiesModule({
                 {purpose === "rent" && <span className="text-sm font-normal text-muted-foreground">/mes</span>}
               </p>
             </div>
-          </div>
+          </ContextSelectable>
         )
       })}
     </div>

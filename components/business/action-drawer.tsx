@@ -93,7 +93,7 @@ export function ActionDrawer({
 
         {/* Content */}
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className={`${innerWidthClasses} p-5`}>
+          <div className={`${innerWidthClasses} p-5 pb-28`}>
             {children}
           </div>
         </div>
@@ -101,7 +101,7 @@ export function ActionDrawer({
         {/* Footer */}
         {footer && (
           <div className="flex-shrink-0 border-t border-border/50 bg-card">
-            <div className={`${innerWidthClasses} p-5`}>
+            <div className={`${innerWidthClasses} p-5 pt-4 pb-28`}>
               {footer}
             </div>
           </div>
