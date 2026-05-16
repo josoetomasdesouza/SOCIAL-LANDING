@@ -840,7 +840,7 @@ export function BusinessSocialLanding({
         <ConversationalAI
           brandLogo={config.logo}
           brandName={config.name}
-          className={cn(feedDrawerOpen || drawerOpen ? "z-[60]" : "z-30")}
+          className={cn(feedDrawerOpen ? "z-[60]" : "z-30", drawerOpen && !feedDrawerOpen && "hidden")}
           placeholder={`Pergunte sobre ${config.name}...`}
           contextItems={conversationContext}
           onRemoveContext={handleRemoveConversationContext}

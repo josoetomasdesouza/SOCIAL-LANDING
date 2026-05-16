@@ -19,7 +19,7 @@ interface ContextSelectableProps {
   onClick?: () => void
   onLongPress?: () => void
   selected?: boolean
-  as?: "article" | "div"
+  as?: "article" | "div" | "button"
 }
 
 export function ContextSelectable({
@@ -78,19 +78,36 @@ export function ContextSelectable({
   }
 
   const Component = as
+  const isButton = Component === "button"
 
   return (
     <Component
+      {...(isButton ? { type: "button" as const } : {})}
       onClick={handleClick}
       onContextMenu={(event) => {
         if (longPressTriggeredRef.current) {
           event.preventDefault()
         }
       }}
+      onKeyDown={(event: React.KeyboardEvent<HTMLElement>) => {
+        if (isButton || (!onClick && !onLongPress)) return
+
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault()
+          onClick?.()
+        }
+      }}
       onPointerCancel={handlePointerEnd}
       onPointerDown={handlePointerDown}
       onPointerLeave={handlePointerEnd}
       onPointerUp={handlePointerEnd}
+      {...(!isButton && (onClick || onLongPress)
+        ? {
+            role: "button" as const,
+            tabIndex: 0,
+            "aria-pressed": selected,
+          }
+        : {})}
       className={cn(
         "relative transition-[background-color,border-color,box-shadow,transform]",
         selected &&
@@ -98,11 +115,6 @@ export function ContextSelectable({
         className
       )}
     >
-      {selected ? (
-        <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-medium text-background shadow-sm">
-          Na conversa
-        </div>
-      ) : null}
       {children}
     </Component>
   )
