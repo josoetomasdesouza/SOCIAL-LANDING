@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { restaurantConfig, menuItems, deliveryInfo } from "@/lib/mock-data/restaurant-data"
 import { restaurantContent } from "@/lib/mock-data/business-content"
 import type { CustomizationOption, MenuItem } from "@/lib/business-types"
@@ -64,10 +67,14 @@ function getCartKey(item: MenuItem, selectedCustomizations: SelectedCustomizatio
 // ========================================
 function MenuModule({ 
   onSelectItem,
-  onAddToCart
+  onAddToCart,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   onSelectItem: (item: MenuItem) => void
   onAddToCart: (item: MenuItem) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const popularItems = menuItems.filter(item => item.popular).slice(0, 4)
   
@@ -75,10 +82,21 @@ function MenuModule({
     <div className="space-y-4">
       {/* Destaques */}
       <div className="grid grid-cols-2 gap-3">
-        {popularItems.map((item) => (
-          <button
+        {popularItems.map((item) => {
+          const contextItem = {
+            id: `menu-item-${item.id}`,
+            title: item.name,
+            image: item.image || restaurantConfig.logo,
+            subtitle: "Prato",
+          }
+
+          return (
+          <ContextSelectable
+            as="div"
             key={item.id}
             onClick={() => onSelectItem(item)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
             className="text-left group"
           >
             <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
@@ -101,8 +119,8 @@ function MenuModule({
               <p className="text-sm text-muted-foreground line-clamp-1">{item.description}</p>
               <p className="font-bold text-accent mt-1">R$ {item.price.toFixed(2).replace(".", ",")}</p>
             </div>
-          </button>
-        ))}
+          </ContextSelectable>
+        )})}
       </div>
       
       {/* Info de delivery */}
@@ -123,7 +141,15 @@ function MenuModule({
 // ========================================
 // MODULO: CATEGORIAS DO MENU
 // ========================================
-function CategoriesModule({ onSelectCategory }: { onSelectCategory: (category: string) => void }) {
+function CategoriesModule({
+  onSelectCategory,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onSelectCategory: (category: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   const categories = [
     { id: "entradas", name: "Entradas", icon: "🥗", count: 5 },
     { id: "pratos", name: "Pratos", icon: "🍛", count: 8 },
@@ -133,16 +159,28 @@ function CategoriesModule({ onSelectCategory }: { onSelectCategory: (category: s
   
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {categories.map((cat) => (
-        <button
-          key={cat.id}
-          onClick={() => onSelectCategory(cat.id)}
-          className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
-        >
-          <span className="text-2xl">{cat.icon}</span>
-          <span className="text-sm font-medium text-foreground">{cat.name}</span>
-        </button>
-      ))}
+      {categories.map((cat) => {
+        const contextItem = {
+          id: `restaurant-category-${cat.id}`,
+          title: cat.name,
+          image: restaurantConfig.logo,
+          subtitle: "Categoria",
+        }
+
+        return (
+          <ContextSelectable
+            key={cat.id}
+            as="div"
+            onClick={() => onSelectCategory(cat.id)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
+          >
+            <span className="text-2xl">{cat.icon}</span>
+            <span className="text-sm font-medium text-foreground">{cat.name}</span>
+          </ContextSelectable>
+        )
+      })}
     </div>
   )
 }
@@ -154,12 +192,16 @@ function ItemDetailDrawer({
   item, 
   isOpen, 
   onClose,
-  onAddToCart
+  onAddToCart,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   item: MenuItem | null
   isOpen: boolean
   onClose: () => void
   onAddToCart: (item: MenuItem, qty: number, selectedCustomizations: SelectedCustomization[]) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const [quantity, setQuantity] = useState(1)
   const [selectedCustomizations, setSelectedCustomizations] = useState<SelectedCustomizationsById>({})
@@ -179,6 +221,12 @@ function ItemDetailDrawer({
   const missingRequiredCustomization = item.customizations?.some(
     (customization) => customization.required && !selectedCustomizations[customization.id]?.length
   ) || false
+  const itemContextItem = {
+    id: `menu-item-${item.id}`,
+    title: item.name,
+    image: item.image || restaurantConfig.logo,
+    subtitle: "Prato",
+  }
 
   const handleSelectCustomization = (customizationId: string, optionId: string, maxSelections: number) => {
     setSelectedCustomizations((prev) => {
@@ -198,13 +246,23 @@ function ItemDetailDrawer({
   }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={item.name} size="md">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={item.name}
+      size="md"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
           <Image src={item.image || ""} alt={item.name} fill className="object-cover" />
         </div>
         
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(itemContextItem)}
+          selected={isInConversation?.(itemContextItem.id) ?? false}
+        >
           <div className="flex flex-wrap gap-2 mb-2">
             {item.tags?.map((tag) => (
               <Badge key={tag} variant="secondary">{tag}</Badge>
@@ -212,7 +270,7 @@ function ItemDetailDrawer({
           </div>
           <h3 className="text-xl font-bold">{item.name}</h3>
           <p className="text-muted-foreground mt-2">{item.description}</p>
-        </div>
+        </ContextSelectable>
 
         {item.customizations && item.customizations.length > 0 && (
           <div className="space-y-4">
@@ -411,6 +469,8 @@ function CartDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function RestaurantFeed() {
+  const conversationSelection = useConversationSelectionState()
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
   const [itemDrawerOpen, setItemDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
@@ -514,6 +574,23 @@ export function RestaurantFeed() {
       ? true
       : !paymentMethod
 
+  useEffect(() => {
+    const nextMode =
+      checkoutOpen || cartDrawerOpen
+        ? "hidden"
+        : itemDrawerOpen
+          ? "overlay"
+          : "default"
+
+    setComposerMode(nextMode)
+    setComposerOffsetClassName(!itemDrawerOpen && cartCount > 0 ? "bottom-[88px]" : undefined)
+
+    return () => {
+      setComposerMode("default")
+      setComposerOffsetClassName(undefined)
+    }
+  }, [cartCount, cartDrawerOpen, checkoutOpen, itemDrawerOpen, setComposerMode, setComposerOffsetClassName])
+
   const handleCheckoutCta = () => {
     if (checkoutStep === "address") {
       setCheckoutStep("payment")
@@ -530,7 +607,8 @@ export function RestaurantFeed() {
   }
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={restaurantConfig}
         stories={restaurantContent.stories}
@@ -562,6 +640,8 @@ export function RestaurantFeed() {
           handleAddToCart(item, quantity, selectedCustomizations)
           setCartDrawerOpen(true)
         }}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <CartDrawer
@@ -702,6 +782,7 @@ export function RestaurantFeed() {
           )}
         </div>
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }
