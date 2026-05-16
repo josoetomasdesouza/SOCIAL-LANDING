@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { MapPin, Bed, Bath, Car, Maximize, Heart, Phone, Home, Building, Star, Play, Newspaper, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { ScheduleVisitForm } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { realestateConfig, properties, propertyTypes } from "@/lib/mock-data/realestate-data"
 import { realestateContent } from "@/lib/mock-data/business-content"
 import type { Property } from "@/lib/business-types"
@@ -47,30 +50,35 @@ function getPropertyPurpose(property: Property) {
 function PropertiesModule({ 
   onSelectProperty,
   favorites,
-  onToggleFavorite
+  onToggleFavorite,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   onSelectProperty: (property: Property) => void
   favorites: Set<string>
   onToggleFavorite: (id: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   return (
     <div className="space-y-4">
       {properties.slice(0, 3).map((property) => {
         const address = getPropertyAddressParts(property)
         const purpose = getPropertyPurpose(property)
+        const contextItem = {
+          id: `property-${property.id}`,
+          title: property.title,
+          image: property.images[0],
+          subtitle: "Imovel",
+        }
 
         return (
-          <div
+          <ContextSelectable
+            as="div"
             key={property.id}
-            role="button"
-            tabIndex={0}
             onClick={() => onSelectProperty(property)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault()
-                onSelectProperty(property)
-              }
-            }}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors"
           >
             <div className="relative aspect-[16/9]">
@@ -116,7 +124,7 @@ function PropertiesModule({
                 {purpose === "rent" && <span className="text-sm font-normal text-muted-foreground">/mes</span>}
               </p>
             </div>
-          </div>
+          </ContextSelectable>
         )
       })}
     </div>
@@ -126,7 +134,13 @@ function PropertiesModule({
 // ========================================
 // MODULO: TIPOS DE IMOVEL
 // ========================================
-function PropertyTypesModule() {
+function PropertyTypesModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   const types = [
     { id: "1", name: "Apartamento", icon: "🏢" },
     { id: "2", name: "Casa", icon: "🏠" },
@@ -136,12 +150,27 @@ function PropertyTypesModule() {
   
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {types.map((type) => (
-        <button key={type.id} className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]">
-          <span className="text-2xl">{type.icon}</span>
-          <span className="text-sm font-medium text-foreground">{type.name}</span>
-        </button>
-      ))}
+      {types.map((type) => {
+        const contextItem = {
+          id: `property-type-${type.id}`,
+          title: type.name,
+          image: realestateConfig.logo,
+          subtitle: "Tipo",
+        }
+
+        return (
+          <ContextSelectable
+            key={type.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
+          >
+            <span className="text-2xl">{type.icon}</span>
+            <span className="text-sm font-medium text-foreground">{type.name}</span>
+          </ContextSelectable>
+        )
+      })}
     </div>
   )
 }
@@ -154,13 +183,17 @@ function PropertyDetailDrawer({
   isOpen, 
   onClose,
   onScheduleVisit,
-  onContact
+  onContact,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   property: Property | null
   isOpen: boolean
   onClose: () => void
   onScheduleVisit: () => void
   onContact: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const [currentImage, setCurrentImage] = useState(0)
   
@@ -168,9 +201,21 @@ function PropertyDetailDrawer({
 
   const address = getPropertyAddressParts(property)
   const purpose = getPropertyPurpose(property)
+  const propertyContextItem = {
+    id: `property-${property.id}`,
+    title: property.title,
+    image: property.images[0],
+    subtitle: "Imovel",
+  }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={property.title} size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={property.title}
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         {/* Galeria */}
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
@@ -189,17 +234,26 @@ function PropertyDetailDrawer({
         </div>
         
         {/* Info */}
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
+          selected={isInConversation?.(propertyContextItem.id) ?? false}
+        >
           <Badge className="mb-2">{purpose === "sale" ? "Venda" : "Aluguel"}</Badge>
           <h2 className="text-xl font-bold">{property.title}</h2>
           <div className="flex items-center gap-1 text-muted-foreground mt-1">
             <MapPin className="w-4 h-4" />
             <span>{address.street}, {address.neighborhood} - {address.city}</span>
           </div>
-        </div>
+        </ContextSelectable>
         
         {/* Caracteristicas */}
-        <div className="grid grid-cols-4 gap-3">
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
+          selected={isInConversation?.(propertyContextItem.id) ?? false}
+          className="grid grid-cols-4 gap-3"
+        >
           <div className="text-center p-3 bg-secondary/50 rounded-xl">
             <Bed className="w-5 h-5 mx-auto text-accent" />
             <p className="font-bold mt-1">{property.bedrooms}</p>
@@ -220,13 +274,17 @@ function PropertyDetailDrawer({
             <p className="font-bold mt-1">{property.area}</p>
             <p className="text-xs text-muted-foreground">m2</p>
           </div>
-        </div>
+        </ContextSelectable>
         
         {/* Descricao */}
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
+          selected={isInConversation?.(propertyContextItem.id) ?? false}
+        >
           <h4 className="font-medium mb-2">Descricao</h4>
           <p className="text-sm text-muted-foreground">{property.description}</p>
-        </div>
+        </ContextSelectable>
         
         {/* Preco e acoes */}
         <div className="bg-secondary/50 rounded-xl p-4">
@@ -254,10 +312,21 @@ function PropertyDetailDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function RealEstateFeed() {
+  const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [propertyDrawerOpen, setPropertyDrawerOpen] = useState(false)
   const [visitDrawerOpen, setVisitDrawerOpen] = useState(false)
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    const nextMode = visitDrawerOpen ? "hidden" : propertyDrawerOpen ? "overlay" : "default"
+    setComposerMode(nextMode)
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [propertyDrawerOpen, setComposerMode, visitDrawerOpen])
   
   const handleToggleFavorite = (id: string) => {
     setFavorites(prev => {
@@ -319,7 +388,8 @@ export function RealEstateFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={realestateConfig}
         stories={realestateContent.stories}
@@ -343,6 +413,8 @@ export function RealEstateFeed() {
           // Abre WhatsApp
           window.open(`https://wa.me/${realestateConfig.whatsapp}`, "_blank")
         }}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <ActionDrawer
@@ -366,6 +438,7 @@ export function RealEstateFeed() {
           />
         )}
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

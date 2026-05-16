@@ -1,330 +1,472 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { Send, X, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import type { ConversationMessage, ConversationOption, ConversationAction, BusinessModel } from "@/lib/business-types"
+import { ChevronDown, ChevronUp, Loader2, Send, X } from "lucide-react"
+import { cn } from "@/lib/utils"
+import type { ConversationContextPayload, ConversationMessage } from "@/lib/business-types"
+import type {
+  ConversationResponseResolver,
+  ConversationVisualBlock,
+  ConversationVisualBlockRenderer,
+} from "@/lib/mock-data/conversational-search"
 
-// Avatar do usuario (padrao)
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
+
+export type ConversationContextItem = ConversationContextPayload
 
 interface ConversationalAIProps {
   brandLogo: string
   brandName: string
-  businessModel: BusinessModel
   initialMessages?: ConversationMessage[]
   placeholder?: string
-  onAction?: (action: ConversationAction) => void
   onSendMessage?: (message: string) => void
   className?: string
+  contextItems?: ConversationContextItem[]
+  onRemoveContext?: (contextId: string) => void
+  onCloseConversation?: () => void
+  responseResolver?: ConversationResponseResolver
+  renderVisualBlock?: ConversationVisualBlockRenderer
 }
 
-// Fluxos pre-definidos por modelo de negocio
-const AI_FLOWS: Record<BusinessModel, ConversationMessage[]> = {
-  appointment: [
-    { id: "1", role: "ai", content: "Oi! Vi que voce esta explorando nossos servicos. Posso te mostrar alguns estilos que estao em alta esse mes?" },
-  ],
-  ecommerce: [
-    { id: "1", role: "ai", content: "Esse produto tem sido muito procurado! Ja vendemos mais de 500 unidades so essa semana. Quer saber o que as pessoas estao achando?" },
-  ],
-  courses: [
-    { id: "1", role: "ai", content: "Esse curso ja formou mais de 2.000 alunos! Quer ver um preview gratuito de uma das aulas?" },
-  ],
-  restaurant: [
-    { id: "1", role: "ai", content: "Esse prato e um dos favoritos da casa! Combina muito bem com nosso vinho da casa. Quer adicionar ao pedido?" },
-  ],
-  realestate: [
-    { id: "1", role: "ai", content: "Esse imovel recebeu 15 visitas so essa semana! Quer agendar uma visita antes que seja reservado?" },
-  ],
-  professionals: [
-    { id: "1", role: "ai", content: "Dr. Silva tem horarios disponiveis ainda essa semana. Posso verificar a agenda pra voce?" },
-  ],
-  events: [
-    { id: "1", role: "ai", content: "Os ingressos VIP estao quase esgotados! Restam apenas 23 disponiveis. Quer garantir o seu?" },
-  ],
-  gym: [
-    { id: "1", role: "ai", content: "Nosso plano trimestral esta com 30% de desconto essa semana! Quer conhecer a estrutura antes de assinar?" },
-  ],
-  health: [
-    { id: "1", role: "ai", content: "Dra. Ana tem um horario disponivel amanha as 14h. Esse horario funciona pra voce?" },
-  ],
+type ConversationRuntimeMessage = ConversationMessage & {
+  visualBlock?: ConversationVisualBlock
 }
 
-// Respostas contextuais baseadas em keywords
-const CONTEXTUAL_RESPONSES: Record<string, string[]> = {
-  preco: [
-    "Claro! Esse item custa {price}. Posso te ajudar com mais alguma informacao?",
-    "O valor e {price}, mas temos condicoes especiais de pagamento. Quer saber mais?"
-  ],
-  desconto: [
-    "Temos algumas promocoes ativas! Quer ver as opcoes com desconto?",
-    "Se voce fechar hoje, consigo aplicar um cupom de 10% pra voce!"
-  ],
-  horario: [
-    "Temos horarios disponiveis hoje e amanha. Qual periodo seria melhor pra voce?",
-    "Deixa eu verificar... Temos opcoes de manha e tarde. Qual prefere?"
-  ],
-  entrega: [
-    "A entrega para sua regiao leva em media 3-5 dias uteis. O frete e gratis acima de R$ 199!",
-    "Calculei aqui: entrega prevista para {date}. Quer finalizar o pedido?"
-  ],
-  avaliacoes: [
-    "Esse item tem 4.8 estrelas com mais de 200 avaliacoes! Quer ver alguns comentarios?",
-    "Os clientes adoram! 95% recomendam. Posso mostrar os depoimentos?"
-  ],
-  pagamento: [
-    "Aceitamos cartao, Pix e boleto. No Pix tem 5% de desconto!",
-    "Da pra parcelar em ate 12x sem juros. Quer seguir pra pagamento?"
-  ],
+function summarizeContext(items: ConversationContextItem[]) {
+  const titles = items
+    .map((item) => item.title.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+
+  if (titles.length === 0) return ""
+  if (titles.length === 1) return titles[0]
+  return `${titles[0]} e ${titles[1]}`
+}
+
+function buildMockReply(brandName: string, userMessage: string, contextItems: ConversationContextItem[]) {
+  const responseIndex = userMessage.trim().length % 3
+  const contextLabel = summarizeContext(contextItems)
+
+  if (contextLabel) {
+    const contextualReplies = [
+      `Sobre ${contextLabel}, isso parece combinar bem com o que voce selecionou. Posso te mostrar o melhor caminho.`,
+      `${contextLabel} ajuda bastante nessa escolha. Se quiser, eu resumo o que faz mais sentido.`,
+      `Levando em conta ${contextLabel}, eu seguiria por uma opcao mais direta. Posso te indicar agora.`,
+    ]
+
+    return contextualReplies[responseIndex]
+  }
+
+  const genericReplies = [
+    `${brandName} pode te ajudar com isso rapidinho. Posso te mostrar a melhor opcao?`,
+    `Claro. Posso te orientar sobre ${brandName} de um jeito bem direto.`,
+    `Sem problema. Eu resumo o principal sobre ${brandName} pra voce.`,
+  ]
+
+  return genericReplies[responseIndex]
 }
 
 export function ConversationalAI({
   brandLogo,
   brandName,
-  businessModel,
   initialMessages,
-  placeholder = "Digite sua mensagem...",
-  onAction,
+  placeholder = "Pergunte sobre a marca...",
   onSendMessage,
-  className = ""
+  className,
+  contextItems = [],
+  onRemoveContext,
+  onCloseConversation,
+  responseResolver,
+  renderVisualBlock,
 }: ConversationalAIProps) {
-  const [messages, setMessages] = useState<ConversationMessage[]>(
-    initialMessages || AI_FLOWS[businessModel] || []
-  )
+  const [messages, setMessages] = useState<ConversationRuntimeMessage[]>(initialMessages || [])
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const replyTimeoutRef = useRef<number | null>(null)
+  const activeContextIdsRef = useRef<string[]>([])
+  const pendingContextIdsRef = useRef<string[]>([])
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  useEffect(() => {
+    if (!isMinimized) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [messages, isTyping, isMinimized])
+
+  useEffect(() => {
+    return () => {
+      if (replyTimeoutRef.current !== null) {
+        window.clearTimeout(replyTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const hasConversation = messages.length > 0 || isTyping
+  const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
+  const showContextRow = !hasConversation && contextItems.length > 0
+  const showExpandedConversation = hasConversation && !isMinimized
+
+  const buildContextEvent = (items: ConversationContextItem[]): ConversationRuntimeMessage => ({
+    id: `context-${Date.now()}`,
+    role: "context_event",
+    content: items.map((item) => item.title).join(", "),
+    contexts: items,
+  })
+
+  const appendContextEvent = (previousMessages: ConversationRuntimeMessage[], items: ConversationContextItem[]) => {
+    if (items.length === 0) {
+      return previousMessages
+    }
+
+    const lastMessage = previousMessages[previousMessages.length - 1]
+
+    if (lastMessage?.role === "context_event") {
+      const lastContexts = lastMessage.contexts ?? (lastMessage.context ? [lastMessage.context] : [])
+      const nextItemsById = new Set(items.map((item) => item.id))
+      const mergedContexts = [...items, ...lastContexts.filter((item) => !nextItemsById.has(item.id))]
+
+      return [
+        ...previousMessages.slice(0, -1),
+        {
+          ...lastMessage,
+          content: mergedContexts.map((item) => item.title).join(", "),
+          contexts: mergedContexts,
+          context: mergedContexts[0],
+        },
+      ]
+    }
+
+    return [...previousMessages, buildContextEvent(items)]
+  }
+
+  const clearPendingContextIds = (contextIds: string[]) => {
+    if (contextIds.length === 0) return
+
+    const idsToClear = new Set(contextIds)
+    pendingContextIdsRef.current = pendingContextIdsRef.current.filter((id) => !idsToClear.has(id))
   }
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    const previousActiveContextIds = new Set(activeContextIdsRef.current)
+    const nextContextIds = contextItems.map((item) => item.id)
+    const removedContextIds = activeContextIdsRef.current.filter((id) => !nextContextIds.includes(id))
+    const addedContextItems = contextItems.filter((item) => !previousActiveContextIds.has(item.id))
 
-  const findContextualResponse = (message: string): string => {
-    const lowerMessage = message.toLowerCase()
-    
-    for (const [keyword, responses] of Object.entries(CONTEXTUAL_RESPONSES)) {
-      if (lowerMessage.includes(keyword)) {
-        return responses[Math.floor(Math.random() * responses.length)]
+    clearPendingContextIds(removedContextIds)
+
+    if (addedContextItems.length > 0) {
+      const addedIds = new Set(addedContextItems.map((item) => item.id))
+      pendingContextIdsRef.current = [
+        ...addedContextItems.map((item) => item.id),
+        ...pendingContextIdsRef.current.filter((id) => !addedIds.has(id)),
+      ]
+
+      if (hasConversation) {
+        setMessages((prev) => appendContextEvent(prev, addedContextItems))
+        clearPendingContextIds(addedContextItems.map((item) => item.id))
       }
     }
-    
-    // Resposta padrao se nenhum keyword for encontrado
-    const defaultResponses = [
-      "Entendi! Deixa eu verificar isso pra voce...",
-      "Boa pergunta! Vou te ajudar com isso.",
-      "Claro, posso te ajudar com isso. Me conta mais detalhes?",
-    ]
-    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)]
+
+    activeContextIdsRef.current = nextContextIds
+  }, [contextItems, hasConversation])
+
+  const buildResolvedReply = (userMessage: string): ConversationRuntimeMessage => {
+    const resolvedReply = responseResolver?.({
+      message: userMessage,
+      brandName,
+      contextItems,
+    })
+
+    if (resolvedReply) {
+      return {
+        id: `ai-${Date.now()}`,
+        role: "ai",
+        content: resolvedReply.text,
+        visualBlock: resolvedReply.visualBlock,
+      }
+    }
+
+    return {
+      id: `ai-${Date.now()}`,
+      role: "ai",
+      content: buildMockReply(brandName, userMessage, contextItems),
+    }
   }
 
   const handleSendMessage = () => {
-    if (!inputValue.trim()) return
+    const nextMessage = inputValue.trim()
+    if (!nextMessage || isTyping) return
 
+    const pendingContextItems = contextItems.filter((item) => pendingContextIdsRef.current.includes(item.id))
     const userMessage: ConversationMessage = {
       id: `user-${Date.now()}`,
       role: "user",
-      content: inputValue.trim()
+      content: nextMessage,
     }
 
-    setMessages(prev => [...prev, userMessage])
+    clearPendingContextIds(pendingContextItems.map((item) => item.id))
+    setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
     setInputValue("")
     setIsTyping(true)
-    
-    onSendMessage?.(inputValue.trim())
+    setIsMinimized(false)
+    onSendMessage?.(nextMessage)
 
-    // Simula resposta da IA apos delay
-    setTimeout(() => {
-      const aiResponse: ConversationMessage = {
-        id: `ai-${Date.now()}`,
-        role: "ai",
-        content: findContextualResponse(userMessage.content)
-      }
-      setMessages(prev => [...prev, aiResponse])
+    replyTimeoutRef.current = window.setTimeout(() => {
+      const aiMessage = buildResolvedReply(nextMessage)
+
+      setMessages((prev) => [...prev, aiMessage])
       setIsTyping(false)
-    }, 1000 + Math.random() * 1000)
+      replyTimeoutRef.current = null
+    }, 700)
   }
 
-  const handleOptionClick = (option: ConversationOption) => {
-    const userMessage: ConversationMessage = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: option.label
-    }
-    setMessages(prev => [...prev, userMessage])
-
-    if (option.action) {
-      onAction?.(option.action)
-    }
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    handleSendMessage()
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
+  const handleCloseConversation = () => {
+    if (replyTimeoutRef.current !== null) {
+      window.clearTimeout(replyTimeoutRef.current)
+      replyTimeoutRef.current = null
     }
+
+    setMessages([])
+    setInputValue("")
+    setIsTyping(false)
+    setIsMinimized(false)
+    activeContextIdsRef.current = []
+    pendingContextIdsRef.current = []
+    onCloseConversation?.()
   }
 
-  if (!isExpanded && messages.length > 0) {
-    // Modo compacto - mostra apenas ultima mensagem da IA
-    const lastAiMessage = [...messages].reverse().find(m => m.role === "ai")
-    
-    return (
-      <div className={`${className}`}>
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="w-full text-left"
-        >
-          <div className="flex items-start gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary/70 transition-colors">
-            <Image
-              src={brandLogo}
-              alt={brandName}
-              width={32}
-              height={32}
-              className="rounded-full ring-2 ring-accent/20 flex-shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-foreground line-clamp-2">
-                {lastAiMessage?.content}
-              </p>
-              <p className="text-xs text-accent mt-1 font-medium">
-                Toque para continuar a conversa
-              </p>
-            </div>
-          </div>
-        </button>
-      </div>
+  const handleRemoveContextItem = (contextId: string) => {
+    clearPendingContextIds([contextId])
+    activeContextIdsRef.current = activeContextIdsRef.current.filter((id) => id !== contextId)
+    onRemoveContext?.(contextId)
+    setMessages((prev) =>
+      prev.flatMap((message) => {
+        if (message.role !== "context_event") {
+          return [message]
+        }
+
+        const nextContexts = (message.contexts ?? (message.context ? [message.context] : [])).filter(
+          (item) => item.id !== contextId
+        )
+
+        if (nextContexts.length === 0) {
+          return []
+        }
+
+        return [
+          {
+            ...message,
+            content: nextContexts.map((item) => item.title).join(", "),
+            contexts: nextContexts,
+            context: nextContexts[0],
+          },
+        ]
+      })
     )
   }
 
-  return (
-    <div className={`bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-border/50 bg-secondary/30">
-        <div className="flex items-center gap-2">
-          <Image
-            src={brandLogo}
-            alt={brandName}
-            width={28}
-            height={28}
-            className="rounded-full"
-          />
-          <div>
-            <p className="text-sm font-medium text-foreground">{brandName}</p>
-            <p className="text-xs text-muted-foreground">Online agora</p>
-          </div>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsExpanded(false)}
-          className="h-8 w-8 p-0"
-        >
-          <X className="h-4 w-4" />
-        </Button>
+  const renderContextChip = (item: ConversationContextItem) => (
+    <div
+      key={item.id}
+      className="flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-border/50 bg-secondary/55 pr-1.5"
+    >
+      <div className="relative h-11 w-11 overflow-hidden rounded-full">
+        <Image src={item.image} alt={item.title} fill className="object-cover" />
       </div>
 
-      {/* Messages */}
-      <div className="p-3 space-y-3 max-h-[300px] overflow-y-auto">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex items-end gap-2 ${message.role === "user" ? "flex-row-reverse" : ""}`}
-          >
-            <Image
-              src={message.role === "user" ? USER_AVATAR : brandLogo}
-              alt={message.role === "user" ? "Voce" : brandName}
-              width={28}
-              height={28}
-              className="rounded-full flex-shrink-0"
-            />
-            <div
-              className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
-                message.role === "user"
-                  ? "bg-accent text-accent-foreground rounded-br-md"
-                  : "bg-secondary text-foreground rounded-bl-md"
-              }`}
-            >
-              {message.content}
-            </div>
-          </div>
-        ))}
+      <div className="min-w-0 flex-1">
+        {item.subtitle ? (
+          <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            {item.subtitle}
+          </p>
+        ) : null}
+        <p className="truncate text-xs font-medium text-foreground">{item.title}</p>
+      </div>
 
-        {/* Typing indicator */}
-        {isTyping && (
-          <div className="flex items-end gap-2">
-            <Image
-              src={brandLogo}
-              alt={brandName}
-              width={28}
-              height={28}
-              className="rounded-full"
-            />
-            <div className="bg-secondary px-4 py-2 rounded-2xl rounded-bl-md">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+      {onRemoveContext ? (
+        <button
+          type="button"
+          onClick={() => handleRemoveContextItem(item.id)}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:text-foreground"
+          aria-label={`Remover ${item.title}`}
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      ) : null}
+    </div>
+  )
+
+  return (
+    <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
+      <div className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
+        <section className="pointer-events-auto overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl">
+          {hasConversation && (
+            <div className="border-b border-border/50">
+              <div className="px-4 pt-3 pb-2">
+                <div className="relative flex items-center justify-center">
+                  <div className="h-1 w-11 rounded-full bg-border/80" />
+                  <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsMinimized((prev) => !prev)}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    aria-label={isMinimized ? "Expandir conversa" : "Minimizar conversa"}
+                  >
+                    {isMinimized ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCloseConversation}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    aria-label="Fechar conversa"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  </div>
+                </div>
+              </div>
+              {showExpandedConversation ? (
+                <div className="space-y-3 overflow-y-auto px-4 py-4 max-h-[32vh]">
+                  {messages.map((message) => {
+                    if (message.role === "context_event") {
+                      const eventContexts = message.contexts ?? (message.context ? [message.context] : [])
+
+                      if (eventContexts.length === 0) {
+                        return null
+                      }
+
+                      return (
+                        <div key={message.id} className="py-0.5">
+                          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                            {eventContexts.map((item) => renderContextChip(item))}
+                          </div>
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <div
+                        key={message.id}
+                        className={cn("flex items-end gap-2.5", message.role === "user" && "justify-end")}
+                      >
+                        {message.role !== "user" ? (
+                          <Image
+                            src={brandLogo}
+                            alt={brandName}
+                            width={28}
+                            height={28}
+                            className="rounded-full border border-border/60 object-cover"
+                          />
+                        ) : null}
+
+                        <div className={cn("flex max-w-[82%] flex-col gap-2", message.role === "user" && "items-end")}>
+                          <div
+                            className={cn(
+                              "rounded-[22px] px-4 py-3 text-sm leading-relaxed shadow-sm",
+                              message.role === "user"
+                                ? "rounded-br-md bg-foreground text-background"
+                                : "rounded-bl-md bg-secondary text-foreground"
+                            )}
+                          >
+                            {message.content}
+                          </div>
+
+                          {message.role === "ai" && message.visualBlock
+                            ? renderVisualBlock?.(message.visualBlock)
+                            : null}
+                        </div>
+
+                        {message.role === "user" ? (
+                          <Image
+                            src={USER_AVATAR}
+                            alt="Voce"
+                            width={28}
+                            height={28}
+                            className="rounded-full border border-border/60 object-cover"
+                          />
+                        ) : null}
+                      </div>
+                    )
+                  })}
+
+                  {isTyping && (
+                    <div className="flex items-end gap-2.5">
+                      <Image
+                        src={brandLogo}
+                        alt={brandName}
+                        width={28}
+                        height={28}
+                        className="rounded-full border border-border/60 object-cover"
+                      />
+                      <div className="rounded-[22px] rounded-bl-md bg-secondary px-4 py-3 text-foreground shadow-sm">
+                        <div className="flex items-center gap-1">
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.2s]" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.1s]" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={messagesEndRef} />
+                </div>
+              ) : (
+                <div className="px-4 pb-3">
+                  <p className="text-xs text-muted-foreground">
+                    {showContextRow ? "Contexto pronto para continuar a conversa." : "A conversa continua aqui quando voce enviar a proxima mensagem."}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!hasConversation && showContextRow && (
+            <div className="border-b border-border/50 px-4 py-2.5">
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                {contextItems.map((item) => renderContextChip(item))}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Quick options */}
-        {messages.length > 0 && messages[messages.length - 1].options && (
-          <div className="flex flex-wrap gap-2 pt-2">
-            {messages[messages.length - 1].options?.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => handleOptionClick(option)}
-                className="px-3 py-1.5 text-sm bg-accent/10 text-accent rounded-full hover:bg-accent/20 transition-colors"
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input */}
-      <div className="p-3 border-t border-border/50 bg-secondary/20">
-        <div className="flex items-center gap-2">
-          <Image
-            src={USER_AVATAR}
-            alt="Voce"
-            width={28}
-            height={28}
-            className="rounded-full flex-shrink-0"
-          />
-          <div className="flex-1 flex items-center gap-2 bg-background rounded-full px-4 py-2 border border-border/50">
+          <form onSubmit={handleSubmit} className="flex items-center gap-3 px-3 py-2.5">
+            <button
+              type="button"
+              disabled
+              className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full"
+              aria-label="Marca"
+            >
+              <Image src={brandLogo} alt={brandName} fill className="object-cover" />
+            </button>
             <input
               type="text"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={placeholder}
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              onChange={(event) => setInputValue(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault()
+                  handleSendMessage()
+                }
+              }}
+              placeholder={resolvedPlaceholder}
+              className="h-10 min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground/80"
             />
             <button
-              onClick={handleSendMessage}
+              type="submit"
               disabled={!inputValue.trim() || isTyping}
-              className="text-accent hover:text-accent/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-[0_12px_24px_-16px_rgba(0,0,0,0.4)] transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Enviar mensagem"
             >
-              {isTyping ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
+              {isTyping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </button>
-          </div>
-        </div>
+          </form>
+        </section>
       </div>
     </div>
   )

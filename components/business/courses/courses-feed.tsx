@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Play, Clock, Users, Star, Award, ChevronRight, BookOpen, GraduationCap, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { CourseCheckout } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { coursesConfig, courses } from "@/lib/mock-data/courses-data"
 import { coursesContent } from "@/lib/mock-data/business-content"
 import type { Course } from "@/lib/business-types"
@@ -15,17 +18,34 @@ import type { Course } from "@/lib/business-types"
 // ========================================
 // MODULO: CURSOS EM DESTAQUE (OBJETIVO PRINCIPAL)
 // ========================================
-function CoursesModule({ onSelectCourse }: { onSelectCourse: (course: Course) => void }) {
+function CoursesModule({
+  onSelectCourse,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onSelectCourse: (course: Course) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   const featuredCourses = courses.slice(0, 3)
   
   return (
     <div className="space-y-4">
       {featuredCourses.map((course) => {
         const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
+        const contextItem = {
+          id: `course-${course.id}`,
+          title: course.title,
+          image: course.thumbnail,
+          subtitle: "Curso",
+        }
         return (
-          <button
+          <ContextSelectable
             key={course.id}
+            as="div"
             onClick={() => onSelectCourse(course)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors"
           >
             <div className="relative aspect-video">
@@ -68,7 +88,7 @@ function CoursesModule({ onSelectCourse }: { onSelectCourse: (course: Course) =>
                 )}
               </div>
             </div>
-          </button>
+          </ContextSelectable>
         )
       })}
     </div>
@@ -78,7 +98,13 @@ function CoursesModule({ onSelectCourse }: { onSelectCourse: (course: Course) =>
 // ========================================
 // MODULO: TRILHAS DE APRENDIZADO
 // ========================================
-function TracksModule() {
+function TracksModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   const tracks = [
     { id: "1", name: "Programacao", icon: "💻", courses: 12 },
     { id: "2", name: "Design", icon: "🎨", courses: 8 },
@@ -88,13 +114,28 @@ function TracksModule() {
   
   return (
     <div className="grid grid-cols-2 gap-3">
-      {tracks.map((track) => (
-        <button key={track.id} className="p-4 bg-secondary/50 hover:bg-secondary rounded-xl text-left transition-colors">
-          <span className="text-2xl">{track.icon}</span>
-          <p className="font-medium text-foreground mt-2">{track.name}</p>
-          <p className="text-sm text-muted-foreground">{track.courses} cursos</p>
-        </button>
-      ))}
+      {tracks.map((track) => {
+        const contextItem = {
+          id: `course-track-${track.id}`,
+          title: track.name,
+          image: coursesConfig.logo,
+          subtitle: "Trilha",
+        }
+
+        return (
+          <ContextSelectable
+            key={track.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="p-4 bg-secondary/50 hover:bg-secondary rounded-xl text-left transition-colors"
+          >
+            <span className="text-2xl">{track.icon}</span>
+            <p className="font-medium text-foreground mt-2">{track.name}</p>
+            <p className="text-sm text-muted-foreground">{track.courses} cursos</p>
+          </ContextSelectable>
+        )
+      })}
     </div>
   )
 }
@@ -106,19 +147,35 @@ function CourseDetailDrawer({
   course, 
   isOpen, 
   onClose,
-  onEnroll
+  onEnroll,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   course: Course | null
   isOpen: boolean
   onClose: () => void
   onEnroll: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   if (!course) return null
   
   const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
+  const courseContextItem = {
+    id: `course-${course.id}`,
+    title: course.title,
+    image: course.thumbnail,
+    subtitle: "Curso",
+  }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={course.title} size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={course.title}
+      size="lg"
+      reserveComposerSpace
+    >
       <div className="space-y-6">
         {/* Video Preview */}
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
@@ -131,7 +188,12 @@ function CourseDetailDrawer({
         </div>
         
         {/* Instrutor */}
-        <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl">
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(courseContextItem)}
+          selected={isInConversation?.(courseContextItem.id) ?? false}
+          className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl"
+        >
           <div className="relative w-12 h-12 rounded-full overflow-hidden">
             <Image src={course.instructor.avatar} alt={course.instructor.name} fill className="object-cover" />
           </div>
@@ -139,7 +201,7 @@ function CourseDetailDrawer({
             <p className="font-medium">{course.instructor.name}</p>
             <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
           </div>
-        </div>
+        </ContextSelectable>
         
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
@@ -161,14 +223,22 @@ function CourseDetailDrawer({
         </div>
         
         {/* Descricao */}
-        <div>
+        <ContextSelectable
+          as="div"
+          onLongPress={() => onToggleConversationContext?.(courseContextItem)}
+          selected={isInConversation?.(courseContextItem.id) ?? false}
+        >
           <h4 className="font-medium mb-2">Sobre o curso</h4>
           <p className="text-muted-foreground text-sm">{course.description}</p>
-        </div>
+        </ContextSelectable>
         
         {/* Features */}
         {course.features && (
-          <div>
+          <ContextSelectable
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(courseContextItem)}
+            selected={isInConversation?.(courseContextItem.id) ?? false}
+          >
             <h4 className="font-medium mb-2">O que voce vai aprender</h4>
             <ul className="space-y-2">
               {course.features.slice(0, 4).map((feature, idx) => (
@@ -178,7 +248,7 @@ function CourseDetailDrawer({
                 </li>
               ))}
             </ul>
-          </div>
+          </ContextSelectable>
         )}
         
         {/* Preco e CTA */}
@@ -211,9 +281,20 @@ function CourseDetailDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function CoursesFeed() {
+  const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [courseDrawerOpen, setCourseDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+
+  useEffect(() => {
+    const nextMode = checkoutOpen ? "hidden" : courseDrawerOpen ? "overlay" : "default"
+    setComposerMode(nextMode)
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [checkoutOpen, courseDrawerOpen, setComposerMode])
   
   const handleSelectCourse = (course: Course) => {
     setSelectedCourse(course)
@@ -265,7 +346,8 @@ export function CoursesFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={coursesConfig}
         stories={coursesContent.stories}
@@ -290,6 +372,8 @@ export function CoursesFeed() {
           setCourseDrawerOpen(false)
           setCheckoutOpen(true)
         }}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <ActionDrawer
@@ -315,6 +399,7 @@ export function CoursesFeed() {
           />
         )}
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }
