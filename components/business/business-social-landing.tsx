@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import type { BusinessConfig, BusinessModel } from "@/lib/business-types"
-import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
+import type { BusinessConfig } from "@/lib/business-types"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
 import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
+import { ContextSelectable } from "./context-selectable"
 
 // ========================================
 // TIPOS
@@ -416,58 +416,28 @@ function BusinessSearchBar({ placeholder }: { placeholder?: string }) {
 function PostCard({ 
   post, 
   index, 
-  brandLogo, 
   onClick,
-  showChat = true
+  onLongPress,
+  selectedInConversation = false,
 }: { 
   post: BusinessPost
   index: number
-  brandLogo: string
   onClick?: () => void
-  showChat?: boolean
+  onLongPress?: (post: BusinessPost) => void
+  selectedInConversation?: boolean
 }) {
-  const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
-  
-  const chatMessages: Record<string, { messages: { content: string; isUser: boolean }[]; placeholder: string }> = {
-    video: {
-      messages: [{ content: "Esse tutorial tem dicas incriveis! Quer que eu resuma os pontos principais?", isUser: false }],
-      placeholder: "O que achou do video?"
-    },
-    "video-vertical": {
-      messages: [{ content: "Esse conteudo viralizou essa semana! Quer ver mais como esse?", isUser: false }],
-      placeholder: "Curti! Tem mais?"
-    },
-    product: {
-      messages: [
-        { content: "Esse produto esta entre os mais vendidos! Sabia que ele tem ingredientes exclusivos da Amazonia?", isUser: false },
-        { content: "Serio? Conta mais!", isUser: true },
-        { content: "Sim! E feito com castanha e oleo de buriti. Quer que eu explique os beneficios?", isUser: false }
-      ],
-      placeholder: "Vale a pena pra mim?"
-    },
-    news: {
-      messages: [{ content: "Essa noticia saiu em varios portais essa semana. Quer saber mais detalhes?", isUser: false }],
-      placeholder: "Me conta mais"
-    },
-    review: {
-      messages: [{ content: "Essa avaliacao foi muito curtida! Voce ja experimentou esse produto?", isUser: false }],
-      placeholder: "Ainda nao, e bom?"
-    },
-    social: {
-      messages: [{ content: "Esse post teve muito engajamento! O que achou?", isUser: false }],
-      placeholder: "Adorei!"
-    }
-  }
-  
-  const chatConfig = chatMessages[post.type] || chatMessages.social
-  
   // Renderiza card baseado no tipo
   if (post.type === "video" || post.type === "video-vertical") {
     const isVertical = post.type === "video-vertical"
     return (
-      <article className="mb-8">
+      <ContextSelectable
+        as="article"
+        className="mb-8"
+        onClick={onClick}
+        onLongPress={() => onLongPress?.(post)}
+        selected={selectedInConversation}
+      >
         <div 
-          onClick={onClick}
           className={cn(
             "relative rounded-2xl overflow-hidden cursor-pointer group",
             isVertical ? "aspect-[9/16]" : "aspect-video"
@@ -492,30 +462,21 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type={post.type} index={index} />
         <SocialActions />
-        {showChat && (index % 3 === 0) && (
-          <div className="mt-4">
-            <SimulatedChat
-              messages={chatConfig.messages}
-              brandLogo={brandLogo}
-              userAvatar={userAvatar}
-              placeholder={chatConfig.placeholder}
-            />
-          </div>
-        )}
-        {showChat && (index % 3 !== 0) && (
-          <div className="mt-4">
-            <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-          </div>
-        )}
-      </article>
+      </ContextSelectable>
     )
   }
   
   if (post.type === "product") {
     const discount = post.originalPrice ? Math.round((1 - post.price! / post.originalPrice) * 100) : 0
     return (
-      <article className="mb-8">
-        <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group">
+      <ContextSelectable
+        as="article"
+        className="mb-8"
+        onClick={onClick}
+        onLongPress={() => onLongPress?.(post)}
+        selected={selectedInConversation}
+      >
+        <div className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group">
           <Image src={post.image} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
           {discount > 0 && (
             <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0">-{discount}%</Badge>
@@ -536,25 +497,21 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type="product" index={index} />
         <SocialActions />
-        {showChat && (
-          <div className="mt-4">
-            <SimulatedChat
-              messages={chatConfig.messages}
-              brandLogo={brandLogo}
-              userAvatar={userAvatar}
-              placeholder={chatConfig.placeholder}
-            />
-          </div>
-        )}
-      </article>
+      </ContextSelectable>
     )
   }
   
   if (post.type === "news") {
     return (
-      <article className="mb-8">
+      <ContextSelectable
+        as="article"
+        className="mb-8"
+        onClick={onClick}
+        onLongPress={() => onLongPress?.(post)}
+        selected={selectedInConversation}
+      >
         {post.image && (
-          <div onClick={onClick} className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group">
+          <div className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group">
             <Image src={post.image} alt={post.title} fill className="object-cover" />
             {post.source && (
               <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground border-0">{post.source}</Badge>
@@ -573,18 +530,19 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type="news" index={index} />
         <SocialActions />
-        {showChat && (
-          <div className="mt-4">
-            <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-          </div>
-        )}
-      </article>
+      </ContextSelectable>
     )
   }
   
   if (post.type === "review") {
     return (
-      <article className="mb-8 p-4 bg-card rounded-2xl border border-border/50">
+      <ContextSelectable
+        as="article"
+        className="mb-8 p-4 bg-card rounded-2xl border border-border/50"
+        onClick={onClick}
+        onLongPress={() => onLongPress?.(post)}
+        selected={selectedInConversation}
+      >
         <div className="flex items-start gap-3">
           {post.reviewerAvatar && (
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
@@ -608,20 +566,21 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type="review" index={index} />
         <SocialActions />
-        {showChat && (
-          <div className="mt-4">
-            <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-          </div>
-        )}
-      </article>
+      </ContextSelectable>
     )
   }
   
   // Social post (default)
   return (
-    <article className="mb-8">
+    <ContextSelectable
+      as="article"
+      className="mb-8"
+      onClick={onClick}
+      onLongPress={() => onLongPress?.(post)}
+      selected={selectedInConversation}
+    >
       {post.image && (
-        <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer">
+        <div className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer">
           <Image src={post.image} alt={post.title} fill className="object-cover" />
         </div>
       )}
@@ -631,12 +590,7 @@ function PostCard({
       </div>
       <SocialProofWithAvatars type="social" index={index} />
       <SocialActions />
-      {showChat && (
-        <div className="mt-4">
-          <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-        </div>
-      )}
-    </article>
+    </ContextSelectable>
   )
 }
 
@@ -646,11 +600,15 @@ function PostCard({
 function BusinessSectionComponent({ 
   section, 
   config, 
-  onPostClick 
+  onPostClick,
+  onPostLongPress,
+  selectedContextIds,
 }: { 
   section: BusinessSection
   config: BusinessConfig
   onPostClick?: (post: BusinessPost) => void
+  onPostLongPress?: (post: BusinessPost) => void
+  selectedContextIds: Set<string>
 }) {
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
@@ -675,8 +633,9 @@ function BusinessSectionComponent({
           key={post.id}
           post={post}
           index={index}
-          brandLogo={config.logo}
           onClick={() => onPostClick?.(post)}
+          onLongPress={onPostLongPress}
+          selectedInConversation={selectedContextIds.has(post.id)}
         />
       ))}
     </section>
@@ -753,7 +712,12 @@ export function BusinessSocialLanding({
     return posts
   }, [sections])
 
-  const rememberConversationContext = useCallback((post: BusinessPost) => {
+  const selectedContextIds = useMemo(
+    () => new Set(conversationContext.map((item) => item.id)),
+    [conversationContext]
+  )
+
+  const addConversationContext = useCallback((post: BusinessPost) => {
     const nextContext = toConversationContextItem(post, config.logo)
 
     setConversationContext((prev) => {
@@ -761,10 +725,17 @@ export function BusinessSocialLanding({
       return [nextContext, ...deduped].slice(0, 6)
     })
   }, [config.logo])
+
+  const toggleConversationContext = useCallback((post: BusinessPost) => {
+    if (selectedContextIds.has(post.id)) {
+      setConversationContext((prev) => prev.filter((item) => item.id !== post.id))
+      return
+    }
+
+    addConversationContext(post)
+  }, [addConversationContext, selectedContextIds])
   
   const handlePostClick = useCallback((post: BusinessPost) => {
-    rememberConversationContext(post)
-
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
     const contentTypes = ["video", "video-vertical", "news", "review", "social"]
     if (contentTypes.includes(post.type)) {
@@ -777,7 +748,7 @@ export function BusinessSocialLanding({
       setDrawerOpen(true)
       onPostClick?.(post)
     }
-  }, [onPostClick, rememberConversationContext])
+  }, [onPostClick])
   
   const handleCloseDrawer = useCallback(() => {
     setDrawerOpen(false)
@@ -828,6 +799,8 @@ export function BusinessSocialLanding({
               section={section}
               config={config}
               onPostClick={handlePostClick}
+              onPostLongPress={toggleConversationContext}
+              selectedContextIds={selectedContextIds}
             />
           ))}
         </div>
@@ -842,7 +815,7 @@ export function BusinessSocialLanding({
         <ConversationalAI
           brandLogo={config.logo}
           brandName={config.name}
-          businessModel={config.model}
+          className={cn(feedDrawerOpen ? "z-[60]" : "z-30", drawerOpen && "hidden")}
           placeholder={`Pergunte sobre ${config.name}...`}
           contextItems={conversationContext}
           onRemoveContext={handleRemoveConversationContext}
@@ -923,6 +896,8 @@ export function BusinessSocialLanding({
         category={feedDrawerCategory}
         brandLogo={config.logo}
         brandName={config.name}
+        selectedContextIds={[...selectedContextIds]}
+        onPostLongPress={toggleConversationContext}
       />
       
       {/* Custom Post Drawer - para itens especificos do negocio */}
