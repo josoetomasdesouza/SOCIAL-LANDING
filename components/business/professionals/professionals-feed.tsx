@@ -145,8 +145,6 @@ function ServiceDrawer({
       <div className="space-y-6">
         <ContextSelectable
           as="div"
-          onLongPress={() => onToggleConversationContext?.(serviceContextItem)}
-          selected={isInConversation?.(serviceContextItem.id) ?? false}
           className="bg-secondary/50 rounded-xl p-4"
         >
           <h3 className="font-semibold mb-2">{service.name}</h3>

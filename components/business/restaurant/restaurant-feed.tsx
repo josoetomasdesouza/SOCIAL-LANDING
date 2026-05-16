@@ -470,7 +470,7 @@ function CartDrawer({
 // ========================================
 export function RestaurantFeed() {
   const conversationSelection = useConversationSelectionState()
-  const { setComposerMode } = conversationSelection
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
   const [itemDrawerOpen, setItemDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
@@ -580,16 +580,16 @@ export function RestaurantFeed() {
         ? "hidden"
         : itemDrawerOpen
           ? "overlay"
-          : cartCount > 0
-            ? "hidden"
-            : "default"
+          : "default"
 
     setComposerMode(nextMode)
+    setComposerOffsetClassName(!itemDrawerOpen && cartCount > 0 ? "bottom-[88px]" : undefined)
 
     return () => {
       setComposerMode("default")
+      setComposerOffsetClassName(undefined)
     }
-  }, [cartCount, cartDrawerOpen, checkoutOpen, itemDrawerOpen, setComposerMode])
+  }, [cartCount, cartDrawerOpen, checkoutOpen, itemDrawerOpen, setComposerMode, setComposerOffsetClassName])
 
   const handleCheckoutCta = () => {
     if (checkoutStep === "address") {

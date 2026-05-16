@@ -717,6 +717,7 @@ export function BusinessSocialLanding({
     clearConversationContext,
     isConversationSelected,
     composerMode,
+    composerOffsetClassName,
   } = conversationSelection
   
   // Story viewer state
@@ -836,7 +837,8 @@ export function BusinessSocialLanding({
           brandName={config.name}
           className={cn(
             composerMode === "overlay" ? "z-[70]" : feedDrawerOpen ? "z-[60]" : "z-30",
-            (drawerOpen && !feedDrawerOpen) || composerMode === "hidden" ? "hidden" : undefined
+            (drawerOpen && !feedDrawerOpen) || composerMode === "hidden" ? "hidden" : undefined,
+            composerOffsetClassName
           )}
           placeholder={`Pergunte sobre ${config.name}...`}
           contextItems={conversationContext}

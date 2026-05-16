@@ -218,7 +218,7 @@ function AboutModule({
         as="div"
         onLongPress={() => onToggleConversationContext?.(contextItem)}
         selected={isInConversation?.(contextItem.id) ?? false}
-        className="space-y-4"
+        className="space-y-4 rounded-[32px]"
       >
         <SocialCompactHero
           variant="editorial"
@@ -351,7 +351,7 @@ function TeamModule({
               as="div"
               onLongPress={() => onToggleConversationContext?.(contextItem)}
               selected={isInConversation?.(contextItem.id) ?? false}
-              className="flex-shrink-0 text-center"
+            className="flex-shrink-0 rounded-[24px] px-1 py-1 text-center"
             >
               <div className="w-20 h-20 rounded-full overflow-hidden mb-2 mx-auto ring-2 ring-border">
                 <Image src={member.image} alt={member.name} width={80} height={80} className="object-cover" />

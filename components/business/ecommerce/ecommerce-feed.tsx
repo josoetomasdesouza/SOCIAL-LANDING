@@ -515,7 +515,7 @@ function CartDrawerComponent({
 // ========================================
 export function EcommerceFeed() {
   const conversationSelection = useConversationSelectionState()
-  const { setComposerMode } = conversationSelection
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [productDrawerOpen, setProductDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
@@ -625,16 +625,16 @@ export function EcommerceFeed() {
         ? "hidden"
         : productDrawerOpen
           ? "overlay"
-          : cartItemCount > 0
-            ? "hidden"
-            : "default"
+          : "default"
 
     setComposerMode(nextMode)
+    setComposerOffsetClassName(!productDrawerOpen && cartItemCount > 0 ? "bottom-[88px]" : undefined)
 
     return () => {
       setComposerMode("default")
+      setComposerOffsetClassName(undefined)
     }
-  }, [cartDrawerOpen, cartItemCount, checkoutDrawerOpen, productDrawerOpen, setComposerMode])
+  }, [cartDrawerOpen, cartItemCount, checkoutDrawerOpen, productDrawerOpen, setComposerMode, setComposerOffsetClassName])
   
   return (
     <ConversationSelectionProvider value={conversationSelection}>

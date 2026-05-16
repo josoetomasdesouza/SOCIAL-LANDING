@@ -15,6 +15,8 @@ interface ConversationSelectionController {
   isConversationSelected: (id: string) => boolean
   composerMode: ConversationComposerMode
   setComposerMode: (mode: ConversationComposerMode) => void
+  composerOffsetClassName?: string
+  setComposerOffsetClassName: (className?: string) => void
 }
 
 const ConversationSelectionContext = createContext<ConversationSelectionController | null>(null)
@@ -22,6 +24,7 @@ const ConversationSelectionContext = createContext<ConversationSelectionControll
 export function useConversationSelectionState(): ConversationSelectionController {
   const [conversationContext, setConversationContext] = useState<ConversationContextItem[]>([])
   const [composerMode, setComposerMode] = useState<ConversationComposerMode>("default")
+  const [composerOffsetClassName, setComposerOffsetClassName] = useState<string | undefined>(undefined)
 
   const selectedContextIds = useMemo(
     () => new Set(conversationContext.map((item) => item.id)),
@@ -69,6 +72,8 @@ export function useConversationSelectionState(): ConversationSelectionController
     isConversationSelected,
     composerMode,
     setComposerMode,
+    composerOffsetClassName,
+    setComposerOffsetClassName,
   }
 }
 

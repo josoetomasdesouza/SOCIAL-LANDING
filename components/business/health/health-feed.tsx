@@ -155,8 +155,6 @@ function ProfessionalDrawer({
       <div className="space-y-6">
         <ContextSelectable
           as="div"
-          onLongPress={() => onToggleConversationContext?.(professionalContextItem)}
-          selected={isInConversation?.(professionalContextItem.id) ?? false}
           className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl"
         >
           <div className="relative w-16 h-16 rounded-full overflow-hidden">
@@ -175,8 +173,7 @@ function ProfessionalDrawer({
         {professional.bio && (
           <ContextSelectable
             as="div"
-            onLongPress={() => onToggleConversationContext?.(professionalContextItem)}
-            selected={isInConversation?.(professionalContextItem.id) ?? false}
+            className="rounded-[28px] px-1 py-1"
           >
             <h4 className="font-medium mb-2">Sobre</h4>
             <p className="text-sm text-muted-foreground">{professional.bio}</p>

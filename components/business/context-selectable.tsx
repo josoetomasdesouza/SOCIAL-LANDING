@@ -112,10 +112,11 @@ export function ContextSelectable({
           }
         : {})}
       className={cn(
-        "relative will-change-transform transition-[background-color,border-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
-        isPressing && "scale-[0.988] shadow-[0_22px_46px_-34px_rgba(15,23,42,0.38)]",
+        "relative isolate will-change-transform transition-[background-color,border-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] before:pointer-events-none before:absolute before:inset-[2px] before:rounded-[inherit] before:content-[''] before:opacity-0 before:transition-[opacity,box-shadow,background-color] before:duration-200 before:ease-[cubic-bezier(0.22,1,0.36,1)]",
+        isPressing &&
+          "scale-[0.992] before:opacity-100 before:bg-white/35 dark:before:bg-white/[0.035] before:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)]",
         selected &&
-          "rounded-[28px] bg-accent/[0.045] ring-1 ring-accent/35 ring-offset-1 ring-offset-background shadow-[0_18px_40px_-32px_rgba(15,23,42,0.42)]",
+          "before:opacity-100 before:bg-accent/[0.055] before:ring-1 before:ring-inset before:ring-accent/20 before:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] shadow-[0_20px_44px_-36px_rgba(15,23,42,0.42)]",
         className
       )}
     >

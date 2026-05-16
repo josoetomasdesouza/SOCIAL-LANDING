@@ -238,9 +238,7 @@ function BarberDetailsDrawer({
         {/* Header */}
         <ContextSelectable
           as="div"
-          onLongPress={() => onToggleConversationContext?.(barberContextItem)}
-          selected={isInConversation?.(barberContextItem.id) ?? false}
-          className="flex items-center gap-4"
+          className="rounded-[28px] px-1 py-1"
         >
           <div className="relative w-20 h-20 rounded-full overflow-hidden">
             <Image src={barber.avatar} alt={barber.name} fill className="object-cover" />
@@ -261,8 +259,6 @@ function BarberDetailsDrawer({
         {service && serviceContextItem && (
           <ContextSelectable
             as="div"
-            onLongPress={() => onToggleConversationContext?.(serviceContextItem)}
-            selected={isInConversation?.(serviceContextItem.id) ?? false}
             className="bg-secondary/50 rounded-xl p-4"
           >
             <div className="flex items-start justify-between gap-3">
@@ -636,6 +632,7 @@ export function AppointmentFeed() {
               subtitle: "Sobre",
             })}
             selected={conversationSelection.isConversationSelected("appointment-about-house")}
+            className="rounded-[30px] overflow-hidden"
           >
             <SocialCompactHero
               variant="editorial"
