@@ -792,6 +792,10 @@ export function BusinessSocialLanding({
   const handleRemoveConversationContext = useCallback((contextId: string) => {
     setConversationContext((prev) => prev.filter((item) => item.id !== contextId))
   }, [])
+
+  const handleCloseConversation = useCallback(() => {
+    setConversationContext([])
+  }, [])
   
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -844,6 +848,7 @@ export function BusinessSocialLanding({
           placeholder={`Pergunte sobre ${config.name}...`}
           contextItems={conversationContext}
           onRemoveContext={handleRemoveConversationContext}
+          onCloseConversation={handleCloseConversation}
         />
       )}
       

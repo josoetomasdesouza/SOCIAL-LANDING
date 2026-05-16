@@ -24,6 +24,7 @@ interface ConversationalAIProps {
   className?: string
   contextItems?: ConversationContextItem[]
   onRemoveContext?: (contextId: string) => void
+  onCloseConversation?: () => void
 }
 
 function summarizeContext(items: ConversationContextItem[]) {
@@ -69,18 +70,28 @@ export function ConversationalAI({
   className,
   contextItems = [],
   onRemoveContext,
+  onCloseConversation,
 }: ConversationalAIProps) {
   const [messages, setMessages] = useState<ConversationMessage[]>(initialMessages || [])
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const replyTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (!isMinimized) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
   }, [messages, isTyping, isMinimized])
+
+  useEffect(() => {
+    return () => {
+      if (replyTimeoutRef.current !== null) {
+        window.clearTimeout(replyTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
@@ -103,7 +114,7 @@ export function ConversationalAI({
     setIsMinimized(false)
     onSendMessage?.(nextMessage)
 
-    window.setTimeout(() => {
+    replyTimeoutRef.current = window.setTimeout(() => {
       const aiMessage: ConversationMessage = {
         id: `ai-${Date.now()}`,
         role: "ai",
@@ -112,6 +123,7 @@ export function ConversationalAI({
 
       setMessages((prev) => [...prev, aiMessage])
       setIsTyping(false)
+      replyTimeoutRef.current = null
     }, 700)
   }
 
@@ -121,9 +133,16 @@ export function ConversationalAI({
   }
 
   const handleCloseConversation = () => {
+    if (replyTimeoutRef.current !== null) {
+      window.clearTimeout(replyTimeoutRef.current)
+      replyTimeoutRef.current = null
+    }
+
     setMessages([])
+    setInputValue("")
     setIsTyping(false)
     setIsMinimized(false)
+    onCloseConversation?.()
   }
 
   return (
