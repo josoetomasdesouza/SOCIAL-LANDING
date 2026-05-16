@@ -397,17 +397,17 @@ export function ConversationalAI({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex items-center gap-2.5 p-2.5">
+          <form onSubmit={handleSubmit} className="flex items-center gap-2 px-2.5 py-2">
             <button
               type="button"
               disabled
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground/70"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary/65 text-muted-foreground/60"
               aria-label="Adicionar contexto"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5" />
             </button>
 
-            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-secondary/75 px-4 py-2.5">
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-secondary/60 px-3.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
               <input
                 type="text"
                 value={inputValue}
@@ -419,12 +419,12 @@ export function ConversationalAI({
                   }
                 }}
                 placeholder={resolvedPlaceholder}
-                className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                className="flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground/85"
               />
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isTyping}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-[0_10px_22px_-16px_rgba(0,0,0,0.38)] transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Enviar mensagem"
               >
                 {isTyping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
