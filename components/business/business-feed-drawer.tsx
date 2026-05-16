@@ -7,6 +7,11 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { BusinessPost } from "./business-social-landing"
 import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
+import {
+  getContextualSpotlightClasses,
+  type ContextualReferenceItem,
+  useContextualNavigation,
+} from "@/components/social-landing/use-contextual-navigation"
 
 interface BusinessFeedDrawerProps {
   isOpen: boolean
@@ -134,6 +139,67 @@ const categoryLabels: Record<string, string> = {
   social: "Posts",
 }
 
+const contentTypeLabels: Record<string, string> = {
+  video: "Video",
+  "video-vertical": "Short",
+  product: "Produto",
+  news: "Conteudo",
+  review: "Avaliacao",
+  social: "Post",
+}
+
+const relatedTypePriority: Record<string, string[]> = {
+  video: ["product", "news", "social"],
+  "video-vertical": ["product", "social", "video"],
+  product: ["review", "video", "social"],
+  news: ["video", "social", "review"],
+  review: ["product", "news", "social"],
+  social: ["product", "video", "news"],
+}
+
+const getContextualDescription = (post: BusinessPost) => {
+  if (post.type === "product" && post.price) {
+    return `R$ ${post.price.toFixed(2).replace(".", ",")}`
+  }
+
+  if ((post.type === "video" || post.type === "video-vertical") && post.duration) {
+    return post.duration
+  }
+
+  if (post.type === "news" && post.source) {
+    return post.source
+  }
+
+  if (post.type === "review" && post.reviewerName) {
+    return `por ${post.reviewerName}`
+  }
+
+  return post.description
+}
+
+const buildContextualReferences = (
+  currentPost: BusinessPost,
+  candidates: BusinessPost[]
+): ContextualReferenceItem[] => {
+  const otherPosts = candidates.filter((candidate) => candidate.id !== currentPost.id)
+  const priorityOrder = [currentPost.type, ...(relatedTypePriority[currentPost.type] || [])]
+
+  const prioritizedPosts = priorityOrder.flatMap((type) =>
+    otherPosts.filter((candidate) => candidate.type === type)
+  )
+
+  const orderedPosts = [...prioritizedPosts, ...otherPosts]
+  const uniquePosts = Array.from(new Map(orderedPosts.map((post) => [post.id, post])).values())
+
+  return uniquePosts.slice(0, 2).map((post) => ({
+    id: post.id,
+    title: post.title,
+    eyebrow: contentTypeLabels[post.type] || "Conteudo",
+    image: post.image,
+    description: getContextualDescription(post),
+  }))
+}
+
 // Componente de Avatares Agrupados + Prova Social
 function SocialProofWithAvatars({ type, index }: { type: string; index: number }) {
   const messages = contextualSocialProof[type] || contextualSocialProof.social
@@ -216,7 +282,9 @@ export function BusinessFeedDrawer({
   onAddToCart
 }: BusinessFeedDrawerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const initialPostRef = useRef<HTMLDivElement>(null)
+  const initialPostRef = useRef<HTMLArticleElement>(null)
+  const { highlightedContentId, navigateToContent, registerContentNode } =
+    useContextualNavigation<HTMLArticleElement>()
 
   const filteredPosts = useMemo(() => {
     if (category === "all") return posts
@@ -303,10 +371,18 @@ export function BusinessFeedDrawer({
                 return (
                   <article 
                     key={post.id}
-                    ref={isInitial ? initialPostRef : undefined}
+                    ref={(node) => {
+                      registerContentNode(post.id)(node)
+
+                      if (isInitial) {
+                        initialPostRef.current = node
+                      }
+                    }}
+                    tabIndex={-1}
                     className={cn(
                       "pb-8 border-b border-border/30",
-                      index === 0 && "scroll-mt-20"
+                      index === 0 && "scroll-mt-20",
+                      getContextualSpotlightClasses(highlightedContentId === post.id)
                     )}
                   >
                     {/* MIDIA */}
@@ -442,6 +518,8 @@ export function BusinessFeedDrawer({
                           brandLogo={brandLogo}
                           userAvatar={userAvatar}
                           placeholder={placeholder}
+                          relatedContent={buildContextualReferences(post, orderedPosts)}
+                          onNavigateToContext={navigateToContent}
                         />
                       ) : (
                         <SimpleChatInput

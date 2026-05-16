@@ -2,10 +2,15 @@
 
 import { useEffect, useMemo, useRef, useCallback } from "react"
 import Image from "next/image"
-import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Send } from "lucide-react"
+import { X, Heart, MessageCircle, Share, ChevronRight, ChevronUp, Play, Star, Bookmark, Send } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { Post } from "@/lib/types"
+import {
+  getContextualSpotlightClasses,
+  type ContextualReferenceItem,
+  useContextualNavigation,
+} from "./use-contextual-navigation"
 
 interface FeedDrawerProps {
   isOpen: boolean
@@ -114,6 +119,73 @@ const categoryLabels: Record<string, string> = {
   social: "Posts",
 }
 
+const contentTypeLabels: Record<string, string> = {
+  video: "Video",
+  "video-vertical": "Short",
+  product: "Produto",
+  news: "Conteudo",
+  review: "Avaliacao",
+  social: "Post",
+}
+
+const relatedTypePriority: Record<string, string[]> = {
+  video: ["product", "news", "social"],
+  "video-vertical": ["product", "social", "video"],
+  product: ["review", "video", "social"],
+  news: ["video", "social", "review"],
+  review: ["product", "news", "social"],
+  social: ["product", "video", "news"],
+}
+
+const getPostDisplayType = (post: Post) => {
+  if (post.type === "video" && post.isVertical) {
+    return "video-vertical"
+  }
+
+  return post.type
+}
+
+const getContextualDescription = (post: Post) => {
+  if (post.type === "product" && post.price) {
+    return `R$ ${post.price.toFixed(2).replace(".", ",")}`
+  }
+
+  if (post.type === "video" && post.duration) {
+    return post.duration
+  }
+
+  if (post.type === "news" && post.source) {
+    return post.source
+  }
+
+  if (post.type === "review" && post.author?.name) {
+    return `por ${post.author.name}`
+  }
+
+  return post.description
+}
+
+const buildContextualReferences = (currentPost: Post, candidates: Post[]): ContextualReferenceItem[] => {
+  const currentType = getPostDisplayType(currentPost)
+  const otherPosts = candidates.filter((candidate) => candidate.id !== currentPost.id)
+  const priorityOrder = [currentType, ...(relatedTypePriority[currentType] || [])]
+
+  const prioritizedPosts = priorityOrder.flatMap((type) =>
+    otherPosts.filter((candidate) => getPostDisplayType(candidate) === type)
+  )
+
+  const orderedPosts = [...prioritizedPosts, ...otherPosts]
+  const uniquePosts = Array.from(new Map(orderedPosts.map((post) => [post.id, post])).values())
+
+  return uniquePosts.slice(0, 2).map((post) => ({
+    id: post.id,
+    title: post.title,
+    eyebrow: contentTypeLabels[getPostDisplayType(post)] || "Conteudo",
+    image: post.image || post.thumbnail,
+    description: getContextualDescription(post),
+  }))
+}
+
 // Componente de Avatares Agrupados + Prova Social
 function SocialProofWithAvatars({ type, index }: { type: string; index: number }) {
   const messages = contextualSocialProof[type] || contextualSocialProof.social
@@ -197,14 +269,18 @@ function ChatInput({ placeholder, brandLogo }: { placeholder: string; brandLogo?
 }
 
 // Conversa simulada com IA
-function SimulatedConversation({ 
-  aiMessage, 
-  brandLogo, 
-  placeholder 
-}: { 
+function SimulatedConversation({
+  aiMessage,
+  brandLogo,
+  placeholder,
+  relatedContent = [],
+  onNavigateToContext,
+}: {
   aiMessage: string
   brandLogo?: string
-  placeholder: string 
+  placeholder: string
+  relatedContent?: ContextualReferenceItem[]
+  onNavigateToContext?: (contentId: string) => void
 }) {
   const brandLogoUrl = brandLogo || "https://images.unsplash.com/photo-1629198688000-71f23e745b6e?w=100&h=100&fit=crop"
   
@@ -225,6 +301,54 @@ function SimulatedConversation({
         </div>
       </div>
       
+      {relatedContent.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground/80">
+            Ver no feed
+          </p>
+          <div className="grid gap-2">
+            {relatedContent.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onNavigateToContext?.(item.id)}
+                className="group flex items-center gap-3 rounded-2xl border border-border/60 bg-background/80 px-3 py-2.5 text-left transition-all duration-200 hover:border-accent/30 hover:bg-accent/5 active:scale-[0.99]"
+              >
+                {item.image ? (
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    width={52}
+                    height={52}
+                    className="h-[52px] w-[52px] rounded-xl object-cover"
+                  />
+                ) : (
+                  <div className="flex h-[52px] w-[52px] items-center justify-center rounded-xl bg-accent/10 text-[11px] font-semibold uppercase tracking-wide text-accent">
+                    {item.eyebrow.slice(0, 3)}
+                  </div>
+                )}
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-accent/80">
+                    {item.eyebrow}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-sm font-medium text-foreground">
+                    {item.title}
+                  </p>
+                  {item.description && (
+                    <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+
+                <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-accent" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Input do usuario */}
       <div className="flex items-center gap-3">
         <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-border/50 flex-shrink-0">
@@ -252,7 +376,9 @@ function SimulatedConversation({
 
 export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, brandLogo }: FeedDrawerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const initialPostRef = useRef<HTMLDivElement>(null)
+  const initialPostRef = useRef<HTMLArticleElement>(null)
+  const { highlightedContentId, navigateToContent, registerContentNode } =
+    useContextualNavigation<HTMLArticleElement>()
 
   const filteredPosts = useMemo(() => {
     if (category === "all") return posts
@@ -336,10 +462,18 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
                 return (
                   <article 
                     key={post.id}
-                    ref={isInitial ? initialPostRef : undefined}
+                    ref={(node) => {
+                      registerContentNode(post.id)(node)
+
+                      if (isInitial) {
+                        initialPostRef.current = node
+                      }
+                    }}
+                    tabIndex={-1}
                     className={cn(
                       "pb-8 border-b border-border/30",
-                      index === 0 && "scroll-mt-20"
+                      index === 0 && "scroll-mt-20",
+                      getContextualSpotlightClasses(highlightedContentId === post.id)
                     )}
                   >
                     {/* MIDIA */}
@@ -452,6 +586,8 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
                         aiMessage={aiMessage}
                         brandLogo={brandLogo}
                         placeholder={placeholder}
+                          relatedContent={buildContextualReferences(post, orderedPosts)}
+                          onNavigateToContext={navigateToContent}
                       />
                     ) : (
                       <ChatInput 
