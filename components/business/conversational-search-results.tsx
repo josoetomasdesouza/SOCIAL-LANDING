@@ -22,7 +22,7 @@ export function ConversationalSearchResults({ products }: ConversationalSearchRe
   if (products.length === 0) return null
 
   return (
-    <div className="w-full max-w-[340px] overflow-x-auto pb-1 scrollbar-hide">
+    <div className="w-full min-w-0 overflow-x-auto pb-1 scrollbar-hide">
       <div className="flex gap-2 pr-4">
         {products.map((product) => (
           <article
