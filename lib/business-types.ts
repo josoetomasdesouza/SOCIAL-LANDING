@@ -657,6 +657,7 @@ export interface ConversationMessage {
   options?: ConversationOption[]
   action?: ConversationAction
   context?: ConversationContextPayload
+  contexts?: ConversationContextPayload[]
   delay?: number // ms antes de mostrar
 }
 

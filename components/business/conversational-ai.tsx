@@ -102,15 +102,31 @@ export function ConversationalAI({
       const addedContextItems = contextItems.filter((item) => !previousContextIds.has(item.id))
 
       if (addedContextItems.length > 0) {
-        setMessages((prev) => [
-          ...prev,
-          ...addedContextItems.map((item) => ({
-            id: `context-${item.id}-${Date.now()}`,
-            role: "context_event" as const,
-            content: item.title,
-            context: item,
-          })),
-        ])
+        setMessages((prev) => {
+          const lastMessage = prev[prev.length - 1]
+
+          if (lastMessage?.role === "context_event") {
+            const lastContexts = lastMessage.contexts ?? (lastMessage.context ? [lastMessage.context] : [])
+
+            return [
+              ...prev.slice(0, -1),
+              {
+                ...lastMessage,
+                contexts: [...lastContexts, ...addedContextItems],
+              },
+            ]
+          }
+
+          return [
+            ...prev,
+            {
+              id: `context-${Date.now()}`,
+              role: "context_event" as const,
+              content: addedContextItems.map((item) => item.title).join(", "),
+              contexts: addedContextItems,
+            },
+          ]
+        })
       }
     }
 
@@ -164,6 +180,34 @@ export function ConversationalAI({
     onCloseConversation?.()
   }
 
+  const handleRemoveContextItem = (contextId: string) => {
+    onRemoveContext?.(contextId)
+    setMessages((prev) =>
+      prev.flatMap((message) => {
+        if (message.role !== "context_event") {
+          return [message]
+        }
+
+        const nextContexts = (message.contexts ?? (message.context ? [message.context] : [])).filter(
+          (item) => item.id !== contextId
+        )
+
+        if (nextContexts.length === 0) {
+          return []
+        }
+
+        return [
+          {
+            ...message,
+            content: nextContexts.map((item) => item.title).join(", "),
+            contexts: nextContexts,
+            context: nextContexts[0],
+          },
+        ]
+      })
+    )
+  }
+
   const renderContextChip = (item: ConversationContextItem) => (
     <div
       key={item.id}
@@ -185,7 +229,7 @@ export function ConversationalAI({
       {onRemoveContext ? (
         <button
           type="button"
-          onClick={() => onRemoveContext(item.id)}
+          onClick={() => handleRemoveContextItem(item.id)}
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:text-foreground"
           aria-label={`Remover ${item.title}`}
         >
@@ -227,26 +271,17 @@ export function ConversationalAI({
               {showExpandedConversation ? (
                 <div className="space-y-3 overflow-y-auto px-4 py-4 max-h-[32vh]">
                   {messages.map((message) => {
-                    if (message.role === "context_event" && message.context) {
+                    if (message.role === "context_event") {
+                      const eventContexts = message.contexts ?? (message.context ? [message.context] : [])
+
+                      if (eventContexts.length === 0) {
+                        return null
+                      }
+
                       return (
-                        <div key={message.id} className="flex justify-center py-1">
-                          <div className="w-full max-w-[85%] rounded-2xl border border-dashed border-border/60 bg-secondary/35 px-3 py-3 shadow-sm">
-                            <p className="mb-2 text-center text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                              Contexto adicionado
-                            </p>
-                            <div className="mx-auto flex max-w-[260px] items-center gap-2 rounded-2xl border border-border/50 bg-background/85 p-2">
-                              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl">
-                                <Image src={message.context.image} alt={message.context.title} fill className="object-cover" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                {message.context.subtitle ? (
-                                  <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    {message.context.subtitle}
-                                  </p>
-                                ) : null}
-                                <p className="truncate text-sm font-medium text-foreground">{message.context.title}</p>
-                              </div>
-                            </div>
+                        <div key={message.id} className="py-0.5">
+                          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                            {eventContexts.map((item) => renderContextChip(item))}
                           </div>
                         </div>
                       )
