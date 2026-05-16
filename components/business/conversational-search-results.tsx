@@ -30,9 +30,8 @@ export function ConversationalSearchResults({
   products,
   onProductAction,
 }: ConversationalSearchResultsProps) {
-  if (products.length === 0) return null
-
   const [expandedProductId, setExpandedProductId] = useState<string | null>(null)
+  const hasProducts = products.length > 0
 
   useEffect(() => {
     if (!expandedProductId) return
@@ -46,6 +45,8 @@ export function ConversationalSearchResults({
     () => products.find((product) => product.id === expandedProductId) ?? null,
     [expandedProductId, products]
   )
+
+  if (!hasProducts) return null
 
   return (
     <div className="-ml-[38px] w-[min(calc(100vw-3rem),34rem)] max-w-none space-y-3">
