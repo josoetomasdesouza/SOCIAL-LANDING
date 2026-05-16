@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import type { BusinessConfig, BusinessModel } from "@/lib/business-types"
 import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
-import { ActionDrawer } from "./action-drawer"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
+import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
 
 // ========================================
 // TIPOS
@@ -61,6 +61,28 @@ interface BusinessSocialLandingProps {
   footerLinks?: { label: string; href: string }[]
   conversationalAI?: ReactNode
   reserveHeaderSpace?: boolean | "compact"
+}
+
+const conversationContextLabels: Record<BusinessPost["type"], string> = {
+  video: "Video",
+  "video-vertical": "Short",
+  product: "Produto",
+  news: "Noticia",
+  review: "Avaliacao",
+  social: "Post",
+}
+
+function getConversationContextTitle(post: BusinessPost) {
+  return post.title || post.description || post.reviewerName || "Conteudo selecionado"
+}
+
+function toConversationContextItem(post: BusinessPost, fallbackImage: string): ConversationContextItem {
+  return {
+    id: post.id,
+    title: getConversationContextTitle(post),
+    image: post.image || post.reviewerAvatar || fallbackImage,
+    subtitle: conversationContextLabels[post.type],
+  }
 }
 
 // ========================================
@@ -713,6 +735,7 @@ export function BusinessSocialLanding({
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [feedDrawerOpen, setFeedDrawerOpen] = useState(false)
   const [feedDrawerCategory, setFeedDrawerCategory] = useState<string>("all")
+  const [conversationContext, setConversationContext] = useState<ConversationContextItem[]>([])
   
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
@@ -729,8 +752,19 @@ export function BusinessSocialLanding({
     })
     return posts
   }, [sections])
+
+  const rememberConversationContext = useCallback((post: BusinessPost) => {
+    const nextContext = toConversationContextItem(post, config.logo)
+
+    setConversationContext((prev) => {
+      const deduped = prev.filter((item) => item.id !== nextContext.id)
+      return [nextContext, ...deduped].slice(0, 6)
+    })
+  }, [config.logo])
   
   const handlePostClick = useCallback((post: BusinessPost) => {
+    rememberConversationContext(post)
+
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
     const contentTypes = ["video", "video-vertical", "news", "review", "social"]
     if (contentTypes.includes(post.type)) {
@@ -743,7 +777,7 @@ export function BusinessSocialLanding({
       setDrawerOpen(true)
       onPostClick?.(post)
     }
-  }, [onPostClick])
+  }, [onPostClick, rememberConversationContext])
   
   const handleCloseDrawer = useCallback(() => {
     setDrawerOpen(false)
@@ -760,9 +794,13 @@ export function BusinessSocialLanding({
     setStoryViewerOpen(true)
     onStoryClick?.(story)
   }, [onStoryClick])
+
+  const handleRemoveConversationContext = useCallback((contextId: string) => {
+    setConversationContext((prev) => prev.filter((item) => item.id !== contextId))
+  }, [])
   
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-32">
       {/* Fixed Header */}
       <BusinessHeader config={config} />
       
@@ -794,12 +832,22 @@ export function BusinessSocialLanding({
           ))}
         </div>
         
-        {/* Conversational AI (fixed or inline) */}
-        {conversationalAI}
       </main>
       
       {/* Footer */}
       <BusinessFooter config={config} links={footerLinks} />
+
+      {/* Conversational AI (fixed or inline) */}
+      {conversationalAI || (
+        <ConversationalAI
+          brandLogo={config.logo}
+          brandName={config.name}
+          businessModel={config.model}
+          placeholder={`Pergunte sobre ${config.name}...`}
+          contextItems={conversationContext}
+          onRemoveContext={handleRemoveConversationContext}
+        />
+      )}
       
       {/* Story Viewer Modal */}
       <StoryViewer

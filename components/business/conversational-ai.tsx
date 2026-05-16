@@ -1,329 +1,284 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
-import { Send, X, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import type { ConversationMessage, ConversationOption, ConversationAction, BusinessModel } from "@/lib/business-types"
+import { Loader2, Plus, Send, X } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import type { ConversationAction, ConversationMessage, BusinessModel } from "@/lib/business-types"
 
-// Avatar do usuario (padrao)
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
+
+export interface ConversationContextItem {
+  id: string
+  title: string
+  image: string
+  subtitle?: string
+}
 
 interface ConversationalAIProps {
   brandLogo: string
   brandName: string
-  businessModel: BusinessModel
+  businessModel?: BusinessModel
   initialMessages?: ConversationMessage[]
   placeholder?: string
   onAction?: (action: ConversationAction) => void
   onSendMessage?: (message: string) => void
   className?: string
+  contextItems?: ConversationContextItem[]
+  onRemoveContext?: (contextId: string) => void
 }
 
-// Fluxos pre-definidos por modelo de negocio
-const AI_FLOWS: Record<BusinessModel, ConversationMessage[]> = {
-  appointment: [
-    { id: "1", role: "ai", content: "Oi! Vi que voce esta explorando nossos servicos. Posso te mostrar alguns estilos que estao em alta esse mes?" },
-  ],
-  ecommerce: [
-    { id: "1", role: "ai", content: "Esse produto tem sido muito procurado! Ja vendemos mais de 500 unidades so essa semana. Quer saber o que as pessoas estao achando?" },
-  ],
-  courses: [
-    { id: "1", role: "ai", content: "Esse curso ja formou mais de 2.000 alunos! Quer ver um preview gratuito de uma das aulas?" },
-  ],
-  restaurant: [
-    { id: "1", role: "ai", content: "Esse prato e um dos favoritos da casa! Combina muito bem com nosso vinho da casa. Quer adicionar ao pedido?" },
-  ],
-  realestate: [
-    { id: "1", role: "ai", content: "Esse imovel recebeu 15 visitas so essa semana! Quer agendar uma visita antes que seja reservado?" },
-  ],
-  professionals: [
-    { id: "1", role: "ai", content: "Dr. Silva tem horarios disponiveis ainda essa semana. Posso verificar a agenda pra voce?" },
-  ],
-  events: [
-    { id: "1", role: "ai", content: "Os ingressos VIP estao quase esgotados! Restam apenas 23 disponiveis. Quer garantir o seu?" },
-  ],
-  gym: [
-    { id: "1", role: "ai", content: "Nosso plano trimestral esta com 30% de desconto essa semana! Quer conhecer a estrutura antes de assinar?" },
-  ],
-  health: [
-    { id: "1", role: "ai", content: "Dra. Ana tem um horario disponivel amanha as 14h. Esse horario funciona pra voce?" },
-  ],
+function summarizeContext(items: ConversationContextItem[]) {
+  const titles = items
+    .map((item) => item.title.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+
+  if (titles.length === 0) return ""
+  if (titles.length === 1) return titles[0]
+  return `${titles[0]} e ${titles[1]}`
 }
 
-// Respostas contextuais baseadas em keywords
-const CONTEXTUAL_RESPONSES: Record<string, string[]> = {
-  preco: [
-    "Claro! Esse item custa {price}. Posso te ajudar com mais alguma informacao?",
-    "O valor e {price}, mas temos condicoes especiais de pagamento. Quer saber mais?"
-  ],
-  desconto: [
-    "Temos algumas promocoes ativas! Quer ver as opcoes com desconto?",
-    "Se voce fechar hoje, consigo aplicar um cupom de 10% pra voce!"
-  ],
-  horario: [
-    "Temos horarios disponiveis hoje e amanha. Qual periodo seria melhor pra voce?",
-    "Deixa eu verificar... Temos opcoes de manha e tarde. Qual prefere?"
-  ],
-  entrega: [
-    "A entrega para sua regiao leva em media 3-5 dias uteis. O frete e gratis acima de R$ 199!",
-    "Calculei aqui: entrega prevista para {date}. Quer finalizar o pedido?"
-  ],
-  avaliacoes: [
-    "Esse item tem 4.8 estrelas com mais de 200 avaliacoes! Quer ver alguns comentarios?",
-    "Os clientes adoram! 95% recomendam. Posso mostrar os depoimentos?"
-  ],
-  pagamento: [
-    "Aceitamos cartao, Pix e boleto. No Pix tem 5% de desconto!",
-    "Da pra parcelar em ate 12x sem juros. Quer seguir pra pagamento?"
-  ],
+function buildMockReply(brandName: string, userMessage: string, contextItems: ConversationContextItem[]) {
+  const responseIndex = userMessage.trim().length % 3
+  const contextLabel = summarizeContext(contextItems)
+
+  if (contextLabel) {
+    const contextualReplies = [
+      `Sobre ${contextLabel}, isso parece combinar bem com o que voce selecionou. Posso te mostrar o melhor caminho.`,
+      `${contextLabel} ajuda bastante nessa escolha. Se quiser, eu resumo o que faz mais sentido.`,
+      `Levando em conta ${contextLabel}, eu seguiria por uma opcao mais direta. Posso te indicar agora.`,
+    ]
+
+    return contextualReplies[responseIndex]
+  }
+
+  const genericReplies = [
+    `${brandName} pode te ajudar com isso rapidinho. Posso te mostrar a melhor opcao?`,
+    `Claro. Posso te orientar sobre ${brandName} de um jeito bem direto.`,
+    `Sem problema. Eu resumo o principal sobre ${brandName} pra voce.`,
+  ]
+
+  return genericReplies[responseIndex]
 }
 
 export function ConversationalAI({
   brandLogo,
   brandName,
-  businessModel,
   initialMessages,
-  placeholder = "Digite sua mensagem...",
-  onAction,
+  placeholder = "Pergunte sobre a marca...",
   onSendMessage,
-  className = ""
+  className,
+  contextItems = [],
+  onRemoveContext,
 }: ConversationalAIProps) {
-  const [messages, setMessages] = useState<ConversationMessage[]>(
-    initialMessages || AI_FLOWS[businessModel] || []
-  )
+  const [messages, setMessages] = useState<ConversationMessage[]>(initialMessages || [])
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages, isTyping])
 
-  const findContextualResponse = (message: string): string => {
-    const lowerMessage = message.toLowerCase()
-    
-    for (const [keyword, responses] of Object.entries(CONTEXTUAL_RESPONSES)) {
-      if (lowerMessage.includes(keyword)) {
-        return responses[Math.floor(Math.random() * responses.length)]
-      }
-    }
-    
-    // Resposta padrao se nenhum keyword for encontrado
-    const defaultResponses = [
-      "Entendi! Deixa eu verificar isso pra voce...",
-      "Boa pergunta! Vou te ajudar com isso.",
-      "Claro, posso te ajudar com isso. Me conta mais detalhes?",
-    ]
-    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)]
-  }
+  const hasConversation = messages.length > 0 || isTyping
+  const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
 
   const handleSendMessage = () => {
-    if (!inputValue.trim()) return
+    const nextMessage = inputValue.trim()
+    if (!nextMessage || isTyping) return
 
     const userMessage: ConversationMessage = {
       id: `user-${Date.now()}`,
       role: "user",
-      content: inputValue.trim()
+      content: nextMessage,
     }
 
-    setMessages(prev => [...prev, userMessage])
+    setMessages((prev) => [...prev, userMessage])
     setInputValue("")
     setIsTyping(true)
-    
-    onSendMessage?.(inputValue.trim())
+    onSendMessage?.(nextMessage)
 
-    // Simula resposta da IA apos delay
-    setTimeout(() => {
-      const aiResponse: ConversationMessage = {
+    window.setTimeout(() => {
+      const aiMessage: ConversationMessage = {
         id: `ai-${Date.now()}`,
         role: "ai",
-        content: findContextualResponse(userMessage.content)
+        content: buildMockReply(brandName, nextMessage, contextItems),
       }
-      setMessages(prev => [...prev, aiResponse])
+
+      setMessages((prev) => [...prev, aiMessage])
       setIsTyping(false)
-    }, 1000 + Math.random() * 1000)
+    }, 700)
   }
 
-  const handleOptionClick = (option: ConversationOption) => {
-    const userMessage: ConversationMessage = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: option.label
-    }
-    setMessages(prev => [...prev, userMessage])
-
-    if (option.action) {
-      onAction?.(option.action)
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
-
-  if (!isExpanded && messages.length > 0) {
-    // Modo compacto - mostra apenas ultima mensagem da IA
-    const lastAiMessage = [...messages].reverse().find(m => m.role === "ai")
-    
-    return (
-      <div className={`${className}`}>
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="w-full text-left"
-        >
-          <div className="flex items-start gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary/70 transition-colors">
-            <Image
-              src={brandLogo}
-              alt={brandName}
-              width={32}
-              height={32}
-              className="rounded-full ring-2 ring-accent/20 flex-shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-foreground line-clamp-2">
-                {lastAiMessage?.content}
-              </p>
-              <p className="text-xs text-accent mt-1 font-medium">
-                Toque para continuar a conversa
-              </p>
-            </div>
-          </div>
-        </button>
-      </div>
-    )
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    handleSendMessage()
   }
 
   return (
-    <div className={`bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-border/50 bg-secondary/30">
-        <div className="flex items-center gap-2">
-          <Image
-            src={brandLogo}
-            alt={brandName}
-            width={28}
-            height={28}
-            className="rounded-full"
-          />
-          <div>
-            <p className="text-sm font-medium text-foreground">{brandName}</p>
-            <p className="text-xs text-muted-foreground">Online agora</p>
-          </div>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsExpanded(false)}
-          className="h-8 w-8 p-0"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Messages */}
-      <div className="p-3 space-y-3 max-h-[300px] overflow-y-auto">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex items-end gap-2 ${message.role === "user" ? "flex-row-reverse" : ""}`}
-          >
-            <Image
-              src={message.role === "user" ? USER_AVATAR : brandLogo}
-              alt={message.role === "user" ? "Voce" : brandName}
-              width={28}
-              height={28}
-              className="rounded-full flex-shrink-0"
-            />
-            <div
-              className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
-                message.role === "user"
-                  ? "bg-accent text-accent-foreground rounded-br-md"
-                  : "bg-secondary text-foreground rounded-bl-md"
-              }`}
-            >
-              {message.content}
-            </div>
-          </div>
-        ))}
-
-        {/* Typing indicator */}
-        {isTyping && (
-          <div className="flex items-end gap-2">
-            <Image
-              src={brandLogo}
-              alt={brandName}
-              width={28}
-              height={28}
-              className="rounded-full"
-            />
-            <div className="bg-secondary px-4 py-2 rounded-2xl rounded-bl-md">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+    <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
+      <div className="mx-auto flex max-w-lg flex-col gap-3 px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
+        {hasConversation && (
+          <section className="pointer-events-auto overflow-hidden rounded-[30px] border border-border/60 bg-background/92 shadow-[0_20px_60px_-28px_rgba(0,0,0,0.45)] backdrop-blur-xl animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
+            <div className="px-4 pt-3">
+              <div className="mx-auto mb-3 h-1 w-12 rounded-full bg-border/80" />
+              <div className="flex items-center justify-between gap-3 pb-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <Image
+                    src={brandLogo}
+                    alt={brandName}
+                    width={36}
+                    height={36}
+                    className="rounded-full border border-border/60 object-cover"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">{brandName}</p>
+                    <p className="text-xs text-muted-foreground">Conversa principal</p>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] font-medium">
+                  Na conversa
+                </Badge>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Quick options */}
-        {messages.length > 0 && messages[messages.length - 1].options && (
-          <div className="flex flex-wrap gap-2 pt-2">
-            {messages[messages.length - 1].options?.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => handleOptionClick(option)}
-                className="px-3 py-1.5 text-sm bg-accent/10 text-accent rounded-full hover:bg-accent/20 transition-colors"
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        )}
+            {contextItems.length > 0 && (
+              <div className="border-y border-border/50 px-4 py-3">
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                  {contextItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="relative flex w-[132px] shrink-0 overflow-hidden rounded-2xl border border-border/50 bg-secondary/40"
+                    >
+                      <div className="relative h-[88px] w-[72px] shrink-0 bg-secondary">
+                        <Image src={item.image} alt={item.title} fill className="object-cover" />
+                      </div>
+                      <div className="flex min-w-0 flex-1 flex-col justify-between p-2.5">
+                        {item.subtitle ? (
+                          <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                            {item.subtitle}
+                          </span>
+                        ) : null}
+                        <p className="line-clamp-3 text-xs font-medium leading-snug text-foreground">
+                          {item.title}
+                        </p>
+                      </div>
+                      {onRemoveContext ? (
+                        <button
+                          type="button"
+                          onClick={() => onRemoveContext(item.id)}
+                          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm transition-colors hover:bg-background"
+                          aria-label={`Remover ${item.title}`}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        <div ref={messagesEndRef} />
-      </div>
+            <div className={cn("space-y-3 overflow-y-auto px-4 py-4", contextItems.length > 0 ? "max-h-[28vh]" : "max-h-[34vh]")}>
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={cn("flex items-end gap-2.5", message.role === "user" && "justify-end")}
+                >
+                  {message.role !== "user" ? (
+                    <Image
+                      src={brandLogo}
+                      alt={brandName}
+                      width={28}
+                      height={28}
+                      className="rounded-full border border-border/60 object-cover"
+                    />
+                  ) : null}
 
-      {/* Input */}
-      <div className="p-3 border-t border-border/50 bg-secondary/20">
-        <div className="flex items-center gap-2">
-          <Image
-            src={USER_AVATAR}
-            alt="Voce"
-            width={28}
-            height={28}
-            className="rounded-full flex-shrink-0"
-          />
-          <div className="flex-1 flex items-center gap-2 bg-background rounded-full px-4 py-2 border border-border/50">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={placeholder}
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isTyping}
-              className="text-accent hover:text-accent/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isTyping ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <Send className="h-5 w-5" />
+                  <div
+                    className={cn(
+                      "max-w-[82%] rounded-[24px] px-4 py-3 text-sm leading-relaxed shadow-sm",
+                      message.role === "user"
+                        ? "rounded-br-md bg-foreground text-background"
+                        : "rounded-bl-md bg-secondary text-foreground"
+                    )}
+                  >
+                    {message.content}
+                  </div>
+
+                  {message.role === "user" ? (
+                    <Image
+                      src={USER_AVATAR}
+                      alt="Voce"
+                      width={28}
+                      height={28}
+                      className="rounded-full border border-border/60 object-cover"
+                    />
+                  ) : null}
+                </div>
+              ))}
+
+              {isTyping && (
+                <div className="flex items-end gap-2.5">
+                  <Image
+                    src={brandLogo}
+                    alt={brandName}
+                    width={28}
+                    height={28}
+                    className="rounded-full border border-border/60 object-cover"
+                  />
+                  <div className="rounded-[24px] rounded-bl-md bg-secondary px-4 py-3 text-foreground shadow-sm">
+                    <div className="flex items-center gap-1">
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.2s]" />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.1s]" />
+                      <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50" />
+                    </div>
+                  </div>
+                </div>
               )}
+
+              <div ref={messagesEndRef} />
+            </div>
+          </section>
+        )}
+
+        <div className="pointer-events-auto rounded-[30px] border border-border/60 bg-background/95 p-3 shadow-[0_18px_40px_-26px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+          <form onSubmit={handleSubmit} className="flex items-center gap-2.5">
+            <button
+              type="button"
+              disabled
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground/70"
+              aria-label="Adicionar contexto"
+            >
+              <Plus className="h-5 w-5" />
             </button>
-          </div>
+
+            <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-secondary/70 px-4 py-2.5">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(event) => setInputValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault()
+                    handleSendMessage()
+                  }
+                }}
+                placeholder={resolvedPlaceholder}
+                className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              />
+              <button
+                type="submit"
+                disabled={!inputValue.trim() || isTyping}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Enviar mensagem"
+              >
+                {isTyping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
