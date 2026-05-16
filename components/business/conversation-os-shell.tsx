@@ -114,10 +114,10 @@ export function ConversationOSShell({
   }, [messages, isTyping, isMinimized, operationalState.activePanel])
 
   useEffect(() => {
-    if (operationalState.activePanel !== "none") {
+    if (operationalState.activeFlow === "product") {
       setIsMinimized(false)
     }
-  }, [operationalState.activePanel])
+  }, [operationalState.activeFlow])
 
   useEffect(() => {
     return () => {
@@ -128,11 +128,14 @@ export function ConversationOSShell({
   }, [])
 
   const hasConversation = messages.length > 0 || isTyping
+  const hasActiveProductFlow = operationalState.activeFlow === "product"
+  const hasConversationSurface = hasConversation || hasActiveProductFlow
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
-  const showContextRow = !hasConversation && contextItems.length > 0
-  const showExpandedConversation = hasConversation && !isMinimized
-  const showOperationalPanel = operationalState.activePanel !== "none" && showExpandedConversation
-  const isImmersive = operationalState.surfaceMode === "immersive" && showExpandedConversation
+  const showContextRow = !hasConversationSurface && contextItems.length > 0
+  const showExpandedConversation = hasConversationSurface && !isMinimized
+  const showOperationalPanel = hasActiveProductFlow && showExpandedConversation
+  const isImmersive =
+    (operationalState.surfaceMode === "immersive" || hasActiveProductFlow) && showExpandedConversation
 
   const buildContextEvent = (items: ConversationContextItem[]): ConversationRuntimeMessage => ({
     id: `context-${Date.now()}`,
@@ -308,7 +311,7 @@ export function ConversationOSShell({
             isImmersive && "flex h-[82vh] flex-col"
           )}
         >
-          {hasConversation && (
+          {hasConversationSurface && (
             <div className="border-b border-border/50">
               <div className="px-4 pt-3 pb-2">
                 <div className="relative flex items-center justify-center">
