@@ -1,16 +1,16 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, ReactNode } from "react"
+import { useState, useCallback, useMemo, useEffect, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import type { BusinessConfig, BusinessModel } from "@/lib/business-types"
-import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
-import { ActionDrawer } from "./action-drawer"
+import type { BusinessConfig } from "@/lib/business-types"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
+import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
+import { ContextSelectable } from "./context-selectable"
 
 // ========================================
 // TIPOS
@@ -61,6 +61,28 @@ interface BusinessSocialLandingProps {
   footerLinks?: { label: string; href: string }[]
   conversationalAI?: ReactNode
   reserveHeaderSpace?: boolean | "compact"
+}
+
+const conversationContextLabels: Record<BusinessPost["type"], string> = {
+  video: "Video",
+  "video-vertical": "Short",
+  product: "Produto",
+  news: "Noticia",
+  review: "Avaliacao",
+  social: "Post",
+}
+
+function getConversationContextTitle(post: BusinessPost) {
+  return post.title || post.description || post.reviewerName || "Conteudo selecionado"
+}
+
+function toConversationContextItem(post: BusinessPost, fallbackImage: string): ConversationContextItem {
+  return {
+    id: post.id,
+    title: getConversationContextTitle(post),
+    image: post.image || post.reviewerAvatar || fallbackImage,
+    subtitle: conversationContextLabels[post.type],
+  }
 }
 
 // ========================================
@@ -394,58 +416,28 @@ function BusinessSearchBar({ placeholder }: { placeholder?: string }) {
 function PostCard({ 
   post, 
   index, 
-  brandLogo, 
   onClick,
-  showChat = true
+  onLongPress,
+  selectedInConversation = false,
 }: { 
   post: BusinessPost
   index: number
-  brandLogo: string
   onClick?: () => void
-  showChat?: boolean
+  onLongPress?: (post: BusinessPost) => void
+  selectedInConversation?: boolean
 }) {
-  const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
-  
-  const chatMessages: Record<string, { messages: { content: string; isUser: boolean }[]; placeholder: string }> = {
-    video: {
-      messages: [{ content: "Esse tutorial tem dicas incriveis! Quer que eu resuma os pontos principais?", isUser: false }],
-      placeholder: "O que achou do video?"
-    },
-    "video-vertical": {
-      messages: [{ content: "Esse conteudo viralizou essa semana! Quer ver mais como esse?", isUser: false }],
-      placeholder: "Curti! Tem mais?"
-    },
-    product: {
-      messages: [
-        { content: "Esse produto esta entre os mais vendidos! Sabia que ele tem ingredientes exclusivos da Amazonia?", isUser: false },
-        { content: "Serio? Conta mais!", isUser: true },
-        { content: "Sim! E feito com castanha e oleo de buriti. Quer que eu explique os beneficios?", isUser: false }
-      ],
-      placeholder: "Vale a pena pra mim?"
-    },
-    news: {
-      messages: [{ content: "Essa noticia saiu em varios portais essa semana. Quer saber mais detalhes?", isUser: false }],
-      placeholder: "Me conta mais"
-    },
-    review: {
-      messages: [{ content: "Essa avaliacao foi muito curtida! Voce ja experimentou esse produto?", isUser: false }],
-      placeholder: "Ainda nao, e bom?"
-    },
-    social: {
-      messages: [{ content: "Esse post teve muito engajamento! O que achou?", isUser: false }],
-      placeholder: "Adorei!"
-    }
-  }
-  
-  const chatConfig = chatMessages[post.type] || chatMessages.social
-  
   // Renderiza card baseado no tipo
   if (post.type === "video" || post.type === "video-vertical") {
     const isVertical = post.type === "video-vertical"
     return (
-      <article className="mb-8">
+      <ContextSelectable
+        as="article"
+        className="mb-8"
+        onClick={onClick}
+        onLongPress={() => onLongPress?.(post)}
+        selected={selectedInConversation}
+      >
         <div 
-          onClick={onClick}
           className={cn(
             "relative rounded-2xl overflow-hidden cursor-pointer group",
             isVertical ? "aspect-[9/16]" : "aspect-video"
@@ -470,30 +462,21 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type={post.type} index={index} />
         <SocialActions />
-        {showChat && (index % 3 === 0) && (
-          <div className="mt-4">
-            <SimulatedChat
-              messages={chatConfig.messages}
-              brandLogo={brandLogo}
-              userAvatar={userAvatar}
-              placeholder={chatConfig.placeholder}
-            />
-          </div>
-        )}
-        {showChat && (index % 3 !== 0) && (
-          <div className="mt-4">
-            <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-          </div>
-        )}
-      </article>
+      </ContextSelectable>
     )
   }
   
   if (post.type === "product") {
     const discount = post.originalPrice ? Math.round((1 - post.price! / post.originalPrice) * 100) : 0
     return (
-      <article className="mb-8">
-        <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group">
+      <ContextSelectable
+        as="article"
+        className="mb-8"
+        onClick={onClick}
+        onLongPress={() => onLongPress?.(post)}
+        selected={selectedInConversation}
+      >
+        <div className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group">
           <Image src={post.image} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
           {discount > 0 && (
             <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0">-{discount}%</Badge>
@@ -514,25 +497,21 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type="product" index={index} />
         <SocialActions />
-        {showChat && (
-          <div className="mt-4">
-            <SimulatedChat
-              messages={chatConfig.messages}
-              brandLogo={brandLogo}
-              userAvatar={userAvatar}
-              placeholder={chatConfig.placeholder}
-            />
-          </div>
-        )}
-      </article>
+      </ContextSelectable>
     )
   }
   
   if (post.type === "news") {
     return (
-      <article className="mb-8">
+      <ContextSelectable
+        as="article"
+        className="mb-8"
+        onClick={onClick}
+        onLongPress={() => onLongPress?.(post)}
+        selected={selectedInConversation}
+      >
         {post.image && (
-          <div onClick={onClick} className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group">
+          <div className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group">
             <Image src={post.image} alt={post.title} fill className="object-cover" />
             {post.source && (
               <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground border-0">{post.source}</Badge>
@@ -551,18 +530,19 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type="news" index={index} />
         <SocialActions />
-        {showChat && (
-          <div className="mt-4">
-            <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-          </div>
-        )}
-      </article>
+      </ContextSelectable>
     )
   }
   
   if (post.type === "review") {
     return (
-      <article className="mb-8 p-4 bg-card rounded-2xl border border-border/50">
+      <ContextSelectable
+        as="article"
+        className="mb-8 p-4 bg-card rounded-2xl border border-border/50"
+        onClick={onClick}
+        onLongPress={() => onLongPress?.(post)}
+        selected={selectedInConversation}
+      >
         <div className="flex items-start gap-3">
           {post.reviewerAvatar && (
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
@@ -586,20 +566,21 @@ function PostCard({
         </div>
         <SocialProofWithAvatars type="review" index={index} />
         <SocialActions />
-        {showChat && (
-          <div className="mt-4">
-            <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-          </div>
-        )}
-      </article>
+      </ContextSelectable>
     )
   }
   
   // Social post (default)
   return (
-    <article className="mb-8">
+    <ContextSelectable
+      as="article"
+      className="mb-8"
+      onClick={onClick}
+      onLongPress={() => onLongPress?.(post)}
+      selected={selectedInConversation}
+    >
       {post.image && (
-        <div onClick={onClick} className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer">
+        <div className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer">
           <Image src={post.image} alt={post.title} fill className="object-cover" />
         </div>
       )}
@@ -609,12 +590,7 @@ function PostCard({
       </div>
       <SocialProofWithAvatars type="social" index={index} />
       <SocialActions />
-      {showChat && (
-        <div className="mt-4">
-          <SimpleChatInput brandLogo={brandLogo} userAvatar={userAvatar} placeholder={chatConfig.placeholder} />
-        </div>
-      )}
-    </article>
+    </ContextSelectable>
   )
 }
 
@@ -624,14 +600,28 @@ function PostCard({
 function BusinessSectionComponent({ 
   section, 
   config, 
-  onPostClick 
+  onPostClick,
+  onPostLongPress,
+  selectedContextIds,
+  onToggleConversationContext,
+  isConversationSelected,
 }: { 
   section: BusinessSection
   config: BusinessConfig
   onPostClick?: (post: BusinessPost) => void
+  onPostLongPress?: (post: BusinessPost) => void
+  selectedContextIds: Set<string>
+  onToggleConversationContext: (item: ConversationContextItem) => void
+  isConversationSelected: (id: string) => boolean
 }) {
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
+  const renderedCustomContent = isValidElement(section.customContent)
+    ? cloneElement(section.customContent, {
+        onToggleConversationContext,
+        isInConversation: isConversationSelected,
+      } as Record<string, unknown>)
+    : section.customContent
   
   return (
     <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
@@ -642,7 +632,7 @@ function BusinessSectionComponent({
       </div>
       
       {/* Custom Content (for specific modules - sem drawer) */}
-      {section.customContent && section.customContent}
+      {renderedCustomContent}
       
       {/* Render Content (com drawer) - passa onPostClick para o conteudo */}
       {section.renderContent && onPostClick && section.renderContent(onPostClick)}
@@ -653,8 +643,9 @@ function BusinessSectionComponent({
           key={post.id}
           post={post}
           index={index}
-          brandLogo={config.logo}
           onClick={() => onPostClick?.(post)}
+          onLongPress={onPostLongPress}
+          selectedInConversation={selectedContextIds.has(post.id)}
         />
       ))}
     </section>
@@ -713,6 +704,7 @@ export function BusinessSocialLanding({
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [feedDrawerOpen, setFeedDrawerOpen] = useState(false)
   const [feedDrawerCategory, setFeedDrawerCategory] = useState<string>("all")
+  const [conversationContext, setConversationContext] = useState<ConversationContextItem[]>([])
   
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
@@ -729,6 +721,42 @@ export function BusinessSocialLanding({
     })
     return posts
   }, [sections])
+
+  const selectedContextIds = useMemo(
+    () => new Set(conversationContext.map((item) => item.id)),
+    [conversationContext]
+  )
+
+  const upsertConversationContextItem = useCallback((nextContext: ConversationContextItem) => {
+    setConversationContext((prev) => {
+      const deduped = prev.filter((item) => item.id !== nextContext.id)
+      return [nextContext, ...deduped].slice(0, 6)
+    })
+  }, [])
+
+  const addConversationContext = useCallback((post: BusinessPost) => {
+    upsertConversationContextItem(toConversationContextItem(post, config.logo))
+  }, [config.logo, upsertConversationContextItem])
+
+  const toggleConversationContextItem = useCallback((contextItem: ConversationContextItem) => {
+    if (selectedContextIds.has(contextItem.id)) {
+      setConversationContext((prev) => prev.filter((item) => item.id !== contextItem.id))
+      return
+    }
+
+    upsertConversationContextItem(contextItem)
+  }, [selectedContextIds, upsertConversationContextItem])
+
+  const toggleConversationContext = useCallback((post: BusinessPost) => {
+    if (selectedContextIds.has(post.id)) {
+      setConversationContext((prev) => prev.filter((item) => item.id !== post.id))
+      return
+    }
+
+    addConversationContext(post)
+  }, [addConversationContext, selectedContextIds])
+
+  const isConversationSelected = useCallback((id: string) => selectedContextIds.has(id), [selectedContextIds])
   
   const handlePostClick = useCallback((post: BusinessPost) => {
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
@@ -760,9 +788,13 @@ export function BusinessSocialLanding({
     setStoryViewerOpen(true)
     onStoryClick?.(story)
   }, [onStoryClick])
+
+  const handleRemoveConversationContext = useCallback((contextId: string) => {
+    setConversationContext((prev) => prev.filter((item) => item.id !== contextId))
+  }, [])
   
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-32">
       {/* Fixed Header */}
       <BusinessHeader config={config} />
       
@@ -790,16 +822,30 @@ export function BusinessSocialLanding({
               section={section}
               config={config}
               onPostClick={handlePostClick}
+              onPostLongPress={toggleConversationContext}
+              selectedContextIds={selectedContextIds}
+              onToggleConversationContext={toggleConversationContextItem}
+              isConversationSelected={isConversationSelected}
             />
           ))}
         </div>
         
-        {/* Conversational AI (fixed or inline) */}
-        {conversationalAI}
       </main>
       
       {/* Footer */}
       <BusinessFooter config={config} links={footerLinks} />
+
+      {/* Conversational AI (fixed or inline) */}
+      {conversationalAI || (
+        <ConversationalAI
+          brandLogo={config.logo}
+          brandName={config.name}
+          className={cn(feedDrawerOpen ? "z-[60]" : "z-30", drawerOpen && !feedDrawerOpen && "hidden")}
+          placeholder={`Pergunte sobre ${config.name}...`}
+          contextItems={conversationContext}
+          onRemoveContext={handleRemoveConversationContext}
+        />
+      )}
       
       {/* Story Viewer Modal */}
       <StoryViewer
@@ -875,6 +921,8 @@ export function BusinessSocialLanding({
         category={feedDrawerCategory}
         brandLogo={config.logo}
         brandName={config.name}
+        selectedContextIds={[...selectedContextIds]}
+        onPostLongPress={toggleConversationContext}
       />
       
       {/* Custom Post Drawer - para itens especificos do negocio */}

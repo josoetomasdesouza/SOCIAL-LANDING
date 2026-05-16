@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { EcommerceCheckout } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product, VariantOption } from "@/lib/business-types"
@@ -68,12 +70,16 @@ function ProductsModule({
   onSelectProduct,
   onAddToCart,
   favorites,
-  onToggleFavorite
+  onToggleFavorite,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   onSelectProduct: (product: Product) => void
   onAddToCart: (product: Product) => void
   favorites: Set<string>
   onToggleFavorite: (id: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const featuredProducts = products.filter(p => p.originalPrice && p.originalPrice > p.price).slice(0, 4)
   
@@ -83,12 +89,22 @@ function ProductsModule({
       <div className="grid grid-cols-2 gap-3">
         {featuredProducts.map((product) => {
           const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
+          const contextItem = {
+            id: `ecommerce-product-${product.id}`,
+            title: product.name,
+            image: product.images[0],
+            subtitle: "Produto",
+          }
           return (
-            <div key={product.id} className="relative group">
-              <button
-                onClick={() => onSelectProduct(product)}
-                className="w-full text-left"
-              >
+            <ContextSelectable
+              key={product.id}
+              as="div"
+              onClick={() => onSelectProduct(product)}
+              onLongPress={() => onToggleConversationContext?.(contextItem)}
+              selected={isInConversation?.(contextItem.id) ?? false}
+              className="relative group"
+            >
+              <div className="w-full text-left">
                 <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
                   <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                   {discount > 0 && (
@@ -108,7 +124,7 @@ function ProductsModule({
                     )}
                   </div>
                 </div>
-              </button>
+              </div>
               <button
                 onClick={() => onToggleFavorite(product.id)}
                 className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
@@ -123,7 +139,7 @@ function ProductsModule({
                 <ShoppingBag className="w-4 h-4 mr-1" />
                 Adicionar
               </Button>
-            </div>
+            </ContextSelectable>
           )
         })}
       </div>

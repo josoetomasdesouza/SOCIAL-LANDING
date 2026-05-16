@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { CourseCheckout } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
 import { coursesConfig, courses } from "@/lib/mock-data/courses-data"
 import { coursesContent } from "@/lib/mock-data/business-content"
 import type { Course } from "@/lib/business-types"
@@ -15,17 +17,34 @@ import type { Course } from "@/lib/business-types"
 // ========================================
 // MODULO: CURSOS EM DESTAQUE (OBJETIVO PRINCIPAL)
 // ========================================
-function CoursesModule({ onSelectCourse }: { onSelectCourse: (course: Course) => void }) {
+function CoursesModule({
+  onSelectCourse,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onSelectCourse: (course: Course) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   const featuredCourses = courses.slice(0, 3)
   
   return (
     <div className="space-y-4">
       {featuredCourses.map((course) => {
         const discount = course.originalPrice ? Math.round((1 - course.price / course.originalPrice) * 100) : 0
+        const contextItem = {
+          id: `course-${course.id}`,
+          title: course.title,
+          image: course.thumbnail,
+          subtitle: "Curso",
+        }
         return (
-          <button
+          <ContextSelectable
             key={course.id}
+            as="div"
             onClick={() => onSelectCourse(course)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors"
           >
             <div className="relative aspect-video">
@@ -68,7 +87,7 @@ function CoursesModule({ onSelectCourse }: { onSelectCourse: (course: Course) =>
                 )}
               </div>
             </div>
-          </button>
+          </ContextSelectable>
         )
       })}
     </div>

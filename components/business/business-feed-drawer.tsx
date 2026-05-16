@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useRef, useCallback, useState } from "react"
 import Image from "next/image"
-import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Send, Newspaper } from "lucide-react"
+import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Newspaper } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { BusinessPost } from "./business-social-landing"
-import { SimulatedChat, SimpleChatInput } from "@/components/social-landing/inline-chat"
+import { ContextSelectable } from "./context-selectable"
 
 interface BusinessFeedDrawerProps {
   isOpen: boolean
@@ -17,10 +17,9 @@ interface BusinessFeedDrawerProps {
   brandLogo: string
   brandName: string
   onAddToCart?: (post: BusinessPost) => void
+  selectedContextIds: string[]
+  onPostLongPress?: (post: BusinessPost) => void
 }
-
-// Avatar do usuario
-const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
 
 // Avatares de usuarios para prova social
 const socialAvatars = [
@@ -213,10 +212,13 @@ export function BusinessFeedDrawer({
   category, 
   brandLogo,
   brandName,
-  onAddToCart
+  onAddToCart,
+  selectedContextIds,
+  onPostLongPress,
 }: BusinessFeedDrawerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const initialPostRef = useRef<HTMLDivElement>(null)
+  const selectedContextIdSet = useMemo(() => new Set(selectedContextIds), [selectedContextIds])
 
   const filteredPosts = useMemo(() => {
     if (category === "all") return posts
@@ -290,25 +292,23 @@ export function BusinessFeedDrawer({
 
         {/* Feed Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6">
+          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6 pb-36">
             <div className="space-y-8">
               {orderedPosts.map((post, index) => {
                 const isInitial = initialPost?.id === post.id
-                const placeholders = inputPlaceholders[post.type] || inputPlaceholders.social
-                const placeholder = placeholders[index % placeholders.length]
-                const aiMessages = aiInitialMessages[post.type] || aiInitialMessages.social
-                const aiMessage = aiMessages[index % aiMessages.length]
-                const showConversation = index % 3 === 0
 
                 return (
-                  <article 
+                  <ContextSelectable
+                    as="article"
                     key={post.id}
-                    ref={isInitial ? initialPostRef : undefined}
+                    onLongPress={() => onPostLongPress?.(post)}
+                    selected={selectedContextIdSet.has(post.id)}
                     className={cn(
                       "pb-8 border-b border-border/30",
                       index === 0 && "scroll-mt-20"
                     )}
                   >
+                    <div ref={isInitial ? initialPostRef : undefined}>
                     {/* MIDIA */}
                     {post.image && (
                       <div className={cn(
@@ -434,24 +434,6 @@ export function BusinessFeedDrawer({
                       <SocialActions />
                     </div>
 
-                    {/* CONVERSA COM IA */}
-                    <div className="mt-4 pt-4 border-t border-border/30">
-                      {showConversation ? (
-                        <SimulatedChat
-                          messages={[{ content: aiMessage, isUser: false }]}
-                          brandLogo={brandLogo}
-                          userAvatar={userAvatar}
-                          placeholder={placeholder}
-                        />
-                      ) : (
-                        <SimpleChatInput
-                          brandLogo={brandLogo}
-                          userAvatar={userAvatar}
-                          placeholder={placeholder}
-                        />
-                      )}
-                    </div>
-
                     {/* CTA (apenas produtos) */}
                     {post.type === "product" && (
                       <Button 
@@ -461,7 +443,8 @@ export function BusinessFeedDrawer({
                         Adicionar ao carrinho
                       </Button>
                     )}
-                  </article>
+                    </div>
+                  </ContextSelectable>
                 )
               })}
             </div>

@@ -9,6 +9,8 @@ import { BusinessSocialLanding, type BusinessSection } from "../business-social-
 import { ActionDrawer } from "../action-drawer"
 import { AppointmentCalendar } from "../appointment-calendar"
 import { AppointmentConfirmation } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
 import { healthConfig, healthProfessionals, healthServices } from "@/lib/mock-data/health-data"
 import { healthContent } from "@/lib/mock-data/business-content"
 import type { HealthProfessional } from "@/lib/business-types"
@@ -16,13 +18,32 @@ import type { HealthProfessional } from "@/lib/business-types"
 // ========================================
 // MODULO: PROFISSIONAIS (OBJETIVO PRINCIPAL)
 // ========================================
-function ProfessionalsModule({ onSelectProfessional }: { onSelectProfessional: (prof: HealthProfessional) => void }) {
+function ProfessionalsModule({
+  onSelectProfessional,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onSelectProfessional: (prof: HealthProfessional) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   return (
     <div className="space-y-4">
-      {healthProfessionals.slice(0, 3).map((prof) => (
-        <button
+      {healthProfessionals.slice(0, 3).map((prof) => {
+        const contextItem = {
+          id: `health-professional-${prof.id}`,
+          title: prof.name,
+          image: prof.avatar,
+          subtitle: "Profissional",
+        }
+
+        return (
+        <ContextSelectable
           key={prof.id}
+          as="div"
           onClick={() => onSelectProfessional(prof)}
+          onLongPress={() => onToggleConversationContext?.(contextItem)}
+          selected={isInConversation?.(contextItem.id) ?? false}
           className="w-full flex items-center gap-4 p-4 bg-card rounded-xl border border-border/50 hover:border-accent/50 transition-colors text-left"
         >
           <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
@@ -48,8 +69,8 @@ function ProfessionalsModule({ onSelectProfessional }: { onSelectProfessional: (
             <p className="font-bold text-accent">R$ {prof.consultationPrice?.toFixed(2).replace(".", ",")}</p>
             <p className="text-xs text-muted-foreground">consulta</p>
           </div>
-        </button>
-      ))}
+        </ContextSelectable>
+      )})}
     </div>
   )
 }

@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { TicketCheckout } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
 import { eventsConfig, events } from "@/lib/mock-data/events-data"
 import { eventsContent } from "@/lib/mock-data/business-content"
 import type { Event } from "@/lib/business-types"
@@ -71,11 +73,15 @@ function getEventArtists(event: Event) {
 function EventsModule({ 
   onSelectEvent,
   favorites,
-  onToggleFavorite
+  onToggleFavorite,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   onSelectEvent: (event: Event) => void
   favorites: Set<string>
   onToggleFavorite: (id: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   return (
     <div className="space-y-4">
@@ -85,10 +91,19 @@ function EventsModule({
         const eventLocation = getEventLocation(event)
         const eventPrice = getEventPrice(event)
         const eventCapacity = getEventCapacity(event)
+        const contextItem = {
+          id: `event-${event.id}`,
+          title: eventTitle,
+          image: event.image || "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&h=400&fit=crop",
+          subtitle: "Evento",
+        }
         return (
-          <div
+          <ContextSelectable
+            as="div"
             key={event.id}
             onClick={() => onSelectEvent(event)}
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors cursor-pointer"
           >
             <div className="relative aspect-[2/1]">
@@ -130,7 +145,7 @@ function EventsModule({
                 </Badge>
               </div>
             </div>
-          </div>
+          </ContextSelectable>
         )
       })}
     </div>
