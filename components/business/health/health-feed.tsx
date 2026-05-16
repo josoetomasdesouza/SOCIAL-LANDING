@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Clock, Star, Calendar, Stethoscope, Video, Play, Shield, Newspaper, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,9 @@ import { BusinessSocialLanding, type BusinessSection } from "../business-social-
 import { ActionDrawer } from "../action-drawer"
 import { AppointmentCalendar } from "../appointment-calendar"
 import { AppointmentConfirmation } from "../checkout-flows"
+import { ContextSelectable } from "../context-selectable"
+import type { ConversationContextItem } from "../conversational-ai"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { healthConfig, healthProfessionals, healthServices } from "@/lib/mock-data/health-data"
 import { healthContent } from "@/lib/mock-data/business-content"
 import type { HealthProfessional } from "@/lib/business-types"
@@ -16,13 +19,32 @@ import type { HealthProfessional } from "@/lib/business-types"
 // ========================================
 // MODULO: PROFISSIONAIS (OBJETIVO PRINCIPAL)
 // ========================================
-function ProfessionalsModule({ onSelectProfessional }: { onSelectProfessional: (prof: HealthProfessional) => void }) {
+function ProfessionalsModule({
+  onSelectProfessional,
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onSelectProfessional: (prof: HealthProfessional) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   return (
     <div className="space-y-4">
-      {healthProfessionals.slice(0, 3).map((prof) => (
-        <button
+      {healthProfessionals.slice(0, 3).map((prof) => {
+        const contextItem = {
+          id: `health-professional-${prof.id}`,
+          title: prof.name,
+          image: prof.avatar,
+          subtitle: "Profissional",
+        }
+
+        return (
+        <ContextSelectable
           key={prof.id}
+          as="div"
           onClick={() => onSelectProfessional(prof)}
+          onLongPress={() => onToggleConversationContext?.(contextItem)}
+          selected={isInConversation?.(contextItem.id) ?? false}
           className="w-full flex items-center gap-4 p-4 bg-card rounded-xl border border-border/50 hover:border-accent/50 transition-colors text-left"
         >
           <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
@@ -48,8 +70,8 @@ function ProfessionalsModule({ onSelectProfessional }: { onSelectProfessional: (
             <p className="font-bold text-accent">R$ {prof.consultationPrice?.toFixed(2).replace(".", ",")}</p>
             <p className="text-xs text-muted-foreground">consulta</p>
           </div>
-        </button>
-      ))}
+        </ContextSelectable>
+      )})}
     </div>
   )
 }
@@ -57,7 +79,13 @@ function ProfessionalsModule({ onSelectProfessional }: { onSelectProfessional: (
 // ========================================
 // MODULO: ESPECIALIDADES
 // ========================================
-function SpecialtiesModule() {
+function SpecialtiesModule({
+  onToggleConversationContext,
+  isInConversation,
+}: {
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+}) {
   const specialties = [
     { id: "1", name: "Clinico", icon: "🩺" },
     { id: "2", name: "Cardio", icon: "❤️" },
@@ -67,12 +95,27 @@ function SpecialtiesModule() {
   
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {specialties.map((spec) => (
-        <button key={spec.id} className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[80px]">
-          <span className="text-2xl">{spec.icon}</span>
-          <span className="text-sm font-medium text-foreground">{spec.name}</span>
-        </button>
-      ))}
+      {specialties.map((spec) => {
+        const contextItem = {
+          id: `health-specialty-${spec.id}`,
+          title: spec.name,
+          image: healthConfig.logo,
+          subtitle: "Especialidade",
+        }
+
+        return (
+          <ContextSelectable
+            key={spec.id}
+            as="div"
+            onLongPress={() => onToggleConversationContext?.(contextItem)}
+            selected={isInConversation?.(contextItem.id) ?? false}
+            className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[80px]"
+          >
+            <span className="text-2xl">{spec.icon}</span>
+            <span className="text-sm font-medium text-foreground">{spec.name}</span>
+          </ContextSelectable>
+        )
+      })}
     </div>
   )
 }
@@ -84,22 +127,36 @@ function ProfessionalDrawer({
   professional, 
   isOpen, 
   onClose,
-  onSchedule
+  onSchedule,
+  onToggleConversationContext,
+  isInConversation,
 }: { 
   professional: HealthProfessional | null
   isOpen: boolean
   onClose: () => void
   onSchedule: (date: string, time: string) => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
 }) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   
   if (!professional) return null
+
+  const professionalContextItem = {
+    id: `health-professional-${professional.id}`,
+    title: professional.name,
+    image: professional.avatar,
+    subtitle: "Profissional",
+  }
   
   return (
     <ActionDrawer isOpen={isOpen} onClose={onClose} title="Agendar Consulta" size="lg">
       <div className="space-y-6">
-        <div className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl">
+        <ContextSelectable
+          as="div"
+          className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl"
+        >
           <div className="relative w-16 h-16 rounded-full overflow-hidden">
             <Image src={professional.avatar} alt={professional.name} fill className="object-cover" />
           </div>
@@ -111,13 +168,16 @@ function ProfessionalDrawer({
               <span className="text-sm">{professional.rating} ({professional.reviewCount} avaliacoes)</span>
             </div>
           </div>
-        </div>
+        </ContextSelectable>
         
         {professional.bio && (
-          <div>
+          <ContextSelectable
+            as="div"
+            className="rounded-[28px] px-1 py-1"
+          >
             <h4 className="font-medium mb-2">Sobre</h4>
             <p className="text-sm text-muted-foreground">{professional.bio}</p>
-          </div>
+          </ContextSelectable>
         )}
         
         <div>
@@ -158,11 +218,21 @@ function ProfessionalDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function HealthFeed() {
+  const conversationSelection = useConversationSelectionState()
+  const { setComposerMode } = conversationSelection
   const [selectedProfessional, setSelectedProfessional] = useState<HealthProfessional | null>(null)
   const [professionalDrawerOpen, setProfessionalDrawerOpen] = useState(false)
   const [confirmationOpen, setConfirmationOpen] = useState(false)
   const [bookedDate, setBookedDate] = useState<string | null>(null)
   const [bookedTime, setBookedTime] = useState<string | null>(null)
+
+  useEffect(() => {
+    setComposerMode(professionalDrawerOpen || confirmationOpen ? "hidden" : "default")
+
+    return () => {
+      setComposerMode("default")
+    }
+  }, [confirmationOpen, professionalDrawerOpen, setComposerMode])
   
   const handleSchedule = (date: string, time: string) => {
     setBookedDate(date)
@@ -217,7 +287,8 @@ export function HealthFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={healthConfig}
         stories={healthContent.stories}
@@ -234,6 +305,8 @@ export function HealthFeed() {
         isOpen={professionalDrawerOpen}
         onClose={() => setProfessionalDrawerOpen(false)}
         onSchedule={handleSchedule}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        isInConversation={conversationSelection.isConversationSelected}
       />
       
       <ActionDrawer
@@ -256,6 +329,7 @@ export function HealthFeed() {
           />
         )}
       </ActionDrawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }
