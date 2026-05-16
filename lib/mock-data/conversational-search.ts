@@ -1,5 +1,14 @@
 import type { ReactNode } from "react"
 import type { ConversationContextPayload } from "@/lib/business-types"
+import { products } from "@/lib/mock-data/ecommerce-data"
+import {
+  catalogProductToProductEntity,
+  productEntityToConversationalResult,
+} from "@/lib/surface-flow/product-adapters"
+import {
+  normalizeSurfaceFlowText,
+  rankProductEntitiesForConversation,
+} from "@/lib/surface-flow/product-entity"
 
 export interface ConversationalSearchProductResult {
   id: string
@@ -38,36 +47,21 @@ export interface ConversationalSearchResultsPayload {
 }
 
 export const CONVERSATIONAL_SEARCH_RESULTS_KIND = "conversational-search-results"
-
-const MOCK_FACIAL_PRODUCTS: ConversationalSearchProductResult[] = [
-  {
-    id: "facial-cleanser",
-    title: "Gel de Limpeza Facial",
-    image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=600&h=600&fit=crop",
-    price: 49.90,
-    ctaLabel: "Ver",
-  },
-  {
-    id: "facial-serum",
-    title: "Serum Uniformizador",
-    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&h=600&fit=crop",
-    price: 79.90,
-    ctaLabel: "Ver",
-  },
-  {
-    id: "facial-sunscreen",
-    title: "Protetor Solar Facial FPS 70",
-    image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=600&fit=crop",
-    price: 89.90,
-    ctaLabel: "Ver",
-  },
+const CATALOG_PRODUCT_ENTITIES = products.map(catalogProductToProductEntity)
+const FACIAL_SEARCH_TERMS = [
+  "facial",
+  "faciais",
+  "rosto",
+  "pele",
+  "skincare",
+  "hidratante",
+  "protetor",
+  "limpeza",
+  "serum",
 ]
 
 function normalizeText(value: string) {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+  return normalizeSurfaceFlowText(value)
 }
 
 function matchesFacialProductsIntent(message: string) {
@@ -102,6 +96,14 @@ function matchesFacialProductsIntent(message: string) {
   return mentionsFacialCategory && (mentionsProductCue || mentionsSearchIntent)
 }
 
+function getCatalogProductsForConversationalSearch(message: string) {
+  const normalizedMessage = normalizeText(message)
+  const matchedTerms = FACIAL_SEARCH_TERMS.filter((term) => normalizedMessage.includes(term))
+
+  return rankProductEntitiesForConversation(CATALOG_PRODUCT_ENTITIES, matchedTerms, 3)
+    .map(productEntityToConversationalResult)
+}
+
 export const ecommerceMockConversationResolver: ConversationResponseResolver = ({ message }) => {
   if (!matchesFacialProductsIntent(message)) {
     return null
@@ -112,7 +114,7 @@ export const ecommerceMockConversationResolver: ConversationResponseResolver = (
     visualBlock: {
       kind: CONVERSATIONAL_SEARCH_RESULTS_KIND,
       payload: {
-        products: MOCK_FACIAL_PRODUCTS,
+        products: getCatalogProductsForConversationalSearch(message),
       } satisfies ConversationalSearchResultsPayload,
     },
   }
