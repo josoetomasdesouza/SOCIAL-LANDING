@@ -11,7 +11,7 @@ interface EcommerceConversationActionHandlers {
   navigateToSection: (sectionId: string) => void
 }
 
-function handleConversationProductPress(
+function handleConversationProductAction(
   product: ConversationalSearchProductResult,
   handlers: EcommerceConversationActionHandlers
 ) {
@@ -31,6 +31,6 @@ export function createEcommerceConversationVisualBlockRenderer(
   handlers: EcommerceConversationActionHandlers
 ): ConversationVisualBlockRenderer {
   return createConversationalSearchVisualBlockRenderer({
-    onProductPress: (product) => handleConversationProductPress(product, handlers),
+    onProductAction: (product) => handleConversationProductAction(product, handlers),
   })
 }

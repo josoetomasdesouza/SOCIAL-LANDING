@@ -6,6 +6,7 @@ export interface ConversationalSearchProductResult {
   title: string
   image: string
   price?: number
+  description?: string
   ctaLabel?: string
   action?: ConversationalSearchCardAction
 }
@@ -56,6 +57,7 @@ const MOCK_FACIAL_PRODUCTS: ConversationalSearchProductResult[] = [
     title: "Gel de Limpeza Facial",
     image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=600&h=600&fit=crop",
     price: 49.90,
+    description: "Limpeza suave para o rosto com espuma leve e sensacao de pele fresca no dia a dia.",
     ctaLabel: "Explorar",
     action: {
       type: "navigate-to-section",
@@ -67,6 +69,7 @@ const MOCK_FACIAL_PRODUCTS: ConversationalSearchProductResult[] = [
     title: "Serum Uniformizador",
     image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&h=600&fit=crop",
     price: 79.90,
+    description: "Serum de textura leve pensado para uniformizar a pele e complementar uma rotina facial.",
     ctaLabel: "Explorar",
     action: {
       type: "navigate-to-section",
@@ -78,6 +81,7 @@ const MOCK_FACIAL_PRODUCTS: ConversationalSearchProductResult[] = [
     title: "Protetor Solar Facial FPS 70",
     image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=600&fit=crop",
     price: 89.90,
+    description: "Protecao alta com toque seco e acabamento matte para uso diario, inclusive sob maquiagem.",
     ctaLabel: "Abrir",
     action: {
       type: "open-product-drawer",
