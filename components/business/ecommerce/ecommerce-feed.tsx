@@ -592,6 +592,14 @@ export function EcommerceFeed() {
     [handleConversationProductCtaClick]
   )
 
+  const activeConversationProduct = useMemo(
+    () =>
+      conversationProductFlow.state.activeProductId
+        ? products.find((product) => product.id === conversationProductFlow.state.activeProductId) || null
+        : null,
+    [conversationProductFlow.state.activeProductId]
+  )
+
   const conversationShell = (
     <ConversationOSShell
       brandLogo={ecommerceConfig.logo}
@@ -606,6 +614,16 @@ export function EcommerceFeed() {
       operationalActions={conversationOperationalFlow.actions}
       productFlowState={conversationProductFlow.state}
       productFlowActions={conversationProductFlow.actions}
+      activeProductPreview={
+        activeConversationProduct
+          ? {
+              title: activeConversationProduct.name,
+              image: activeConversationProduct.images[0],
+              price: activeConversationProduct.price,
+              description: activeConversationProduct.description,
+            }
+          : null
+      }
     />
   )
   

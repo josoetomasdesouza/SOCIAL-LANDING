@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import { ChevronDown, ChevronUp, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -45,6 +46,12 @@ interface ConversationOSShellProps {
   operationalActions: ConversationOperationalActions
   productFlowState: ConversationProductFlowState
   productFlowActions: ConversationProductFlowActions
+  activeProductPreview?: {
+    title: string
+    image: string
+    price?: number
+    description?: string
+  } | null
 }
 
 function summarizeContext(items: ConversationContextItem[]) {
@@ -97,6 +104,7 @@ export function ConversationOSShell({
   operationalActions,
   productFlowState,
   productFlowActions,
+  activeProductPreview,
 }: ConversationOSShellProps) {
   const [messages, setMessages] = useState<ConversationRuntimeMessage[]>(initialMessages || [])
   const [inputValue, setInputValue] = useState("")
@@ -130,7 +138,11 @@ export function ConversationOSShell({
   const hasConversation = messages.length > 0 || isTyping
   const hasActiveProductFlow = operationalState.activeFlow === "product"
   const hasConversationSurface = hasConversation || hasActiveProductFlow
-  const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
+  const resolvedPlaceholder = hasActiveProductFlow
+    ? "Pergunte sobre este produto..."
+    : contextItems.length > 0
+      ? "Pergunte sobre os itens selecionados..."
+      : placeholder
   const showContextRow = !hasConversationSurface && contextItems.length > 0
   const showExpandedConversation = hasConversationSurface && !isMinimized
   const showOperationalPanel = hasActiveProductFlow && showExpandedConversation
@@ -298,22 +310,33 @@ export function ConversationOSShell({
     )
   }
 
-  const operationalPanelTitle = productFlowState.activeProductId
-    ? `Produto em preparacao: ${productFlowState.activeProductId}`
-    : "Painel operacional"
+  const operationalPanelTitle = activeProductPreview?.title || "Continuar com este produto"
+  const operationalPanelSubtitle = activeProductPreview
+    ? "A conversa entrou em modo assistido para voce explorar este item sem sair daqui."
+    : "A conversa entrou em modo assistido para continuar sua jornada dentro deste contexto."
+  const immersiveHeaderTitle = activeProductPreview?.title || "Modo assistido"
 
   return (
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
+      {isImmersive ? (
+        <div className="pointer-events-none fixed inset-0 bg-background/18 backdrop-blur-[2px]" />
+      ) : null}
       <div className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
         <section
           className={cn(
             "pointer-events-auto overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl",
-            isImmersive && "flex h-[82vh] flex-col"
+            isImmersive && "flex h-[82vh] flex-col border-border/80 bg-background/98 shadow-[0_32px_90px_-32px_rgba(0,0,0,0.42)]"
           )}
         >
           {hasConversationSurface && (
             <div className="border-b border-border/50">
-              <div className="px-4 pt-3 pb-2">
+              <div
+                className={cn(
+                  "px-4 pt-3 pb-2",
+                  hasActiveProductFlow &&
+                    "bg-gradient-to-b from-secondary/55 via-background to-background"
+                )}
+              >
                 <div className="relative flex items-center justify-center">
                   <div className="h-1 w-11 rounded-full bg-border/80" />
                   <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1">
@@ -335,14 +358,35 @@ export function ConversationOSShell({
                     </button>
                   </div>
                 </div>
+
+                {hasActiveProductFlow ? (
+                  <div className="mt-3 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                        Modo assistido
+                      </p>
+                      <h2 className="truncate text-base font-semibold tracking-tight text-foreground">
+                        {immersiveHeaderTitle}
+                      </h2>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Produto selecionado na conversa
+                      </p>
+                    </div>
+                    <div className="rounded-full border border-border/60 bg-background/80 px-3 py-1 text-[11px] font-medium text-muted-foreground">
+                      Em andamento
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               {showExpandedConversation ? (
                 <div className={cn(isImmersive && "min-h-0 flex flex-1 flex-col")}>
                   <div
                     className={cn(
-                      "overflow-y-auto px-4 py-4",
-                      isImmersive ? "min-h-0 max-h-[30vh] flex-shrink-0" : "max-h-[32vh]"
+                      "overflow-y-auto px-4 py-4 transition-all duration-300",
+                      isImmersive
+                        ? "min-h-0 max-h-[18vh] flex-shrink-0 border-b border-border/40 bg-secondary/10 opacity-65 saturate-50"
+                        : "max-h-[32vh]"
                     )}
                   >
                     <ConversationTimeline
@@ -359,19 +403,76 @@ export function ConversationOSShell({
                   <ConversationOperationalPanel
                     mode={operationalState.surfaceMode}
                     isVisible={showOperationalPanel}
+                    eyebrow="Produto selecionado"
                     title={operationalPanelTitle}
+                    subtitle={operationalPanelSubtitle}
                     canGoBack={operationalState.backStack.length > 0}
                     onBack={operationalActions.back}
                   >
-                    <div className="rounded-2xl border border-dashed border-border bg-secondary/35 p-4">
-                      <p className="text-sm font-medium text-foreground">
-                        Foundation pronta para o fluxo operacional.
-                      </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        O drawer nao abre mais a partir da conversa nesta fase. O produto selecionado ja entra no
-                        Conversation OS como estado interno para as proximas microfases.
-                      </p>
-                    </div>
+                    {activeProductPreview ? (
+                      <div className="space-y-5">
+                        <div className="rounded-[28px] border border-border/70 bg-card/95 p-3 shadow-[0_26px_60px_-34px_rgba(0,0,0,0.35)]">
+                          <div className="grid gap-4 md:grid-cols-[148px,1fr]">
+                            <div className="relative aspect-square overflow-hidden rounded-[22px] bg-secondary">
+                              <Image
+                                src={activeProductPreview.image}
+                                alt={activeProductPreview.title}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+
+                            <div className="flex min-w-0 flex-col justify-between">
+                              <div>
+                                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                                  Visao inicial
+                                </p>
+                                <h3 className="mt-1 text-xl font-semibold leading-tight tracking-tight text-foreground">
+                                  {activeProductPreview.title}
+                                </h3>
+                                {typeof activeProductPreview.price === "number" ? (
+                                  <p className="mt-3 text-lg font-semibold text-foreground">
+                                    R$ {activeProductPreview.price.toFixed(2).replace(".", ",")}
+                                  </p>
+                                ) : null}
+                                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                                  {activeProductPreview.description ||
+                                    "Em seguida, o detalhe completo deste produto vai assumir esta area da conversa."}
+                                </p>
+                              </div>
+
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                <div className="inline-flex items-center rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+                                  Fluxo iniciado na conversa
+                                </div>
+                                <div className="inline-flex items-center rounded-full border border-border/70 bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
+                                  Detalhes completos em breve
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="rounded-[24px] border border-dashed border-border/70 bg-background/75 p-4">
+                          <p className="text-sm font-medium text-foreground">
+                            Este espaco agora funciona como sua area principal para continuar a jornada.
+                          </p>
+                          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                            Nas proximas fases, voce vai ver aqui detalhe do produto, variacoes, carrinho e checkout
+                            assistido, sempre dentro da propria conversa.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-[24px] border border-dashed border-border/70 bg-background/75 p-4">
+                        <p className="text-sm font-medium text-foreground">
+                          O modo assistido da conversa ja esta pronto.
+                        </p>
+                        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                          Assim que um produto for selecionado, esta area assume a jornada operacional sem abrir drawer.
+                        </p>
+                      </div>
+                    )}
                   </ConversationOperationalPanel>
                 </div>
               ) : (
@@ -392,15 +493,29 @@ export function ConversationOSShell({
             </div>
           )}
 
-          <ConversationComposerBar
-            brandLogo={brandLogo}
-            brandName={brandName}
-            value={inputValue}
-            placeholder={resolvedPlaceholder}
-            isTyping={isTyping}
-            onChange={setInputValue}
-            onSubmit={handleSendMessage}
-          />
+          <div
+            className={cn(
+              hasActiveProductFlow && "border-t border-border/50 bg-secondary/15"
+            )}
+          >
+            {hasActiveProductFlow ? (
+              <div className="px-4 pt-3">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  Conversa conectada ao produto atual
+                </p>
+              </div>
+            ) : null}
+
+            <ConversationComposerBar
+              brandLogo={brandLogo}
+              brandName={brandName}
+              value={inputValue}
+              placeholder={resolvedPlaceholder}
+              isTyping={isTyping}
+              onChange={setInputValue}
+              onSubmit={handleSendMessage}
+            />
+          </div>
         </section>
       </div>
     </div>
