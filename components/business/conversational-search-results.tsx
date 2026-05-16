@@ -22,12 +22,12 @@ export function ConversationalSearchResults({ products }: ConversationalSearchRe
   if (products.length === 0) return null
 
   return (
-    <div className="w-full max-w-[316px] overflow-x-auto scrollbar-hide">
-      <div className="flex gap-2 px-0.5 py-0.5">
+    <div className="w-full max-w-[340px] overflow-x-auto pb-1 scrollbar-hide">
+      <div className="flex gap-2 pr-4">
         {products.map((product) => (
           <article
             key={product.id}
-            className="min-w-[142px] max-w-[142px] shrink-0 rounded-[20px] border border-border/35 bg-secondary/35 p-2"
+            className="w-[136px] shrink-0 rounded-[20px] border border-border/35 bg-secondary/35 p-2"
           >
             <div className="flex gap-2">
               <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-[14px] bg-background/80">
