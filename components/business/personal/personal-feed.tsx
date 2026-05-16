@@ -113,6 +113,7 @@ function AboutModule({
         onLongPress={() => onToggleConversationContext?.(contextItem)}
         selected={isInConversation?.(contextItem.id) ?? false}
         className="p-4 rounded-xl bg-card border border-border"
+        selectionStyle="textual"
       >
         <div className="flex items-center gap-3 mb-3">
           <MapPin className="w-4 h-4 text-muted-foreground" />

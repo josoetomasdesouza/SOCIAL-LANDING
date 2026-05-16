@@ -633,6 +633,7 @@ export function AppointmentFeed() {
             })}
             selected={conversationSelection.isConversationSelected("appointment-about-house")}
             className="rounded-[30px] overflow-hidden"
+            selectionStyle="textual"
           >
             <SocialCompactHero
               variant="editorial"

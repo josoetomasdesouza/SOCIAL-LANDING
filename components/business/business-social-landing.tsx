@@ -433,10 +433,11 @@ function PostCard({
     return (
       <ContextSelectable
         as="article"
-        className="mb-8"
+        className="mb-8 rounded-[28px]"
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
+        selectionStyle="media"
       >
         <div 
           className={cn(
@@ -472,10 +473,11 @@ function PostCard({
     return (
       <ContextSelectable
         as="article"
-        className="mb-8"
+        className="mb-8 rounded-[28px]"
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
+        selectionStyle="media"
       >
         <div className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group">
           <Image src={post.image} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -506,10 +508,11 @@ function PostCard({
     return (
       <ContextSelectable
         as="article"
-        className="mb-8"
+        className="mb-8 rounded-[28px]"
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
+        selectionStyle="media"
       >
         {post.image && (
           <div className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group">
@@ -575,10 +578,11 @@ function PostCard({
   return (
     <ContextSelectable
       as="article"
-      className="mb-8"
+      className="mb-8 rounded-[28px]"
       onClick={onClick}
       onLongPress={() => onLongPress?.(post)}
       selected={selectedInConversation}
+      selectionStyle="media"
     >
       {post.image && (
         <div className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer">

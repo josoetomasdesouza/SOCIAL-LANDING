@@ -20,6 +20,7 @@ interface ContextSelectableProps {
   onLongPress?: () => void
   selected?: boolean
   as?: "article" | "div" | "button"
+  selectionStyle?: "default" | "media" | "textual"
 }
 
 export function ContextSelectable({
@@ -29,6 +30,7 @@ export function ContextSelectable({
   onLongPress,
   selected = false,
   as = "div",
+  selectionStyle = "default",
 }: ContextSelectableProps) {
   const timerRef = useRef<number | null>(null)
   const longPressTriggeredRef = useRef(false)
@@ -82,6 +84,26 @@ export function ContextSelectable({
 
   const Component = as
   const isButton = Component === "button"
+  const selectionStyles = {
+    default: {
+      pressing:
+        "scale-[0.998] after:opacity-100 after:bg-foreground/[0.018] dark:after:bg-white/[0.03] shadow-[0_12px_28px_-24px_rgba(15,23,42,0.18)]",
+      selected:
+        "after:opacity-100 after:bg-accent/[0.04] after:shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] shadow-[0_18px_40px_-30px_rgba(15,23,42,0.22)]",
+    },
+    media: {
+      pressing:
+        "scale-[0.996] after:opacity-100 after:bg-black/[0.04] dark:after:bg-white/[0.035] shadow-[0_16px_34px_-26px_rgba(15,23,42,0.2)]",
+      selected:
+        "after:opacity-100 after:bg-black/[0.055] dark:after:bg-white/[0.04] after:shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] shadow-[0_22px_48px_-34px_rgba(15,23,42,0.26)]",
+    },
+    textual: {
+      pressing:
+        "scale-[0.998] after:opacity-100 after:bg-background/55 dark:after:bg-white/[0.03] shadow-[0_12px_30px_-28px_rgba(15,23,42,0.16)]",
+      selected:
+        "after:opacity-100 after:bg-accent/[0.03] after:shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] shadow-[0_16px_34px_-30px_rgba(15,23,42,0.18)]",
+    },
+  } as const
 
   return (
     <Component
@@ -112,11 +134,9 @@ export function ContextSelectable({
           }
         : {})}
       className={cn(
-        "relative isolate will-change-transform transition-[background-color,border-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] before:pointer-events-none before:absolute before:inset-[2px] before:rounded-[inherit] before:content-[''] before:opacity-0 before:transition-[opacity,box-shadow,background-color] before:duration-200 before:ease-[cubic-bezier(0.22,1,0.36,1)]",
-        isPressing &&
-          "scale-[0.992] before:opacity-100 before:bg-white/35 dark:before:bg-white/[0.035] before:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)]",
-        selected &&
-          "before:opacity-100 before:bg-accent/[0.055] before:ring-1 before:ring-inset before:ring-accent/20 before:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] shadow-[0_20px_44px_-36px_rgba(15,23,42,0.42)]",
+        "relative isolate will-change-transform transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] after:opacity-0 after:transition-[opacity,box-shadow,background-color] after:duration-200 after:ease-[cubic-bezier(0.22,1,0.36,1)]",
+        isPressing && selectionStyles[selectionStyle].pressing,
+        selected && selectionStyles[selectionStyle].selected,
         className
       )}
     >

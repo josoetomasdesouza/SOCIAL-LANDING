@@ -219,6 +219,7 @@ function AboutModule({
         onLongPress={() => onToggleConversationContext?.(contextItem)}
         selected={isInConversation?.(contextItem.id) ?? false}
         className="space-y-4 rounded-[32px]"
+        selectionStyle="textual"
       >
         <SocialCompactHero
           variant="editorial"
