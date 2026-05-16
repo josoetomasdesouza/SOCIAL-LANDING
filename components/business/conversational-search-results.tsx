@@ -1,7 +1,13 @@
 "use client"
 
 import Image from "next/image"
-import type { ConversationalSearchProductResult } from "@/lib/mock-data/conversational-search"
+import type {
+  ConversationVisualBlock,
+  ConversationVisualBlockRenderer,
+  ConversationalSearchProductResult,
+  ConversationalSearchResultsPayload,
+} from "@/lib/mock-data/conversational-search"
+import { CONVERSATIONAL_SEARCH_RESULTS_KIND } from "@/lib/mock-data/conversational-search"
 
 interface ConversationalSearchResultsProps {
   products: ConversationalSearchProductResult[]
@@ -47,4 +53,28 @@ export function ConversationalSearchResults({ products }: ConversationalSearchRe
       </div>
     </div>
   )
+}
+
+function isConversationalSearchResultsPayload(
+  payload: unknown
+): payload is ConversationalSearchResultsPayload {
+  if (!payload || typeof payload !== "object") return false
+
+  const candidateProducts = (payload as { products?: unknown }).products
+
+  return Array.isArray(candidateProducts)
+}
+
+export const renderConversationalSearchVisualBlock: ConversationVisualBlockRenderer = (
+  visualBlock: ConversationVisualBlock
+) => {
+  if (visualBlock.kind !== CONVERSATIONAL_SEARCH_RESULTS_KIND) {
+    return null
+  }
+
+  if (!isConversationalSearchResultsPayload(visualBlock.payload)) {
+    return null
+  }
+
+  return <ConversationalSearchResults products={visualBlock.payload.products} />
 }

@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronDown, ChevronUp, Loader2, Send, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ConversationalSearchResults } from "./conversational-search-results"
 import type { ConversationContextPayload, ConversationMessage } from "@/lib/business-types"
 import type {
   ConversationResponseResolver,
-  ConversationalSearchVisualBlock,
+  ConversationVisualBlock,
+  ConversationVisualBlockRenderer,
 } from "@/lib/mock-data/conversational-search"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
@@ -26,10 +26,11 @@ interface ConversationalAIProps {
   onRemoveContext?: (contextId: string) => void
   onCloseConversation?: () => void
   responseResolver?: ConversationResponseResolver
+  renderVisualBlock?: ConversationVisualBlockRenderer
 }
 
 type ConversationRuntimeMessage = ConversationMessage & {
-  visualBlock?: ConversationalSearchVisualBlock
+  visualBlock?: ConversationVisualBlock
 }
 
 function summarizeContext(items: ConversationContextItem[]) {
@@ -77,6 +78,7 @@ export function ConversationalAI({
   onRemoveContext,
   onCloseConversation,
   responseResolver,
+  renderVisualBlock,
 }: ConversationalAIProps) {
   const [messages, setMessages] = useState<ConversationRuntimeMessage[]>(initialMessages || [])
   const [inputValue, setInputValue] = useState("")
@@ -376,9 +378,9 @@ export function ConversationalAI({
                             {message.content}
                           </div>
 
-                          {message.role === "ai" && message.visualBlock?.type === "product-carousel" ? (
-                            <ConversationalSearchResults products={message.visualBlock.products} />
-                          ) : null}
+                          {message.role === "ai" && message.visualBlock
+                            ? renderVisualBlock?.(message.visualBlock)
+                            : null}
                         </div>
 
                         {message.role === "user" ? (

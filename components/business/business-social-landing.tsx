@@ -12,7 +12,10 @@ import { BusinessFeedDrawer } from "./business-feed-drawer"
 import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
 import { ContextSelectable } from "./context-selectable"
 import { useConversationSelectionContext, useConversationSelectionState } from "./conversation-selection-context"
-import type { ConversationResponseResolver } from "@/lib/mock-data/conversational-search"
+import type {
+  ConversationResponseResolver,
+  ConversationVisualBlockRenderer,
+} from "@/lib/mock-data/conversational-search"
 
 // ========================================
 // TIPOS
@@ -63,6 +66,7 @@ interface BusinessSocialLandingProps {
   footerLinks?: { label: string; href: string }[]
   conversationalAI?: ReactNode
   conversationResponseResolver?: ConversationResponseResolver
+  renderConversationVisualBlock?: ConversationVisualBlockRenderer
   reserveHeaderSpace?: boolean | "compact"
 }
 
@@ -706,6 +710,7 @@ export function BusinessSocialLanding({
   footerLinks,
   conversationalAI,
   conversationResponseResolver,
+  renderConversationVisualBlock,
   reserveHeaderSpace = true
 }: BusinessSocialLandingProps) {
   const sharedConversationSelection = useConversationSelectionContext()
@@ -852,6 +857,7 @@ export function BusinessSocialLanding({
           onRemoveContext={handleRemoveConversationContext}
           onCloseConversation={handleCloseConversation}
           responseResolver={conversationResponseResolver}
+          renderVisualBlock={renderConversationVisualBlock}
         />
       )}
       

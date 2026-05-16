@@ -9,6 +9,7 @@ import { BusinessSocialLanding, type BusinessSection } from "../business-social-
 import { ActionDrawer } from "../action-drawer"
 import { EcommerceCheckout } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
+import { renderConversationalSearchVisualBlock } from "../conversational-search-results"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
@@ -645,6 +646,7 @@ export function EcommerceFeed() {
         stories={ecommerceContent.stories}
         sections={sections}
         conversationResponseResolver={ecommerceMockConversationResolver}
+        renderConversationVisualBlock={renderConversationalSearchVisualBlock}
         onStoryClick={(story) => {
           if (story.isMain) {
             // Abre carrinho ou produtos

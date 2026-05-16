@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import type { ConversationContextPayload } from "@/lib/business-types"
 
 export interface ConversationalSearchProductResult {
@@ -8,14 +9,14 @@ export interface ConversationalSearchProductResult {
   ctaLabel?: string
 }
 
-export interface ConversationalSearchVisualBlock {
-  type: "product-carousel"
-  products: ConversationalSearchProductResult[]
+export interface ConversationVisualBlock {
+  kind: string
+  payload: unknown
 }
 
 export interface ConversationResponseResolverResult {
   text: string
-  visualBlock?: ConversationalSearchVisualBlock
+  visualBlock?: ConversationVisualBlock
 }
 
 export interface ConversationResponseResolverInput {
@@ -27,6 +28,16 @@ export interface ConversationResponseResolverInput {
 export type ConversationResponseResolver = (
   input: ConversationResponseResolverInput
 ) => ConversationResponseResolverResult | null
+
+export type ConversationVisualBlockRenderer = (
+  visualBlock: ConversationVisualBlock
+) => ReactNode
+
+export interface ConversationalSearchResultsPayload {
+  products: ConversationalSearchProductResult[]
+}
+
+export const CONVERSATIONAL_SEARCH_RESULTS_KIND = "conversational-search-results"
 
 const MOCK_FACIAL_PRODUCTS: ConversationalSearchProductResult[] = [
   {
@@ -61,14 +72,34 @@ function normalizeText(value: string) {
 
 function matchesFacialProductsIntent(message: string) {
   const normalizedMessage = normalizeText(message)
-  const mentionsProduct = normalizedMessage.includes("produto")
   const mentionsFacialCategory =
     normalizedMessage.includes("facial") ||
     normalizedMessage.includes("faciais") ||
     normalizedMessage.includes("rosto") ||
-    normalizedMessage.includes("pele")
+    normalizedMessage.includes("pele") ||
+    normalizedMessage.includes("skincare")
+  const mentionsProductCue =
+    normalizedMessage.includes("produto") ||
+    normalizedMessage.includes("produtos") ||
+    normalizedMessage.includes("creme") ||
+    normalizedMessage.includes("serum") ||
+    normalizedMessage.includes("limpeza") ||
+    normalizedMessage.includes("protetor")
+  const mentionsSearchIntent =
+    normalizedMessage.includes("quero") ||
+    normalizedMessage.includes("queria") ||
+    normalizedMessage.includes("tem algo") ||
+    normalizedMessage.includes("tem alguma") ||
+    normalizedMessage.includes("qual produto") ||
+    normalizedMessage.includes("o que e melhor") ||
+    normalizedMessage.includes("me mostra") ||
+    normalizedMessage.includes("mostrar") ||
+    normalizedMessage.includes("indica") ||
+    normalizedMessage.includes("indicacao") ||
+    normalizedMessage.includes("ajuda") ||
+    normalizedMessage.includes("melhorar")
 
-  return mentionsProduct && mentionsFacialCategory
+  return mentionsFacialCategory && (mentionsProductCue || mentionsSearchIntent)
 }
 
 export const ecommerceMockConversationResolver: ConversationResponseResolver = ({ message }) => {
@@ -79,8 +110,10 @@ export const ecommerceMockConversationResolver: ConversationResponseResolver = (
   return {
     text: "Encontrei alguns produtos que combinam com isso.",
     visualBlock: {
-      type: "product-carousel",
-      products: MOCK_FACIAL_PRODUCTS,
+      kind: CONVERSATIONAL_SEARCH_RESULTS_KIND,
+      payload: {
+        products: MOCK_FACIAL_PRODUCTS,
+      } satisfies ConversationalSearchResultsPayload,
     },
   }
 }
