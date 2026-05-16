@@ -4,16 +4,11 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronDown, ChevronUp, Loader2, Plus, Send, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { ConversationMessage } from "@/lib/business-types"
+import type { ConversationContextPayload, ConversationMessage } from "@/lib/business-types"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
 
-export interface ConversationContextItem {
-  id: string
-  title: string
-  image: string
-  subtitle?: string
-}
+export type ConversationContextItem = ConversationContextPayload
 
 interface ConversationalAIProps {
   brandLogo: string
@@ -78,6 +73,7 @@ export function ConversationalAI({
   const [isMinimized, setIsMinimized] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
+  const previousContextIdsRef = useRef<string[]>([])
 
   useEffect(() => {
     if (!isMinimized) {
@@ -95,8 +91,31 @@ export function ConversationalAI({
 
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
-  const showContextRow = contextItems.length > 0
+  const showContextRow = !hasConversation && contextItems.length > 0
   const showExpandedConversation = hasConversation && !isMinimized
+
+  useEffect(() => {
+    const previousContextIds = new Set(previousContextIdsRef.current)
+    const nextContextIds = contextItems.map((item) => item.id)
+
+    if (hasConversation) {
+      const addedContextItems = contextItems.filter((item) => !previousContextIds.has(item.id))
+
+      if (addedContextItems.length > 0) {
+        setMessages((prev) => [
+          ...prev,
+          ...addedContextItems.map((item) => ({
+            id: `context-${item.id}-${Date.now()}`,
+            role: "context_event" as const,
+            content: item.title,
+            context: item,
+          })),
+        ])
+      }
+    }
+
+    previousContextIdsRef.current = nextContextIds
+  }, [contextItems, hasConversation])
 
   const handleSendMessage = () => {
     const nextMessage = inputValue.trim()
@@ -145,6 +164,37 @@ export function ConversationalAI({
     onCloseConversation?.()
   }
 
+  const renderContextChip = (item: ConversationContextItem) => (
+    <div
+      key={item.id}
+      className="flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-border/50 bg-secondary/55 pr-1.5"
+    >
+      <div className="relative h-11 w-11 overflow-hidden rounded-full">
+        <Image src={item.image} alt={item.title} fill className="object-cover" />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        {item.subtitle ? (
+          <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            {item.subtitle}
+          </p>
+        ) : null}
+        <p className="truncate text-xs font-medium text-foreground">{item.title}</p>
+      </div>
+
+      {onRemoveContext ? (
+        <button
+          type="button"
+          onClick={() => onRemoveContext(item.id)}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:text-foreground"
+          aria-label={`Remover ${item.title}`}
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      ) : null}
+    </div>
+  )
+
   return (
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
       <div className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
@@ -174,83 +224,72 @@ export function ConversationalAI({
                   </div>
                 </div>
               </div>
-
-              {showContextRow && (
-                <div className="border-t border-border/50 px-4 py-2.5">
-                  <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                    {contextItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-border/50 bg-secondary/55 pr-1.5"
-                      >
-                        <div className="relative h-11 w-11 overflow-hidden rounded-full">
-                          <Image src={item.image} alt={item.title} fill className="object-cover" />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          {item.subtitle ? (
-                            <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                              {item.subtitle}
+              {showExpandedConversation ? (
+                <div className="space-y-3 overflow-y-auto px-4 py-4 max-h-[32vh]">
+                  {messages.map((message) => {
+                    if (message.role === "context_event" && message.context) {
+                      return (
+                        <div key={message.id} className="flex justify-center py-1">
+                          <div className="w-full max-w-[85%] rounded-2xl border border-dashed border-border/60 bg-secondary/35 px-3 py-3 shadow-sm">
+                            <p className="mb-2 text-center text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                              Contexto adicionado
                             </p>
-                          ) : null}
-                          <p className="truncate text-xs font-medium text-foreground">{item.title}</p>
+                            <div className="mx-auto flex max-w-[260px] items-center gap-2 rounded-2xl border border-border/50 bg-background/85 p-2">
+                              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl">
+                                <Image src={message.context.image} alt={message.context.title} fill className="object-cover" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                {message.context.subtitle ? (
+                                  <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    {message.context.subtitle}
+                                  </p>
+                                ) : null}
+                                <p className="truncate text-sm font-medium text-foreground">{message.context.title}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <div
+                        key={message.id}
+                        className={cn("flex items-end gap-2.5", message.role === "user" && "justify-end")}
+                      >
+                        {message.role !== "user" ? (
+                          <Image
+                            src={brandLogo}
+                            alt={brandName}
+                            width={28}
+                            height={28}
+                            className="rounded-full border border-border/60 object-cover"
+                          />
+                        ) : null}
+
+                        <div
+                          className={cn(
+                            "max-w-[82%] rounded-[22px] px-4 py-3 text-sm leading-relaxed shadow-sm",
+                            message.role === "user"
+                              ? "rounded-br-md bg-foreground text-background"
+                              : "rounded-bl-md bg-secondary text-foreground"
+                          )}
+                        >
+                          {message.content}
                         </div>
 
-                        {onRemoveContext ? (
-                          <button
-                            type="button"
-                            onClick={() => onRemoveContext(item.id)}
-                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:text-foreground"
-                            aria-label={`Remover ${item.title}`}
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
+                        {message.role === "user" ? (
+                          <Image
+                            src={USER_AVATAR}
+                            alt="Voce"
+                            width={28}
+                            height={28}
+                            className="rounded-full border border-border/60 object-cover"
+                          />
                         ) : null}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {showExpandedConversation ? (
-                <div className={cn("space-y-3 overflow-y-auto px-4 py-4", showContextRow ? "max-h-[26vh]" : "max-h-[32vh]")}>
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={cn("flex items-end gap-2.5", message.role === "user" && "justify-end")}
-                    >
-                      {message.role !== "user" ? (
-                        <Image
-                          src={brandLogo}
-                          alt={brandName}
-                          width={28}
-                          height={28}
-                          className="rounded-full border border-border/60 object-cover"
-                        />
-                      ) : null}
-
-                      <div
-                        className={cn(
-                          "max-w-[82%] rounded-[22px] px-4 py-3 text-sm leading-relaxed shadow-sm",
-                          message.role === "user"
-                            ? "rounded-br-md bg-foreground text-background"
-                            : "rounded-bl-md bg-secondary text-foreground"
-                        )}
-                      >
-                        {message.content}
-                      </div>
-
-                      {message.role === "user" ? (
-                        <Image
-                          src={USER_AVATAR}
-                          alt="Voce"
-                          width={28}
-                          height={28}
-                          className="rounded-full border border-border/60 object-cover"
-                        />
-                      ) : null}
-                    </div>
-                  ))}
+                    )
+                  })}
 
                   {isTyping && (
                     <div className="flex items-end gap-2.5">
@@ -286,36 +325,7 @@ export function ConversationalAI({
           {!hasConversation && showContextRow && (
             <div className="border-b border-border/50 px-4 py-2.5">
               <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                {contextItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-border/50 bg-secondary/55 pr-1.5"
-                  >
-                    <div className="relative h-11 w-11 overflow-hidden rounded-full">
-                      <Image src={item.image} alt={item.title} fill className="object-cover" />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      {item.subtitle ? (
-                        <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                          {item.subtitle}
-                        </p>
-                      ) : null}
-                      <p className="truncate text-xs font-medium text-foreground">{item.title}</p>
-                    </div>
-
-                    {onRemoveContext ? (
-                      <button
-                        type="button"
-                        onClick={() => onRemoveContext(item.id)}
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:text-foreground"
-                        aria-label={`Remover ${item.title}`}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    ) : null}
-                  </div>
-                ))}
+                {contextItems.map((item) => renderContextChip(item))}
               </div>
             </div>
           )}

@@ -643,12 +643,20 @@ export interface ConversationTrigger {
   condition?: string
 }
 
+export interface ConversationContextPayload {
+  id: string
+  title: string
+  image: string
+  subtitle?: string
+}
+
 export interface ConversationMessage {
   id: string
-  role: 'ai' | 'user' | 'action'
+  role: 'ai' | 'user' | 'action' | 'context_event'
   content: string
   options?: ConversationOption[]
   action?: ConversationAction
+  context?: ConversationContextPayload
   delay?: number // ms antes de mostrar
 }
 
