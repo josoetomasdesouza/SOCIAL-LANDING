@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import type { ConversationContextPayload } from "@/lib/business-types"
 import { products } from "@/lib/mock-data/ecommerce-data"
+import type { ConversationalSearchProductResult } from "@/lib/surface-flow/contracts"
 import {
   catalogProductToProductEntity,
   productEntityToConversationalResult,
@@ -10,13 +11,7 @@ import {
   rankProductEntitiesForConversation,
 } from "@/lib/surface-flow/product-entity"
 
-export interface ConversationalSearchProductResult {
-  id: string
-  title: string
-  image: string
-  price?: number
-  ctaLabel?: string
-}
+export type { ConversationalSearchProductResult } from "@/lib/surface-flow/contracts"
 
 export interface ConversationVisualBlock {
   kind: string

@@ -13,6 +13,7 @@ export function getProductEntitySearchText(entity: ProductEntity) {
       entity.title,
       entity.summary,
       entity.category,
+      ...(entity.keywords || []),
     ]
       .filter(Boolean)
       .join(" ")
@@ -27,6 +28,10 @@ export function rankProductEntitiesForConversation(
   const normalizedTerms = terms
     .map((term) => normalizeSurfaceFlowText(term).trim())
     .filter(Boolean)
+
+  if (normalizedTerms.length === 0) {
+    return []
+  }
 
   const rankedEntities = entities
     .map((entity, index) => {
@@ -55,8 +60,5 @@ export function rankProductEntitiesForConversation(
     return matchingEntities.slice(0, limit)
   }
 
-  const selectedIds = new Set(matchingEntities.map((entity) => entity.id))
-  const remainingEntities = entities.filter((entity) => !selectedIds.has(entity.id))
-
-  return [...matchingEntities, ...remainingEntities].slice(0, limit)
+  return matchingEntities
 }

@@ -12,11 +12,7 @@ export interface ProductEntity {
   category?: string
   rating?: number
   reviewCount?: number
-  sourceRefs?: {
-    catalogId?: string
-    postId?: string
-    conversationalResultId?: string
-  }
+  keywords?: string[]
 }
 
 export interface ProductFlow {
@@ -26,4 +22,12 @@ export interface ProductFlow {
   detailTarget: "product-drawer"
   executeTarget?: "cart" | "checkout"
   requiresVariantSelection?: boolean
+}
+
+export interface ConversationalSearchProductResult {
+  id: string
+  title: string
+  image: string
+  price?: number
+  ctaLabel?: string
 }
