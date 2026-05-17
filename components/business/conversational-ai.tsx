@@ -444,7 +444,7 @@ export function ConversationalAI({
                 </div>
               ) : (
                 <div className="px-4 pb-3">
-                  <p className="text-xs text-white/48">
+                  <p className="text-xs text-white/54">
                     {showContextRow ? "Contexto pronto para continuar a conversa." : "A conversa continua aqui quando voce enviar a proxima mensagem."}
                   </p>
                 </div>
@@ -480,7 +480,7 @@ export function ConversationalAI({
                 }
               }}
               placeholder={resolvedPlaceholder}
-              className="h-10 min-w-0 flex-1 bg-transparent text-[15px] text-white/92 outline-none placeholder:text-white/44"
+              className="h-10 min-w-0 flex-1 bg-transparent text-[15px] text-white/92 outline-none placeholder:text-white/58"
             />
             <button
               type="submit"
