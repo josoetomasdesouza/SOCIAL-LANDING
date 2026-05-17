@@ -45,6 +45,7 @@ function CoursesModule({
             as="div"
             onClick={() => onSelectCourse(course)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
+            conversationContextItem={contextItem}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors"
           >
@@ -127,6 +128,7 @@ function TracksModule({
             key={track.id}
             as="div"
             onLongPress={() => onToggleConversationContext?.(contextItem)}
+            conversationContextItem={contextItem}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="p-4 bg-secondary/50 hover:bg-secondary rounded-xl text-left transition-colors"
           >
@@ -191,6 +193,7 @@ function CourseDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(courseContextItem)}
+          conversationContextItem={courseContextItem}
           selected={isInConversation?.(courseContextItem.id) ?? false}
           className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl"
         >
@@ -226,6 +229,7 @@ function CourseDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(courseContextItem)}
+          conversationContextItem={courseContextItem}
           selected={isInConversation?.(courseContextItem.id) ?? false}
         >
           <h4 className="font-medium mb-2">Sobre o curso</h4>
@@ -237,6 +241,7 @@ function CourseDetailDrawer({
           <ContextSelectable
             as="div"
             onLongPress={() => onToggleConversationContext?.(courseContextItem)}
+            conversationContextItem={courseContextItem}
             selected={isInConversation?.(courseContextItem.id) ?? false}
           >
             <h4 className="font-medium mb-2">O que voce vai aprender</h4>

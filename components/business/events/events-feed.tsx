@@ -104,6 +104,7 @@ function EventsModule({
             key={event.id}
             onClick={() => onSelectEvent(event)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
+            conversationContextItem={contextItem}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors cursor-pointer"
           >
@@ -185,6 +186,7 @@ function CategoriesModule({
             key={cat.id}
             as="div"
             onLongPress={() => onToggleConversationContext?.(contextItem)}
+            conversationContextItem={contextItem}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
           >
@@ -245,6 +247,7 @@ function EventDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(eventContextItem)}
+          conversationContextItem={eventContextItem}
           selected={isInConversation?.(eventContextItem.id) ?? false}
         >
           <Badge variant="secondary" className="mb-2">{event.category}</Badge>
@@ -255,6 +258,7 @@ function EventDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(eventContextItem)}
+          conversationContextItem={eventContextItem}
           selected={isInConversation?.(eventContextItem.id) ?? false}
           className="grid grid-cols-2 gap-3"
         >
@@ -273,6 +277,7 @@ function EventDetailDrawer({
           <ContextSelectable
             as="div"
             onLongPress={() => onToggleConversationContext?.(eventContextItem)}
+            conversationContextItem={eventContextItem}
             selected={isInConversation?.(eventContextItem.id) ?? false}
           >
             <h4 className="font-medium mb-3">Artistas</h4>

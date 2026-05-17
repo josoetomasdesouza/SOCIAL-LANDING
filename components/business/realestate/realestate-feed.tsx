@@ -78,6 +78,7 @@ function PropertiesModule({
             key={property.id}
             onClick={() => onSelectProperty(property)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
+            conversationContextItem={contextItem}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="w-full text-left bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 transition-colors"
           >
@@ -163,6 +164,7 @@ function PropertyTypesModule({
             key={type.id}
             as="div"
             onLongPress={() => onToggleConversationContext?.(contextItem)}
+            conversationContextItem={contextItem}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
           >
@@ -237,6 +239,7 @@ function PropertyDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
+          conversationContextItem={propertyContextItem}
           selected={isInConversation?.(propertyContextItem.id) ?? false}
         >
           <Badge className="mb-2">{purpose === "sale" ? "Venda" : "Aluguel"}</Badge>
@@ -251,6 +254,7 @@ function PropertyDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
+          conversationContextItem={propertyContextItem}
           selected={isInConversation?.(propertyContextItem.id) ?? false}
           className="grid grid-cols-4 gap-3"
         >
@@ -280,6 +284,7 @@ function PropertyDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
+          conversationContextItem={propertyContextItem}
           selected={isInConversation?.(propertyContextItem.id) ?? false}
         >
           <h4 className="font-medium mb-2">Descricao</h4>

@@ -96,6 +96,7 @@ function MenuModule({
             key={item.id}
             onClick={() => onSelectItem(item)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
+            conversationContextItem={contextItem}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="text-left group"
           >
@@ -173,6 +174,7 @@ function CategoriesModule({
             as="div"
             onClick={() => onSelectCategory(cat.id)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
+            conversationContextItem={contextItem}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
           >
@@ -261,6 +263,7 @@ function ItemDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(itemContextItem)}
+          conversationContextItem={itemContextItem}
           selected={isInConversation?.(itemContextItem.id) ?? false}
         >
           <div className="flex flex-wrap gap-2 mb-2">

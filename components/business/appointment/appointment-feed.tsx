@@ -83,6 +83,7 @@ function ScheduleModule({
               as="div"
               onClick={() => onSelectService(service)}
               onLongPress={() => onToggleConversationContext?.(contextItem)}
+              conversationContextItem={contextItem}
               selected={isInConversation?.(contextItem.id) ?? false}
               className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
             >
@@ -133,6 +134,7 @@ function StylesModule({
           key={style.id}
           onClick={() => onSelectStyle(style)}
           onLongPress={() => onToggleConversationContext?.(contextItem)}
+          conversationContextItem={contextItem}
           selected={isInConversation?.(contextItem.id) ?? false}
           className="flex-shrink-0 group"
         >
@@ -347,6 +349,7 @@ function ServicesDrawer({
                     key={service.id}
                     onClick={() => onSelectService(service)}
                     onLongPress={() => onToggleConversationContext?.(contextItem)}
+                    conversationContextItem={contextItem}
                     selected={isInConversation?.(contextItem.id) ?? false}
                     className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
                   >
@@ -411,6 +414,7 @@ function ProfessionalsDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(serviceContextItem)}
+          conversationContextItem={serviceContextItem}
           selected={isInConversation?.(serviceContextItem.id) ?? false}
           className="bg-secondary/50 rounded-xl p-4"
         >
@@ -438,6 +442,7 @@ function ProfessionalsDrawer({
                 key={barber.id}
                 onClick={() => onSelectBarber(barber)}
                 onLongPress={() => onToggleConversationContext?.(contextItem)}
+                conversationContextItem={contextItem}
                 selected={isInConversation?.(contextItem.id) ?? false}
                 className="w-full flex items-center gap-3 p-3 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors"
               >
@@ -607,6 +612,13 @@ export function AppointmentFeed() {
     setBookedTime(time)
     setBookingStep("confirmation")
   }
+
+  const aboutHouseContextItem: ConversationContextItem = {
+    id: "appointment-about-house",
+    title: "Sobre a casa",
+    image: barberShopConfig.logo,
+    subtitle: "Sobre",
+  }
   
   // Secoes do feed
   const sections: BusinessSection[] = [
@@ -625,13 +637,9 @@ export function AppointmentFeed() {
           />
           <ContextSelectable
             as="div"
-            onLongPress={() => conversationSelection.toggleConversationContextItem({
-              id: "appointment-about-house",
-              title: "Sobre a casa",
-              image: barberShopConfig.logo,
-              subtitle: "Sobre",
-            })}
-            selected={conversationSelection.isConversationSelected("appointment-about-house")}
+            onLongPress={() => conversationSelection.toggleConversationContextItem(aboutHouseContextItem)}
+            conversationContextItem={aboutHouseContextItem}
+            selected={conversationSelection.isConversationSelected(aboutHouseContextItem.id)}
             className="rounded-[30px] overflow-hidden"
             selectionStyle="textual"
           >

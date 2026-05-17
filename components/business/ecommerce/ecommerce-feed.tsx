@@ -104,6 +104,7 @@ function ProductsModule({
               as="div"
               onClick={() => onSelectProduct(product)}
               onLongPress={() => onToggleConversationContext?.(contextItem)}
+              conversationContextItem={contextItem}
               selected={isInConversation?.(contextItem.id) ?? false}
               className="relative group"
             >
@@ -187,6 +188,7 @@ function CategoriesModule({
             as="div"
             onClick={() => onSelectCategory(category.id)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
+            conversationContextItem={contextItem}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[100px]"
           >
@@ -291,6 +293,7 @@ function ProductDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(productContextItem)}
+          conversationContextItem={productContextItem}
           selected={isInConversation?.(productContextItem.id) ?? false}
         >
           <div className="flex items-center gap-2 mb-2">
@@ -370,6 +373,7 @@ function ProductDetailDrawer({
           <ContextSelectable
             as="div"
             onLongPress={() => onToggleConversationContext?.(productContextItem)}
+            conversationContextItem={productContextItem}
             selected={isInConversation?.(productContextItem.id) ?? false}
             className="bg-secondary/50 rounded-xl p-4"
           >
