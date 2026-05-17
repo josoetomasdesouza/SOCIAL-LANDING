@@ -2,6 +2,8 @@
 
 import { useRef, useState, type ReactNode } from "react"
 import { cn } from "@/lib/utils"
+import type { ConversationContextItem } from "./conversational-ai"
+import { useConversationSelectionContext } from "./conversation-selection-context"
 
 const LONG_PRESS_MS = 420
 
@@ -21,6 +23,7 @@ interface ContextSelectableProps {
   selected?: boolean
   as?: "article" | "div" | "button"
   selectionStyle?: "default" | "media" | "textual"
+  conversationContextItem?: ConversationContextItem
 }
 
 export function ContextSelectable({
@@ -31,8 +34,11 @@ export function ContextSelectable({
   selected = false,
   as = "div",
   selectionStyle = "default",
+  conversationContextItem,
 }: ContextSelectableProps) {
+  const conversationSelection = useConversationSelectionContext()
   const timerRef = useRef<number | null>(null)
+  const rootRef = useRef<HTMLElement | null>(null)
   const longPressTriggeredRef = useRef(false)
   const ignoreInteractionRef = useRef(false)
   const [isPressing, setIsPressing] = useState(false)
@@ -53,7 +59,17 @@ export function ContextSelectable({
 
     timerRef.current = window.setTimeout(() => {
       longPressTriggeredRef.current = true
+      const shouldQueueMorph = Boolean(
+        conversationContextItem &&
+          conversationSelection &&
+          !conversationSelection.isConversationSelected(conversationContextItem.id)
+      )
+
       onLongPress()
+
+      if (shouldQueueMorph && conversationContextItem) {
+        conversationSelection?.queueConversationContextMorph(conversationContextItem, rootRef.current)
+      }
 
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         navigator.vibrate(12)
@@ -108,6 +124,9 @@ export function ContextSelectable({
   return (
     <Component
       {...(isButton ? { type: "button" as const } : {})}
+      ref={(node: HTMLElement | null) => {
+        rootRef.current = node as HTMLElement | null
+      }}
       onClick={handleClick}
       onContextMenu={(event) => {
         if (longPressTriggeredRef.current) {
@@ -135,6 +154,7 @@ export function ContextSelectable({
         : {})}
       className={cn(
         "relative isolate will-change-transform transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] after:opacity-0 after:transition-[opacity,background-color] after:duration-200 after:ease-[cubic-bezier(0.22,1,0.36,1)]",
+        onLongPress && "[user-select:none] [-webkit-user-select:none] [-webkit-touch-callout:none]",
         isPressing && selectionStyles[selectionStyle].pressing,
         selected && selectionStyles[selectionStyle].selected,
         className

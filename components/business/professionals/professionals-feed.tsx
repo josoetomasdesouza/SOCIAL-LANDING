@@ -44,6 +44,7 @@ function ServicesModule({
           as="div"
           onClick={() => onSelectService(service)}
           onLongPress={() => onToggleConversationContext?.(contextItem)}
+          conversationContextItem={contextItem}
           selected={isInConversation?.(contextItem.id) ?? false}
           className="w-full flex items-center justify-between p-4 bg-card rounded-xl border border-border/50 hover:border-accent/50 transition-colors text-left"
         >
@@ -98,6 +99,7 @@ function AreasModule({
             key={area.id}
             as="div"
             onLongPress={() => onToggleConversationContext?.(contextItem)}
+            conversationContextItem={contextItem}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
           >

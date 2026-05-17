@@ -12,6 +12,7 @@ import { BusinessFeedDrawer } from "./business-feed-drawer"
 import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
 import { ContextSelectable } from "./context-selectable"
 import { useConversationSelectionContext, useConversationSelectionState } from "./conversation-selection-context"
+import { PostToChatMorphLayer } from "./post-to-chat-morph-layer"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
@@ -78,6 +79,8 @@ const conversationContextLabels: Record<BusinessPost["type"], string> = {
   review: "Avaliacao",
   social: "Post",
 }
+
+const MORPH_DURATION_MS = 480
 
 function getConversationContextTitle(post: BusinessPost) {
   return post.title || post.description || post.reviewerName || "Conteudo selecionado"
@@ -426,12 +429,14 @@ function PostCard({
   onClick,
   onLongPress,
   selectedInConversation = false,
+  conversationContextItem,
 }: { 
   post: BusinessPost
   index: number
   onClick?: () => void
   onLongPress?: (post: BusinessPost) => void
   selectedInConversation?: boolean
+  conversationContextItem: ConversationContextItem
 }) {
   // Renderiza card baseado no tipo
   if (post.type === "video" || post.type === "video-vertical") {
@@ -440,6 +445,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 rounded-[28px]"
+        conversationContextItem={conversationContextItem}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -480,6 +486,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 rounded-[28px]"
+        conversationContextItem={conversationContextItem}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -515,6 +522,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 rounded-[28px]"
+        conversationContextItem={conversationContextItem}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -549,6 +557,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 p-4 bg-card rounded-2xl border border-border/50"
+        conversationContextItem={conversationContextItem}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -585,6 +594,7 @@ function PostCard({
     <ContextSelectable
       as="article"
       className="mb-8 rounded-[28px]"
+      conversationContextItem={conversationContextItem}
       onClick={onClick}
       onLongPress={() => onLongPress?.(post)}
       selected={selectedInConversation}
@@ -657,6 +667,7 @@ function BusinessSectionComponent({
           onClick={() => onPostClick?.(post)}
           onLongPress={onPostLongPress}
           selectedInConversation={selectedContextIds.has(post.id)}
+          conversationContextItem={toConversationContextItem(post, config.logo)}
         />
       ))}
     </section>
@@ -730,6 +741,9 @@ export function BusinessSocialLanding({
     isConversationSelected,
     composerMode,
     composerOffsetClassName,
+    hiddenContextIds,
+    activeMorph,
+    completeConversationContextMorph,
   } = conversationSelection
   
   // Story viewer state
@@ -748,18 +762,15 @@ export function BusinessSocialLanding({
     return posts
   }, [sections])
 
-  const addConversationContext = useCallback((post: BusinessPost) => {
-    upsertConversationContextItem(toConversationContextItem(post, config.logo))
-  }, [config.logo, upsertConversationContextItem])
-
   const toggleConversationContext = useCallback((post: BusinessPost) => {
     if (selectedContextIds.has(post.id)) {
       removeConversationContext(post.id)
       return
     }
 
-    addConversationContext(post)
-  }, [addConversationContext, removeConversationContext, selectedContextIds])
+    const contextItem = toConversationContextItem(post, config.logo)
+    upsertConversationContextItem(contextItem)
+  }, [config.logo, removeConversationContext, selectedContextIds, upsertConversationContextItem])
   
   const handlePostClick = useCallback((post: BusinessPost) => {
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
@@ -842,6 +853,18 @@ export function BusinessSocialLanding({
       {/* Footer */}
       <BusinessFooter config={config} links={footerLinks} />
 
+      {activeMorph ? (
+        <PostToChatMorphLayer
+          key={activeMorph.key}
+          animationKey={activeMorph.key}
+          preview={activeMorph.preview}
+          fromRect={activeMorph.fromRect}
+          toRect={activeMorph.toRect}
+          durationMs={MORPH_DURATION_MS}
+          onComplete={() => completeConversationContextMorph(activeMorph.contextId, activeMorph.key)}
+        />
+      ) : null}
+
       {/* Conversational AI (fixed or inline) */}
       {conversationalAI || (
         <ConversationalAI
@@ -854,6 +877,7 @@ export function BusinessSocialLanding({
           )}
           placeholder={`Pergunte sobre ${config.name}...`}
           contextItems={conversationContext}
+          hiddenContextIds={hiddenContextIds}
           onRemoveContext={handleRemoveConversationContext}
           onCloseConversation={handleCloseConversation}
           responseResolver={conversationResponseResolver}
@@ -937,6 +961,7 @@ export function BusinessSocialLanding({
         brandName={config.name}
         selectedContextIds={[...selectedContextIds]}
         onPostLongPress={toggleConversationContext}
+        getConversationContextItem={(post) => toConversationContextItem(post, config.logo)}
       />
       
       {/* Custom Post Drawer - para itens especificos do negocio */}

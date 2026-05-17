@@ -43,6 +43,7 @@ function PlansModule({
           as="div"
           onClick={() => onSelectPlan(plan)}
           onLongPress={() => onToggleConversationContext?.(contextItem)}
+          conversationContextItem={contextItem}
           selected={isInConversation?.(contextItem.id) ?? false}
           className={`w-full text-left p-4 rounded-xl border-2 transition-colors ${plan.popular ? "border-accent bg-accent/5" : "border-border/50 hover:border-accent/50"}`}
         >
@@ -96,6 +97,7 @@ function ClassesModule({
           key={cls.id}
           as="div"
           onLongPress={() => onToggleConversationContext?.(contextItem)}
+          conversationContextItem={contextItem}
           selected={isInConversation?.(contextItem.id) ?? false}
           className="flex-shrink-0 w-40"
         >
@@ -152,6 +154,7 @@ function PlanDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(planContextItem)}
+          conversationContextItem={planContextItem}
           selected={isInConversation?.(planContextItem.id) ?? false}
           className={`p-4 rounded-xl ${plan.popular ? "bg-accent/10" : "bg-secondary/50"}`}
         >
@@ -165,6 +168,7 @@ function PlanDetailDrawer({
         <ContextSelectable
           as="div"
           onLongPress={() => onToggleConversationContext?.(planContextItem)}
+          conversationContextItem={planContextItem}
           selected={isInConversation?.(planContextItem.id) ?? false}
         >
           <h4 className="font-medium mb-3">O que esta incluso</h4>

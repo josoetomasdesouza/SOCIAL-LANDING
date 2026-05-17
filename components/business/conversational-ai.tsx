@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronDown, ChevronUp, Loader2, Send, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -23,6 +23,7 @@ interface ConversationalAIProps {
   onSendMessage?: (message: string) => void
   className?: string
   contextItems?: ConversationContextItem[]
+  hiddenContextIds?: string[]
   onRemoveContext?: (contextId: string) => void
   onCloseConversation?: () => void
   responseResolver?: ConversationResponseResolver
@@ -75,6 +76,7 @@ export function ConversationalAI({
   onSendMessage,
   className,
   contextItems = [],
+  hiddenContextIds = [],
   onRemoveContext,
   onCloseConversation,
   responseResolver,
@@ -88,6 +90,7 @@ export function ConversationalAI({
   const replyTimeoutRef = useRef<number | null>(null)
   const activeContextIdsRef = useRef<string[]>([])
   const pendingContextIdsRef = useRef<string[]>([])
+  const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
 
   useEffect(() => {
     if (!isMinimized) {
@@ -272,10 +275,18 @@ export function ConversationalAI({
     )
   }
 
-  const renderContextChip = (item: ConversationContextItem) => (
+  const renderContextChip = (item: ConversationContextItem) => {
+    const isHidden = hiddenContextIdSet.has(item.id)
+
+    return (
     <div
       key={item.id}
-      className="flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-border/50 bg-secondary/55 pr-1.5"
+      data-conversation-context-chip={item.id}
+      aria-hidden={isHidden || undefined}
+      className={cn(
+        "flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-border/50 bg-secondary/55 pr-1.5",
+        isHidden && "pointer-events-none opacity-0"
+      )}
     >
       <div className="relative h-11 w-11 overflow-hidden rounded-full">
         <Image src={item.image} alt={item.title} fill className="object-cover" />
@@ -294,19 +305,25 @@ export function ConversationalAI({
         <button
           type="button"
           onClick={() => handleRemoveContextItem(item.id)}
+          disabled={isHidden}
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:text-foreground"
           aria-label={`Remover ${item.title}`}
+          tabIndex={isHidden ? -1 : undefined}
         >
           <X className="h-3.5 w-3.5" />
         </button>
       ) : null}
     </div>
-  )
+    )
+  }
 
   return (
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
       <div className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
-        <section className="pointer-events-auto overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl">
+        <section
+          data-conversation-composer="true"
+          className="pointer-events-auto overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+        >
           {hasConversation && (
             <div className="border-b border-border/50">
               <div className="px-4 pt-3 pb-2">
@@ -429,7 +446,7 @@ export function ConversationalAI({
 
           {!hasConversation && showContextRow && (
             <div className="border-b border-border/50 px-4 py-2.5">
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {contextItems.map((item) => renderContextChip(item))}
               </div>
             </div>

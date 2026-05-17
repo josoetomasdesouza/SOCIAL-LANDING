@@ -5,6 +5,7 @@ import Image from "next/image"
 import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Newspaper } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import type { ConversationContextItem } from "./conversational-ai"
 import type { BusinessPost } from "./business-social-landing"
 import { ContextSelectable } from "./context-selectable"
 
@@ -19,6 +20,7 @@ interface BusinessFeedDrawerProps {
   onAddToCart?: (post: BusinessPost) => void
   selectedContextIds: string[]
   onPostLongPress?: (post: BusinessPost) => void
+  getConversationContextItem: (post: BusinessPost) => ConversationContextItem
 }
 
 // Avatares de usuarios para prova social
@@ -215,6 +217,7 @@ export function BusinessFeedDrawer({
   onAddToCart,
   selectedContextIds,
   onPostLongPress,
+  getConversationContextItem,
 }: BusinessFeedDrawerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const initialPostRef = useRef<HTMLDivElement>(null)
@@ -302,6 +305,7 @@ export function BusinessFeedDrawer({
                     as="article"
                     key={post.id}
                     onLongPress={() => onPostLongPress?.(post)}
+                    conversationContextItem={getConversationContextItem(post)}
                     selected={selectedContextIdSet.has(post.id)}
                     className={cn(
                       "pb-8 border-b border-border/30",
