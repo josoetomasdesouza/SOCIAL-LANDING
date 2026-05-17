@@ -12,7 +12,7 @@ import type {
 } from "@/lib/mock-data/conversational-search"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
-const COMPOSER_MASK_VISIBLE_ZONE_PX = 112
+const COMPOSER_MASK_TOP_OFFSET_PX = 80
 
 export type ConversationContextItem = ConversationContextPayload
 
@@ -122,26 +122,23 @@ export function ConversationalAI({
       return
     }
 
-    const updateMaskHeight = () => {
-      const composerShellHeight = shellElement.getBoundingClientRect().height
-      const resolvedHeight = Math.min(
-        320,
-        Math.max(200, Math.round(composerShellHeight + COMPOSER_MASK_VISIBLE_ZONE_PX))
-      )
-      maskElement.style.height = `${resolvedHeight}px`
+    const updateMaskBounds = () => {
+      const composerShellTop = shellElement.getBoundingClientRect().top
+      const resolvedTop = Math.max(0, Math.round(composerShellTop - COMPOSER_MASK_TOP_OFFSET_PX))
+      maskElement.style.top = `${resolvedTop}px`
     }
 
-    updateMaskHeight()
+    updateMaskBounds()
 
     const resizeObserver =
-      typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => updateMaskHeight()) : null
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => updateMaskBounds()) : null
 
     resizeObserver?.observe(shellElement)
-    window.addEventListener("resize", updateMaskHeight, { passive: true })
+    window.addEventListener("resize", updateMaskBounds, { passive: true })
 
     return () => {
       resizeObserver?.disconnect()
-      window.removeEventListener("resize", updateMaskHeight)
+      window.removeEventListener("resize", updateMaskBounds)
     }
   }, [contextItems.length, hasConversation, isMinimized])
 
@@ -356,9 +353,10 @@ export function ConversationalAI({
       <div
         ref={composerMaskRef}
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-[29] h-[240px]"
+        className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
-          background: "rgba(0, 128, 255, 0.28)",
+          background:
+            "linear-gradient(to top, rgba(0, 128, 255, 0.30) 0%, rgba(0, 128, 255, 0.22) 45%, rgba(0, 128, 255, 0.10) 75%, rgba(0, 128, 255, 0) 100%)",
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
