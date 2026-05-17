@@ -319,11 +319,15 @@ export function ConversationalAI({
 
   return (
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-32"
+        style={{
+          background:
+            "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.86) 32%, hsl(var(--background) / 0.52) 58%, hsl(var(--background) / 0.18) 80%, hsl(var(--background) / 0) 100%)",
+        }}
+      />
       <div className="relative mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-7 bottom-full h-20 rounded-t-[32px] bg-gradient-to-b from-transparent via-[rgba(7,16,24,0.14)] to-[rgba(7,16,24,0.54)]"
-        />
         <section
           data-conversation-composer="true"
           className="pointer-events-auto overflow-hidden rounded-[28px] border border-white/[0.08] bg-[rgba(7,16,24,0.88)] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px]"
