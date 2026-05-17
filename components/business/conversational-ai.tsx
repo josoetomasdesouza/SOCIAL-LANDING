@@ -321,7 +321,7 @@ export function ConversationalAI({
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[44vh] min-h-[320px] max-h-[560px]"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-0 h-[44vh] min-h-[320px] max-h-[560px]"
         style={{
           background:
             "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.99) 20%, hsl(var(--background) / 0.9) 38%, hsl(var(--background) / 0.64) 56%, hsl(var(--background) / 0.32) 72%, hsl(var(--background) / 0.12) 86%, hsl(var(--background) / 0) 100%)",
