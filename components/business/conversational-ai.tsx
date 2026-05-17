@@ -324,7 +324,7 @@ export function ConversationalAI({
         className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[44vh] min-h-[320px] max-h-[560px]"
         style={{
           background:
-            "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.96) 20%, hsl(var(--background) / 0.82) 38%, hsl(var(--background) / 0.58) 56%, hsl(var(--background) / 0.32) 72%, hsl(var(--background) / 0.12) 86%, hsl(var(--background) / 0) 100%)",
+            "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.99) 20%, hsl(var(--background) / 0.9) 38%, hsl(var(--background) / 0.64) 56%, hsl(var(--background) / 0.32) 72%, hsl(var(--background) / 0.12) 86%, hsl(var(--background) / 0) 100%)",
         }}
       />
       <div className="relative z-[1] mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
