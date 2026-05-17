@@ -321,13 +321,13 @@ export function ConversationalAI({
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-32"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[44vh] min-h-[320px] max-h-[560px]"
         style={{
           background:
-            "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.86) 32%, hsl(var(--background) / 0.52) 58%, hsl(var(--background) / 0.18) 80%, hsl(var(--background) / 0) 100%)",
+            "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.96) 20%, hsl(var(--background) / 0.82) 38%, hsl(var(--background) / 0.58) 56%, hsl(var(--background) / 0.32) 72%, hsl(var(--background) / 0.12) 86%, hsl(var(--background) / 0) 100%)",
         }}
       />
-      <div className="relative mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
+      <div className="relative z-[1] mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
         <section
           data-conversation-composer="true"
           className="pointer-events-auto overflow-hidden rounded-[28px] border border-white/[0.08] bg-[rgba(7,16,24,0.88)] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px]"
