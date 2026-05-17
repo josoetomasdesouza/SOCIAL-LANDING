@@ -284,7 +284,7 @@ export function ConversationalAI({
       data-conversation-context-chip={item.id}
       aria-hidden={isHidden || undefined}
       className={cn(
-        "flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-border/50 bg-secondary/55 pr-1.5",
+        "flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)]",
         isHidden && "pointer-events-none opacity-0"
       )}
     >
@@ -294,11 +294,11 @@ export function ConversationalAI({
 
       <div className="min-w-0 flex-1">
         {item.subtitle ? (
-          <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="truncate text-[10px] font-medium uppercase tracking-wide text-white/42">
             {item.subtitle}
           </p>
         ) : null}
-        <p className="truncate text-xs font-medium text-foreground">{item.title}</p>
+        <p className="truncate text-xs font-medium text-white/92">{item.title}</p>
       </div>
 
       {onRemoveContext ? (
@@ -306,7 +306,7 @@ export function ConversationalAI({
           type="button"
           onClick={() => handleRemoveContextItem(item.id)}
           disabled={isHidden}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:text-foreground"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/56 transition-colors hover:bg-white/[0.12] hover:text-white/90"
           aria-label={`Remover ${item.title}`}
           tabIndex={isHidden ? -1 : undefined}
         >
@@ -319,21 +319,25 @@ export function ConversationalAI({
 
   return (
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
-      <div className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
+      <div className="relative mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-7 bottom-full h-20 rounded-t-[32px] bg-gradient-to-b from-transparent via-[rgba(7,16,24,0.14)] to-[rgba(7,16,24,0.54)]"
+        />
         <section
           data-conversation-composer="true"
-          className="pointer-events-auto overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+          className="pointer-events-auto overflow-hidden rounded-[28px] border border-white/[0.08] bg-[rgba(7,16,24,0.88)] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px]"
         >
           {hasConversation && (
-            <div className="border-b border-border/50">
+            <div className="border-b border-white/[0.07]">
               <div className="px-4 pt-3 pb-2">
                 <div className="relative flex items-center justify-center">
-                  <div className="h-1 w-11 rounded-full bg-border/80" />
+                  <div className="h-1 w-11 rounded-full bg-white/12" />
                   <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setIsMinimized((prev) => !prev)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-white/62 transition-colors hover:bg-white/6 hover:text-white/90"
                     aria-label={isMinimized ? "Expandir conversa" : "Minimizar conversa"}
                   >
                     {isMinimized ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -341,7 +345,7 @@ export function ConversationalAI({
                   <button
                     type="button"
                     onClick={handleCloseConversation}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-white/62 transition-colors hover:bg-white/6 hover:text-white/90"
                     aria-label="Fechar conversa"
                   >
                     <X className="h-4 w-4" />
@@ -436,7 +440,7 @@ export function ConversationalAI({
                 </div>
               ) : (
                 <div className="px-4 pb-3">
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-white/48">
                     {showContextRow ? "Contexto pronto para continuar a conversa." : "A conversa continua aqui quando voce enviar a proxima mensagem."}
                   </p>
                 </div>
@@ -445,7 +449,7 @@ export function ConversationalAI({
           )}
 
           {!hasConversation && showContextRow && (
-            <div className="border-b border-border/50 px-4 py-2.5">
+            <div className="border-b border-white/[0.07] px-4 py-2.5">
               <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {contextItems.map((item) => renderContextChip(item))}
               </div>
@@ -456,7 +460,7 @@ export function ConversationalAI({
             <button
               type="button"
               disabled
-              className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full"
+              className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10"
               aria-label="Marca"
             >
               <Image src={brandLogo} alt={brandName} fill className="object-cover" />
@@ -472,12 +476,12 @@ export function ConversationalAI({
                 }
               }}
               placeholder={resolvedPlaceholder}
-              className="h-10 min-w-0 flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground/80"
+              className="h-10 min-w-0 flex-1 bg-transparent text-[15px] text-white/92 outline-none placeholder:text-white/44"
             />
             <button
               type="submit"
               disabled={!inputValue.trim() || isTyping}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-[0_12px_24px_-16px_rgba(0,0,0,0.4)] transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.96] text-[rgba(7,16,24,0.94)] shadow-[0_16px_32px_-20px_rgba(0,0,0,0.52)] transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Enviar mensagem"
             >
               {isTyping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
