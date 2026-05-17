@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import { ChevronDown, ChevronUp, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -46,6 +45,7 @@ interface ConversationOSShellProps {
   operationalActions: ConversationOperationalActions
   productFlowState: ConversationProductFlowState
   productFlowActions: ConversationProductFlowActions
+  operationalSurface?: React.ReactNode
   activeProductPreview?: {
     title: string
     image: string
@@ -104,6 +104,7 @@ export function ConversationOSShell({
   operationalActions,
   productFlowState,
   productFlowActions,
+  operationalSurface,
   activeProductPreview,
 }: ConversationOSShellProps) {
   const [messages, setMessages] = useState<ConversationRuntimeMessage[]>(initialMessages || [])
@@ -315,6 +316,31 @@ export function ConversationOSShell({
     ? "A conversa entrou em modo assistido para voce explorar este item sem sair daqui."
     : "A conversa entrou em modo assistido para continuar sua jornada dentro deste contexto."
   const immersiveHeaderTitle = activeProductPreview?.title || "Modo assistido"
+  const resolvedOperationalSurface = operationalSurface || (
+    activeProductPreview ? (
+      <div className="space-y-4 pb-1">
+        <div className="rounded-[24px] border border-border/55 bg-background/65 p-4 shadow-[0_20px_46px_-36px_rgba(0,0,0,0.4)]">
+          <p className="text-sm font-medium text-foreground">{activeProductPreview.title}</p>
+          {typeof activeProductPreview.price === "number" ? (
+            <p className="mt-2 text-base font-semibold text-foreground">
+              R$ {activeProductPreview.price.toFixed(2).replace(".", ",")}
+            </p>
+          ) : null}
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {activeProductPreview.description ||
+              "O detalhe completo deste produto vai assumir esta area da conversa nas proximas fases."}
+          </p>
+        </div>
+      </div>
+    ) : (
+      <div className="rounded-[24px] border border-border/55 bg-background/65 p-4 shadow-[0_20px_46px_-36px_rgba(0,0,0,0.4)]">
+        <p className="text-sm font-medium text-foreground">O modo assistido da conversa ja esta pronto.</p>
+        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+          Assim que um produto for selecionado, esta area assume a jornada operacional sem abrir drawer.
+        </p>
+      </div>
+    )
+  )
 
   return (
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
@@ -424,66 +450,7 @@ export function ConversationOSShell({
                     canGoBack={operationalState.backStack.length > 0}
                     onBack={operationalActions.back}
                   >
-                    {activeProductPreview ? (
-                      <div className="space-y-6 pb-1">
-                        <div className="grid gap-5 md:grid-cols-[168px,1fr] md:items-start">
-                          <div className="relative aspect-square overflow-hidden rounded-[24px] bg-secondary/70 shadow-[0_24px_60px_-36px_rgba(0,0,0,0.45)]">
-                            <Image
-                              src={activeProductPreview.image}
-                              alt={activeProductPreview.title}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-
-                          <div className="min-w-0">
-                            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                              Visao inicial
-                            </p>
-                            <h3 className="mt-2 text-[26px] font-semibold leading-tight tracking-[-0.02em] text-foreground">
-                              {activeProductPreview.title}
-                            </h3>
-                            {typeof activeProductPreview.price === "number" ? (
-                              <p className="mt-4 text-xl font-semibold text-foreground">
-                                R$ {activeProductPreview.price.toFixed(2).replace(".", ",")}
-                              </p>
-                            ) : null}
-                            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                              {activeProductPreview.description ||
-                                "Em seguida, o detalhe completo deste produto vai assumir esta area da conversa."}
-                            </p>
-
-                            <div className="mt-5 flex flex-wrap gap-2">
-                              <div className="inline-flex items-center rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-                                Fluxo iniciado na conversa
-                              </div>
-                              <div className="inline-flex items-center rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
-                                Detalhes completos em breve
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="rounded-[24px] border border-border/55 bg-background/65 p-4 shadow-[0_20px_46px_-36px_rgba(0,0,0,0.4)]">
-                          <p className="text-sm font-medium text-foreground">
-                            Este espaco agora funciona como sua area principal para continuar a jornada.
-                          </p>
-                          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                            Nas proximas fases, voce vai ver aqui detalhe do produto, variacoes, carrinho e checkout
-                            assistido, sempre dentro da propria conversa.
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="rounded-[24px] border border-border/55 bg-background/65 p-4 shadow-[0_20px_46px_-36px_rgba(0,0,0,0.4)]">
-                        <p className="text-sm font-medium text-foreground">
-                          O modo assistido da conversa ja esta pronto.
-                        </p>
-                        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                          Assim que um produto for selecionado, esta area assume a jornada operacional sem abrir drawer.
-                        </p>
-                      </div>
-                    )}
+                    {resolvedOperationalSurface}
                   </ConversationOperationalPanel>
                 </div>
               ) : (

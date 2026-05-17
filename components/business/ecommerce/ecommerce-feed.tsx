@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Image from "next/image"
-import { ShoppingBag, Heart, Star, Truck, ChevronRight, Plus, Minus, Check, X, Play, Newspaper } from "lucide-react"
+import { ShoppingBag, Heart, Star, ChevronRight, Plus, Minus, Check, X, Play, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
@@ -11,6 +11,11 @@ import { EcommerceCheckout } from "../checkout-flows"
 import { ContextSelectable } from "../context-selectable"
 import { createConversationalSearchVisualBlockRenderer } from "../conversational-search-results"
 import { ConversationOSShell } from "../conversation-os-shell"
+import {
+  EcommerceFreeShippingBanner,
+  EcommerceProductOperationalSurface,
+  EcommerceProductSurfaceCard,
+} from "./ecommerce-surface-blocks"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
@@ -94,7 +99,6 @@ function ProductsModule({
       {/* Ofertas em destaque */}
       <div className="grid grid-cols-2 gap-3">
         {featuredProducts.map((product) => {
-          const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
           const contextItem = {
             id: `ecommerce-product-${product.id}`,
             title: product.name,
@@ -111,53 +115,20 @@ function ProductsModule({
               className="relative group"
             >
               <div className="w-full text-left">
-                <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
-                  <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                  {discount > 0 && (
-                    <Badge className="absolute top-2 left-2 bg-red-500 text-white border-0">-{discount}%</Badge>
-                  )}
-                </div>
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-foreground line-clamp-2">{product.name}</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs text-muted-foreground">{product.rating} ({product.reviewCount})</span>
-                  </div>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="font-bold text-accent">R$ {product.price.toFixed(2).replace(".", ",")}</span>
-                    {product.originalPrice && (
-                      <span className="text-xs text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
-                    )}
-                  </div>
-                </div>
+                <EcommerceProductSurfaceCard
+                  product={product}
+                  isFavorite={favorites.has(product.id)}
+                  onToggleFavorite={() => onToggleFavorite(product.id)}
+                  onPrimaryAction={() => onAddToCart(product)}
+                />
               </div>
-              <button
-                onClick={() => onToggleFavorite(product.id)}
-                className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-              >
-                <Heart className={`w-4 h-4 ${favorites.has(product.id) ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
-              </button>
-              <Button
-                size="sm"
-                className="w-full mt-2 h-9"
-                onClick={() => onAddToCart(product)}
-              >
-                <ShoppingBag className="w-4 h-4 mr-1" />
-                Adicionar
-              </Button>
             </ContextSelectable>
           )
         })}
       </div>
       
       {/* Frete gratis */}
-      <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
-        <Truck className="w-6 h-6 text-green-600" />
-        <div>
-          <p className="font-medium text-green-700 dark:text-green-400">Frete gratis</p>
-          <p className="text-sm text-green-600 dark:text-green-500">Em compras acima de R$ 199</p>
-        </div>
-      </div>
+      {featuredProducts[0] ? <EcommerceFreeShippingBanner product={featuredProducts[0]} /> : null}
     </div>
   )
 }
@@ -562,14 +533,14 @@ export function EcommerceFeed() {
     }
   }
   
-  const handleToggleFavorite = (id: string) => {
+  const handleToggleFavorite = useCallback((id: string) => {
     setFavorites(prev => {
       const newSet = new Set(prev)
       if (newSet.has(id)) newSet.delete(id)
       else newSet.add(id)
       return newSet
     })
-  }
+  }, [])
 
   const handleOpenProductDrawer = useCallback((product: Product) => {
     setSelectedProduct(product)
@@ -600,6 +571,27 @@ export function EcommerceFeed() {
     [conversationProductFlow.state.activeProductId]
   )
 
+  const activeConversationReviews = useMemo(
+    () =>
+      activeConversationProduct
+        ? productReviews.filter((review) => review.productId === activeConversationProduct.id)
+        : [],
+    [activeConversationProduct]
+  )
+
+  const operationalSurface = useMemo(
+    () =>
+      activeConversationProduct ? (
+        <EcommerceProductOperationalSurface
+          product={activeConversationProduct}
+          reviews={activeConversationReviews}
+          isFavorite={favorites.has(activeConversationProduct.id)}
+          onToggleFavorite={() => handleToggleFavorite(activeConversationProduct.id)}
+        />
+      ) : undefined,
+    [activeConversationProduct, activeConversationReviews, favorites, handleToggleFavorite]
+  )
+
   const conversationShell = (
     <ConversationOSShell
       brandLogo={ecommerceConfig.logo}
@@ -614,6 +606,7 @@ export function EcommerceFeed() {
       operationalActions={conversationOperationalFlow.actions}
       productFlowState={conversationProductFlow.state}
       productFlowActions={conversationProductFlow.actions}
+      operationalSurface={operationalSurface}
       activeProductPreview={
         activeConversationProduct
           ? {
