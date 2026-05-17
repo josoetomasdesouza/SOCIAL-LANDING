@@ -318,16 +318,17 @@ export function ConversationalAI({
   }
 
   return (
-    <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
+    <>
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-0 h-[44vh] min-h-[320px] max-h-[560px]"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[29] h-[280px]"
         style={{
           background:
-            "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.99) 20%, hsl(var(--background) / 0.9) 38%, hsl(var(--background) / 0.64) 56%, hsl(var(--background) / 0.32) 72%, hsl(var(--background) / 0.12) 86%, hsl(var(--background) / 0) 100%)",
+            "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.98) 28%, hsl(var(--background) / 0.82) 48%, hsl(var(--background) / 0.45) 70%, hsl(var(--background) / 0.12) 88%, transparent 100%)",
         }}
       />
-      <div className="relative z-[1] mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
+      <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
+      <div className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
         <section
           data-conversation-composer="true"
           className="pointer-events-auto overflow-hidden rounded-[28px] border border-white/[0.08] bg-[rgba(7,16,24,0.88)] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px]"
@@ -493,6 +494,7 @@ export function ConversationalAI({
           </form>
         </section>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
