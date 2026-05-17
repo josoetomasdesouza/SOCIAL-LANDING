@@ -178,6 +178,12 @@ export function useConversationSelectionState(): ConversationSelectionController
     setQueuedMorph(null)
   }, [queuedMorph])
 
+  const clearMorphStateForContext = useCallback((contextId: string) => {
+    setHiddenContextIds((prev) => prev.filter((id) => id !== contextId))
+    setQueuedMorph((prev) => (prev?.contextId === contextId ? null : prev))
+    setActiveMorph((prev) => (prev?.contextId === contextId ? null : prev))
+  }, [])
+
   const upsertConversationContextItem = useCallback((item: ConversationContextItem) => {
     setConversationContext((prev) => {
       const deduped = prev.filter((existingItem) => existingItem.id !== item.id)
@@ -186,22 +192,19 @@ export function useConversationSelectionState(): ConversationSelectionController
   }, [])
 
   const toggleConversationContextItem = useCallback((item: ConversationContextItem) => {
-    setConversationContext((prev) => {
-      const alreadySelected = prev.some((existingItem) => existingItem.id === item.id)
-      if (alreadySelected) {
-        return prev.filter((existingItem) => existingItem.id !== item.id)
-      }
+    if (selectedContextIds.has(item.id)) {
+      setConversationContext((prev) => prev.filter((existingItem) => existingItem.id !== item.id))
+      clearMorphStateForContext(item.id)
+      return
+    }
 
-      return [item, ...prev.filter((existingItem) => existingItem.id !== item.id)].slice(0, 6)
-    })
-  }, [])
+    setConversationContext((prev) => [item, ...prev.filter((existingItem) => existingItem.id !== item.id)].slice(0, 6))
+  }, [clearMorphStateForContext, selectedContextIds])
 
   const removeConversationContext = useCallback((contextId: string) => {
     setConversationContext((prev) => prev.filter((item) => item.id !== contextId))
-    setHiddenContextIds((prev) => prev.filter((id) => id !== contextId))
-    setQueuedMorph((prev) => (prev?.contextId === contextId ? null : prev))
-    setActiveMorph((prev) => (prev?.contextId === contextId ? null : prev))
-  }, [])
+    clearMorphStateForContext(contextId)
+  }, [clearMorphStateForContext])
 
   const clearConversationContext = useCallback(() => {
     setConversationContext([])
