@@ -1,7 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
-import { Bookmark, Heart, MessageCircle, Share2, ShoppingBag, Star, Truck } from "lucide-react"
+import { Bookmark, Heart, MessageCircle, Minus, Plus, Share2, ShoppingBag, Star, Truck } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -19,6 +20,35 @@ function getDiscount(product: Product) {
   }
 
   return Math.round((1 - product.price / product.originalPrice) * 100)
+}
+
+type SelectedVariantsById = Record<string, string>
+
+type SelectedVariant = {
+  id: string
+  name: string
+  option: NonNullable<Product["variants"]>[number]["options"][number]
+}
+
+function getSelectedVariants(product: Product, selectedById: SelectedVariantsById): SelectedVariant[] {
+  return (
+    product.variants
+      ?.map((variant) => {
+        const selectedOption = variant.options.find((option) => option.id === selectedById[variant.id])
+        if (!selectedOption) return null
+
+        return {
+          id: variant.id,
+          name: variant.name,
+          option: selectedOption,
+        }
+      })
+      .filter((variant): variant is SelectedVariant => Boolean(variant)) || []
+  )
+}
+
+function getVariantPriceModifier(selectedVariants: SelectedVariant[] = []) {
+  return selectedVariants.reduce((sum, variant) => sum + (variant.option.priceModifier || 0), 0)
 }
 
 interface EcommerceProductSurfaceCardProps {
@@ -137,6 +167,7 @@ interface EcommerceProductResultsCarouselProps {
   products: Product[]
   favorites?: Set<string>
   onSelectProduct: (productId: string) => void
+  onPrimaryAction: (productId: string) => void
   onToggleFavorite?: (productId: string) => void
 }
 
@@ -144,6 +175,7 @@ export function EcommerceProductResultsCarousel({
   products,
   favorites,
   onSelectProduct,
+  onPrimaryAction,
   onToggleFavorite,
 }: EcommerceProductResultsCarouselProps) {
   if (products.length === 0) return null
@@ -162,8 +194,8 @@ export function EcommerceProductResultsCarousel({
                 onToggleFavorite={
                   onToggleFavorite ? () => onToggleFavorite(product.id) : undefined
                 }
-                onPrimaryAction={() => onSelectProduct(product.id)}
-                primaryActionLabel="Ver"
+                onPrimaryAction={() => onPrimaryAction(product.id)}
+                primaryActionLabel="Adicionar"
               />
             </div>
           ))}
@@ -177,32 +209,208 @@ interface EcommerceConversationProductDetailProps {
   product: Product
   isFavorite?: boolean
   onToggleFavorite?: () => void
+  reviews?: ProductReview[]
+  selectedVariantsById?: SelectedVariantsById
+  quantity?: number
+  onSelectVariant?: (variantId: string, optionId: string) => void
+  onChangeQuantity?: (quantity: number) => void
   onPrimaryAction: () => void
+  footer?: React.ReactNode
+  hideActionButton?: boolean
 }
 
 export function EcommerceConversationProductDetail({
   product,
   isFavorite = false,
   onToggleFavorite,
+  reviews = [],
+  selectedVariantsById = {},
+  quantity = 1,
+  onSelectVariant,
+  onChangeQuantity,
   onPrimaryAction,
+  footer,
+  hideActionButton = false,
 }: EcommerceConversationProductDetailProps) {
+  const [selectedImage, setSelectedImage] = useState(0)
+  const discount = getDiscount(product)
+  const resolvedVariants = getSelectedVariants(product, selectedVariantsById)
+  const missingRequiredVariant = product.variants?.some((variant) => !selectedVariantsById[variant.id]) || false
+  const unitPrice = product.price + getVariantPriceModifier(resolvedVariants)
+  const totalPrice = unitPrice * quantity
+
   return (
     <ConversationSurfaceAdapter mode="immersive" className="space-y-4">
-      <div className="mx-auto w-full max-w-[340px]">
-        <EcommerceProductSurfaceCard
-          product={product}
-          variant="conversation"
-          isFavorite={isFavorite}
-          onToggleFavorite={onToggleFavorite}
-          onPrimaryAction={onPrimaryAction}
-          primaryActionLabel="Continuar"
-        />
-      </div>
+      <div className="space-y-5">
+        <div className="space-y-3">
+          <div className="relative aspect-square overflow-hidden rounded-xl bg-secondary">
+            <Image src={product.images[selectedImage]} alt={product.name} fill className="object-cover" />
+            {discount > 0 ? (
+              <Badge className="absolute left-3 top-3 border-0 bg-red-500 text-sm text-white">-{discount}%</Badge>
+            ) : null}
+            <button
+              type="button"
+              onClick={onToggleFavorite}
+              className="absolute right-3 top-3 rounded-full bg-white/80 p-2 transition-colors hover:bg-white"
+              aria-label={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
+            >
+              <Heart className={cn("h-5 w-5", isFavorite ? "fill-red-500 text-red-500" : "text-gray-600")} />
+            </button>
+          </div>
 
-      <div className="rounded-[20px] border border-border/50 bg-background/70 p-4">
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          {product.description}
-        </p>
+          {product.images.length > 1 ? (
+            <div className="flex gap-2">
+              {product.images.map((image, index) => (
+                <button
+                  key={`${image}-${index}`}
+                  type="button"
+                  onClick={() => setSelectedImage(index)}
+                  className={cn(
+                    "relative h-16 w-16 overflow-hidden rounded-lg ring-2 transition-colors",
+                    selectedImage === index ? "ring-accent" : "ring-transparent"
+                  )}
+                  aria-label={`Ver imagem ${index + 1}`}
+                >
+                  <Image src={image} alt="" fill className="object-cover" />
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">{product.rating}</span>
+            </div>
+            <span className="text-sm text-muted-foreground">({product.reviewCount} avaliacoes)</span>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-bold">{product.name}</h2>
+            <p className="mt-2 text-muted-foreground">{product.fullDescription || product.description}</p>
+          </div>
+        </div>
+
+        <div className="flex items-baseline gap-3">
+          <span className="text-3xl font-bold text-accent">{formatPrice(unitPrice)}</span>
+          {product.originalPrice ? (
+            <span className="text-lg text-muted-foreground line-through">{formatPrice(product.originalPrice)}</span>
+          ) : null}
+        </div>
+
+        {product.variants && product.variants.length > 0 ? (
+          <div className="space-y-4">
+            {product.variants.map((variant) => (
+              <div key={variant.id}>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <h4 className="font-medium">{variant.name}</h4>
+                  <Badge>Obrigatorio</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {variant.options.map((option) => {
+                    const isSelected = selectedVariantsById[variant.id] === option.id
+
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        disabled={!option.available}
+                        onClick={() => onSelectVariant?.(variant.id, option.id)}
+                        className={cn(
+                          "rounded-xl border p-3 text-left transition-colors",
+                          isSelected ? "border-accent bg-accent/10" : "border-border hover:border-accent/50",
+                          !option.available && "cursor-not-allowed opacity-50"
+                        )}
+                      >
+                        <p className="text-sm font-medium">{option.value}</p>
+                        {option.priceModifier ? (
+                          <p className="text-xs text-muted-foreground">
+                            {option.priceModifier > 0 ? "+" : "-"} {formatPrice(Math.abs(option.priceModifier))}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">Preco base</p>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium">Quantidade:</span>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onChangeQuantity?.(Math.max(1, quantity - 1))}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <span className="w-8 text-center font-medium">{quantity}</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onChangeQuantity?.(quantity + 1)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {reviews.length > 0 ? (
+          <div className="rounded-xl bg-secondary/50 p-4">
+            <h4 className="mb-3 font-medium">Avaliacoes recentes</h4>
+            {reviews.slice(0, 2).map((review) => (
+              <div key={review.id} className="mb-3 flex items-start gap-3 last:mb-0">
+                <div className="relative h-8 w-8 overflow-hidden rounded-full">
+                  <Image src={review.userAvatar} alt={review.userName} fill className="object-cover" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">{review.userName}</span>
+                    <div className="flex">
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <Star
+                          key={index}
+                          className={cn(
+                            "h-3 w-3",
+                            index < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="line-clamp-2 text-sm text-muted-foreground">{review.comment}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {!hideActionButton ? (
+          <Button
+            type="button"
+            className="h-12 w-full"
+            disabled={missingRequiredVariant}
+            onClick={onPrimaryAction}
+          >
+            <ShoppingBag className="mr-2 h-5 w-5" />
+            {missingRequiredVariant
+              ? "Escolha as opcoes obrigatorias"
+              : `Adicionar ${formatPrice(totalPrice)}`}
+          </Button>
+        ) : null}
+
+        {footer}
       </div>
     </ConversationSurfaceAdapter>
   )
@@ -216,23 +424,20 @@ export function EcommerceConversationStepPlaceholder({
   product,
 }: EcommerceConversationStepPlaceholderProps) {
   return (
-    <ConversationSurfaceAdapter mode="immersive" className="space-y-4">
-      <div className="mx-auto w-full max-w-[340px]">
-        <EcommerceProductSurfaceCard
-          product={product}
-          variant="conversation"
-          primaryActionLabel="Em breve"
-          primaryActionDisabled
-        />
+    <div className="rounded-[20px] border border-border/50 bg-secondary/20 p-4">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-foreground">Produto pronto para seguir no fluxo.</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+            Carrinho assistido e confirmacao entram na proxima microfase, sem sair da conversa.
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Produto</p>
+          <p className="mt-1 text-sm font-medium text-foreground">{product.name}</p>
+        </div>
       </div>
-
-      <div className="rounded-[20px] border border-border/50 bg-secondary/20 p-4">
-        <p className="text-sm font-medium text-foreground">Proxima etapa pronta para entrar no fluxo.</p>
-        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-          Opcoes, carrinho e confirmacao assistida entram na proxima microfase, sem sair da conversa.
-        </p>
-      </div>
-    </ConversationSurfaceAdapter>
+    </div>
   )
 }
 
@@ -325,12 +530,18 @@ export function EcommerceReviewSurfaceCard({
 }
 
 interface EcommerceProductOperationalSurfaceProps {
-  step: "product-entry" | "product-detail" | "product-options"
+  step: "product-entry" | "product-detail" | "cart-summary"
   products?: Product[]
   product?: Product | null
   favorites?: Set<string>
+  reviews?: ProductReview[]
+  selectedVariantsById?: SelectedVariantsById
+  quantity?: number
   onSelectProduct: (productId: string) => void
+  onPrimaryAction: (productId: string) => void
   onAdvance: () => void
+  onSelectVariant?: (variantId: string, optionId: string) => void
+  onChangeQuantity?: (quantity: number) => void
   onToggleFavorite?: (productId: string) => void
 }
 
@@ -339,8 +550,14 @@ export function EcommerceProductOperationalSurface({
   products = [],
   product,
   favorites,
+  reviews = [],
+  selectedVariantsById = {},
+  quantity = 1,
   onSelectProduct,
+  onPrimaryAction,
   onAdvance,
+  onSelectVariant,
+  onChangeQuantity,
   onToggleFavorite,
 }: EcommerceProductOperationalSurfaceProps) {
   if (step === "product-entry") {
@@ -349,6 +566,7 @@ export function EcommerceProductOperationalSurface({
         products={products}
         favorites={favorites}
         onSelectProduct={onSelectProduct}
+        onPrimaryAction={onPrimaryAction}
         onToggleFavorite={onToggleFavorite}
       />
     )
@@ -358,8 +576,22 @@ export function EcommerceProductOperationalSurface({
     return null
   }
 
-  if (step === "product-options") {
-    return <EcommerceConversationStepPlaceholder product={product} />
+  if (step === "cart-summary") {
+    return (
+      <EcommerceConversationProductDetail
+        product={product}
+        isFavorite={favorites?.has(product.id) ?? false}
+        onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(product.id) : undefined}
+        reviews={reviews}
+        selectedVariantsById={selectedVariantsById}
+        quantity={quantity}
+        onSelectVariant={onSelectVariant}
+        onChangeQuantity={onChangeQuantity}
+        onPrimaryAction={onAdvance}
+        hideActionButton
+        footer={<EcommerceConversationStepPlaceholder product={product} />}
+      />
+    )
   }
 
   return (
@@ -367,6 +599,11 @@ export function EcommerceProductOperationalSurface({
       product={product}
       isFavorite={favorites?.has(product.id) ?? false}
       onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(product.id) : undefined}
+      reviews={reviews}
+      selectedVariantsById={selectedVariantsById}
+      quantity={quantity}
+      onSelectVariant={onSelectVariant}
+      onChangeQuantity={onChangeQuantity}
       onPrimaryAction={onAdvance}
     />
   )

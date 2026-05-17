@@ -555,8 +555,20 @@ export function EcommerceFeed() {
     conversationOperationalFlow.actions.openProductFlow()
   }, [conversationOperationalFlow.actions, conversationProductFlow.actions])
 
+  const handleConversationProductPrimaryAction = useCallback((productId: string) => {
+    const product = products.find((candidate) => candidate.id === productId)
+    if (!product) return
+
+    conversationProductFlow.actions.openProduct(product.id)
+    conversationOperationalFlow.actions.openProductFlow()
+
+    if (!product.variants || product.variants.length === 0) {
+      conversationProductFlow.actions.goToStep("cart-summary")
+    }
+  }, [conversationOperationalFlow.actions, conversationProductFlow.actions])
+
   const handleAdvanceConversationProductFlow = useCallback(() => {
-    conversationProductFlow.actions.goToStep("product-options")
+    conversationProductFlow.actions.goToStep("cart-summary")
   }, [conversationProductFlow.actions])
 
   const renderConversationVisualBlock = useMemo(
@@ -573,6 +585,14 @@ export function EcommerceFeed() {
         ? products.find((product) => product.id === conversationProductFlow.state.activeProductId) || null
         : null,
     [conversationProductFlow.state.activeProductId]
+  )
+
+  const activeConversationReviews = useMemo(
+    () =>
+      activeConversationProduct
+        ? productReviews.filter((review) => review.productId === activeConversationProduct.id)
+        : [],
+    [activeConversationProduct]
   )
 
   const activeConversationProducts = useMemo(
@@ -592,9 +612,9 @@ export function EcommerceFeed() {
       const resolvedStep =
         conversationProductFlow.state.step === "product-entry"
           ? "product-entry"
-          : conversationProductFlow.state.step === "product-detail"
-            ? "product-detail"
-            : "product-options"
+          : conversationProductFlow.state.step === "cart-summary"
+            ? "cart-summary"
+            : "product-detail"
 
       return (
         <EcommerceProductOperationalSurface
@@ -602,8 +622,14 @@ export function EcommerceFeed() {
           products={activeConversationProducts}
           product={activeConversationProduct}
           favorites={favorites}
+          reviews={activeConversationReviews}
+          selectedVariantsById={conversationProductFlow.state.selectedVariantsById}
+          quantity={conversationProductFlow.state.quantity}
           onSelectProduct={handleConversationProductCtaClick}
+          onPrimaryAction={handleConversationProductPrimaryAction}
           onAdvance={handleAdvanceConversationProductFlow}
+          onSelectVariant={conversationProductFlow.actions.selectVariant}
+          onChangeQuantity={conversationProductFlow.actions.setQuantity}
           onToggleFavorite={handleToggleFavorite}
         />
       )
@@ -611,10 +637,16 @@ export function EcommerceFeed() {
     [
       activeConversationProduct,
       activeConversationProducts,
+      activeConversationReviews,
       conversationProductFlow.state.step,
+      conversationProductFlow.state.quantity,
+      conversationProductFlow.state.selectedVariantsById,
+      conversationProductFlow.actions.selectVariant,
+      conversationProductFlow.actions.setQuantity,
       favorites,
       handleAdvanceConversationProductFlow,
       handleConversationProductCtaClick,
+      handleConversationProductPrimaryAction,
       handleToggleFavorite,
     ]
   )

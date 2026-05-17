@@ -156,6 +156,10 @@ export function ConversationOSShell({
 
   const hasConversation = messages.length > 0 || isTyping
   const hasActiveProductFlow = operationalState.activeFlow === "product"
+  const isExpandedProductStep =
+    hasActiveProductFlow &&
+    productFlowState.step !== "idle" &&
+    productFlowState.step !== "product-entry"
   const hasConversationSurface = hasConversation || hasActiveProductFlow
   const resolvedPlaceholder = hasActiveProductFlow
     ? productFlowState.activeProductId
@@ -448,7 +452,10 @@ export function ConversationOSShell({
                     className={cn(
                       "px-4 py-4 transition-all duration-300",
                       isImmersive
-                        ? "flex-shrink-0 border-b border-border/40 bg-secondary/10 pb-3 opacity-65 saturate-50"
+                        ? cn(
+                            "flex-shrink-0 border-b border-border/40 bg-secondary/10 pb-3 opacity-65 saturate-50",
+                            isExpandedProductStep && "max-h-[12vh] overflow-hidden opacity-35 saturate-[0.35]"
+                          )
                         : "max-h-[32vh] overflow-y-auto"
                     )}
                   >
