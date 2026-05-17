@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, ReactNode, cloneElement, isValidElement } from "react"
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -92,9 +92,17 @@ const MORPH_SPAWN_SCALE = 1.08
 
 interface ActivePostMorph {
   key: number
+  contextId: string
   preview: PostToChatMorphPreview
   fromRect: PostToChatMorphRect
   toRect: PostToChatMorphRect
+}
+
+interface QueuedPostMorph {
+  key: number
+  contextId: string
+  preview: PostToChatMorphPreview
+  sourceRect: PostToChatMorphRect
 }
 
 function getConversationContextTitle(post: BusinessPost) {
@@ -160,24 +168,27 @@ function getComposerFallbackRect(): PostToChatMorphRect {
   }
 }
 
-function getComposerTargetRect(): PostToChatMorphRect {
-  const railElement = document.querySelector<HTMLElement>('[data-conversation-context-rail="true"]')
+function getComposerChipRect(contextId: string): PostToChatMorphRect | null {
+  const escapedContextId = getEscapedSelectorValue(contextId)
+  const chipElement = document.querySelector<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`)
 
-  if (railElement) {
-    const railRect = railElement.getBoundingClientRect()
-
-    if (isVisibleRect(railRect)) {
-      return {
-        left: railRect.left,
-        top: railRect.top,
-        width: Math.max(MORPH_TARGET_MIN_SIZE, Math.min(MORPH_TARGET_WIDTH, railRect.width)),
-        height: Math.max(MORPH_TARGET_MIN_SIZE, MORPH_TARGET_HEIGHT),
-        borderRadius: 999,
-      }
-    }
+  if (!chipElement) {
+    return null
   }
 
-  return getComposerFallbackRect()
+  const chipRect = chipElement.getBoundingClientRect()
+
+  if (!isVisibleRect(chipRect)) {
+    return null
+  }
+
+  return {
+    left: chipRect.left,
+    top: chipRect.top,
+    width: chipRect.width,
+    height: chipRect.height,
+    borderRadius: 999,
+  }
 }
 
 function createMorphSpawnRect(sourceRect: PostToChatMorphRect, targetRect: PostToChatMorphRect): PostToChatMorphRect {
@@ -829,6 +840,8 @@ export function BusinessSocialLanding({
   const [feedDrawerOpen, setFeedDrawerOpen] = useState(false)
   const [feedDrawerCategory, setFeedDrawerCategory] = useState<string>("all")
   const [activeMorph, setActiveMorph] = useState<ActivePostMorph | null>(null)
+  const [hiddenContextIds, setHiddenContextIds] = useState<string[]>([])
+  const [queuedMorph, setQueuedMorph] = useState<QueuedPostMorph | null>(null)
   const {
     conversationContext,
     selectedContextIds,
@@ -856,6 +869,23 @@ export function BusinessSocialLanding({
     })
     return posts
   }, [sections])
+
+  useLayoutEffect(() => {
+    if (!queuedMorph) {
+      return
+    }
+
+    const targetRect = getComposerChipRect(queuedMorph.contextId) ?? getComposerFallbackRect()
+
+    setActiveMorph({
+      key: queuedMorph.key,
+      contextId: queuedMorph.contextId,
+      preview: queuedMorph.preview,
+      fromRect: createMorphSpawnRect(queuedMorph.sourceRect, targetRect),
+      toRect: targetRect,
+    })
+    setQueuedMorph(null)
+  }, [queuedMorph])
 
   const getPostSourceRect = useCallback((postId: string): PostToChatMorphRect | null => {
     const escapedPostId = getEscapedSelectorValue(postId)
@@ -895,18 +925,21 @@ export function BusinessSocialLanding({
       return
     }
 
-    const targetRect = getComposerTargetRect()
+    const morphKey = Date.now()
 
-    setActiveMorph({
-      key: Date.now(),
+    setHiddenContextIds((currentIds) =>
+      currentIds.includes(contextItem.id) ? currentIds : [...currentIds, contextItem.id]
+    )
+    setQueuedMorph({
+      key: morphKey,
+      contextId: contextItem.id,
       preview: {
         id: contextItem.id,
         title: contextItem.title,
         subtitle: contextItem.subtitle,
         image: contextItem.image,
       },
-      fromRect: createMorphSpawnRect(sourceRect, targetRect),
-      toRect: targetRect,
+      sourceRect,
     })
   }, [getPostSourceRect])
 
@@ -1011,6 +1044,7 @@ export function BusinessSocialLanding({
           toRect={activeMorph.toRect}
           durationMs={MORPH_DURATION_MS}
           onComplete={() => {
+            setHiddenContextIds((currentIds) => currentIds.filter((contextId) => contextId !== activeMorph.contextId))
             setActiveMorph((currentMorph) => (currentMorph?.key === activeMorph.key ? null : currentMorph))
           }}
         />
@@ -1028,6 +1062,7 @@ export function BusinessSocialLanding({
           )}
           placeholder={`Pergunte sobre ${config.name}...`}
           contextItems={conversationContext}
+          hiddenContextIds={hiddenContextIds}
           onRemoveContext={handleRemoveConversationContext}
           onCloseConversation={handleCloseConversation}
           responseResolver={conversationResponseResolver}
