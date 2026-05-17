@@ -571,25 +571,16 @@ export function EcommerceFeed() {
     [conversationProductFlow.state.activeProductId]
   )
 
-  const activeConversationReviews = useMemo(
-    () =>
-      activeConversationProduct
-        ? productReviews.filter((review) => review.productId === activeConversationProduct.id)
-        : [],
-    [activeConversationProduct]
-  )
-
   const operationalSurface = useMemo(
     () =>
       activeConversationProduct ? (
         <EcommerceProductOperationalSurface
           product={activeConversationProduct}
-          reviews={activeConversationReviews}
           isFavorite={favorites.has(activeConversationProduct.id)}
           onToggleFavorite={() => handleToggleFavorite(activeConversationProduct.id)}
         />
       ) : undefined,
-    [activeConversationProduct, activeConversationReviews, favorites, handleToggleFavorite]
+    [activeConversationProduct, favorites, handleToggleFavorite]
   )
 
   const conversationShell = (

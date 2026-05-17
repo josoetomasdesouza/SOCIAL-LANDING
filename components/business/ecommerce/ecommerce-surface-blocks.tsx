@@ -46,7 +46,7 @@ export function EcommerceProductSurfaceCard({
       <div
         className={cn(
           "relative aspect-square overflow-hidden bg-secondary",
-          isConversation ? "rounded-[32px]" : "rounded-xl"
+          "rounded-xl"
         )}
       >
         <Image
@@ -60,10 +60,7 @@ export function EcommerceProductSurfaceCard({
         />
         {discount > 0 ? (
           <Badge
-            className={cn(
-              "absolute left-2 top-2 border-0 bg-red-500 text-white",
-              isConversation && "left-3 top-3 rounded-full px-3 py-1 text-sm"
-            )}
+            className="absolute left-2 top-2 border-0 bg-red-500 text-white"
           >
             -{discount}%
           </Badge>
@@ -72,52 +69,40 @@ export function EcommerceProductSurfaceCard({
         <button
           type="button"
           onClick={onToggleFavorite}
-          className={cn(
-            "absolute right-2 top-2 rounded-full bg-white/85 p-2 text-gray-600 shadow-sm transition-colors hover:bg-white",
-            isConversation && "right-3 top-3 h-14 w-14 p-0"
-          )}
+          className="absolute right-2 top-2 rounded-full bg-white/85 p-2 text-gray-600 shadow-sm transition-colors hover:bg-white"
           aria-label={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
         >
           <Heart
             className={cn(
               "mx-auto h-4 w-4",
-              isConversation && "h-7 w-7",
               isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
             )}
           />
         </button>
       </div>
 
-      <div className={cn("mt-2", isConversation && "mt-4")}>
+      <div className="mt-2">
         <h3
-          className={cn(
-            "text-foreground",
-            isConversation
-              ? "text-[18px] font-semibold leading-tight"
-              : "line-clamp-2 text-sm font-medium"
-          )}
+          className="line-clamp-2 text-sm font-medium text-foreground"
         >
           {product.name}
         </h3>
 
-        <div className={cn("mt-1 flex items-center gap-1", isConversation && "mt-2 gap-1.5")}>
+        <div className="mt-1 flex items-center gap-1">
           <Star
-            className={cn(
-              "fill-yellow-400 text-yellow-400",
-              isConversation ? "h-5 w-5" : "h-3 w-3"
-            )}
+            className="h-3 w-3 fill-yellow-400 text-yellow-400"
           />
-          <span className={cn("text-muted-foreground", isConversation ? "text-base" : "text-xs")}>
+          <span className="text-xs text-muted-foreground">
             {product.rating} ({product.reviewCount})
           </span>
         </div>
 
-        <div className={cn("mt-1 flex items-baseline gap-2", isConversation && "mt-3")}>
-          <span className={cn("font-bold text-accent", isConversation ? "text-[18px]" : "text-base")}>
+        <div className="mt-1 flex items-baseline gap-2">
+          <span className="text-base font-bold text-accent">
             {formatPrice(product.price)}
           </span>
           {product.originalPrice ? (
-            <span className={cn("text-muted-foreground line-through", isConversation ? "text-base" : "text-xs")}>
+            <span className="text-xs text-muted-foreground line-through">
               {formatPrice(product.originalPrice)}
             </span>
           ) : null}
@@ -127,14 +112,11 @@ export function EcommerceProductSurfaceCard({
 
       <Button
         type="button"
-        size={isConversation ? "default" : "sm"}
-        className={cn(
-          "mt-3 w-full",
-          isConversation && "h-14 rounded-[18px] text-[16px] shadow-[0_18px_40px_-26px_rgba(0,0,0,0.45)]"
-        )}
+        size="sm"
+        className="mt-3 h-9 w-full"
         onClick={onPrimaryAction}
       >
-        <ShoppingBag className={cn("mr-2", isConversation ? "h-5 w-5" : "h-4 w-4")} />
+        <ShoppingBag className="mr-1 h-4 w-4" />
         {primaryActionLabel}
       </Button>
     </article>
@@ -231,61 +213,26 @@ export function EcommerceReviewSurfaceCard({
 
 interface EcommerceProductOperationalSurfaceProps {
   product: Product
-  reviews?: ProductReview[]
   isFavorite?: boolean
   onToggleFavorite?: () => void
 }
 
 export function EcommerceProductOperationalSurface({
   product,
-  reviews = [],
   isFavorite = false,
   onToggleFavorite,
 }: EcommerceProductOperationalSurfaceProps) {
-  const review = reviews[0] || null
-  const supportingAvatars = reviews.map((candidate) => candidate.userAvatar)
-  const highlightedSpecs = product.specifications?.slice(0, 3) || []
-
   return (
-    <ConversationSurfaceAdapter mode="immersive">
-      <EcommerceProductSurfaceCard
-        product={product}
-        variant="conversation"
-        isFavorite={isFavorite}
-        onToggleFavorite={onToggleFavorite}
-        primaryActionLabel="Adicionar"
-      />
-
-      <div className="flex flex-wrap gap-2">
-        <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium">
-          {product.category}
-        </Badge>
-        {product.subcategory ? (
-          <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium">
-            {product.subcategory}
-          </Badge>
-        ) : null}
-        {product.variants?.length ? (
-          <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium">
-            {product.variants.length} opcoes
-          </Badge>
-        ) : null}
-        {highlightedSpecs.map((spec) => (
-          <Badge
-            key={`${spec.label}-${spec.value}`}
-            variant="secondary"
-            className="rounded-full px-3 py-1 text-xs font-medium"
-          >
-            {spec.label}: {spec.value}
-          </Badge>
-        ))}
+    <ConversationSurfaceAdapter mode="immersive" className="space-y-0">
+      <div className="mx-auto w-full max-w-[340px]">
+        <EcommerceProductSurfaceCard
+          product={product}
+          variant="conversation"
+          isFavorite={isFavorite}
+          onToggleFavorite={onToggleFavorite}
+          primaryActionLabel="Adicionar"
+        />
       </div>
-
-      <EcommerceFreeShippingBanner product={product} />
-
-      {review ? (
-        <EcommerceReviewSurfaceCard review={review} supportingAvatars={supportingAvatars} />
-      ) : null}
     </ConversationSurfaceAdapter>
   )
 }

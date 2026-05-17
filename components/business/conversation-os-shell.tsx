@@ -316,6 +316,9 @@ export function ConversationOSShell({
     ? "A conversa entrou em modo assistido para voce explorar este item sem sair daqui."
     : "A conversa entrou em modo assistido para continuar sua jornada dentro deste contexto."
   const immersiveHeaderTitle = activeProductPreview?.title || "Modo assistido"
+  const hasCustomOperationalSurface = Boolean(operationalSurface)
+  const showImmersiveHeaderDetails = hasActiveProductFlow && !hasCustomOperationalSurface
+  const showComposerProductContext = hasActiveProductFlow && !hasCustomOperationalSurface
   const resolvedOperationalSurface = operationalSurface || (
     activeProductPreview ? (
       <div className="space-y-4 pb-1">
@@ -360,7 +363,7 @@ export function ConversationOSShell({
               <div
                 className={cn(
                   "relative z-10 flex-shrink-0 border-b border-border/50 px-4 pt-3 pb-2",
-                  hasActiveProductFlow &&
+                  showImmersiveHeaderDetails &&
                     "bg-gradient-to-b from-secondary/55 via-background to-background"
                 )}
               >
@@ -386,7 +389,7 @@ export function ConversationOSShell({
                   </div>
                 </div>
 
-                {hasActiveProductFlow ? (
+                {showImmersiveHeaderDetails ? (
                   <div className="mt-3 flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
@@ -449,6 +452,9 @@ export function ConversationOSShell({
                     subtitle={operationalPanelSubtitle}
                     canGoBack={operationalState.backStack.length > 0}
                     onBack={operationalActions.back}
+                    showHeader={!hasCustomOperationalSurface}
+                    className={cn(hasCustomOperationalSurface && "bg-transparent px-4 py-4")}
+                    contentClassName={cn(hasCustomOperationalSurface && "space-y-0")}
                   >
                     {resolvedOperationalSurface}
                   </ConversationOperationalPanel>
@@ -477,7 +483,7 @@ export function ConversationOSShell({
               hasActiveProductFlow && "bg-gradient-to-b from-secondary/10 via-background to-background"
             )}
           >
-            {hasActiveProductFlow ? (
+            {showComposerProductContext ? (
               <div className="px-4 pt-3">
                 <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
                   Conversa conectada ao produto atual
