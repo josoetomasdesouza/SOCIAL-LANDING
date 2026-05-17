@@ -109,6 +109,11 @@ export function ConversationalAI({
     }
   }, [])
 
+  const hasConversation = messages.length > 0 || isTyping
+  const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
+  const showContextRow = !hasConversation && contextItems.length > 0
+  const showExpandedConversation = hasConversation && !isMinimized
+
   useLayoutEffect(() => {
     const shellElement = composerShellRef.current
     const maskElement = composerMaskRef.current
@@ -136,11 +141,6 @@ export function ConversationalAI({
       window.removeEventListener("resize", updateMaskHeight)
     }
   }, [contextItems.length, hasConversation, isMinimized])
-
-  const hasConversation = messages.length > 0 || isTyping
-  const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
-  const showContextRow = !hasConversation && contextItems.length > 0
-  const showExpandedConversation = hasConversation && !isMinimized
 
   const buildContextEvent = (items: ConversationContextItem[]): ConversationRuntimeMessage => ({
     id: `context-${Date.now()}`,
