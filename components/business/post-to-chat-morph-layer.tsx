@@ -60,6 +60,15 @@ export function PostToChatMorphLayer({
     let rafId = 0
     let startTime = 0
     let completed = false
+    let listenersAttached = false
+
+    const detachListeners = () => {
+      if (!listenersAttached) return
+
+      window.removeEventListener("scroll", cancelAnimation, true)
+      window.removeEventListener("resize", cancelAnimation)
+      listenersAttached = false
+    }
 
     const finish = () => {
       if (completed) return
@@ -97,6 +106,7 @@ export function PostToChatMorphLayer({
 
     const cancelAnimation = () => {
       window.cancelAnimationFrame(rafId)
+      detachListeners()
       finish()
     }
 
@@ -104,11 +114,12 @@ export function PostToChatMorphLayer({
     rafId = window.requestAnimationFrame(step)
     window.addEventListener("scroll", cancelAnimation, { passive: true, capture: true })
     window.addEventListener("resize", cancelAnimation, { passive: true })
+    listenersAttached = true
 
     return () => {
       window.cancelAnimationFrame(rafId)
-      window.removeEventListener("scroll", cancelAnimation, true)
-      window.removeEventListener("resize", cancelAnimation)
+      detachListeners()
+      finish()
     }
   }, [animationKey, durationMs, fromRect.borderRadius, fromRect.height, fromRect.left, fromRect.top, fromRect.width, onComplete, toRect.borderRadius, toRect.height, toRect.left, toRect.top, toRect.width])
 
