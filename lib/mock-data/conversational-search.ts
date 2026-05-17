@@ -67,6 +67,55 @@ function normalizeText(value: string) {
   return normalizeSurfaceFlowText(value)
 }
 
+function summarizeActiveProductConversation(input: ConversationResponseResolverInput) {
+  if (input.activeFlow !== "product" || !input.activeProduct?.title) {
+    return null
+  }
+
+  const normalizedMessage = normalizeText(input.message)
+  const normalizedDescription = normalizeText(
+    `${input.activeProduct.description || ""} ${input.activeProduct.title || ""}`
+  )
+  const selectedContextLabel = input.contextItems
+    .map((item) => item.title.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(" e ")
+
+  const stepLabel =
+    input.productFlowStep === "cart-summary"
+      ? "continuidade do fluxo"
+      : input.productFlowStep === "product-entry"
+        ? "selecao atual"
+        : "detalhe do produto"
+
+  if (normalizedMessage.includes("oleosa")) {
+    if (normalizedDescription.includes("toque seco") || normalizedDescription.includes("matte")) {
+      return {
+        text: `${input.activeProduct.title} faz sentido para pele oleosa porque ja esta no ${stepLabel} com toque seco e acabamento matte. Posso te orientar sem sair deste ponto${selectedContextLabel ? `, considerando tambem ${selectedContextLabel}` : ""}.`,
+      }
+    }
+
+    return {
+      text: `Estou considerando ${input.activeProduct.title} neste ${stepLabel}. Para pele oleosa, eu avaliaria textura leve e acabamento menos residual antes de avancar${selectedContextLabel ? `, junto com ${selectedContextLabel}` : ""}.`,
+    }
+  }
+
+  if (
+    normalizedMessage.includes("bom para o dia a dia") ||
+    normalizedMessage.includes("dia a dia") ||
+    normalizedMessage.includes("usar todo dia")
+  ) {
+    return {
+      text: `${input.activeProduct.title} continua aberto no ${stepLabel} e pode entrar na rotina do dia a dia se esse tipo de uso fizer sentido para voce${selectedContextLabel ? `. Tambem estou cruzando isso com ${selectedContextLabel}` : "."}`,
+    }
+  }
+
+  return {
+    text: `Estou considerando ${input.activeProduct.title} no ${stepLabel} enquanto respondo. Posso seguir sua pergunta sem fechar o fluxo${selectedContextLabel ? ` e levando em conta ${selectedContextLabel}` : ""}.`,
+  }
+}
+
 function matchesFacialProductsIntent(message: string) {
   const normalizedMessage = normalizeText(message)
   const mentionsFacialCategory =
@@ -107,7 +156,13 @@ function getCatalogProductsForConversationalSearch(message: string) {
     .map(productEntityToConversationalResult)
 }
 
-export const ecommerceMockConversationResolver: ConversationResponseResolver = ({ message }) => {
+export const ecommerceMockConversationResolver: ConversationResponseResolver = (input) => {
+  const { message } = input
+  const activeProductReply = summarizeActiveProductConversation(input)
+  if (activeProductReply) {
+    return activeProductReply
+  }
+
   if (!matchesFacialProductsIntent(message)) {
     return null
   }

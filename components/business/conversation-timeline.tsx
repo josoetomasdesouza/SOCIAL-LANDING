@@ -25,6 +25,7 @@ interface ConversationTimelineProps {
   isTyping: boolean
   renderTimelineVisualBlock?: ConversationVisualBlockRenderer
   onRemoveContext?: (contextId: string) => void
+  hiddenContextIds?: string[]
 }
 
 export function ConversationTimeline({
@@ -34,12 +35,17 @@ export function ConversationTimeline({
   isTyping,
   renderTimelineVisualBlock,
   onRemoveContext,
+  hiddenContextIds = [],
 }: ConversationTimelineProps) {
+  const hiddenIds = new Set(hiddenContextIds)
+
   return (
     <div className="space-y-3">
       {messages.map((message) => {
         if (message.role === "context_event") {
-          const eventContexts = message.contexts ?? (message.context ? [message.context] : [])
+          const eventContexts = (message.contexts ?? (message.context ? [message.context] : [])).filter(
+            (item) => !hiddenIds.has(item.id)
+          )
 
           if (eventContexts.length === 0) {
             return null

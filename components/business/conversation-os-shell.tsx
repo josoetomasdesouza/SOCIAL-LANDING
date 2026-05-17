@@ -141,6 +141,10 @@ function extractSearchResultProductIds(visualBlock?: ConversationVisualBlock) {
     .filter((productId): productId is string => Boolean(productId))
 }
 
+function getActiveProductContextId(activeProductId?: string) {
+  return activeProductId ? `ecommerce-product-${activeProductId}` : null
+}
+
 export function ConversationOSShell({
   brandLogo,
   brandName,
@@ -191,6 +195,9 @@ export function ConversationOSShell({
 
   const hasConversation = messages.length > 0 || isTyping
   const hasActiveProductFlow = operationalState.activeFlow === "product"
+  const activeProductContextId = getActiveProductContextId(productFlowState.activeProductId)
+  const hiddenContextIds = hasActiveProductFlow && activeProductContextId ? [activeProductContextId] : []
+  const visibleContextItems = contextItems.filter((item) => !hiddenContextIds.includes(item.id))
   const isExpandedProductStep =
     hasActiveProductFlow &&
     productFlowState.step !== "idle" &&
@@ -200,14 +207,15 @@ export function ConversationOSShell({
     ? productFlowState.activeProductId
       ? "Pergunte sobre este produto..."
       : "Escolha um produto ou refine sua busca..."
-    : contextItems.length > 0
+    : visibleContextItems.length > 0
       ? "Pergunte sobre os itens selecionados..."
       : placeholder
-  const showContextRow = !hasConversationSurface && contextItems.length > 0
+  const showContextRow = !hasConversationSurface && visibleContextItems.length > 0
   const showExpandedConversation = hasConversationSurface && !isMinimized
   const showOperationalPanel = hasActiveProductFlow && showExpandedConversation
   const isImmersive =
     (operationalState.surfaceMode === "immersive" || hasActiveProductFlow) && showExpandedConversation
+  const shouldHideTimelineVisualBlocks = hasActiveProductFlow
 
   const buildContextEvent = (items: ConversationContextItem[]): ConversationRuntimeMessage => ({
     id: `context-${Date.now()}`,
@@ -394,6 +402,15 @@ export function ConversationOSShell({
   const hasCustomOperationalSurface = Boolean(operationalSurface)
   const showImmersiveHeaderDetails = hasActiveProductFlow && !hasCustomOperationalSurface
   const showComposerProductContext = hasActiveProductFlow && !hasCustomOperationalSurface
+  const resolvedTimelineVisualBlockRenderer: ConversationVisualBlockRenderer | undefined = renderTimelineVisualBlock
+    ? (visualBlock) => {
+        if (shouldHideTimelineVisualBlocks && visualBlock.kind === CONVERSATIONAL_SEARCH_RESULTS_KIND) {
+          return null
+        }
+
+        return renderTimelineVisualBlock(visualBlock)
+      }
+    : undefined
   const resolvedOperationalSurface = operationalSurface || (
     activeProductPreview ? (
       <div className="space-y-4 pb-1">
@@ -515,8 +532,9 @@ export function ConversationOSShell({
                         brandName={brandName}
                         messages={messages}
                         isTyping={isTyping}
-                        renderTimelineVisualBlock={renderTimelineVisualBlock}
+                        renderTimelineVisualBlock={resolvedTimelineVisualBlockRenderer}
                         onRemoveContext={handleRemoveContextItem}
+                        hiddenContextIds={hiddenContextIds}
                       />
                       <div ref={messagesEndRef} />
                     </div>
@@ -551,7 +569,7 @@ export function ConversationOSShell({
 
           {!hasConversation && showContextRow && (
             <div className="border-b border-border/50 px-4 py-2.5">
-              <ConversationContextStrip items={contextItems} onRemoveContext={handleRemoveContextItem} />
+              <ConversationContextStrip items={visibleContextItems} onRemoveContext={handleRemoveContextItem} />
             </div>
           )}
 
