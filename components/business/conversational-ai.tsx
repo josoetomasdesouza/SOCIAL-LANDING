@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronDown, ChevronUp, Loader2, Send, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -12,6 +12,7 @@ import type {
 } from "@/lib/mock-data/conversational-search"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
+const COMPOSER_MASK_VISIBLE_ZONE_PX = 160
 
 export type ConversationContextItem = ConversationContextPayload
 
@@ -90,6 +91,8 @@ export function ConversationalAI({
   const replyTimeoutRef = useRef<number | null>(null)
   const activeContextIdsRef = useRef<string[]>([])
   const pendingContextIdsRef = useRef<string[]>([])
+  const composerShellRef = useRef<HTMLDivElement>(null)
+  const composerMaskRef = useRef<HTMLDivElement>(null)
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
 
   useEffect(() => {
@@ -105,6 +108,34 @@ export function ConversationalAI({
       }
     }
   }, [])
+
+  useLayoutEffect(() => {
+    const shellElement = composerShellRef.current
+    const maskElement = composerMaskRef.current
+
+    if (!shellElement || !maskElement) {
+      return
+    }
+
+    const updateMaskHeight = () => {
+      const composerShellHeight = shellElement.getBoundingClientRect().height
+      const resolvedHeight = Math.max(220, Math.round(composerShellHeight + COMPOSER_MASK_VISIBLE_ZONE_PX))
+      maskElement.style.height = `${resolvedHeight}px`
+    }
+
+    updateMaskHeight()
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => updateMaskHeight()) : null
+
+    resizeObserver?.observe(shellElement)
+    window.addEventListener("resize", updateMaskHeight, { passive: true })
+
+    return () => {
+      resizeObserver?.disconnect()
+      window.removeEventListener("resize", updateMaskHeight)
+    }
+  }, [contextItems.length, hasConversation, isMinimized])
 
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
@@ -320,15 +351,19 @@ export function ConversationalAI({
   return (
     <>
       <div
+        ref={composerMaskRef}
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-[29] h-[280px]"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[29] h-[320px]"
         style={{
           background:
-            "linear-gradient(to top, hsl(var(--background)) 0%, hsl(var(--background) / 0.98) 28%, hsl(var(--background) / 0.82) 48%, hsl(var(--background) / 0.45) 70%, hsl(var(--background) / 0.12) 88%, transparent 100%)",
+            "linear-gradient(to top, transparent 0%, hsl(var(--background) / 0.35) 35%, hsl(var(--background) / 0.78) 58%, hsl(var(--background) / 0.96) 78%, hsl(var(--background)) 100%)",
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
-      <div className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
+      <div
+        ref={composerShellRef}
+        className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
+      >
         <section
           data-conversation-composer="true"
           className="pointer-events-auto overflow-hidden rounded-[28px] border border-white/[0.08] bg-[rgba(7,16,24,0.88)] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px]"
