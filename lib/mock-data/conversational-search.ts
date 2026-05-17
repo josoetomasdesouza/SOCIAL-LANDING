@@ -27,6 +27,14 @@ export interface ConversationResponseResolverInput {
   message: string
   brandName: string
   contextItems: ConversationContextPayload[]
+  activeFlow?: "none" | "product"
+  productFlowStep?: string
+  activeProduct?: {
+    id?: string
+    title: string
+    description?: string
+    price?: number
+  } | null
 }
 
 export type ConversationResponseResolver = (

@@ -67,9 +67,44 @@ function summarizeContext(items: ConversationContextItem[]) {
   return `${titles[0]} e ${titles[1]}`
 }
 
-function buildMockReply(brandName: string, userMessage: string, contextItems: ConversationContextItem[]) {
+function getProductFlowStepLabel(step: ConversationProductFlowState["step"]) {
+  switch (step) {
+    case "product-detail":
+      return "detalhe do produto"
+    case "cart-summary":
+      return "continuidade da selecao"
+    case "product-entry":
+      return "selecao de produtos"
+    default:
+      return "fluxo do produto"
+  }
+}
+
+function buildMockReply(
+  brandName: string,
+  userMessage: string,
+  contextItems: ConversationContextItem[],
+  activeProductPreview: ConversationOSShellProps["activeProductPreview"],
+  productFlowStep: ConversationProductFlowState["step"],
+  hasActiveProductFlow: boolean
+) {
   const responseIndex = userMessage.trim().length % 3
   const contextLabel = summarizeContext(contextItems)
+  const stepLabel = getProductFlowStepLabel(productFlowStep)
+
+  if (hasActiveProductFlow && activeProductPreview?.title) {
+    const contextualProductReplies = [
+      `Seguindo com ${activeProductPreview.title}, posso responder isso sem tirar voce do ${stepLabel}.`,
+      `Estou considerando ${activeProductPreview.title} no ${stepLabel}. Se quiser, eu cruzo isso com o que voce perguntou agora.`,
+      `${activeProductPreview.title} continua aberto aqui na conversa. Posso te orientar neste mesmo ponto do ${stepLabel}.`,
+    ]
+
+    if (contextLabel) {
+      return `${contextualProductReplies[responseIndex]} Tambem levo em conta ${contextLabel}.`
+    }
+
+    return contextualProductReplies[responseIndex]
+  }
 
   if (contextLabel) {
     const contextualReplies = [
@@ -243,6 +278,9 @@ export function ConversationOSShell({
       message: userMessage,
       brandName,
       contextItems,
+      activeFlow: operationalState.activeFlow,
+      productFlowStep: productFlowState.step,
+      activeProduct: activeProductPreview,
     })
 
     if (resolvedReply) {
@@ -257,7 +295,14 @@ export function ConversationOSShell({
     return {
       id: `ai-${Date.now()}`,
       role: "ai",
-      content: buildMockReply(brandName, userMessage, contextItems),
+      content: buildMockReply(
+        brandName,
+        userMessage,
+        contextItems,
+        activeProductPreview,
+        productFlowState.step,
+        hasActiveProductFlow
+      ),
     }
   }
 
@@ -283,7 +328,7 @@ export function ConversationOSShell({
       const aiMessage = buildResolvedReply(nextMessage)
       const resolvedProductIds = extractSearchResultProductIds(aiMessage.visualBlock)
 
-      if (resolvedProductIds.length > 0) {
+      if (resolvedProductIds.length > 0 && !hasActiveProductFlow) {
         productFlowActions.openSearchResults(resolvedProductIds)
         operationalActions.openProductFlow()
       }
@@ -454,7 +499,7 @@ export function ConversationOSShell({
                       isImmersive
                         ? cn(
                             "flex-shrink-0 border-b border-border/40 bg-secondary/10 pb-3 opacity-65 saturate-50",
-                            isExpandedProductStep && "max-h-[12vh] overflow-hidden opacity-35 saturate-[0.35]"
+                            isExpandedProductStep && "max-h-[18vh] overflow-y-auto opacity-35 saturate-[0.35]"
                           )
                         : "max-h-[32vh] overflow-y-auto"
                     )}
