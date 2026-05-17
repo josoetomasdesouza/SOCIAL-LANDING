@@ -306,7 +306,10 @@ export function ConversationalAI({
   return (
     <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
       <div className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
-        <section className="pointer-events-auto overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl">
+        <section
+          data-conversation-composer="true"
+          className="pointer-events-auto overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+        >
           {hasConversation && (
             <div className="border-b border-border/50">
               <div className="px-4 pt-3 pb-2">
@@ -429,7 +432,7 @@ export function ConversationalAI({
 
           {!hasConversation && showContextRow && (
             <div className="border-b border-border/50 px-4 py-2.5">
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {contextItems.map((item) => renderContextChip(item))}
               </div>
             </div>

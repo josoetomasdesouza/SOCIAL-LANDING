@@ -21,6 +21,7 @@ interface ContextSelectableProps {
   selected?: boolean
   as?: "article" | "div" | "button"
   selectionStyle?: "default" | "media" | "textual"
+  dataMorphSourceId?: string
 }
 
 export function ContextSelectable({
@@ -31,6 +32,7 @@ export function ContextSelectable({
   selected = false,
   as = "div",
   selectionStyle = "default",
+  dataMorphSourceId,
 }: ContextSelectableProps) {
   const timerRef = useRef<number | null>(null)
   const longPressTriggeredRef = useRef(false)
@@ -108,6 +110,7 @@ export function ContextSelectable({
   return (
     <Component
       {...(isButton ? { type: "button" as const } : {})}
+      data-post-context-source={dataMorphSourceId}
       onClick={handleClick}
       onContextMenu={(event) => {
         if (longPressTriggeredRef.current) {

@@ -12,6 +12,11 @@ import { BusinessFeedDrawer } from "./business-feed-drawer"
 import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
 import { ContextSelectable } from "./context-selectable"
 import { useConversationSelectionContext, useConversationSelectionState } from "./conversation-selection-context"
+import {
+  PostToChatMorphLayer,
+  type PostToChatMorphPreview,
+  type PostToChatMorphRect,
+} from "./post-to-chat-morph-layer"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
@@ -79,6 +84,17 @@ const conversationContextLabels: Record<BusinessPost["type"], string> = {
   social: "Post",
 }
 
+const MORPH_DURATION_MS = 480
+const MORPH_TARGET_HEIGHT = 44
+const MORPH_TARGET_WIDTH = 188
+
+interface ActivePostMorph {
+  key: number
+  preview: PostToChatMorphPreview
+  fromRect: PostToChatMorphRect
+  toRect: PostToChatMorphRect
+}
+
 function getConversationContextTitle(post: BusinessPost) {
   return post.title || post.description || post.reviewerName || "Conteudo selecionado"
 }
@@ -90,6 +106,81 @@ function toConversationContextItem(post: BusinessPost, fallbackImage: string): C
     image: post.image || post.reviewerAvatar || fallbackImage,
     subtitle: conversationContextLabels[post.type],
   }
+}
+
+function parseBorderRadius(value: string, fallback: number) {
+  const parsedValue = Number.parseFloat(value)
+  return Number.isFinite(parsedValue) ? parsedValue : fallback
+}
+
+function isVisibleRect(rect: DOMRect) {
+  return rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.right > 0
+}
+
+function getEscapedSelectorValue(value: string) {
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+    return CSS.escape(value)
+  }
+
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
+}
+
+function getComposerMaxWidth(viewportWidth: number) {
+  if (viewportWidth >= 1024) return 600
+  if (viewportWidth >= 768) return 672
+  if (viewportWidth >= 640) return 576
+  return 512
+}
+
+function getComposerFallbackRect(): PostToChatMorphRect {
+  const composerElement = document.querySelector<HTMLElement>('[data-conversation-composer="true"]')
+
+  if (composerElement) {
+    const composerRect = composerElement.getBoundingClientRect()
+
+    if (isVisibleRect(composerRect)) {
+      return {
+        left: composerRect.left + 16,
+        top: composerRect.top + 12,
+        width: Math.max(156, Math.min(MORPH_TARGET_WIDTH, composerRect.width - 32)),
+        height: MORPH_TARGET_HEIGHT,
+        borderRadius: 999,
+      }
+    }
+  }
+
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+  const composerWidth = Math.min(viewportWidth, getComposerMaxWidth(viewportWidth))
+  const horizontalInset = Math.max(16, (viewportWidth - composerWidth) / 2 + 16)
+
+  return {
+    left: horizontalInset,
+    top: viewportHeight - 128,
+    width: Math.min(MORPH_TARGET_WIDTH, Math.max(156, composerWidth - 32)),
+    height: MORPH_TARGET_HEIGHT,
+    borderRadius: 999,
+  }
+}
+
+function getComposerTargetRect(): PostToChatMorphRect {
+  const railElement = document.querySelector<HTMLElement>('[data-conversation-context-rail="true"]')
+
+  if (railElement) {
+    const railRect = railElement.getBoundingClientRect()
+
+    if (isVisibleRect(railRect)) {
+      return {
+        left: railRect.left,
+        top: railRect.top,
+        width: Math.max(156, Math.min(MORPH_TARGET_WIDTH, railRect.width)),
+        height: MORPH_TARGET_HEIGHT,
+        borderRadius: 999,
+      }
+    }
+  }
+
+  return getComposerFallbackRect()
 }
 
 // ========================================
@@ -440,6 +531,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 rounded-[28px]"
+        dataMorphSourceId={post.id}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -480,6 +572,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 rounded-[28px]"
+        dataMorphSourceId={post.id}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -515,6 +608,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 rounded-[28px]"
+        dataMorphSourceId={post.id}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -549,6 +643,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 p-4 bg-card rounded-2xl border border-border/50"
+        dataMorphSourceId={post.id}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -585,6 +680,7 @@ function PostCard({
     <ContextSelectable
       as="article"
       className="mb-8 rounded-[28px]"
+      dataMorphSourceId={post.id}
       onClick={onClick}
       onLongPress={() => onLongPress?.(post)}
       selected={selectedInConversation}
@@ -720,6 +816,7 @@ export function BusinessSocialLanding({
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [feedDrawerOpen, setFeedDrawerOpen] = useState(false)
   const [feedDrawerCategory, setFeedDrawerCategory] = useState<string>("all")
+  const [activeMorph, setActiveMorph] = useState<ActivePostMorph | null>(null)
   const {
     conversationContext,
     selectedContextIds,
@@ -748,9 +845,56 @@ export function BusinessSocialLanding({
     return posts
   }, [sections])
 
-  const addConversationContext = useCallback((post: BusinessPost) => {
-    upsertConversationContextItem(toConversationContextItem(post, config.logo))
-  }, [config.logo, upsertConversationContextItem])
+  const getPostSourceRect = useCallback((postId: string): PostToChatMorphRect | null => {
+    const escapedPostId = getEscapedSelectorValue(postId)
+    const sourceElement = document.querySelector<HTMLElement>(`[data-post-context-source="${escapedPostId}"]`)
+
+    if (!sourceElement) {
+      return null
+    }
+
+    const sourceRect = sourceElement.getBoundingClientRect()
+
+    if (!isVisibleRect(sourceRect)) {
+      return null
+    }
+
+    return {
+      left: sourceRect.left,
+      top: sourceRect.top,
+      width: sourceRect.width,
+      height: sourceRect.height,
+      borderRadius: parseBorderRadius(window.getComputedStyle(sourceElement).borderRadius, 28),
+    }
+  }, [])
+
+  const startPostToChatMorph = useCallback((post: BusinessPost, contextItem: ConversationContextItem) => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return
+    }
+
+    const fromRect = getPostSourceRect(post.id)
+
+    if (!fromRect) {
+      return
+    }
+
+    setActiveMorph({
+      key: Date.now(),
+      preview: {
+        id: contextItem.id,
+        title: contextItem.title,
+        subtitle: contextItem.subtitle,
+        image: contextItem.image,
+      },
+      fromRect,
+      toRect: getComposerTargetRect(),
+    })
+  }, [getPostSourceRect])
 
   const toggleConversationContext = useCallback((post: BusinessPost) => {
     if (selectedContextIds.has(post.id)) {
@@ -758,8 +902,10 @@ export function BusinessSocialLanding({
       return
     }
 
-    addConversationContext(post)
-  }, [addConversationContext, removeConversationContext, selectedContextIds])
+    const contextItem = toConversationContextItem(post, config.logo)
+    upsertConversationContextItem(contextItem)
+    startPostToChatMorph(post, contextItem)
+  }, [config.logo, removeConversationContext, selectedContextIds, startPostToChatMorph, upsertConversationContextItem])
   
   const handlePostClick = useCallback((post: BusinessPost) => {
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
@@ -841,6 +987,20 @@ export function BusinessSocialLanding({
       
       {/* Footer */}
       <BusinessFooter config={config} links={footerLinks} />
+
+      {activeMorph ? (
+        <PostToChatMorphLayer
+          key={activeMorph.key}
+          animationKey={activeMorph.key}
+          preview={activeMorph.preview}
+          fromRect={activeMorph.fromRect}
+          toRect={activeMorph.toRect}
+          durationMs={MORPH_DURATION_MS}
+          onComplete={() => {
+            setActiveMorph((currentMorph) => (currentMorph?.key === activeMorph.key ? null : currentMorph))
+          }}
+        />
+      ) : null}
 
       {/* Conversational AI (fixed or inline) */}
       {conversationalAI || (
