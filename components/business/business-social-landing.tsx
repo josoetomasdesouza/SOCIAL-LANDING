@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, ReactNode, cloneElement, isValidElement } from "react"
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -12,6 +12,11 @@ import { BusinessFeedDrawer } from "./business-feed-drawer"
 import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
 import { ContextSelectable } from "./context-selectable"
 import { useConversationSelectionContext, useConversationSelectionState } from "./conversation-selection-context"
+import {
+  PostToChatMorphLayer,
+  type PostToChatMorphPreview,
+  type PostToChatMorphRect,
+} from "./post-to-chat-morph-layer"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
@@ -79,6 +84,27 @@ const conversationContextLabels: Record<BusinessPost["type"], string> = {
   social: "Post",
 }
 
+const MORPH_DURATION_MS = 480
+const MORPH_TARGET_MIN_SIZE = 48
+const MORPH_TARGET_HEIGHT = 48
+const MORPH_TARGET_WIDTH = 188
+const MORPH_SPAWN_SCALE = 1.08
+
+interface ActivePostMorph {
+  key: number
+  contextId: string
+  preview: PostToChatMorphPreview
+  fromRect: PostToChatMorphRect
+  toRect: PostToChatMorphRect
+}
+
+interface QueuedPostMorph {
+  key: number
+  contextId: string
+  preview: PostToChatMorphPreview
+  sourceRect: PostToChatMorphRect
+}
+
 function getConversationContextTitle(post: BusinessPost) {
   return post.title || post.description || post.reviewerName || "Conteudo selecionado"
 }
@@ -89,6 +115,94 @@ function toConversationContextItem(post: BusinessPost, fallbackImage: string): C
     title: getConversationContextTitle(post),
     image: post.image || post.reviewerAvatar || fallbackImage,
     subtitle: conversationContextLabels[post.type],
+  }
+}
+
+function isVisibleRect(rect: DOMRect) {
+  return rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.right > 0
+}
+
+function getEscapedSelectorValue(value: string) {
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+    return CSS.escape(value)
+  }
+
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
+}
+
+function getComposerMaxWidth(viewportWidth: number) {
+  if (viewportWidth >= 1024) return 600
+  if (viewportWidth >= 768) return 672
+  if (viewportWidth >= 640) return 576
+  return 512
+}
+
+function getComposerFallbackRect(): PostToChatMorphRect {
+  const composerElement = document.querySelector<HTMLElement>('[data-conversation-composer="true"]')
+
+  if (composerElement) {
+    const composerRect = composerElement.getBoundingClientRect()
+
+    if (isVisibleRect(composerRect)) {
+      return {
+        left: composerRect.left + 16,
+        top: composerRect.top + 12,
+        width: Math.max(MORPH_TARGET_MIN_SIZE, Math.min(MORPH_TARGET_WIDTH, composerRect.width - 32)),
+        height: Math.max(MORPH_TARGET_MIN_SIZE, MORPH_TARGET_HEIGHT),
+        borderRadius: 999,
+      }
+    }
+  }
+
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+  const composerWidth = Math.min(viewportWidth, getComposerMaxWidth(viewportWidth))
+  const horizontalInset = Math.max(16, (viewportWidth - composerWidth) / 2 + 16)
+
+  return {
+    left: horizontalInset,
+    top: viewportHeight - 128,
+    width: Math.max(MORPH_TARGET_MIN_SIZE, Math.min(MORPH_TARGET_WIDTH, Math.max(156, composerWidth - 32))),
+    height: Math.max(MORPH_TARGET_MIN_SIZE, MORPH_TARGET_HEIGHT),
+    borderRadius: 999,
+  }
+}
+
+function getComposerChipRect(contextId: string): PostToChatMorphRect | null {
+  const escapedContextId = getEscapedSelectorValue(contextId)
+  const chipElement = document.querySelector<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`)
+
+  if (!chipElement) {
+    return null
+  }
+
+  const chipRect = chipElement.getBoundingClientRect()
+
+  if (!isVisibleRect(chipRect)) {
+    return null
+  }
+
+  return {
+    left: chipRect.left,
+    top: chipRect.top,
+    width: chipRect.width,
+    height: chipRect.height,
+    borderRadius: 999,
+  }
+}
+
+function createMorphSpawnRect(sourceRect: PostToChatMorphRect, targetRect: PostToChatMorphRect): PostToChatMorphRect {
+  const spawnWidth = Math.max(MORPH_TARGET_MIN_SIZE, targetRect.width * MORPH_SPAWN_SCALE)
+  const spawnHeight = Math.max(MORPH_TARGET_MIN_SIZE, targetRect.height * MORPH_SPAWN_SCALE)
+  const sourceCenterX = sourceRect.left + sourceRect.width / 2
+  const sourceCenterY = sourceRect.top + sourceRect.height / 2
+
+  return {
+    left: sourceCenterX - spawnWidth / 2,
+    top: sourceCenterY - spawnHeight / 2,
+    width: spawnWidth,
+    height: spawnHeight,
+    borderRadius: 999,
   }
 }
 
@@ -440,6 +554,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 rounded-[28px]"
+        dataMorphSourceId={post.id}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -480,6 +595,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 rounded-[28px]"
+        dataMorphSourceId={post.id}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -515,6 +631,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 rounded-[28px]"
+        dataMorphSourceId={post.id}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -549,6 +666,7 @@ function PostCard({
       <ContextSelectable
         as="article"
         className="mb-8 p-4 bg-card rounded-2xl border border-border/50"
+        dataMorphSourceId={post.id}
         onClick={onClick}
         onLongPress={() => onLongPress?.(post)}
         selected={selectedInConversation}
@@ -585,6 +703,7 @@ function PostCard({
     <ContextSelectable
       as="article"
       className="mb-8 rounded-[28px]"
+      dataMorphSourceId={post.id}
       onClick={onClick}
       onLongPress={() => onLongPress?.(post)}
       selected={selectedInConversation}
@@ -720,6 +839,9 @@ export function BusinessSocialLanding({
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [feedDrawerOpen, setFeedDrawerOpen] = useState(false)
   const [feedDrawerCategory, setFeedDrawerCategory] = useState<string>("all")
+  const [activeMorph, setActiveMorph] = useState<ActivePostMorph | null>(null)
+  const [hiddenContextIds, setHiddenContextIds] = useState<string[]>([])
+  const [queuedMorph, setQueuedMorph] = useState<QueuedPostMorph | null>(null)
   const {
     conversationContext,
     selectedContextIds,
@@ -748,9 +870,78 @@ export function BusinessSocialLanding({
     return posts
   }, [sections])
 
-  const addConversationContext = useCallback((post: BusinessPost) => {
-    upsertConversationContextItem(toConversationContextItem(post, config.logo))
-  }, [config.logo, upsertConversationContextItem])
+  useLayoutEffect(() => {
+    if (!queuedMorph) {
+      return
+    }
+
+    const targetRect = getComposerChipRect(queuedMorph.contextId) ?? getComposerFallbackRect()
+
+    setActiveMorph({
+      key: queuedMorph.key,
+      contextId: queuedMorph.contextId,
+      preview: queuedMorph.preview,
+      fromRect: createMorphSpawnRect(queuedMorph.sourceRect, targetRect),
+      toRect: targetRect,
+    })
+    setQueuedMorph(null)
+  }, [queuedMorph])
+
+  const getPostSourceRect = useCallback((postId: string): PostToChatMorphRect | null => {
+    const escapedPostId = getEscapedSelectorValue(postId)
+    const sourceElement = document.querySelector<HTMLElement>(`[data-post-context-source="${escapedPostId}"]`)
+
+    if (!sourceElement) {
+      return null
+    }
+
+    const sourceRect = sourceElement.getBoundingClientRect()
+
+    if (!isVisibleRect(sourceRect)) {
+      return null
+    }
+
+    return {
+      left: sourceRect.left,
+      top: sourceRect.top,
+      width: sourceRect.width,
+      height: sourceRect.height,
+      borderRadius: 999,
+    }
+  }, [])
+
+  const startPostToChatMorph = useCallback((post: BusinessPost, contextItem: ConversationContextItem) => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return
+    }
+
+    const sourceRect = getPostSourceRect(post.id)
+
+    if (!sourceRect) {
+      return
+    }
+
+    const morphKey = Date.now()
+
+    setHiddenContextIds((currentIds) =>
+      currentIds.includes(contextItem.id) ? currentIds : [...currentIds, contextItem.id]
+    )
+    setQueuedMorph({
+      key: morphKey,
+      contextId: contextItem.id,
+      preview: {
+        id: contextItem.id,
+        title: contextItem.title,
+        subtitle: contextItem.subtitle,
+        image: contextItem.image,
+      },
+      sourceRect,
+    })
+  }, [getPostSourceRect])
 
   const toggleConversationContext = useCallback((post: BusinessPost) => {
     if (selectedContextIds.has(post.id)) {
@@ -758,8 +949,10 @@ export function BusinessSocialLanding({
       return
     }
 
-    addConversationContext(post)
-  }, [addConversationContext, removeConversationContext, selectedContextIds])
+    const contextItem = toConversationContextItem(post, config.logo)
+    upsertConversationContextItem(contextItem)
+    startPostToChatMorph(post, contextItem)
+  }, [config.logo, removeConversationContext, selectedContextIds, startPostToChatMorph, upsertConversationContextItem])
   
   const handlePostClick = useCallback((post: BusinessPost) => {
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
@@ -842,6 +1035,21 @@ export function BusinessSocialLanding({
       {/* Footer */}
       <BusinessFooter config={config} links={footerLinks} />
 
+      {activeMorph ? (
+        <PostToChatMorphLayer
+          key={activeMorph.key}
+          animationKey={activeMorph.key}
+          preview={activeMorph.preview}
+          fromRect={activeMorph.fromRect}
+          toRect={activeMorph.toRect}
+          durationMs={MORPH_DURATION_MS}
+          onComplete={() => {
+            setHiddenContextIds((currentIds) => currentIds.filter((contextId) => contextId !== activeMorph.contextId))
+            setActiveMorph((currentMorph) => (currentMorph?.key === activeMorph.key ? null : currentMorph))
+          }}
+        />
+      ) : null}
+
       {/* Conversational AI (fixed or inline) */}
       {conversationalAI || (
         <ConversationalAI
@@ -854,6 +1062,7 @@ export function BusinessSocialLanding({
           )}
           placeholder={`Pergunte sobre ${config.name}...`}
           contextItems={conversationContext}
+          hiddenContextIds={hiddenContextIds}
           onRemoveContext={handleRemoveConversationContext}
           onCloseConversation={handleCloseConversation}
           responseResolver={conversationResponseResolver}
