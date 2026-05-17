@@ -25,101 +25,214 @@ interface EcommerceProductSurfaceCardProps {
   product: Product
   variant?: "feed" | "conversation"
   isFavorite?: boolean
+  onCardClick?: () => void
   onToggleFavorite?: () => void
   onPrimaryAction?: () => void
   primaryActionLabel?: string
+  primaryActionDisabled?: boolean
 }
 
 export function EcommerceProductSurfaceCard({
   product,
   variant = "feed",
   isFavorite = false,
+  onCardClick,
   onToggleFavorite,
   onPrimaryAction,
   primaryActionLabel = "Adicionar",
+  primaryActionDisabled = false,
 }: EcommerceProductSurfaceCardProps) {
   const isConversation = variant === "conversation"
   const discount = getDiscount(product)
+  const isCardInteractive = typeof onCardClick === "function"
 
   return (
     <article className="w-full text-left">
       <div
-        className={cn(
-          "relative aspect-square overflow-hidden bg-secondary",
-          "rounded-xl"
-        )}
+        role={isCardInteractive ? "button" : undefined}
+        tabIndex={isCardInteractive ? 0 : undefined}
+        onClick={onCardClick}
+        onKeyDown={(event) => {
+          if (!isCardInteractive) return
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            onCardClick()
+          }
+        }}
+        className={cn(isCardInteractive && "cursor-pointer")}
       >
-        <Image
-          src={product.images[0]}
-          alt={product.name}
-          fill
-          className={cn(
-            "object-cover transition-transform duration-300",
-            !isConversation && "group-hover:scale-105"
-          )}
-        />
-        {discount > 0 ? (
-          <Badge
-            className="absolute left-2 top-2 border-0 bg-red-500 text-white"
-          >
-            -{discount}%
-          </Badge>
-        ) : null}
-
-        <button
-          type="button"
-          onClick={onToggleFavorite}
-          className="absolute right-2 top-2 rounded-full bg-white/85 p-2 text-gray-600 shadow-sm transition-colors hover:bg-white"
-          aria-label={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
-        >
-          <Heart
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-secondary">
+          <Image
+            src={product.images[0]}
+            alt={product.name}
+            fill
             className={cn(
-              "mx-auto h-4 w-4",
-              isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
+              "object-cover transition-transform duration-300",
+              !isConversation && "group-hover:scale-105"
             )}
           />
-        </button>
-      </div>
-
-      <div className="mt-2">
-        <h3
-          className="line-clamp-2 text-sm font-medium text-foreground"
-        >
-          {product.name}
-        </h3>
-
-        <div className="mt-1 flex items-center gap-1">
-          <Star
-            className="h-3 w-3 fill-yellow-400 text-yellow-400"
-          />
-          <span className="text-xs text-muted-foreground">
-            {product.rating} ({product.reviewCount})
-          </span>
-        </div>
-
-        <div className="mt-1 flex items-baseline gap-2">
-          <span className="text-base font-bold text-accent">
-            {formatPrice(product.price)}
-          </span>
-          {product.originalPrice ? (
-            <span className="text-xs text-muted-foreground line-through">
-              {formatPrice(product.originalPrice)}
-            </span>
+          {discount > 0 ? (
+            <Badge className="absolute left-2 top-2 border-0 bg-red-500 text-white">
+              -{discount}%
+            </Badge>
           ) : null}
+
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              onToggleFavorite?.()
+            }}
+            className="absolute right-2 top-2 rounded-full bg-white/85 p-2 text-gray-600 shadow-sm transition-colors hover:bg-white"
+            aria-label={isFavorite ? "Remover dos favoritos" : "Salvar nos favoritos"}
+          >
+            <Heart
+              className={cn(
+                "mx-auto h-4 w-4",
+                isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
+              )}
+            />
+          </button>
         </div>
 
+        <div className="mt-2">
+          <h3 className="line-clamp-2 text-sm font-medium text-foreground">{product.name}</h3>
+
+          <div className="mt-1 flex items-center gap-1">
+            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+            <span className="text-xs text-muted-foreground">
+              {product.rating} ({product.reviewCount})
+            </span>
+          </div>
+
+          <div className="mt-1 flex items-baseline gap-2">
+            <span className="text-base font-bold text-accent">{formatPrice(product.price)}</span>
+            {product.originalPrice ? (
+              <span className="text-xs text-muted-foreground line-through">
+                {formatPrice(product.originalPrice)}
+              </span>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       <Button
         type="button"
         size="sm"
         className="mt-3 h-9 w-full"
-        onClick={onPrimaryAction}
+        disabled={primaryActionDisabled}
+        onClick={(event) => {
+          event.stopPropagation()
+          onPrimaryAction?.()
+        }}
       >
         <ShoppingBag className="mr-1 h-4 w-4" />
         {primaryActionLabel}
       </Button>
     </article>
+  )
+}
+
+interface EcommerceProductResultsCarouselProps {
+  products: Product[]
+  favorites?: Set<string>
+  onSelectProduct: (productId: string) => void
+  onToggleFavorite?: (productId: string) => void
+}
+
+export function EcommerceProductResultsCarousel({
+  products,
+  favorites,
+  onSelectProduct,
+  onToggleFavorite,
+}: EcommerceProductResultsCarouselProps) {
+  if (products.length === 0) return null
+
+  return (
+    <ConversationSurfaceAdapter mode="immersive" className="space-y-3">
+      <div className="overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex gap-3 pr-4">
+          {products.map((product) => (
+            <div key={product.id} className="w-[220px] shrink-0">
+              <EcommerceProductSurfaceCard
+                product={product}
+                variant="conversation"
+                isFavorite={favorites?.has(product.id) ?? false}
+                onCardClick={() => onSelectProduct(product.id)}
+                onToggleFavorite={
+                  onToggleFavorite ? () => onToggleFavorite(product.id) : undefined
+                }
+                onPrimaryAction={() => onSelectProduct(product.id)}
+                primaryActionLabel="Ver"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </ConversationSurfaceAdapter>
+  )
+}
+
+interface EcommerceConversationProductDetailProps {
+  product: Product
+  isFavorite?: boolean
+  onToggleFavorite?: () => void
+  onPrimaryAction: () => void
+}
+
+export function EcommerceConversationProductDetail({
+  product,
+  isFavorite = false,
+  onToggleFavorite,
+  onPrimaryAction,
+}: EcommerceConversationProductDetailProps) {
+  return (
+    <ConversationSurfaceAdapter mode="immersive" className="space-y-4">
+      <div className="mx-auto w-full max-w-[340px]">
+        <EcommerceProductSurfaceCard
+          product={product}
+          variant="conversation"
+          isFavorite={isFavorite}
+          onToggleFavorite={onToggleFavorite}
+          onPrimaryAction={onPrimaryAction}
+          primaryActionLabel="Continuar"
+        />
+      </div>
+
+      <div className="rounded-[20px] border border-border/50 bg-background/70 p-4">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {product.description}
+        </p>
+      </div>
+    </ConversationSurfaceAdapter>
+  )
+}
+
+interface EcommerceConversationStepPlaceholderProps {
+  product: Product
+}
+
+export function EcommerceConversationStepPlaceholder({
+  product,
+}: EcommerceConversationStepPlaceholderProps) {
+  return (
+    <ConversationSurfaceAdapter mode="immersive" className="space-y-4">
+      <div className="mx-auto w-full max-w-[340px]">
+        <EcommerceProductSurfaceCard
+          product={product}
+          variant="conversation"
+          primaryActionLabel="Em breve"
+          primaryActionDisabled
+        />
+      </div>
+
+      <div className="rounded-[20px] border border-border/50 bg-secondary/20 p-4">
+        <p className="text-sm font-medium text-foreground">Proxima etapa pronta para entrar no fluxo.</p>
+        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+          Opcoes, carrinho e confirmacao assistida entram na proxima microfase, sem sair da conversa.
+        </p>
+      </div>
+    </ConversationSurfaceAdapter>
   )
 }
 
@@ -212,27 +325,49 @@ export function EcommerceReviewSurfaceCard({
 }
 
 interface EcommerceProductOperationalSurfaceProps {
-  product: Product
-  isFavorite?: boolean
-  onToggleFavorite?: () => void
+  step: "product-entry" | "product-detail" | "product-options"
+  products?: Product[]
+  product?: Product | null
+  favorites?: Set<string>
+  onSelectProduct: (productId: string) => void
+  onAdvance: () => void
+  onToggleFavorite?: (productId: string) => void
 }
 
 export function EcommerceProductOperationalSurface({
+  step,
+  products = [],
   product,
-  isFavorite = false,
+  favorites,
+  onSelectProduct,
+  onAdvance,
   onToggleFavorite,
 }: EcommerceProductOperationalSurfaceProps) {
+  if (step === "product-entry") {
+    return (
+      <EcommerceProductResultsCarousel
+        products={products}
+        favorites={favorites}
+        onSelectProduct={onSelectProduct}
+        onToggleFavorite={onToggleFavorite}
+      />
+    )
+  }
+
+  if (!product) {
+    return null
+  }
+
+  if (step === "product-options") {
+    return <EcommerceConversationStepPlaceholder product={product} />
+  }
+
   return (
-    <ConversationSurfaceAdapter mode="immersive" className="space-y-0">
-      <div className="mx-auto w-full max-w-[340px]">
-        <EcommerceProductSurfaceCard
-          product={product}
-          variant="conversation"
-          isFavorite={isFavorite}
-          onToggleFavorite={onToggleFavorite}
-          primaryActionLabel="Adicionar"
-        />
-      </div>
-    </ConversationSurfaceAdapter>
+    <EcommerceConversationProductDetail
+      product={product}
+      isFavorite={favorites?.has(product.id) ?? false}
+      onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(product.id) : undefined}
+      onPrimaryAction={onAdvance}
+    />
   )
 }

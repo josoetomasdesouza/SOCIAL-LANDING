@@ -555,6 +555,10 @@ export function EcommerceFeed() {
     conversationOperationalFlow.actions.openProductFlow()
   }, [conversationOperationalFlow.actions, conversationProductFlow.actions])
 
+  const handleAdvanceConversationProductFlow = useCallback(() => {
+    conversationProductFlow.actions.goToStep("product-options")
+  }, [conversationProductFlow.actions])
+
   const renderConversationVisualBlock = useMemo(
     () =>
       createConversationalSearchVisualBlockRenderer({
@@ -571,16 +575,48 @@ export function EcommerceFeed() {
     [conversationProductFlow.state.activeProductId]
   )
 
-  const operationalSurface = useMemo(
+  const activeConversationProducts = useMemo(
     () =>
-      activeConversationProduct ? (
+      conversationProductFlow.state.searchResultProductIds
+        .map((productId) => products.find((product) => product.id === productId) || null)
+        .filter((product): product is Product => Boolean(product)),
+    [conversationProductFlow.state.searchResultProductIds]
+  )
+
+  const operationalSurface = useMemo(
+    () => {
+      if (conversationProductFlow.state.step === "idle") {
+        return undefined
+      }
+
+      const resolvedStep =
+        conversationProductFlow.state.step === "product-entry"
+          ? "product-entry"
+          : conversationProductFlow.state.step === "product-detail"
+            ? "product-detail"
+            : "product-options"
+
+      return (
         <EcommerceProductOperationalSurface
+          step={resolvedStep}
+          products={activeConversationProducts}
           product={activeConversationProduct}
-          isFavorite={favorites.has(activeConversationProduct.id)}
-          onToggleFavorite={() => handleToggleFavorite(activeConversationProduct.id)}
+          favorites={favorites}
+          onSelectProduct={handleConversationProductCtaClick}
+          onAdvance={handleAdvanceConversationProductFlow}
+          onToggleFavorite={handleToggleFavorite}
         />
-      ) : undefined,
-    [activeConversationProduct, favorites, handleToggleFavorite]
+      )
+    },
+    [
+      activeConversationProduct,
+      activeConversationProducts,
+      conversationProductFlow.state.step,
+      favorites,
+      handleAdvanceConversationProductFlow,
+      handleConversationProductCtaClick,
+      handleToggleFavorite,
+    ]
   )
 
   const conversationShell = (

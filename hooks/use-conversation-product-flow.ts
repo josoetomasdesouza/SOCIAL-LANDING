@@ -26,6 +26,7 @@ export interface ConversationCheckoutDraft {
 export interface ConversationProductFlowState {
   isActive: boolean
   step: ConversationProductFlowStep
+  searchResultProductIds: string[]
   activeProductId?: string
   selectedVariantsById: Record<string, string>
   quantity: number
@@ -39,6 +40,7 @@ export interface ConversationProductFlowState {
 }
 
 type ConversationProductFlowAction =
+  | { type: "OPEN_SEARCH_RESULTS"; productIds: string[] }
   | { type: "OPEN_PRODUCT"; productId: string }
   | { type: "GO_TO_STEP"; step: ConversationProductFlowStep }
   | { type: "SELECT_VARIANT"; variantId: string; optionId: string }
@@ -54,6 +56,7 @@ type ConversationProductFlowAction =
 const INITIAL_STATE: ConversationProductFlowState = {
   isActive: false,
   step: "idle",
+  searchResultProductIds: [],
   activeProductId: undefined,
   selectedVariantsById: {},
   quantity: 1,
@@ -66,12 +69,23 @@ function conversationProductFlowReducer(
   action: ConversationProductFlowAction
 ): ConversationProductFlowState {
   switch (action.type) {
-    case "OPEN_PRODUCT":
+    case "OPEN_SEARCH_RESULTS":
       return {
         ...INITIAL_STATE,
         isActive: true,
         step: "product-entry",
+        searchResultProductIds: action.productIds,
+      }
+    case "OPEN_PRODUCT":
+      return {
+        ...state,
+        isActive: true,
+        step: "product-detail",
         activeProductId: action.productId,
+        selectedVariantsById: {},
+        quantity: 1,
+        checkoutDraft: {},
+        confirmation: undefined,
       }
     case "GO_TO_STEP":
       return {
@@ -120,6 +134,7 @@ function conversationProductFlowReducer(
 }
 
 export interface ConversationProductFlowActions {
+  openSearchResults: (productIds: string[]) => void
   openProduct: (productId: string) => void
   goToStep: (step: ConversationProductFlowStep) => void
   selectVariant: (variantId: string, optionId: string) => void
@@ -135,6 +150,7 @@ export function useConversationProductFlow() {
 
   const actions = useMemo<ConversationProductFlowActions>(
     () => ({
+      openSearchResults: (productIds) => dispatch({ type: "OPEN_SEARCH_RESULTS", productIds }),
       openProduct: (productId) => dispatch({ type: "OPEN_PRODUCT", productId }),
       goToStep: (step) => dispatch({ type: "GO_TO_STEP", step }),
       selectVariant: (variantId, optionId) => dispatch({ type: "SELECT_VARIANT", variantId, optionId }),

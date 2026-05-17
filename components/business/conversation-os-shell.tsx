@@ -5,9 +5,11 @@ import { ChevronDown, ChevronUp, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ConversationMessage } from "@/lib/business-types"
 import type {
+  ConversationVisualBlock,
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
 } from "@/lib/mock-data/conversational-search"
+import { CONVERSATIONAL_SEARCH_RESULTS_KIND } from "@/lib/mock-data/conversational-search"
 import { ConversationComposerBar } from "./conversation-composer-bar"
 import {
   ConversationContextStrip,
@@ -88,6 +90,22 @@ function buildMockReply(brandName: string, userMessage: string, contextItems: Co
   return genericReplies[responseIndex]
 }
 
+function extractSearchResultProductIds(visualBlock?: ConversationVisualBlock) {
+  if (!visualBlock || visualBlock.kind !== CONVERSATIONAL_SEARCH_RESULTS_KIND) {
+    return []
+  }
+
+  const payload = visualBlock.payload as { products?: Array<{ id?: unknown }> } | undefined
+
+  if (!Array.isArray(payload?.products)) {
+    return []
+  }
+
+  return payload.products
+    .map((product) => (typeof product.id === "string" ? product.id : null))
+    .filter((productId): productId is string => Boolean(productId))
+}
+
 export function ConversationOSShell({
   brandLogo,
   brandName,
@@ -140,7 +158,9 @@ export function ConversationOSShell({
   const hasActiveProductFlow = operationalState.activeFlow === "product"
   const hasConversationSurface = hasConversation || hasActiveProductFlow
   const resolvedPlaceholder = hasActiveProductFlow
-    ? "Pergunte sobre este produto..."
+    ? productFlowState.activeProductId
+      ? "Pergunte sobre este produto..."
+      : "Escolha um produto ou refine sua busca..."
     : contextItems.length > 0
       ? "Pergunte sobre os itens selecionados..."
       : placeholder
@@ -257,6 +277,12 @@ export function ConversationOSShell({
 
     replyTimeoutRef.current = window.setTimeout(() => {
       const aiMessage = buildResolvedReply(nextMessage)
+      const resolvedProductIds = extractSearchResultProductIds(aiMessage.visualBlock)
+
+      if (resolvedProductIds.length > 0) {
+        productFlowActions.openSearchResults(resolvedProductIds)
+        operationalActions.openProductFlow()
+      }
 
       setMessages((prev) => [...prev, aiMessage])
       setIsTyping(false)
