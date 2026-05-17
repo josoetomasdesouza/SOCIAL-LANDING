@@ -136,13 +136,16 @@ export function PostToChatMorphLayer({
           width: fromRect.width,
           height: fromRect.height,
           borderRadius: fromRect.borderRadius,
+          backfaceVisibility: "hidden",
         }}
       >
         <div ref={sourceLayerRef} className="absolute inset-0">
           <img
             alt=""
             src={preview.image}
+            decoding="async"
             draggable={false}
+            loading="eager"
             className="h-full w-full select-none object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/58 via-black/18 to-black/6" />
@@ -165,7 +168,9 @@ export function PostToChatMorphLayer({
             <img
               alt=""
               src={preview.image}
+              decoding="async"
               draggable={false}
+              loading="eager"
               className="h-full w-full select-none object-cover"
             />
           </div>

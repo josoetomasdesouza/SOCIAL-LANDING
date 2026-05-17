@@ -85,7 +85,8 @@ const conversationContextLabels: Record<BusinessPost["type"], string> = {
 }
 
 const MORPH_DURATION_MS = 480
-const MORPH_TARGET_HEIGHT = 44
+const MORPH_TARGET_MIN_SIZE = 48
+const MORPH_TARGET_HEIGHT = 48
 const MORPH_TARGET_WIDTH = 188
 
 interface ActivePostMorph {
@@ -142,8 +143,8 @@ function getComposerFallbackRect(): PostToChatMorphRect {
       return {
         left: composerRect.left + 16,
         top: composerRect.top + 12,
-        width: Math.max(156, Math.min(MORPH_TARGET_WIDTH, composerRect.width - 32)),
-        height: MORPH_TARGET_HEIGHT,
+        width: Math.max(MORPH_TARGET_MIN_SIZE, Math.min(MORPH_TARGET_WIDTH, composerRect.width - 32)),
+        height: Math.max(MORPH_TARGET_MIN_SIZE, MORPH_TARGET_HEIGHT),
         borderRadius: 999,
       }
     }
@@ -157,8 +158,8 @@ function getComposerFallbackRect(): PostToChatMorphRect {
   return {
     left: horizontalInset,
     top: viewportHeight - 128,
-    width: Math.min(MORPH_TARGET_WIDTH, Math.max(156, composerWidth - 32)),
-    height: MORPH_TARGET_HEIGHT,
+    width: Math.max(MORPH_TARGET_MIN_SIZE, Math.min(MORPH_TARGET_WIDTH, Math.max(156, composerWidth - 32))),
+    height: Math.max(MORPH_TARGET_MIN_SIZE, MORPH_TARGET_HEIGHT),
     borderRadius: 999,
   }
 }
@@ -173,8 +174,8 @@ function getComposerTargetRect(): PostToChatMorphRect {
       return {
         left: railRect.left,
         top: railRect.top,
-        width: Math.max(156, Math.min(MORPH_TARGET_WIDTH, railRect.width)),
-        height: MORPH_TARGET_HEIGHT,
+        width: Math.max(MORPH_TARGET_MIN_SIZE, Math.min(MORPH_TARGET_WIDTH, railRect.width)),
+        height: Math.max(MORPH_TARGET_MIN_SIZE, MORPH_TARGET_HEIGHT),
         borderRadius: 999,
       }
     }
