@@ -12,7 +12,7 @@ import type {
 } from "@/lib/mock-data/conversational-search"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
-const COMPOSER_MASK_VISIBLE_ZONE_PX = 160
+const COMPOSER_MASK_VISIBLE_ZONE_PX = 112
 
 export type ConversationContextItem = ConversationContextPayload
 
@@ -124,7 +124,10 @@ export function ConversationalAI({
 
     const updateMaskHeight = () => {
       const composerShellHeight = shellElement.getBoundingClientRect().height
-      const resolvedHeight = Math.max(220, Math.round(composerShellHeight + COMPOSER_MASK_VISIBLE_ZONE_PX))
+      const resolvedHeight = Math.min(
+        320,
+        Math.max(200, Math.round(composerShellHeight + COMPOSER_MASK_VISIBLE_ZONE_PX))
+      )
       maskElement.style.height = `${resolvedHeight}px`
     }
 
@@ -353,9 +356,9 @@ export function ConversationalAI({
       <div
         ref={composerMaskRef}
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-[29] h-[320px]"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[29] h-[240px]"
         style={{
-          background: "rgba(255, 0, 0, 0.35)",
+          background: "rgba(0, 128, 255, 0.28)",
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
