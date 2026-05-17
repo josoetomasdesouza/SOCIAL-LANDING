@@ -48,15 +48,11 @@ export function PostToChatMorphLayer({
   onComplete,
 }: PostToChatMorphLayerProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
-  const sourceLayerRef = useRef<HTMLDivElement>(null)
-  const chipLayerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const node = nodeRef.current
-    const sourceLayer = sourceLayerRef.current
-    const chipLayer = chipLayerRef.current
 
-    if (!node || !sourceLayer || !chipLayer) {
+    if (!node) {
       onComplete()
       return
     }
@@ -77,19 +73,10 @@ export function PostToChatMorphLayer({
       const translateY = lerp(0, toRect.top - fromRect.top, easedProgress)
       const scaleX = lerp(1, toRect.width / fromRect.width, easedProgress)
       const scaleY = lerp(1, toRect.height / fromRect.height, easedProgress)
-      const borderRadius = lerp(fromRect.borderRadius, toRect.borderRadius, easedProgress)
-      const sourceOpacity = clamp(1 - rawProgress * 2.1, 0, 1)
-      const chipOpacity = clamp((rawProgress - 0.18) * 2.6, 0, 1)
+      const opacity = lerp(0.9, 1, clamp(rawProgress * 1.35, 0, 1))
 
       node.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scaleX}, ${scaleY})`
-      node.style.borderRadius = `${borderRadius}px`
-      node.style.boxShadow =
-        rawProgress < 0.55
-          ? "0 30px 60px -30px rgba(15, 23, 42, 0.42)"
-          : "0 18px 34px -24px rgba(15, 23, 42, 0.3)"
-      node.style.opacity = String(lerp(1, 0.96, rawProgress))
-      sourceLayer.style.opacity = String(sourceOpacity)
-      chipLayer.style.opacity = String(chipOpacity)
+      node.style.opacity = String(opacity)
     }
 
     const step = (timestamp: number) => {
@@ -129,7 +116,7 @@ export function PostToChatMorphLayer({
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[65] overflow-hidden">
       <div
         ref={nodeRef}
-        className="absolute left-0 top-0 origin-top-left overflow-hidden border border-border/60 bg-background/96 will-change-transform"
+        className="absolute left-0 top-0 origin-top-left overflow-hidden rounded-full border border-border/60 bg-background/96 will-change-transform"
         style={{
           left: fromRect.left,
           top: fromRect.top,
@@ -137,33 +124,10 @@ export function PostToChatMorphLayer({
           height: fromRect.height,
           borderRadius: fromRect.borderRadius,
           backfaceVisibility: "hidden",
+          boxShadow: "0 20px 38px -24px rgba(15, 23, 42, 0.36)",
         }}
       >
-        <div ref={sourceLayerRef} className="absolute inset-0">
-          <img
-            alt=""
-            src={preview.image}
-            decoding="async"
-            draggable={false}
-            loading="eager"
-            className="h-full w-full select-none object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/58 via-black/18 to-black/6" />
-          <div className="absolute inset-x-0 bottom-0 p-3 text-white">
-            {preview.subtitle ? (
-              <p className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-white/82">
-                {preview.subtitle}
-              </p>
-            ) : null}
-            <p className="mt-1 line-clamp-2 text-sm font-semibold leading-tight">{preview.title}</p>
-          </div>
-        </div>
-
-        <div
-          ref={chipLayerRef}
-          className="absolute inset-0 flex items-center gap-2.5 rounded-[inherit] bg-background/96 px-2.5 text-foreground"
-          style={{ opacity: 0 }}
-        >
+        <div className="absolute inset-0 flex items-center gap-2.5 rounded-[inherit] bg-background/96 px-2.5 text-foreground">
           <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-border/50 bg-secondary/60">
             <img
               alt=""

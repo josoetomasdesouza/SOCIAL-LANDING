@@ -88,6 +88,7 @@ const MORPH_DURATION_MS = 480
 const MORPH_TARGET_MIN_SIZE = 48
 const MORPH_TARGET_HEIGHT = 48
 const MORPH_TARGET_WIDTH = 188
+const MORPH_SPAWN_SCALE = 1.08
 
 interface ActivePostMorph {
   key: number
@@ -107,11 +108,6 @@ function toConversationContextItem(post: BusinessPost, fallbackImage: string): C
     image: post.image || post.reviewerAvatar || fallbackImage,
     subtitle: conversationContextLabels[post.type],
   }
-}
-
-function parseBorderRadius(value: string, fallback: number) {
-  const parsedValue = Number.parseFloat(value)
-  return Number.isFinite(parsedValue) ? parsedValue : fallback
 }
 
 function isVisibleRect(rect: DOMRect) {
@@ -182,6 +178,21 @@ function getComposerTargetRect(): PostToChatMorphRect {
   }
 
   return getComposerFallbackRect()
+}
+
+function createMorphSpawnRect(sourceRect: PostToChatMorphRect, targetRect: PostToChatMorphRect): PostToChatMorphRect {
+  const spawnWidth = Math.max(MORPH_TARGET_MIN_SIZE, targetRect.width * MORPH_SPAWN_SCALE)
+  const spawnHeight = Math.max(MORPH_TARGET_MIN_SIZE, targetRect.height * MORPH_SPAWN_SCALE)
+  const sourceCenterX = sourceRect.left + sourceRect.width / 2
+  const sourceCenterY = sourceRect.top + sourceRect.height / 2
+
+  return {
+    left: sourceCenterX - spawnWidth / 2,
+    top: sourceCenterY - spawnHeight / 2,
+    width: spawnWidth,
+    height: spawnHeight,
+    borderRadius: 999,
+  }
 }
 
 // ========================================
@@ -865,7 +876,7 @@ export function BusinessSocialLanding({
       top: sourceRect.top,
       width: sourceRect.width,
       height: sourceRect.height,
-      borderRadius: parseBorderRadius(window.getComputedStyle(sourceElement).borderRadius, 28),
+      borderRadius: 999,
     }
   }, [])
 
@@ -878,11 +889,13 @@ export function BusinessSocialLanding({
       return
     }
 
-    const fromRect = getPostSourceRect(post.id)
+    const sourceRect = getPostSourceRect(post.id)
 
-    if (!fromRect) {
+    if (!sourceRect) {
       return
     }
+
+    const targetRect = getComposerTargetRect()
 
     setActiveMorph({
       key: Date.now(),
@@ -892,8 +905,8 @@ export function BusinessSocialLanding({
         subtitle: contextItem.subtitle,
         image: contextItem.image,
       },
-      fromRect,
-      toRect: getComposerTargetRect(),
+      fromRect: createMorphSpawnRect(sourceRect, targetRect),
+      toRect: targetRect,
     })
   }, [getPostSourceRect])
 
