@@ -168,21 +168,36 @@ export function ConversationOSShell({
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
+  const [operationalInsertIndex, setOperationalInsertIndex] = useState<number | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
   const activeContextIdsRef = useRef<string[]>([])
   const pendingContextIdsRef = useRef<string[]>([])
+  const messagesRef = useRef<ConversationRuntimeMessage[]>(initialMessages || [])
+
+  useEffect(() => {
+    messagesRef.current = messages
+  }, [messages])
 
   useEffect(() => {
     if (!isMinimized) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages, isTyping, isMinimized, operationalState.activePanel])
+  }, [messages, isTyping, isMinimized, operationalState.activePanel, operationalInsertIndex])
 
   useEffect(() => {
     if (operationalState.activeFlow === "product") {
       setIsMinimized(false)
     }
+  }, [operationalState.activeFlow])
+
+  useEffect(() => {
+    if (operationalState.activeFlow === "product") {
+      setOperationalInsertIndex((previous) => previous ?? messagesRef.current.length)
+      return
+    }
+
+    setOperationalInsertIndex(null)
   }, [operationalState.activeFlow])
 
   useEffect(() => {
@@ -216,6 +231,12 @@ export function ConversationOSShell({
   const isImmersive =
     (operationalState.surfaceMode === "immersive" || hasActiveProductFlow) && showExpandedConversation
   const shouldHideTimelineVisualBlocks = hasActiveProductFlow
+  const safeOperationalInsertIndex =
+    operationalInsertIndex === null ? messages.length : Math.min(operationalInsertIndex, messages.length)
+  const leadingMessages = showOperationalPanel ? messages.slice(0, safeOperationalInsertIndex) : messages
+  const trailingMessages = showOperationalPanel ? messages.slice(safeOperationalInsertIndex) : []
+  const showLeadingTimeline = !showOperationalPanel || leadingMessages.length > 0
+  const showTrailingTimeline = showOperationalPanel && (trailingMessages.length > 0 || isTyping)
 
   const buildContextEvent = (items: ConversationContextItem[]): ConversationRuntimeMessage => ({
     id: `context-${Date.now()}`,
@@ -337,6 +358,7 @@ export function ConversationOSShell({
       const resolvedProductIds = extractSearchResultProductIds(aiMessage.visualBlock)
 
       if (resolvedProductIds.length > 0 && !hasActiveProductFlow) {
+        setOperationalInsertIndex(messagesRef.current.length + 1)
         productFlowActions.openSearchResults(resolvedProductIds)
         operationalActions.openProductFlow()
       }
@@ -357,6 +379,7 @@ export function ConversationOSShell({
     setInputValue("")
     setIsTyping(false)
     setIsMinimized(false)
+    setOperationalInsertIndex(null)
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
     operationalActions.reset()
@@ -510,50 +533,71 @@ export function ConversationOSShell({
                       : "flex flex-col"
                   )}
                 >
-                  <div
-                    className={cn(
-                      "px-4 py-4 transition-all duration-300",
-                      isImmersive
-                        ? cn(
-                            "flex-shrink-0 border-b border-border/40 bg-secondary/10 pb-3 opacity-65 saturate-50",
-                            isExpandedProductStep && "max-h-[18vh] overflow-y-auto opacity-35 saturate-[0.35]"
-                          )
-                        : "max-h-[32vh] overflow-y-auto"
-                    )}
-                  >
+                  {showLeadingTimeline ? (
                     <div
                       className={cn(
-                        isImmersive &&
-                          "rounded-[24px] border border-border/40 bg-background/55 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
+                        "px-4 py-4 transition-all duration-300",
+                        isImmersive
+                          ? cn(
+                              "flex-shrink-0 border-b border-border/40 bg-secondary/10 pb-3 opacity-65 saturate-50",
+                              isExpandedProductStep && "max-h-[18vh] overflow-y-auto opacity-35 saturate-[0.35]"
+                            )
+                          : "max-h-[32vh] overflow-y-auto"
                       )}
                     >
-                      <ConversationTimeline
-                        brandLogo={brandLogo}
-                        brandName={brandName}
-                        messages={messages}
-                        isTyping={isTyping}
-                        renderTimelineVisualBlock={resolvedTimelineVisualBlockRenderer}
-                        onRemoveContext={handleRemoveContextItem}
-                        hiddenContextIds={hiddenContextIds}
-                      />
-                      <div ref={messagesEndRef} />
+                      <div
+                        className={cn(
+                          isImmersive &&
+                            "rounded-[24px] border border-border/40 bg-background/55 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
+                        )}
+                      >
+                        <ConversationTimeline
+                          brandLogo={brandLogo}
+                          brandName={brandName}
+                          messages={leadingMessages}
+                          isTyping={!showOperationalPanel && isTyping}
+                          renderTimelineVisualBlock={resolvedTimelineVisualBlockRenderer}
+                          onRemoveContext={handleRemoveContextItem}
+                          hiddenContextIds={hiddenContextIds}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
 
-                  <ConversationOperationalPanel
-                    mode={operationalState.surfaceMode}
-                    isVisible={showOperationalPanel}
-                    eyebrow="Produto selecionado"
-                    title={operationalPanelTitle}
-                    subtitle={operationalPanelSubtitle}
-                    canGoBack={operationalState.backStack.length > 0}
-                    onBack={operationalActions.back}
-                    showHeader={!hasCustomOperationalSurface}
-                    className={cn(hasCustomOperationalSurface && "bg-transparent px-4 py-4")}
-                    contentClassName={cn(hasCustomOperationalSurface && "space-y-0")}
-                  >
-                    {resolvedOperationalSurface}
-                  </ConversationOperationalPanel>
+                  <div className="flex flex-col">
+                    <ConversationOperationalPanel
+                      mode={operationalState.surfaceMode}
+                      isVisible={showOperationalPanel}
+                      eyebrow="Produto selecionado"
+                      title={operationalPanelTitle}
+                      subtitle={operationalPanelSubtitle}
+                      canGoBack={operationalState.backStack.length > 0}
+                      onBack={operationalActions.back}
+                      showHeader={!hasCustomOperationalSurface}
+                      className={cn(hasCustomOperationalSurface && "bg-transparent px-4 py-4")}
+                      contentClassName={cn(hasCustomOperationalSurface && "space-y-0")}
+                    >
+                      {resolvedOperationalSurface}
+                    </ConversationOperationalPanel>
+
+                    {showTrailingTimeline ? (
+                      <div className="px-4 pb-4">
+                        <div className="rounded-[24px] border border-border/35 bg-background/60 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                          <ConversationTimeline
+                            brandLogo={brandLogo}
+                            brandName={brandName}
+                            messages={trailingMessages}
+                            isTyping={isTyping}
+                            renderTimelineVisualBlock={resolvedTimelineVisualBlockRenderer}
+                            onRemoveContext={handleRemoveContextItem}
+                            hiddenContextIds={hiddenContextIds}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div ref={messagesEndRef} />
+                  </div>
                 </div>
               ) : (
                 <div className="px-4 py-3">
