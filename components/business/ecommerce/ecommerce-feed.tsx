@@ -2,9 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Image from "next/image"
-import { ShoppingBag, Heart, Star, Truck, ChevronRight, Plus, Minus, Check, X, Play, Newspaper } from "lucide-react"
+import { ShoppingBag, Truck, ChevronRight, Plus, Minus, Check, X, Play, Newspaper, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { EcommerceCheckout } from "../checkout-flows"
@@ -12,18 +11,16 @@ import { ContextSelectable } from "../context-selectable"
 import { createConversationalSearchVisualBlockRenderer } from "../conversational-search-results"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
+import { EcommerceConversationProductsBlock } from "./ecommerce-conversation-products-block"
+import { EcommerceProductDetailPanel, type EcommerceSelectedVariant } from "./ecommerce-product-detail-panel"
 import { EcommerceProductFeedCard } from "./ecommerce-product-feed-card"
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
-import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
+import { ecommerceConfig, products, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
-import type { Product, VariantOption } from "@/lib/business-types"
+import type { Product } from "@/lib/business-types"
 
 type SelectedVariantsById = Record<string, string>
-type SelectedVariant = {
-  id: string
-  name: string
-  option: VariantOption
-}
+type SelectedVariant = EcommerceSelectedVariant
 
 interface CartItem {
   id: string
@@ -181,33 +178,8 @@ function ProductDetailDrawer({
   onToggleConversationContext?: (item: ConversationContextItem) => void
   isInConversation?: (id: string) => boolean
 }) {
-  const [selectedImage, setSelectedImage] = useState(0)
-  const [quantity, setQuantity] = useState(1)
-  const [selectedVariants, setSelectedVariants] = useState<SelectedVariantsById>({})
-
-  useEffect(() => {
-    if (isOpen) {
-      setSelectedImage(0)
-      setQuantity(1)
-      setSelectedVariants({})
-    }
-  }, [isOpen, product?.id])
-  
   if (!product) return null
-  
-  const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
-  const reviews = productReviews.filter(r => r.productId === product.id)
-  const resolvedVariants = getSelectedVariants(product, selectedVariants)
-  const missingRequiredVariant = product.variants?.some((variant) => !selectedVariants[variant.id]) || false
-  const unitPrice = product.price + getVariantPriceModifier(resolvedVariants)
-  const totalPrice = unitPrice * quantity
-  const productContextItem = {
-    id: `ecommerce-product-${product.id}`,
-    title: product.name,
-    image: product.images[0],
-    subtitle: "Produto",
-  }
-  
+
   return (
     <ActionDrawer
       isOpen={isOpen}
@@ -216,159 +188,15 @@ function ProductDetailDrawer({
       size="lg"
       reserveComposerSpace
     >
-      <div className="space-y-6">
-        {/* Imagens */}
-        <div className="space-y-3">
-          <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
-            <Image src={product.images[selectedImage]} alt={product.name} fill className="object-cover" />
-            {discount > 0 && (
-              <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0 text-sm">-{discount}%</Badge>
-            )}
-            <button
-              onClick={onToggleFavorite}
-              className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-            >
-              <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
-            </button>
-          </div>
-          {product.images.length > 1 && (
-            <div className="flex gap-2">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`relative w-16 h-16 rounded-lg overflow-hidden ring-2 transition-colors ${selectedImage === idx ? "ring-accent" : "ring-transparent"}`}
-                >
-                  <Image src={img} alt="" fill className="object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        
-        {/* Info */}
-        <ContextSelectable
-          as="div"
-          onLongPress={() => onToggleConversationContext?.(productContextItem)}
-          conversationContextItem={productContextItem}
-          selected={isInConversation?.(productContextItem.id) ?? false}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{product.rating}</span>
-            </div>
-            <span className="text-sm text-muted-foreground">({product.reviewCount} avaliacoes)</span>
-          </div>
-          <h2 className="text-xl font-bold">{product.name}</h2>
-          <p className="text-muted-foreground mt-2">{product.fullDescription || product.description}</p>
-        </ContextSelectable>
-        
-        {/* Preco */}
-        <div className="flex items-baseline gap-3">
-          <span className="text-3xl font-bold text-accent">R$ {unitPrice.toFixed(2).replace(".", ",")}</span>
-          {product.originalPrice && (
-            <span className="text-lg text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
-          )}
-        </div>
-        
-        {/* Variacoes */}
-        {product.variants && product.variants.length > 0 && (
-          <div className="space-y-4">
-            {product.variants.map((variant) => (
-              <div key={variant.id}>
-                <div className="flex items-center justify-between gap-3 mb-2">
-                  <h4 className="font-medium">{variant.name}</h4>
-                  <Badge>Obrigatorio</Badge>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {variant.options.map((option) => {
-                    const isSelected = selectedVariants[variant.id] === option.id
-
-                    return (
-                      <button
-                        key={option.id}
-                        disabled={!option.available}
-                        onClick={() => setSelectedVariants((prev) => ({ ...prev, [variant.id]: option.id }))}
-                        className={`p-3 rounded-xl border text-left transition-colors ${
-                          isSelected ? "border-accent bg-accent/10" : "border-border hover:border-accent/50"
-                        } ${!option.available ? "opacity-50 cursor-not-allowed" : ""}`}
-                      >
-                        <p className="font-medium text-sm">{option.value}</p>
-                        {option.priceModifier ? (
-                          <p className="text-xs text-muted-foreground">
-                            {option.priceModifier > 0 ? "+" : "-"} R$ {Math.abs(option.priceModifier).toFixed(2).replace(".", ",")}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-muted-foreground">Preco base</p>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Quantidade */}
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium">Quantidade:</span>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
-              <Minus className="w-4 h-4" />
-            </Button>
-            <span className="w-8 text-center font-medium">{quantity}</span>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(quantity + 1)}>
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-        
-        {/* Avaliacoes resumidas */}
-        {reviews.length > 0 && (
-          <ContextSelectable
-            as="div"
-            onLongPress={() => onToggleConversationContext?.(productContextItem)}
-            conversationContextItem={productContextItem}
-            selected={isInConversation?.(productContextItem.id) ?? false}
-            className="bg-secondary/50 rounded-xl p-4"
-          >
-            <h4 className="font-medium mb-3">Avaliacoes recentes</h4>
-            {reviews.slice(0, 2).map((review) => (
-              <div key={review.id} className="flex items-start gap-3 mb-3 last:mb-0">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden">
-                  <Image src={review.userAvatar} alt={review.userName} fill className="object-cover" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{review.userName}</span>
-                    <div className="flex">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-border"}`} />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{review.comment}</p>
-                </div>
-              </div>
-            ))}
-          </ContextSelectable>
-        )}
-        
-        {/* Botao de compra */}
-        <Button
-          className="w-full h-12"
-          disabled={missingRequiredVariant}
-          onClick={() => {
-            onAddToCart(product, quantity, resolvedVariants)
-            onClose()
-          }}
-        >
-          <ShoppingBag className="w-5 h-5 mr-2" />
-          {missingRequiredVariant ? "Escolha as opcoes obrigatorias" : `Adicionar R$ ${totalPrice.toFixed(2).replace(".", ",")}`}
-        </Button>
-      </div>
+      <EcommerceProductDetailPanel
+        product={product}
+        onAddToCart={onAddToCart}
+        isFavorite={isFavorite}
+        onToggleFavorite={onToggleFavorite}
+        onToggleConversationContext={onToggleConversationContext}
+        isInConversation={isInConversation}
+        onClose={onClose}
+      />
     </ActionDrawer>
   )
 }
@@ -539,27 +367,14 @@ export function EcommerceFeed() {
           }
 
           return (
-            <div className="grid grid-cols-2 gap-3">
-              {resolvedProducts.map((product) => (
-                <EcommerceProductFeedCard
-                  key={product.id}
-                  product={product}
-                  onSelectProduct={handleOpenProductDrawer}
-                  onAddToCart={(selectedProduct) => {
-                    if (selectedProduct.variants && selectedProduct.variants.length > 0) {
-                      handleOpenProductDrawer(selectedProduct)
-                      return
-                    }
-
-                    handleAddToCartAndOpenCart(selectedProduct)
-                  }}
-                  favorites={favorites}
-                  onToggleFavorite={handleToggleFavorite}
-                  onToggleConversationContext={conversationSelection.toggleConversationContextItem}
-                  isInConversation={conversationSelection.isConversationSelected}
-                />
-              ))}
-            </div>
+            <EcommerceConversationProductsBlock
+              products={resolvedProducts}
+              favorites={favorites}
+              onToggleFavorite={handleToggleFavorite}
+              onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+              isInConversation={conversationSelection.isConversationSelected}
+              onAddToCart={handleAddToCart}
+            />
           )
         },
       }),
@@ -567,7 +382,7 @@ export function EcommerceFeed() {
       conversationSelection.isConversationSelected,
       conversationSelection.toggleConversationContextItem,
       favorites,
-      handleAddToCartAndOpenCart,
+      handleAddToCart,
       handleOpenProductDrawer,
       handleToggleFavorite,
     ]
