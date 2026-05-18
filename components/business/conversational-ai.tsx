@@ -417,11 +417,23 @@ export function ConversationalAI({
                           <div className={cn("w-full", message.role === "user" ? "text-right" : "text-left")}>
                             <div
                               className={cn(
-                                "inline-block whitespace-pre-wrap text-[15px] leading-[1.45] align-top [overflow-wrap:break-word]",
+                                "inline-block text-[15px] leading-[1.45] align-top",
                                 message.role === "user"
-                                  ? "max-w-[92%] rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
+                                  ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
                                   : "max-w-[82%] px-0 py-0.5 text-left text-white/[0.94]"
                               )}
+                              style={
+                                message.role === "user"
+                                  ? {
+                                      width: "fit-content",
+                                      maxWidth: "min(78%, 560px)",
+                                      minWidth: "max-content",
+                                      whiteSpace: "normal",
+                                      overflowWrap: "break-word",
+                                      wordBreak: "normal",
+                                    }
+                                  : undefined
+                              }
                             >
                               {message.content}
                             </div>
