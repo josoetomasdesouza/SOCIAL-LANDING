@@ -14,6 +14,7 @@ interface ActionDrawerProps {
   size?: "sm" | "md" | "lg" | "full"
   matchFeedWidth?: boolean
   reserveComposerSpace?: boolean
+  visibleBottomInsetPx?: number
 }
 
 export function ActionDrawer({
@@ -25,7 +26,7 @@ export function ActionDrawer({
   footer,
   size = "md",
   matchFeedWidth = false,
-  reserveComposerSpace = false,
+  visibleBottomInsetPx = 0,
 }: ActionDrawerProps) {
   // Bloqueia scroll do body quando aberto
   useEffect(() => {
@@ -54,7 +55,7 @@ export function ActionDrawer({
     ? `translate(-50%, ${isOpen ? "0" : "100%"})`
     : `translateY(${isOpen ? "0" : "100%"})`
   const innerWidthClasses = "w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
-  const reservedBottomSpace = reserveComposerSpace ? 88 : 0
+  const reservedBottomSpace = Math.max(0, visibleBottomInsetPx)
 
   return (
     <>

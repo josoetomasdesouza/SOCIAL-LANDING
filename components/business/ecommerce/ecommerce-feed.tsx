@@ -450,7 +450,7 @@ function ProductDetailDrawer({
       onClose={onClose}
       title={product.name}
       size="lg"
-      reserveComposerSpace={reserveComposerSpace}
+      visibleBottomInsetPx={reserveComposerSpace ? 88 : 0}
     >
       <EcommerceProductDetailPanel
         product={product}
