@@ -155,6 +155,24 @@ export function ConversationalAI({
     expanded: 0,
     closeThreshold: 0,
   })
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const initialMessagesRef = useRef(initialMessages)
+  const composerShellRef = useRef<HTMLDivElement>(null)
+  const composerMaskRef = useRef<HTMLDivElement>(null)
+  const topAreaRef = useRef<HTMLDivElement>(null)
+  const contextRailRef = useRef<HTMLDivElement>(null)
+  const messagesContentRef = useRef<HTMLDivElement>(null)
+  const messagesMeasureRef = useRef<HTMLDivElement>(null)
+  const composerFormRef = useRef<HTMLFormElement>(null)
+  const replyTimeoutRef = useRef<number | null>(null)
+  const activeContextIdsRef = useRef<string[]>([])
+  const pendingContextIdsRef = useRef<string[]>([])
+  const dragStateRef = useRef<{
+    pointerId: number
+    startY: number
+    startHeight: number
+    startedCollapsed: boolean
+  } | null>(null)
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
   const hasEngagedConversation = hasConversation && isConversationSessionActive
@@ -183,24 +201,6 @@ export function ConversationalAI({
   const shouldShowTopArea = hasEngagedConversation || showContextRow
   const hasSheetBody = shouldRenderConversationBody || showContextRow
   const shouldApplySheetHeight = shouldShowTopArea || hasSheetBody
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const initialMessagesRef = useRef(initialMessages)
-  const composerShellRef = useRef<HTMLDivElement>(null)
-  const composerMaskRef = useRef<HTMLDivElement>(null)
-  const topAreaRef = useRef<HTMLDivElement>(null)
-  const contextRailRef = useRef<HTMLDivElement>(null)
-  const messagesContentRef = useRef<HTMLDivElement>(null)
-  const messagesMeasureRef = useRef<HTMLDivElement>(null)
-  const composerFormRef = useRef<HTMLFormElement>(null)
-  const replyTimeoutRef = useRef<number | null>(null)
-  const activeContextIdsRef = useRef<string[]>([])
-  const pendingContextIdsRef = useRef<string[]>([])
-  const dragStateRef = useRef<{
-    pointerId: number
-    startY: number
-    startHeight: number
-    startedCollapsed: boolean
-  } | null>(null)
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
 
   useEffect(() => {
