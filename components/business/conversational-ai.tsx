@@ -325,7 +325,7 @@ export function ConversationalAI({
   }
 
   const conversationPanelPatternStyle = {
-    backgroundColor: "rgba(7,16,24,0.76)",
+    backgroundColor: "rgba(7,16,24,0.88)",
     backgroundImage: `radial-gradient(circle at top, rgba(255,255,255,0.03), rgba(255,255,255,0) 48%), linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0)), ${CONVERSATION_DOODLE_PATTERN}`,
     backgroundPosition: "center top, center",
     backgroundRepeat: "no-repeat, no-repeat, repeat",
@@ -378,11 +378,11 @@ export function ConversationalAI({
                 </div>
               </div>
               {showExpandedConversation ? (
-                <div className="relative overflow-hidden border-t border-white/[0.04] bg-[rgba(7,16,24,0.58)]">
+                <div className="relative overflow-hidden border-t border-white/[0.04] bg-[rgba(7,16,24,0.88)]">
                   <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={conversationPanelPatternStyle} />
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(7,16,24,0.42)] via-[rgba(7,16,24,0.12)] to-transparent"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(7,16,24,0.24)] via-[rgba(7,16,24,0.08)] to-transparent"
                   />
                   <div className="relative z-10 max-h-[34vh] overflow-y-auto px-4 py-4">
                   {messages.map((message, index) => {
