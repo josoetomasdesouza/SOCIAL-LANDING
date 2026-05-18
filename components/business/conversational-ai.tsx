@@ -13,6 +13,7 @@ import type {
 } from "@/lib/mock-data/conversational-search"
 
 const COMPOSER_MASK_TOP_OFFSET_PX = 8
+const COMPOSER_SURFACE_COLOR = "rgba(7,16,24,0.88)"
 const CONVERSATION_DOODLE_PATTERN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180' fill='none'%3E%3Cg stroke='%23242931' stroke-opacity='0.36' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 34c6-8 18-8 24 0 6 8 18 8 24 0'/%3E%3Cpath d='M112 22l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2 5-10Z'/%3E%3Cpath d='M36 96c0-7 6-13 13-13s13 6 13 13-6 13-13 13-13-6-13-13Z'/%3E%3Cpath d='M119 82c10-12 28-12 38 0'/%3E%3Cpath d='M121 92c8 9 20 9 28 0'/%3E%3Cpath d='M22 145c11-10 31-10 42 0'/%3E%3Cpath d='M74 126h20c7 0 12 5 12 12s-5 12-12 12H74c-7 0-12-5-12-12s5-12 12-12Z'/%3E%3Cpath d='M132 132c0-8 7-15 15-15s15 7 15 15-7 15-15 15-15-7-15-15Z'/%3E%3Cpath d='M92 60c0-6 5-11 11-11s11 5 11 11-5 11-11 11-11-5-11-11Z'/%3E%3C/g%3E%3C/svg%3E\")"
 
@@ -325,11 +326,11 @@ export function ConversationalAI({
   }
 
   const conversationPanelPatternStyle = {
-    backgroundColor: "rgba(7,16,24,0.88)",
     backgroundImage: `radial-gradient(circle at top, rgba(255,255,255,0.03), rgba(255,255,255,0) 48%), linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0)), ${CONVERSATION_DOODLE_PATTERN}`,
     backgroundPosition: "center top, center",
     backgroundRepeat: "no-repeat, no-repeat, repeat",
     backgroundSize: "100% 100%, 100% 100%, 180px 180px",
+    opacity: 0.34,
   } as const
 
   return (
@@ -350,7 +351,8 @@ export function ConversationalAI({
       >
         <section
           data-conversation-composer="true"
-          className="pointer-events-auto overflow-hidden rounded-[28px] border border-white/[0.08] bg-[rgba(7,16,24,0.88)] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px]"
+          className="pointer-events-auto overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px]"
+          style={{ backgroundColor: COMPOSER_SURFACE_COLOR }}
         >
           {hasConversation && (
             <div className="border-b border-white/[0.07]">
@@ -378,14 +380,15 @@ export function ConversationalAI({
                 </div>
               </div>
               {showExpandedConversation ? (
-                <div className="relative overflow-hidden border-t border-white/[0.04] bg-[rgba(7,16,24,0.88)]">
-                  <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={conversationPanelPatternStyle} />
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(7,16,24,0.24)] via-[rgba(7,16,24,0.08)] to-transparent"
-                  />
-                  <div className="relative z-10 max-h-[34vh] overflow-y-auto px-4 py-4">
-                  {messages.map((message, index) => {
+                <div className="relative overflow-hidden border-t border-white/[0.04]">
+                  <div className="relative max-h-[34vh] overflow-y-auto" style={{ backgroundColor: COMPOSER_SURFACE_COLOR }}>
+                    <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={conversationPanelPatternStyle} />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(7,16,24,0.18)] via-[rgba(7,16,24,0.06)] to-transparent"
+                    />
+                    <div className="relative z-10 px-4 py-4">
+                    {messages.map((message, index) => {
                     const previousMessage = messages[index - 1]
                     const sharesGroupWithPrevious =
                       previousMessage?.role === message.role && message.role !== "context_event"
@@ -446,6 +449,7 @@ export function ConversationalAI({
                   )}
 
                   <div ref={messagesEndRef} />
+                    </div>
                   </div>
                 </div>
               ) : (
