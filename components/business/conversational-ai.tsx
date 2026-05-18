@@ -22,6 +22,7 @@ const COMPACT_BODY_MIN_RATIO = 0.22
 const COMPACT_BODY_MIN_PX = 136
 const COMPACT_BODY_MAX_PX = 196
 const CLOSE_THRESHOLD_OFFSET_PX = 72
+const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
 
 export type ConversationContextItem = ConversationContextPayload
 
@@ -86,6 +87,40 @@ function buildMockReply(brandName: string, userMessage: string, contextItems: Co
   return genericReplies[responseIndex]
 }
 
+function getConversationHistoryStorageKey(brandName: string) {
+  const normalizedBrandName = brandName
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+
+  return `${CONVERSATION_HISTORY_STORAGE_PREFIX}${normalizedBrandName || "default"}`
+}
+
+function readPersistedConversationMessages(
+  storageKey: string,
+  initialMessages?: ConversationMessage[]
+): ConversationRuntimeMessage[] {
+  if (typeof window === "undefined") {
+    return initialMessages || []
+  }
+
+  try {
+    const storedValue = window.localStorage.getItem(storageKey)
+
+    if (!storedValue) {
+      return initialMessages || []
+    }
+
+    const parsedValue = JSON.parse(storedValue)
+    return Array.isArray(parsedValue) ? (parsedValue as ConversationRuntimeMessage[]) : (initialMessages || [])
+  } catch {
+    return initialMessages || []
+  }
+}
+
 export function ConversationalAI({
   brandLogo,
   brandName,
@@ -100,9 +135,15 @@ export function ConversationalAI({
   responseResolver,
   renderVisualBlock,
 }: ConversationalAIProps) {
+  const conversationHistoryStorageKey = useMemo(
+    () => getConversationHistoryStorageKey(brandName),
+    [brandName]
+  )
   const [messages, setMessages] = useState<ConversationRuntimeMessage[]>(initialMessages || [])
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [isHistoryHydrated, setIsHistoryHydrated] = useState(false)
+  const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
   const [dragHeight, setDragHeight] = useState<number | null>(null)
   const [sheetMetrics, setSheetMetrics] = useState<SheetMetrics>({
@@ -115,8 +156,12 @@ export function ConversationalAI({
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
   const showContextRow = !hasConversation && contextItems.length > 0
-  const hasSheetBody = hasConversation || showContextRow
+  const shouldShowConversationBody = hasConversation && !isConversationCollapsed
+  const shouldShowTopArea = hasConversation || showContextRow
+  const hasSheetBody = shouldShowConversationBody || showContextRow
+  const shouldApplySheetHeight = shouldShowTopArea || hasSheetBody
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const initialMessagesRef = useRef(initialMessages)
   const composerShellRef = useRef<HTMLDivElement>(null)
   const composerMaskRef = useRef<HTMLDivElement>(null)
   const topAreaRef = useRef<HTMLDivElement>(null)
@@ -135,10 +180,37 @@ export function ConversationalAI({
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
 
   useEffect(() => {
-    if (hasConversation) {
+    const restoredMessages = readPersistedConversationMessages(
+      conversationHistoryStorageKey,
+      initialMessagesRef.current
+    )
+    setMessages(restoredMessages)
+    setInputValue("")
+    setIsTyping(false)
+    setIsConversationCollapsed(false)
+    activeContextIdsRef.current = []
+    pendingContextIdsRef.current = []
+    setIsHistoryHydrated(true)
+  }, [conversationHistoryStorageKey])
+
+  useEffect(() => {
+    if (!isHistoryHydrated || typeof window === "undefined") {
+      return
+    }
+
+    if (messages.length === 0) {
+      window.localStorage.removeItem(conversationHistoryStorageKey)
+      return
+    }
+
+    window.localStorage.setItem(conversationHistoryStorageKey, JSON.stringify(messages))
+  }, [conversationHistoryStorageKey, isHistoryHydrated, messages])
+
+  useEffect(() => {
+    if (shouldShowConversationBody) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [hasConversation, messages, isTyping])
+  }, [shouldShowConversationBody, messages, isTyping])
 
   useEffect(() => {
     return () => {
@@ -158,21 +230,21 @@ export function ConversationalAI({
     const bottomOffset = Math.max(0, viewportHeight - shellBottom)
     const availableViewportHeight = Math.max(0, viewportHeight - bottomOffset)
     const expanded = Math.round(availableViewportHeight * SHEET_MAX_VIEWPORT_RATIO)
-    const topAreaHeight = topAreaRef.current?.offsetHeight ?? 0
+    const topAreaHeight = shouldShowTopArea ? topAreaRef.current?.offsetHeight ?? 0 : 0
     const contextHeight = showContextRow ? contextRailRef.current?.offsetHeight ?? 0 : 0
     const formHeight = composerFormRef.current?.offsetHeight ?? 0
     const chromeHeight = topAreaHeight + contextHeight + formHeight
-    const compactBodyHeight = hasConversation
+    const compactBodyHeight = shouldShowConversationBody
       ? Math.min(
           COMPACT_BODY_MAX_PX,
           Math.max(COMPACT_BODY_MIN_PX, Math.round(availableViewportHeight * COMPACT_BODY_MIN_RATIO))
         )
       : 0
-    const compact = Math.min(expanded, hasConversation ? chromeHeight + compactBodyHeight : chromeHeight)
-    const conversationContentHeight = hasConversation
+    const compact = Math.min(expanded, shouldShowConversationBody ? chromeHeight + compactBodyHeight : chromeHeight)
+    const conversationContentHeight = shouldShowConversationBody
       ? messagesMeasureRef.current?.offsetHeight ?? messagesContentRef.current?.scrollHeight ?? 0
       : 0
-    const auto = hasConversation
+    const auto = shouldShowConversationBody
       ? Math.min(expanded, Math.max(compact, chromeHeight + conversationContentHeight))
       : compact
     const medium = Math.min(
@@ -200,7 +272,7 @@ export function ConversationalAI({
         closeThreshold,
       }
     })
-  }, [hasConversation, showContextRow])
+  }, [shouldShowConversationBody, shouldShowTopArea, showContextRow])
 
   useEffect(() => {
     measureSheetLayout()
@@ -259,6 +331,7 @@ export function ConversationalAI({
     if (!hasConversation && !showContextRow) {
       setManualSnapHeight(null)
       setDragHeight(null)
+      setIsConversationCollapsed(false)
     }
   }, [hasConversation, showContextRow])
 
@@ -388,6 +461,7 @@ export function ConversationalAI({
       ]
 
       if (hasConversation) {
+        setIsConversationCollapsed(false)
         setMessages((prev) => appendContextEvent(prev, addedContextItems))
         clearPendingContextIds(addedContextItems.map((item) => item.id))
       }
@@ -431,6 +505,7 @@ export function ConversationalAI({
     }
 
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
+    setIsConversationCollapsed(false)
     setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
     setInputValue("")
     setIsTyping(true)
@@ -459,6 +534,7 @@ export function ConversationalAI({
     setMessages([])
     setInputValue("")
     setIsTyping(false)
+    setIsConversationCollapsed(false)
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
     onCloseConversation?.()
@@ -467,8 +543,14 @@ export function ConversationalAI({
   const commitSheetClose = useCallback(() => {
     setManualSnapHeight(null)
     setDragHeight(null)
+
+    if (hasConversation) {
+      setIsConversationCollapsed(true)
+      return
+    }
+
     handleCloseConversation()
-  }, [handleCloseConversation])
+  }, [handleCloseConversation, hasConversation])
 
   const handleSheetPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (sheetMetrics.compact <= 0) {
@@ -517,6 +599,7 @@ export function ConversationalAI({
       return
     }
 
+    setIsConversationCollapsed(false)
     setManualSnapHeight(getNearestSnapHeight(currentHeight))
     setDragHeight(null)
   }
@@ -528,12 +611,14 @@ export function ConversationalAI({
 
     if (event.key === "Home") {
       event.preventDefault()
+      setIsConversationCollapsed(false)
       setManualSnapHeight(sheetMetrics.compact)
       return
     }
 
     if (event.key === "End") {
       event.preventDefault()
+      setIsConversationCollapsed(false)
       setManualSnapHeight(sheetMetrics.expanded)
       return
     }
@@ -543,6 +628,7 @@ export function ConversationalAI({
     }
 
     event.preventDefault()
+    setIsConversationCollapsed(false)
 
     const currentHeight = resolvedSheetHeight || sheetMetrics.compact
     const currentIndex = snapHeights.reduce(
@@ -672,33 +758,35 @@ export function ConversationalAI({
             )}
             style={{
               ...composerSurfaceStyle,
-              ...(hasSheetBody && resolvedSheetHeight > 0 ? { height: `${resolvedSheetHeight}px` } : {}),
+              ...(shouldApplySheetHeight && resolvedSheetHeight > 0 ? { height: `${resolvedSheetHeight}px` } : {}),
             }}
           >
-            <div
-              ref={topAreaRef}
-              className={cn("shrink-0 px-4 pt-3 pb-2", (hasConversation || showContextRow) && "border-b border-white/[0.07]")}
-              style={composerSurfaceStyle}
-            >
+            {shouldShowTopArea ? (
               <div
-                role="slider"
-                aria-label="Ajustar altura do composer"
-                aria-valuemin={Math.round(sheetMetrics.compact)}
-                aria-valuemax={Math.round(sheetMetrics.expanded)}
-                aria-valuenow={Math.round(resolvedSheetHeight || sheetMetrics.compact)}
-                tabIndex={0}
-                onPointerDown={handleSheetPointerDown}
-                onPointerMove={handleSheetPointerMove}
-                onPointerUp={handleSheetPointerRelease}
-                onPointerCancel={handleSheetPointerRelease}
-                onKeyDown={handleSheetHandleKeyDown}
-                className="flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
+                ref={topAreaRef}
+                className="shrink-0 border-b border-white/[0.07] px-4 pt-3 pb-2"
+                style={composerSurfaceStyle}
               >
-                <div className="h-1 w-10 rounded-full bg-white/12" />
+                <div
+                  role="slider"
+                  aria-label="Ajustar altura do composer"
+                  aria-valuemin={Math.round(sheetMetrics.compact)}
+                  aria-valuemax={Math.round(sheetMetrics.expanded)}
+                  aria-valuenow={Math.round(resolvedSheetHeight || sheetMetrics.compact)}
+                  tabIndex={0}
+                  onPointerDown={handleSheetPointerDown}
+                  onPointerMove={handleSheetPointerMove}
+                  onPointerUp={handleSheetPointerRelease}
+                  onPointerCancel={handleSheetPointerRelease}
+                  onKeyDown={handleSheetHandleKeyDown}
+                  className="flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
+                >
+                  <div className="h-1 w-10 rounded-full bg-white/12" />
+                </div>
               </div>
-            </div>
+            ) : null}
 
-            {hasConversation ? (
+            {shouldShowConversationBody ? (
               <div
                 className="relative min-h-0 flex-1 overflow-hidden border-t border-white/[0.035]"
                 style={composerSurfaceStyle}
