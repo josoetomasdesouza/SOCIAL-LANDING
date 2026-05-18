@@ -12,7 +12,7 @@ import type {
 } from "@/lib/mock-data/conversational-search"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
-const COMPOSER_MASK_TOP_OFFSET_PX = 32
+const COMPOSER_MASK_TOP_OFFSET_PX = 48
 
 export type ConversationContextItem = ConversationContextPayload
 
@@ -356,7 +356,7 @@ export function ConversationalAI({
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
           background:
-            "linear-gradient(to bottom, hsl(var(--background) / 0.08) 0px, hsl(var(--background) / 0.22) 12px, hsl(var(--background) / 0.58) 24px, hsl(var(--background) / 0.88) 36px, hsl(var(--background)) 64px), hsl(var(--background))",
+            "linear-gradient(to bottom, hsl(var(--background) / 0.16) 0px, hsl(var(--background) / 0.38) 10px, hsl(var(--background) / 0.68) 22px, hsl(var(--background) / 0.9) 36px, hsl(var(--background)) 64px), hsl(var(--background))",
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
