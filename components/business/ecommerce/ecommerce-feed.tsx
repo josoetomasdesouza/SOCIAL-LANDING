@@ -16,6 +16,8 @@ import {
   EcommerceProductFeedCard,
   toEcommerceProductConversationContextItem,
 } from "./ecommerce-product-feed-card"
+import { EcommerceConversationProductsBlock } from "./ecommerce-conversation-products-block"
+import { EcommerceProductDetailPanel } from "./ecommerce-product-detail-panel"
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
@@ -445,14 +447,14 @@ function ProductDetailDrawer({
       size="lg"
       reserveComposerSpace
     >
-      <ProductDetailSurface
+      <EcommerceProductDetailPanel
         product={product}
         onAddToCart={onAddToCart}
         isFavorite={isFavorite}
         onToggleFavorite={onToggleFavorite}
         onToggleConversationContext={onToggleConversationContext}
         isInConversation={isInConversation}
-        onAfterAddToCart={onClose}
+        onClose={onClose}
       />
     </ActionDrawer>
   )
@@ -734,8 +736,8 @@ export function EcommerceFeed() {
           }
 
           return (
-            <ConversationProductRecommendationSurface
-              matchedProducts={resolvedProducts}
+            <EcommerceConversationProductsBlock
+              products={resolvedProducts}
               favorites={favorites}
               onToggleFavorite={handleToggleFavorite}
               onToggleConversationContext={conversationSelection.toggleConversationContextItem}

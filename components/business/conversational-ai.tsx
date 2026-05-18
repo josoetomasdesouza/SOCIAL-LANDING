@@ -153,7 +153,10 @@ export function ConversationalAI({
     }
 
     const viewportHeight = window.visualViewport?.height ?? window.innerHeight
-    const expanded = Math.round(viewportHeight * SHEET_MAX_VIEWPORT_RATIO)
+    const shellBottom = composerShellRef.current?.getBoundingClientRect().bottom ?? viewportHeight
+    const bottomOffset = Math.max(0, viewportHeight - shellBottom)
+    const availableViewportHeight = Math.max(0, viewportHeight - bottomOffset)
+    const expanded = Math.round(availableViewportHeight * SHEET_MAX_VIEWPORT_RATIO)
     const topAreaHeight = topAreaRef.current?.offsetHeight ?? 0
     const contextHeight = showContextRow ? contextRailRef.current?.offsetHeight ?? 0 : 0
     const formHeight = composerFormRef.current?.offsetHeight ?? 0
@@ -161,7 +164,7 @@ export function ConversationalAI({
     const compactBodyHeight = hasConversation
       ? Math.min(
           COMPACT_BODY_MAX_PX,
-          Math.max(COMPACT_BODY_MIN_PX, Math.round(viewportHeight * COMPACT_BODY_MIN_RATIO))
+          Math.max(COMPACT_BODY_MIN_PX, Math.round(availableViewportHeight * COMPACT_BODY_MIN_RATIO))
         )
       : 0
     const compact = Math.min(expanded, hasConversation ? chromeHeight + compactBodyHeight : chromeHeight)
@@ -169,7 +172,10 @@ export function ConversationalAI({
     const auto = hasConversation
       ? Math.min(expanded, Math.max(compact, chromeHeight + conversationContentHeight))
       : compact
-    const medium = Math.min(expanded, Math.max(compact, Math.round(viewportHeight * SHEET_MID_VIEWPORT_RATIO)))
+    const medium = Math.min(
+      expanded,
+      Math.max(compact, Math.round(availableViewportHeight * SHEET_MID_VIEWPORT_RATIO))
+    )
     const closeThreshold = Math.max(chromeHeight * 0.72, compact - CLOSE_THRESHOLD_OFFSET_PX)
 
     setSheetMetrics((previousMetrics) => {
@@ -196,6 +202,10 @@ export function ConversationalAI({
   useEffect(() => {
     measureSheetLayout()
   }, [measureSheetLayout])
+
+  useLayoutEffect(() => {
+    measureSheetLayout()
+  }, [className, measureSheetLayout])
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -312,7 +322,7 @@ export function ConversationalAI({
       resizeObserver?.disconnect()
       window.removeEventListener("resize", updateMaskBounds)
     }
-  }, [contextItems.length, hasConversation, resolvedSheetHeight, showContextRow])
+  }, [className, contextItems.length, hasConversation, resolvedSheetHeight, showContextRow])
 
   const buildContextEvent = (items: ConversationContextItem[]): ConversationRuntimeMessage => ({
     id: `context-${Date.now()}`,
@@ -638,7 +648,7 @@ export function ConversationalAI({
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
           background:
-            "linear-gradient(to top, rgba(24, 29, 36, 0.72) 0%, rgba(24, 29, 36, 0.48) 24%, rgba(24, 29, 36, 0.2) 56%, rgba(24, 29, 36, 0.05) 82%, rgba(24, 29, 36, 0) 100%)",
+            "linear-gradient(to top, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.56) 24%, rgba(255, 255, 255, 0.2) 56%, rgba(255, 255, 255, 0.04) 82%, rgba(255, 255, 255, 0) 100%)",
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
@@ -691,7 +701,7 @@ export function ConversationalAI({
                   className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
                   style={{
                     background:
-                      "linear-gradient(to top, rgba(24,29,36,0.96) 0%, rgba(24,29,36,0.78) 26%, rgba(24,29,36,0.34) 68%, rgba(24,29,36,0) 100%)",
+                      "linear-gradient(to top, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.14) 28%, rgba(255,255,255,0.06) 62%, rgba(255,255,255,0) 100%)",
                   }}
                 />
                 <div ref={messagesContentRef} className="relative z-10 h-full overflow-y-auto px-4 py-4 overscroll-contain">
