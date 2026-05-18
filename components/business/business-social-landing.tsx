@@ -85,10 +85,9 @@ const conversationContextLabels: Record<BusinessPost["type"], string> = {
 }
 
 const MORPH_DURATION_MS = 480
-const MORPH_TARGET_MIN_SIZE = 48
-const MORPH_TARGET_HEIGHT = 48
+const MORPH_TARGET_MIN_SIZE = 44
+const MORPH_TARGET_HEIGHT = 44
 const MORPH_TARGET_WIDTH = 188
-const MORPH_SPAWN_SCALE = 1.08
 
 interface ActivePostMorph {
   key: number
@@ -192,17 +191,15 @@ function getComposerChipRect(contextId: string): PostToChatMorphRect | null {
 }
 
 function createMorphSpawnRect(sourceRect: PostToChatMorphRect, targetRect: PostToChatMorphRect): PostToChatMorphRect {
-  const spawnWidth = Math.max(MORPH_TARGET_MIN_SIZE, targetRect.width * MORPH_SPAWN_SCALE)
-  const spawnHeight = Math.max(MORPH_TARGET_MIN_SIZE, targetRect.height * MORPH_SPAWN_SCALE)
   const sourceCenterX = sourceRect.left + sourceRect.width / 2
   const sourceCenterY = sourceRect.top + sourceRect.height / 2
 
   return {
-    left: sourceCenterX - spawnWidth / 2,
-    top: sourceCenterY - spawnHeight / 2,
-    width: spawnWidth,
-    height: spawnHeight,
-    borderRadius: 999,
+    left: sourceCenterX - targetRect.width / 2,
+    top: sourceCenterY - targetRect.height / 2,
+    width: targetRect.width,
+    height: targetRect.height,
+    borderRadius: targetRect.borderRadius,
   }
 }
 

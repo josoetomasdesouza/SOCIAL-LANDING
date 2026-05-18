@@ -137,7 +137,7 @@ export function PostToChatMorphLayer({
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[65] overflow-hidden">
       <div
         ref={nodeRef}
-        className="absolute left-0 top-0 origin-top-left flex items-center gap-2 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)] will-change-transform"
+        className="absolute left-0 top-0 origin-top-left flex h-11 min-w-[156px] shrink-0 items-center gap-2 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)] will-change-transform"
         style={{
           left: fromRect.left,
           top: fromRect.top,
@@ -147,7 +147,7 @@ export function PostToChatMorphLayer({
           backfaceVisibility: "hidden",
         }}
       >
-        <div className="relative h-full aspect-square shrink-0 overflow-hidden rounded-full">
+        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
           <img
             alt=""
             src={preview.image}
