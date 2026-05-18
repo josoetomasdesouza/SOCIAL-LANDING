@@ -536,26 +536,28 @@ export function EcommerceFeed() {
           }
 
           return (
-            <div className="grid grid-cols-2 gap-3">
-              {resolvedProducts.map((product) => (
-                <EcommerceProductFeedCard
-                  key={product.id}
-                  product={product}
-                  onSelectProduct={handleOpenProductDrawer}
-                  onAddToCart={(selectedProduct) => {
-                    if (selectedProduct.variants && selectedProduct.variants.length > 0) {
-                      handleOpenProductDrawer(selectedProduct)
-                      return
-                    }
+            <div className="w-full max-w-[360px] rounded-[26px] border border-white/[0.08] bg-[rgba(247,248,250,0.96)] p-3 shadow-[0_24px_54px_-34px_rgba(0,0,0,0.58)]">
+              <div className="grid grid-cols-2 gap-3">
+                {resolvedProducts.map((product) => (
+                  <EcommerceProductFeedCard
+                    key={product.id}
+                    product={product}
+                    onSelectProduct={handleOpenProductDrawer}
+                    onAddToCart={(selectedProduct) => {
+                      if (selectedProduct.variants && selectedProduct.variants.length > 0) {
+                        handleOpenProductDrawer(selectedProduct)
+                        return
+                      }
 
-                    handleAddToCartAndOpenCart(selectedProduct)
-                  }}
-                  favorites={favorites}
-                  onToggleFavorite={handleToggleFavorite}
-                  onToggleConversationContext={conversationSelection.toggleConversationContextItem}
-                  isInConversation={conversationSelection.isConversationSelected}
-                />
-              ))}
+                      handleAddToCartAndOpenCart(selectedProduct)
+                    }}
+                    favorites={favorites}
+                    onToggleFavorite={handleToggleFavorite}
+                    onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+                    isInConversation={conversationSelection.isConversationSelected}
+                  />
+                ))}
+              </div>
             </div>
           )
         },
