@@ -870,12 +870,16 @@ export function BusinessSocialLanding({
     return posts
   }, [sections])
 
+  const resolveMorphTargetRect = useCallback((contextId: string) => {
+    return getComposerChipRect(contextId) ?? getComposerFallbackRect()
+  }, [])
+
   useLayoutEffect(() => {
     if (!queuedMorph) {
       return
     }
 
-    const targetRect = getComposerChipRect(queuedMorph.contextId) ?? getComposerFallbackRect()
+    const targetRect = resolveMorphTargetRect(queuedMorph.contextId)
 
     setActiveMorph({
       key: queuedMorph.key,
@@ -885,7 +889,7 @@ export function BusinessSocialLanding({
       toRect: targetRect,
     })
     setQueuedMorph(null)
-  }, [queuedMorph])
+  }, [queuedMorph, resolveMorphTargetRect])
 
   const getPostSourceRect = useCallback((postId: string): PostToChatMorphRect | null => {
     const escapedPostId = getEscapedSelectorValue(postId)
@@ -1042,6 +1046,7 @@ export function BusinessSocialLanding({
           preview={activeMorph.preview}
           fromRect={activeMorph.fromRect}
           toRect={activeMorph.toRect}
+          resolveToRect={() => resolveMorphTargetRect(activeMorph.contextId)}
           durationMs={MORPH_DURATION_MS}
           onComplete={() => {
             setHiddenContextIds((currentIds) => currentIds.filter((contextId) => contextId !== activeMorph.contextId))
