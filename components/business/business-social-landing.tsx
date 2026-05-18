@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import type { BusinessConfig } from "@/lib/business-types"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
 import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
-import { ContextSelectable } from "./context-selectable"
+import { ContextSelectable, getRememberedMorphSourceElement } from "./context-selectable"
 import { useConversationSelectionContext, useConversationSelectionState } from "./conversation-selection-context"
 import {
   PostToChatMorphLayer,
@@ -888,24 +888,40 @@ export function BusinessSocialLanding({
   }, [queuedMorph, resolveMorphTargetRect])
 
   const getMorphSourceRect = useCallback((sourceId: string): PostToChatMorphRect | null => {
+    const rememberedSourceElement = getRememberedMorphSourceElement(sourceId)
+
+    if (rememberedSourceElement) {
+      const rememberedSourceRect = rememberedSourceElement.getBoundingClientRect()
+
+      if (isVisibleRect(rememberedSourceRect)) {
+        return {
+          left: rememberedSourceRect.left,
+          top: rememberedSourceRect.top,
+          width: rememberedSourceRect.width,
+          height: rememberedSourceRect.height,
+          borderRadius: 999,
+        }
+      }
+    }
+
     const escapedSourceId = getEscapedSelectorValue(sourceId)
-    const sourceElement = document.querySelector<HTMLElement>(`[data-post-context-source="${escapedSourceId}"]`)
+    const sourceElements = Array.from(
+      document.querySelectorAll<HTMLElement>(`[data-post-context-source="${escapedSourceId}"]`)
+    )
+    const sourceElement = sourceElements
+      .map((element) => ({ element, rect: element.getBoundingClientRect() }))
+      .filter(({ rect }) => isVisibleRect(rect))
+      .at(-1)
 
     if (!sourceElement) {
       return null
     }
 
-    const sourceRect = sourceElement.getBoundingClientRect()
-
-    if (!isVisibleRect(sourceRect)) {
-      return null
-    }
-
     return {
-      left: sourceRect.left,
-      top: sourceRect.top,
-      width: sourceRect.width,
-      height: sourceRect.height,
+      left: sourceElement.rect.left,
+      top: sourceElement.rect.top,
+      width: sourceElement.rect.width,
+      height: sourceElement.rect.height,
       borderRadius: 999,
     }
   }, [])
