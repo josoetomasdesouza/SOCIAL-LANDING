@@ -143,6 +143,7 @@ export function ConversationalAI({
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [isHistoryHydrated, setIsHistoryHydrated] = useState(false)
+  const [isConversationSessionActive, setIsConversationSessionActive] = useState(false)
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
   const [dragHeight, setDragHeight] = useState<number | null>(null)
@@ -155,10 +156,12 @@ export function ConversationalAI({
   })
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
-  const showContextRow = !hasConversation && contextItems.length > 0
-  const shouldShowConversationBody = hasConversation && !isConversationCollapsed
-  const shouldShowTopArea = hasConversation || showContextRow
-  const hasSheetBody = shouldShowConversationBody || showContextRow
+  const hasEngagedConversation = hasConversation && isConversationSessionActive
+  const showContextRow = !hasEngagedConversation && contextItems.length > 0
+  const shouldShowConversationBody = hasEngagedConversation && !isConversationCollapsed
+  const shouldRenderConversationBody = hasEngagedConversation
+  const shouldShowTopArea = hasEngagedConversation || showContextRow
+  const hasSheetBody = shouldRenderConversationBody || showContextRow
   const shouldApplySheetHeight = shouldShowTopArea || hasSheetBody
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const initialMessagesRef = useRef(initialMessages)
@@ -187,6 +190,7 @@ export function ConversationalAI({
     setMessages(restoredMessages)
     setInputValue("")
     setIsTyping(false)
+    setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
@@ -321,19 +325,19 @@ export function ConversationalAI({
     return () => {
       resizeObserver.disconnect()
     }
-  }, [measureSheetLayout, hasConversation, showContextRow])
+  }, [measureSheetLayout, hasEngagedConversation, showContextRow])
 
   useLayoutEffect(() => {
     measureSheetLayout()
   }, [measureSheetLayout, messages, isTyping, contextItems.length, hiddenContextIds.length])
 
   useEffect(() => {
-    if (!hasConversation && !showContextRow) {
+    if (!hasEngagedConversation && !showContextRow) {
       setManualSnapHeight(null)
       setDragHeight(null)
       setIsConversationCollapsed(false)
     }
-  }, [hasConversation, showContextRow])
+  }, [hasEngagedConversation, showContextRow])
 
   useEffect(() => {
     if (manualSnapHeight === null) {
@@ -403,7 +407,7 @@ export function ConversationalAI({
       resizeObserver?.disconnect()
       window.removeEventListener("resize", updateMaskBounds)
     }
-  }, [className, contextItems.length, hasConversation, resolvedSheetHeight, showContextRow])
+  }, [className, contextItems.length, hasEngagedConversation, resolvedSheetHeight, showContextRow])
 
   const buildContextEvent = (items: ConversationContextItem[]): ConversationRuntimeMessage => ({
     id: `context-${Date.now()}`,
@@ -460,7 +464,7 @@ export function ConversationalAI({
         ...pendingContextIdsRef.current.filter((id) => !addedIds.has(id)),
       ]
 
-      if (hasConversation) {
+      if (hasEngagedConversation) {
         setIsConversationCollapsed(false)
         setMessages((prev) => appendContextEvent(prev, addedContextItems))
         clearPendingContextIds(addedContextItems.map((item) => item.id))
@@ -468,7 +472,7 @@ export function ConversationalAI({
     }
 
     activeContextIdsRef.current = nextContextIds
-  }, [contextItems, hasConversation])
+  }, [contextItems, hasEngagedConversation])
 
   const buildResolvedReply = (userMessage: string): ConversationRuntimeMessage => {
     const resolvedReply = responseResolver?.({
@@ -505,6 +509,7 @@ export function ConversationalAI({
     }
 
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
+    setIsConversationSessionActive(true)
     setIsConversationCollapsed(false)
     setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
     setInputValue("")
@@ -534,6 +539,7 @@ export function ConversationalAI({
     setMessages([])
     setInputValue("")
     setIsTyping(false)
+    setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
@@ -544,17 +550,21 @@ export function ConversationalAI({
     setManualSnapHeight(null)
     setDragHeight(null)
 
-    if (hasConversation) {
+    if (hasEngagedConversation) {
       setIsConversationCollapsed(true)
       return
     }
 
     handleCloseConversation()
-  }, [handleCloseConversation, hasConversation])
+  }, [handleCloseConversation, hasEngagedConversation])
 
   const handleSheetPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (sheetMetrics.compact <= 0) {
       return
+    }
+
+    if (isConversationCollapsed) {
+      setIsConversationCollapsed(false)
     }
 
     dragStateRef.current = {
@@ -786,13 +796,26 @@ export function ConversationalAI({
               </div>
             ) : null}
 
-            {shouldShowConversationBody ? (
+            {shouldRenderConversationBody ? (
               <div
-                className="relative min-h-0 flex-1 overflow-hidden border-t border-white/[0.035]"
+                className={cn(
+                  "relative min-h-0 flex-1 overflow-hidden",
+                  shouldShowConversationBody && "border-t border-white/[0.035]"
+                )}
                 style={composerSurfaceStyle}
               >
-                <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={conversationPanelPatternStyle} />
-                <div ref={messagesContentRef} className="relative z-10 h-full overflow-y-auto px-4 py-4 overscroll-contain">
+                <div
+                  aria-hidden="true"
+                  className={cn("pointer-events-none absolute inset-0", !shouldShowConversationBody && "opacity-0")}
+                  style={conversationPanelPatternStyle}
+                />
+                <div
+                  ref={messagesContentRef}
+                  className={cn(
+                    "relative z-10 h-full overflow-y-auto px-4 py-4 overscroll-contain",
+                    !shouldShowConversationBody && "pointer-events-none opacity-0"
+                  )}
+                >
                   <div ref={messagesMeasureRef}>
                     {messages.map((message, index) => {
                     const previousMessage = messages[index - 1]
@@ -865,7 +888,7 @@ export function ConversationalAI({
               </div>
             ) : null}
 
-            {!hasConversation && showContextRow && (
+            {!hasEngagedConversation && showContextRow && (
               <div
                 ref={contextRailRef}
                 className="shrink-0 px-4 py-2.5"
