@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState, type ReactNode } from "react"
 import type { ConversationContextItem } from "./conversational-ai"
+import { getConversationContextChipRect } from "./conversation-context-chip-dom"
 
 export type ConversationComposerMode = "default" | "overlay" | "hidden"
 
@@ -44,14 +45,6 @@ function isVisibleRect(rect: DOMRect) {
   return rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.right > 0
 }
 
-function getEscapedSelectorValue(value: string) {
-  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
-    return CSS.escape(value)
-  }
-
-  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
-}
-
 function getComposerMaxWidth(viewportWidth: number) {
   if (viewportWidth >= 1024) return 600
   if (viewportWidth >= 768) return 672
@@ -86,29 +79,6 @@ function getComposerFallbackRect(): ConversationMorphRect {
     top: viewportHeight - 128,
     width: Math.max(MORPH_TARGET_MIN_SIZE, Math.min(MORPH_TARGET_WIDTH, Math.max(156, composerWidth - 32))),
     height: Math.max(MORPH_TARGET_MIN_SIZE, MORPH_TARGET_HEIGHT),
-    borderRadius: 999,
-  }
-}
-
-function getComposerChipRect(contextId: string): ConversationMorphRect | null {
-  const escapedContextId = getEscapedSelectorValue(contextId)
-  const chipElement = document.querySelector<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`)
-
-  if (!chipElement) {
-    return null
-  }
-
-  const chipRect = chipElement.getBoundingClientRect()
-
-  if (!isVisibleRect(chipRect)) {
-    return null
-  }
-
-  return {
-    left: chipRect.left,
-    top: chipRect.top,
-    width: chipRect.width,
-    height: chipRect.height,
     borderRadius: 999,
   }
 }
@@ -166,7 +136,7 @@ export function useConversationSelectionState(): ConversationSelectionController
       return
     }
 
-    const targetRect = getComposerChipRect(queuedMorph.contextId) ?? getComposerFallbackRect()
+    const targetRect = getConversationContextChipRect(queuedMorph.contextId) ?? getComposerFallbackRect()
 
     setActiveMorph({
       key: queuedMorph.key,

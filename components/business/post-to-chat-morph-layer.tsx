@@ -13,6 +13,7 @@ import {
   conversationContextChipTextClassName,
   conversationContextChipTitleClassName,
 } from "@/components/business/conversation-context-chip-styles"
+import { getConversationContextChipRect } from "@/components/business/conversation-context-chip-dom"
 
 export interface PostToChatMorphRect {
   left: number
@@ -59,6 +60,16 @@ export function PostToChatMorphLayer({
   onComplete,
 }: PostToChatMorphLayerProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
+  const fromRectRef = useRef(fromRect)
+  const toRectRef = useRef(toRect)
+
+  useEffect(() => {
+    fromRectRef.current = fromRect
+  }, [fromRect])
+
+  useEffect(() => {
+    toRectRef.current = toRect
+  }, [toRect])
 
   useEffect(() => {
     const node = nodeRef.current
@@ -88,14 +99,18 @@ export function PostToChatMorphLayer({
     }
 
     const applyFrame = (rawProgress: number) => {
+      const currentFromRect = fromRectRef.current
+      const currentToRect = getConversationContextChipRect(preview.id) ?? toRectRef.current
       const easedProgress = easeOutCubic(rawProgress)
-      const translateX = lerp(0, toRect.left - fromRect.left, easedProgress)
-      const translateY = lerp(0, toRect.top - fromRect.top, easedProgress)
-      const scaleX = lerp(1, toRect.width / fromRect.width, easedProgress)
-      const scaleY = lerp(1, toRect.height / fromRect.height, easedProgress)
+      const translateX = lerp(0, currentToRect.left - currentFromRect.left, easedProgress)
+      const translateY = lerp(0, currentToRect.top - currentFromRect.top, easedProgress)
+      const scaleX = lerp(1, currentToRect.width / currentFromRect.width, easedProgress)
+      const scaleY = lerp(1, currentToRect.height / currentFromRect.height, easedProgress)
+      const borderRadius = lerp(currentFromRect.borderRadius, currentToRect.borderRadius, easedProgress)
       const opacity = lerp(0.9, 1, clamp(rawProgress * 1.35, 0, 1))
 
       node.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scaleX}, ${scaleY})`
+      node.style.borderRadius = `${borderRadius}px`
       node.style.opacity = String(opacity)
     }
 
@@ -132,7 +147,7 @@ export function PostToChatMorphLayer({
       detachListeners()
       finish()
     }
-  }, [animationKey, durationMs, fromRect.borderRadius, fromRect.height, fromRect.left, fromRect.top, fromRect.width, onComplete, toRect.borderRadius, toRect.height, toRect.left, toRect.top, toRect.width])
+  }, [animationKey, durationMs, onComplete, preview.id])
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[65] overflow-hidden">
