@@ -778,7 +778,11 @@ export function ConversationalAI({
             ) : null}
 
             {!hasConversation && showContextRow && (
-              <div ref={contextRailRef} className="shrink-0 border-b border-white/[0.07] px-4 py-2.5">
+              <div
+                ref={contextRailRef}
+                className="shrink-0 px-4 py-2.5"
+                style={composerSurfaceStyle}
+              >
                 <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
                   {contextItems.map((item) => renderContextChip(item))}
                 </div>
