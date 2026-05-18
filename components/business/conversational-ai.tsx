@@ -416,10 +416,10 @@ export function ConversationalAI({
                         <div className={cn("flex max-w-full flex-col gap-2", message.role === "user" ? "items-end" : "items-start")}>
                           <div
                             className={cn(
-                              "max-w-[82%] whitespace-pre-wrap break-words rounded-[24px] px-4 py-3.5 text-[15px] leading-[1.45] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)] [overflow-wrap:anywhere]",
+                              "max-w-[82%] whitespace-pre-wrap break-words text-[15px] leading-[1.45] [overflow-wrap:anywhere]",
                               message.role === "user"
-                                ? "rounded-br-[10px] border border-white/[0.08] bg-black/[0.88] text-white/[0.96]"
-                                : "rounded-bl-[10px] border border-white/[0.05] bg-[linear-gradient(180deg,rgba(58,60,66,0.92)_0%,rgba(34,36,41,0.96)_100%)] text-white/[0.94]"
+                                ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
+                                : "px-0 py-0.5 text-white/[0.94]"
                             )}
                           >
                             {message.content}
@@ -435,12 +435,10 @@ export function ConversationalAI({
 
                   {isTyping && (
                     <div className={cn(messages.length > 0 && "mt-5", "flex justify-start")}>
-                      <div className="max-w-[82%] rounded-[24px] rounded-bl-[10px] border border-white/[0.05] bg-[linear-gradient(180deg,rgba(58,60,66,0.92)_0%,rgba(34,36,41,0.96)_100%)] px-4 py-3 text-white/[0.92] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]">
-                        <div className="flex items-center gap-1">
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/48 [animation-delay:-0.2s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/48 [animation-delay:-0.1s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/48" />
-                        </div>
+                      <div className="flex max-w-[82%] items-center gap-1 px-0 py-0.5 text-white/[0.74]">
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-white/42 [animation-delay:-0.2s]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-white/42 [animation-delay:-0.1s]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-white/42" />
                       </div>
                     </div>
                   )}
