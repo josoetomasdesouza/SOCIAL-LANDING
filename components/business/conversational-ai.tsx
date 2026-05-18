@@ -145,6 +145,7 @@ export function ConversationalAI({
   const [isHistoryHydrated, setIsHistoryHydrated] = useState(false)
   const [isConversationSessionActive, setIsConversationSessionActive] = useState(false)
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
+  const [pendingContextIds, setPendingContextIds] = useState<string[]>([])
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
   const [dragHeight, setDragHeight] = useState<number | null>(null)
   const [sheetMetrics, setSheetMetrics] = useState<SheetMetrics>({
@@ -157,7 +158,12 @@ export function ConversationalAI({
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
   const hasEngagedConversation = hasConversation && isConversationSessionActive
-  const showContextRow = contextItems.length > 0 && !hasEngagedConversation
+  const pendingContextIdSet = useMemo(() => new Set(pendingContextIds), [pendingContextIds])
+  const contextRowItems = useMemo(
+    () => contextItems.filter((item) => pendingContextIdSet.has(item.id)),
+    [contextItems, pendingContextIdSet]
+  )
+  const showContextRow = contextRowItems.length > 0 && !hasEngagedConversation
   const shouldShowConversationBody = hasEngagedConversation && !isConversationCollapsed
   const shouldRenderConversationBody = hasEngagedConversation
   const shouldShowTopArea = hasEngagedConversation || showContextRow
@@ -193,6 +199,7 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
+    setPendingContextIds([])
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
     setIsHistoryHydrated(true)
@@ -446,12 +453,17 @@ export function ConversationalAI({
     return [...previousMessages, buildContextEvent(items)]
   }, [buildContextEvent])
 
+  const setPendingContextIdsSnapshot = useCallback((nextPendingContextIds: string[]) => {
+    pendingContextIdsRef.current = nextPendingContextIds
+    setPendingContextIds(nextPendingContextIds)
+  }, [])
+
   const clearPendingContextIds = useCallback((contextIds: string[]) => {
     if (contextIds.length === 0) return
 
     const idsToClear = new Set(contextIds)
-    pendingContextIdsRef.current = pendingContextIdsRef.current.filter((id) => !idsToClear.has(id))
-  }, [])
+    setPendingContextIdsSnapshot(pendingContextIdsRef.current.filter((id) => !idsToClear.has(id)))
+  }, [setPendingContextIdsSnapshot])
 
   useEffect(() => {
     const previousActiveContextIds = new Set(activeContextIdsRef.current)
@@ -463,10 +475,10 @@ export function ConversationalAI({
 
     if (addedContextItems.length > 0) {
       const addedIds = new Set(addedContextItems.map((item) => item.id))
-      pendingContextIdsRef.current = [
+      setPendingContextIdsSnapshot([
         ...addedContextItems.map((item) => item.id),
         ...pendingContextIdsRef.current.filter((id) => !addedIds.has(id)),
-      ]
+      ])
 
       if (hasEngagedConversation) {
         if (isConversationCollapsed) {
@@ -480,7 +492,7 @@ export function ConversationalAI({
     }
 
     activeContextIdsRef.current = nextContextIds
-  }, [appendContextEvent, contextItems, hasEngagedConversation, isConversationCollapsed])
+  }, [appendContextEvent, clearPendingContextIds, contextItems, hasEngagedConversation, isConversationCollapsed, setPendingContextIdsSnapshot])
 
   const buildResolvedReply = (userMessage: string): ConversationRuntimeMessage => {
     const resolvedReply = responseResolver?.({
@@ -549,6 +561,7 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
+    setPendingContextIds([])
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
     onCloseConversation?.()
@@ -911,7 +924,7 @@ export function ConversationalAI({
                 style={composerSurfaceStyle}
               >
                 <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
-                  {contextItems.map((item) => renderContextChip(item))}
+                  {contextRowItems.map((item) => renderContextChip(item))}
                 </div>
               </div>
             )}
