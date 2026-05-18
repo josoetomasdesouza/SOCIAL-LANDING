@@ -174,7 +174,6 @@ export function PostToChatMorphLayer({
             <X className="h-3.5 w-3.5" />
           </div>
         </div>
-      </div>
     </div>
   )
 }
