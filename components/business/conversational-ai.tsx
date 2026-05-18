@@ -122,6 +122,7 @@ export function ConversationalAI({
   const topAreaRef = useRef<HTMLDivElement>(null)
   const contextRailRef = useRef<HTMLDivElement>(null)
   const messagesContentRef = useRef<HTMLDivElement>(null)
+  const messagesMeasureRef = useRef<HTMLDivElement>(null)
   const composerFormRef = useRef<HTMLFormElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
   const activeContextIdsRef = useRef<string[]>([])
@@ -168,7 +169,9 @@ export function ConversationalAI({
         )
       : 0
     const compact = Math.min(expanded, hasConversation ? chromeHeight + compactBodyHeight : chromeHeight)
-    const conversationContentHeight = hasConversation ? messagesContentRef.current?.scrollHeight ?? 0 : 0
+    const conversationContentHeight = hasConversation
+      ? messagesMeasureRef.current?.offsetHeight ?? messagesContentRef.current?.scrollHeight ?? 0
+      : 0
     const auto = hasConversation
       ? Math.min(expanded, Math.max(compact, chromeHeight + conversationContentHeight))
       : compact
@@ -237,6 +240,7 @@ export function ConversationalAI({
       topAreaRef.current,
       contextRailRef.current,
       messagesContentRef.current,
+      messagesMeasureRef.current,
       composerFormRef.current,
     ].filter(Boolean)
 
@@ -246,6 +250,10 @@ export function ConversationalAI({
       resizeObserver.disconnect()
     }
   }, [measureSheetLayout, hasConversation, showContextRow])
+
+  useLayoutEffect(() => {
+    measureSheetLayout()
+  }, [measureSheetLayout, messages, isTyping, contextItems.length, hiddenContextIds.length])
 
   useEffect(() => {
     if (!hasConversation && !showContextRow) {
@@ -697,7 +705,8 @@ export function ConversationalAI({
               >
                 <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={conversationPanelPatternStyle} />
                 <div ref={messagesContentRef} className="relative z-10 h-full overflow-y-auto px-4 py-4 overscroll-contain">
-                  {messages.map((message, index) => {
+                  <div ref={messagesMeasureRef}>
+                    {messages.map((message, index) => {
                     const previousMessage = messages[index - 1]
                     const sharesGroupWithPrevious =
                       previousMessage?.role === message.role && message.role !== "context_event"
@@ -720,49 +729,50 @@ export function ConversationalAI({
                     }
 
                     return (
-                      <div
-                        key={message.id}
-                        className={cn(spacingClass, "flex", message.role === "user" ? "justify-end" : "justify-start")}
-                      >
                         <div
-                          className={cn(
-                            "flex w-full max-w-full flex-col gap-2",
-                            message.role === "user" ? "items-end" : "items-start"
-                          )}
+                          key={message.id}
+                          className={cn(spacingClass, "flex", message.role === "user" ? "justify-end" : "justify-start")}
                         >
-                          <div className={cn("w-full", message.role === "user" ? "text-right" : "text-left")}>
-                            <div
-                              className={cn(
-                                "inline-block text-[15px] leading-[1.45] align-top",
-                                message.role === "user"
-                                  ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
-                                  : "px-0 py-0.5 text-left text-white/[0.94]"
-                              )}
-                              style={messageTextBubbleStyle}
-                            >
-                              {message.content}
+                          <div
+                            className={cn(
+                              "flex w-full max-w-full flex-col gap-2",
+                              message.role === "user" ? "items-end" : "items-start"
+                            )}
+                          >
+                            <div className={cn("w-full", message.role === "user" ? "text-right" : "text-left")}>
+                              <div
+                                className={cn(
+                                  "inline-block text-[15px] leading-[1.45] align-top",
+                                  message.role === "user"
+                                    ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
+                                    : "px-0 py-0.5 text-left text-white/[0.94]"
+                                )}
+                                style={messageTextBubbleStyle}
+                              >
+                                {message.content}
+                              </div>
                             </div>
-                          </div>
 
-                          {message.role === "ai" && message.visualBlock
-                            ? renderVisualBlock?.(message.visualBlock)
-                            : null}
+                            {message.role === "ai" && message.visualBlock
+                              ? renderVisualBlock?.(message.visualBlock)
+                              : null}
+                          </div>
+                        </div>
+                      )
+                    })}
+
+                    {isTyping && (
+                      <div className={cn(messages.length > 0 && "mt-5", "flex justify-start")}>
+                        <div className="flex max-w-[82%] items-center gap-1 px-0 py-0.5 text-white/[0.74]">
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/42 [animation-delay:-0.2s]" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/42 [animation-delay:-0.1s]" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/42" />
                         </div>
                       </div>
-                    )
-                  })}
+                    )}
 
-                  {isTyping && (
-                    <div className={cn(messages.length > 0 && "mt-5", "flex justify-start")}>
-                      <div className="flex max-w-[82%] items-center gap-1 px-0 py-0.5 text-white/[0.74]">
-                        <span className="h-2 w-2 animate-bounce rounded-full bg-white/42 [animation-delay:-0.2s]" />
-                        <span className="h-2 w-2 animate-bounce rounded-full bg-white/42 [animation-delay:-0.1s]" />
-                        <span className="h-2 w-2 animate-bounce rounded-full bg-white/42" />
-                      </div>
-                    </div>
-                  )}
-
-                  <div ref={messagesEndRef} />
+                    <div ref={messagesEndRef} />
+                  </div>
                 </div>
               </div>
             ) : null}
