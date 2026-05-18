@@ -430,7 +430,7 @@ function ProductDetailDrawer({
   onToggleFavorite,
   onToggleConversationContext,
   isInConversation,
-  reserveComposerSpace = false,
+  hasVisibleCartBar = false,
 }: { 
   product: Product | null
   isOpen: boolean
@@ -440,9 +440,12 @@ function ProductDetailDrawer({
   onToggleFavorite: () => void
   onToggleConversationContext?: (item: ConversationContextItem) => void
   isInConversation?: (id: string) => boolean
-  reserveComposerSpace?: boolean
+  hasVisibleCartBar?: boolean
 }) {
   if (!product) return null
+
+  const composerInsetPx = 104
+  const cartBarInsetPx = hasVisibleCartBar ? 88 : 0
   
   return (
     <ActionDrawer
@@ -450,7 +453,7 @@ function ProductDetailDrawer({
       onClose={onClose}
       title={product.name}
       size="lg"
-      visibleBottomInsetPx={reserveComposerSpace ? 88 : 0}
+      visibleBottomInsetPx={composerInsetPx + cartBarInsetPx}
     >
       <EcommerceProductDetailPanel
         product={product}
@@ -901,7 +904,7 @@ export function EcommerceFeed() {
         onToggleFavorite={() => selectedProduct && handleToggleFavorite(selectedProduct.id)}
         onToggleConversationContext={conversationSelection.toggleConversationContextItem}
         isInConversation={conversationSelection.isConversationSelected}
-        reserveComposerSpace={shouldShowCartBar}
+        hasVisibleCartBar={shouldShowCartBar}
       />
       
       <CartDrawerComponent
