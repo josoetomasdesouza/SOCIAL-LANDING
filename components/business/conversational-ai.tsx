@@ -983,7 +983,7 @@ export function ConversationalAI({
                   }
                 }}
                 placeholder={resolvedPlaceholder}
-                className="h-10 min-w-0 flex-1 bg-transparent text-[15px] text-white/92 outline-none placeholder:text-white/58"
+                className="h-10 min-w-0 flex-1 bg-transparent text-[16px] text-white/92 outline-none placeholder:text-white/58"
               />
               <button
                 type="submit"
