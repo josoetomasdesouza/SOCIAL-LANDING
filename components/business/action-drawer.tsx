@@ -15,6 +15,7 @@ interface ActionDrawerProps {
   matchFeedWidth?: boolean
   reserveComposerSpace?: boolean
   visibleBottomInsetPx?: number
+  fillVisibleBottomInset?: boolean
 }
 
 export function ActionDrawer({
@@ -27,6 +28,7 @@ export function ActionDrawer({
   size = "md",
   matchFeedWidth = false,
   visibleBottomInsetPx = 0,
+  fillVisibleBottomInset = false,
 }: ActionDrawerProps) {
   // Bloqueia scroll do body quando aberto
   useEffect(() => {
@@ -65,6 +67,14 @@ export function ActionDrawer({
         style={{ bottom: reservedBottomSpace }}
         onClick={onClose}
       />
+
+      {fillVisibleBottomInset && reservedBottomSpace > 0 ? (
+        <div
+          aria-hidden="true"
+          className="fixed inset-x-0 bottom-0 z-[49] bg-card"
+          style={{ height: reservedBottomSpace }}
+        />
+      ) : null}
 
       {/* Drawer */}
       <div

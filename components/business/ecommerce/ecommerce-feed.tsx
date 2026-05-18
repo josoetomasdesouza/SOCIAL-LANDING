@@ -454,6 +454,7 @@ function ProductDetailDrawer({
       title={product.name}
       size="lg"
       visibleBottomInsetPx={composerInsetPx + cartBarInsetPx}
+      fillVisibleBottomInset
     >
       <EcommerceProductDetailPanel
         product={product}
@@ -884,8 +885,8 @@ export function EcommerceFeed() {
       
       {/* Barra fixa do carrinho */}
       {shouldShowCartBar && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-[60]">
-          <div className="max-w-lg mx-auto">
+        <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-[60] p-4">
+          <div className="pointer-events-auto max-w-lg mx-auto">
             <Button className="w-full h-12" onClick={() => setCartDrawerOpen(true)}>
               <ShoppingBag className="w-5 h-5 mr-2" />
               Ver carrinho ({cartItemCount} {cartItemCount === 1 ? "item" : "itens"})
