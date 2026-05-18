@@ -356,7 +356,7 @@ export function ConversationalAI({
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
           background:
-            "linear-gradient(to top, rgba(0, 128, 255, 0.95) 0%, rgba(0, 128, 255, 0.78) 28%, rgba(0, 128, 255, 0.42) 58%, rgba(0, 128, 255, 0.14) 82%, rgba(0, 128, 255, 0) 100%)",
+            "linear-gradient(to top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.78) 28%, rgba(255, 255, 255, 0.42) 58%, rgba(255, 255, 255, 0.14) 82%, rgba(255, 255, 255, 0) 100%)",
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
