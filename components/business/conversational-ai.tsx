@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
-import { ChevronDown, ChevronUp, Loader2, Send, X } from "lucide-react"
+import { Loader2, Send, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ConversationContextPayload, ConversationMessage } from "@/lib/business-types"
 import type {
@@ -12,6 +12,12 @@ import type {
 } from "@/lib/mock-data/conversational-search"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
+const SHEET_MAX_VIEWPORT_RATIO = 0.9
+const SHEET_MID_VIEWPORT_RATIO = 0.55
+const COMPACT_BODY_MIN_RATIO = 0.22
+const COMPACT_BODY_MIN_PX = 136
+const COMPACT_BODY_MAX_PX = 196
+const CLOSE_THRESHOLD_OFFSET_PX = 72
 
 export type ConversationContextItem = ConversationContextPayload
 
@@ -32,6 +38,14 @@ interface ConversationalAIProps {
 
 type ConversationRuntimeMessage = ConversationMessage & {
   visualBlock?: ConversationVisualBlock
+}
+
+interface SheetMetrics {
+  compact: number
+  auto: number
+  medium: number
+  expanded: number
+  closeThreshold: number
 }
 
 function summarizeContext(items: ConversationContextItem[]) {
@@ -85,18 +99,38 @@ export function ConversationalAI({
   const [messages, setMessages] = useState<ConversationRuntimeMessage[]>(initialMessages || [])
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const [isMinimized, setIsMinimized] = useState(false)
+  const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
+  const [dragHeight, setDragHeight] = useState<number | null>(null)
+  const [sheetMetrics, setSheetMetrics] = useState<SheetMetrics>({
+    compact: 0,
+    auto: 0,
+    medium: 0,
+    expanded: 0,
+    closeThreshold: 0,
+  })
+  const hasConversation = messages.length > 0 || isTyping
+  const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
+  const showContextRow = !hasConversation && contextItems.length > 0
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const topAreaRef = useRef<HTMLDivElement>(null)
+  const contextRailRef = useRef<HTMLDivElement>(null)
+  const messagesContentRef = useRef<HTMLDivElement>(null)
+  const composerFormRef = useRef<HTMLFormElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
   const activeContextIdsRef = useRef<string[]>([])
   const pendingContextIdsRef = useRef<string[]>([])
+  const dragStateRef = useRef<{
+    pointerId: number
+    startY: number
+    startHeight: number
+  } | null>(null)
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
 
   useEffect(() => {
-    if (!isMinimized) {
+    if (hasConversation) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages, isTyping, isMinimized])
+  }, [hasConversation, messages, isTyping])
 
   useEffect(() => {
     return () => {
@@ -106,10 +140,235 @@ export function ConversationalAI({
     }
   }, [])
 
-  const hasConversation = messages.length > 0 || isTyping
-  const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
-  const showContextRow = !hasConversation && contextItems.length > 0
-  const showExpandedConversation = hasConversation && !isMinimized
+  const measureSheetLayout = useCallback(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const expanded = Math.round(viewportHeight * SHEET_MAX_VIEWPORT_RATIO)
+    const topAreaHeight = topAreaRef.current?.offsetHeight ?? 0
+    const contextHeight = showContextRow ? contextRailRef.current?.offsetHeight ?? 0 : 0
+    const formHeight = composerFormRef.current?.offsetHeight ?? 0
+    const chromeHeight = topAreaHeight + contextHeight + formHeight
+    const compactBodyHeight = hasConversation
+      ? Math.min(
+          COMPACT_BODY_MAX_PX,
+          Math.max(COMPACT_BODY_MIN_PX, Math.round(viewportHeight * COMPACT_BODY_MIN_RATIO))
+        )
+      : 0
+    const compact = Math.min(expanded, hasConversation ? chromeHeight + compactBodyHeight : chromeHeight)
+    const conversationContentHeight = hasConversation ? messagesContentRef.current?.scrollHeight ?? 0 : 0
+    const auto = hasConversation
+      ? Math.min(expanded, Math.max(compact, chromeHeight + conversationContentHeight))
+      : compact
+    const medium = Math.min(expanded, Math.max(compact, Math.round(viewportHeight * SHEET_MID_VIEWPORT_RATIO)))
+    const closeThreshold = Math.max(chromeHeight * 0.72, compact - CLOSE_THRESHOLD_OFFSET_PX)
+
+    setSheetMetrics((previousMetrics) => {
+      if (
+        previousMetrics.compact === compact &&
+        previousMetrics.auto === auto &&
+        previousMetrics.medium === medium &&
+        previousMetrics.expanded === expanded &&
+        previousMetrics.closeThreshold === closeThreshold
+      ) {
+        return previousMetrics
+      }
+
+      return {
+        compact,
+        auto,
+        medium,
+        expanded,
+        closeThreshold,
+      }
+    })
+  }, [hasConversation, showContextRow])
+
+  useEffect(() => {
+    measureSheetLayout()
+  }, [measureSheetLayout])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const handleResize = () => measureSheetLayout()
+    handleResize()
+
+    window.addEventListener("resize", handleResize)
+    window.visualViewport?.addEventListener("resize", handleResize)
+
+    return () => {
+      window.removeEventListener("resize", handleResize)
+      window.visualViewport?.removeEventListener("resize", handleResize)
+    }
+  }, [measureSheetLayout])
+
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") {
+      return
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      measureSheetLayout()
+    })
+
+    const observedElements = [
+      topAreaRef.current,
+      contextRailRef.current,
+      messagesContentRef.current,
+      composerFormRef.current,
+    ].filter(Boolean)
+
+    observedElements.forEach((element) => resizeObserver.observe(element!))
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [measureSheetLayout, hasConversation, showContextRow])
+
+  useEffect(() => {
+    if (!hasConversation && !showContextRow) {
+      setManualSnapHeight(null)
+      setDragHeight(null)
+    }
+  }, [hasConversation, showContextRow])
+
+  useEffect(() => {
+    if (manualSnapHeight === null) {
+      return
+    }
+
+    const nextManualHeight = Math.min(
+      sheetMetrics.expanded || manualSnapHeight,
+      Math.max(sheetMetrics.compact || 0, manualSnapHeight)
+    )
+
+    if (nextManualHeight !== manualSnapHeight) {
+      setManualSnapHeight(nextManualHeight)
+    }
+  }, [manualSnapHeight, sheetMetrics.compact, sheetMetrics.expanded])
+
+  const snapHeights = useMemo(
+    () =>
+      [sheetMetrics.compact, sheetMetrics.medium, sheetMetrics.expanded].filter(
+        (height, index, list) => height > 0 && list.indexOf(height) === index
+      ),
+    [sheetMetrics.compact, sheetMetrics.medium, sheetMetrics.expanded]
+  )
+
+  const resolvedAutoHeight = Math.min(
+    sheetMetrics.expanded || Number.POSITIVE_INFINITY,
+    Math.max(sheetMetrics.compact || 0, Math.max(sheetMetrics.auto, manualSnapHeight ?? 0))
+  )
+
+  const resolvedSheetHeight = dragHeight ?? resolvedAutoHeight
+
+  const getNearestSnapHeight = useCallback(
+    (height: number) => {
+      if (snapHeights.length === 0) {
+        return height
+      }
+
+      return snapHeights.reduce((closestHeight, currentHeight) =>
+        Math.abs(currentHeight - height) < Math.abs(closestHeight - height) ? currentHeight : closestHeight
+      )
+    },
+    [snapHeights]
+  )
+
+  const handleSheetPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (sheetMetrics.compact <= 0) {
+      return
+    }
+
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      startHeight: resolvedSheetHeight || sheetMetrics.compact,
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const handleSheetPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = dragStateRef.current
+
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return
+    }
+
+    event.preventDefault()
+
+    const deltaY = event.clientY - dragState.startY
+    const nextHeight = Math.min(sheetMetrics.expanded, Math.max(0, dragState.startHeight - deltaY))
+    setDragHeight(nextHeight)
+  }
+
+  const handleSheetPointerRelease = (event: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = dragStateRef.current
+
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return
+    }
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    const currentHeight = dragHeight ?? dragState.startHeight
+    dragStateRef.current = null
+
+    if (currentHeight < sheetMetrics.closeThreshold) {
+      commitSheetClose()
+      return
+    }
+
+    setManualSnapHeight(getNearestSnapHeight(currentHeight))
+    setDragHeight(null)
+  }
+
+  const handleSheetHandleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (snapHeights.length === 0) {
+      return
+    }
+
+    if (event.key === "Home") {
+      event.preventDefault()
+      setManualSnapHeight(sheetMetrics.compact)
+      return
+    }
+
+    if (event.key === "End") {
+      event.preventDefault()
+      setManualSnapHeight(sheetMetrics.expanded)
+      return
+    }
+
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") {
+      return
+    }
+
+    event.preventDefault()
+
+    const currentHeight = resolvedSheetHeight || sheetMetrics.compact
+    const currentIndex = snapHeights.reduce(
+      (closestIndex, height, index) =>
+        Math.abs(height - currentHeight) < Math.abs(snapHeights[closestIndex] - currentHeight)
+          ? index
+          : closestIndex,
+      0
+    )
+    const nextIndex =
+      event.key === "ArrowUp"
+        ? Math.min(snapHeights.length - 1, currentIndex + 1)
+        : Math.max(0, currentIndex - 1)
+
+    setManualSnapHeight(snapHeights[nextIndex])
+  }
 
   const buildContextEvent = (items: ConversationContextItem[]): ConversationRuntimeMessage => ({
     id: `context-${Date.now()}`,
@@ -213,7 +472,6 @@ export function ConversationalAI({
     setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
     setInputValue("")
     setIsTyping(true)
-    setIsMinimized(false)
     onSendMessage?.(nextMessage)
 
     replyTimeoutRef.current = window.setTimeout(() => {
@@ -230,7 +488,7 @@ export function ConversationalAI({
     handleSendMessage()
   }
 
-  const handleCloseConversation = () => {
+  const handleCloseConversation = useCallback(() => {
     if (replyTimeoutRef.current !== null) {
       window.clearTimeout(replyTimeoutRef.current)
       replyTimeoutRef.current = null
@@ -239,11 +497,16 @@ export function ConversationalAI({
     setMessages([])
     setInputValue("")
     setIsTyping(false)
-    setIsMinimized(false)
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
     onCloseConversation?.()
-  }
+  }, [onCloseConversation])
+
+  const commitSheetClose = useCallback(() => {
+    setManualSnapHeight(null)
+    setDragHeight(null)
+    handleCloseConversation()
+  }, [handleCloseConversation])
 
   const handleRemoveContextItem = (contextId: string) => {
     clearPendingContextIds([contextId])
@@ -322,137 +585,132 @@ export function ConversationalAI({
       <div className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]">
         <section
           data-conversation-composer="true"
-          className="pointer-events-auto overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+          className={cn(
+            "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] border border-border/60 bg-background/94 shadow-[0_18px_44px_-26px_rgba(0,0,0,0.42)] backdrop-blur-xl transition-[height] duration-300 ease-out",
+            dragHeight !== null && "transition-none"
+          )}
+          style={resolvedSheetHeight > 0 ? { height: `${resolvedSheetHeight}px` } : undefined}
         >
-          {hasConversation && (
-            <div className="border-b border-border/50">
-              <div className="px-4 pt-3 pb-2">
-                <div className="relative flex items-center justify-center">
-                  <div className="h-1 w-11 rounded-full bg-border/80" />
-                  <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setIsMinimized((prev) => !prev)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                    aria-label={isMinimized ? "Expandir conversa" : "Minimizar conversa"}
-                  >
-                    {isMinimized ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCloseConversation}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                    aria-label="Fechar conversa"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                  </div>
-                </div>
-              </div>
-              {showExpandedConversation ? (
-                <div className="space-y-3 overflow-y-auto px-4 py-4 max-h-[32vh]">
-                  {messages.map((message) => {
-                    if (message.role === "context_event") {
-                      const eventContexts = message.contexts ?? (message.context ? [message.context] : [])
+          <div
+            ref={topAreaRef}
+            className={cn("shrink-0 px-4 pt-3 pb-2", (hasConversation || showContextRow) && "border-b border-border/50")}
+          >
+            <div
+              role="slider"
+              aria-label="Ajustar altura do composer"
+              aria-valuemin={Math.round(sheetMetrics.compact)}
+              aria-valuemax={Math.round(sheetMetrics.expanded)}
+              aria-valuenow={Math.round(resolvedSheetHeight || sheetMetrics.compact)}
+              tabIndex={0}
+              onPointerDown={handleSheetPointerDown}
+              onPointerMove={handleSheetPointerMove}
+              onPointerUp={handleSheetPointerRelease}
+              onPointerCancel={handleSheetPointerRelease}
+              onKeyDown={handleSheetHandleKeyDown}
+              className="flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
+            >
+              <div className="h-1 w-10 rounded-full bg-border/75 shadow-[0_1px_0_rgba(255,255,255,0.08)]" />
+            </div>
+          </div>
 
-                      if (eventContexts.length === 0) {
-                        return null
-                      }
+          {hasConversation ? (
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <div ref={messagesContentRef} className="space-y-3 px-4 py-4">
+                {messages.map((message) => {
+                  if (message.role === "context_event") {
+                    const eventContexts = message.contexts ?? (message.context ? [message.context] : [])
 
-                      return (
-                        <div key={message.id} className="py-0.5">
-                          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                            {eventContexts.map((item) => renderContextChip(item))}
-                          </div>
-                        </div>
-                      )
+                    if (eventContexts.length === 0) {
+                      return null
                     }
 
                     return (
-                      <div
-                        key={message.id}
-                        className={cn("flex items-end gap-2.5", message.role === "user" && "justify-end")}
-                      >
-                        {message.role !== "user" ? (
-                          <Image
-                            src={brandLogo}
-                            alt={brandName}
-                            width={28}
-                            height={28}
-                            className="rounded-full border border-border/60 object-cover"
-                          />
-                        ) : null}
-
-                        <div className={cn("flex max-w-[82%] flex-col gap-2", message.role === "user" && "items-end")}>
-                          <div
-                            className={cn(
-                              "rounded-[22px] px-4 py-3 text-sm leading-relaxed shadow-sm",
-                              message.role === "user"
-                                ? "rounded-br-md bg-foreground text-background"
-                                : "rounded-bl-md bg-secondary text-foreground"
-                            )}
-                          >
-                            {message.content}
-                          </div>
-
-                          {message.role === "ai" && message.visualBlock
-                            ? renderVisualBlock?.(message.visualBlock)
-                            : null}
+                      <div key={message.id} className="py-0.5">
+                        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                          {eventContexts.map((item) => renderContextChip(item))}
                         </div>
-
-                        {message.role === "user" ? (
-                          <Image
-                            src={USER_AVATAR}
-                            alt="Voce"
-                            width={28}
-                            height={28}
-                            className="rounded-full border border-border/60 object-cover"
-                          />
-                        ) : null}
                       </div>
                     )
-                  })}
+                  }
 
-                  {isTyping && (
-                    <div className="flex items-end gap-2.5">
-                      <Image
-                        src={brandLogo}
-                        alt={brandName}
-                        width={28}
-                        height={28}
-                        className="rounded-full border border-border/60 object-cover"
-                      />
-                      <div className="rounded-[22px] rounded-bl-md bg-secondary px-4 py-3 text-foreground shadow-sm">
-                        <div className="flex items-center gap-1">
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.2s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.1s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50" />
+                  return (
+                    <div
+                      key={message.id}
+                      className={cn("flex items-end gap-2.5", message.role === "user" && "justify-end")}
+                    >
+                      {message.role !== "user" ? (
+                        <Image
+                          src={brandLogo}
+                          alt={brandName}
+                          width={28}
+                          height={28}
+                          className="rounded-full border border-border/60 object-cover"
+                        />
+                      ) : null}
+
+                      <div className={cn("flex max-w-[82%] flex-col gap-2", message.role === "user" && "items-end")}>
+                        <div
+                          className={cn(
+                            "rounded-[22px] px-4 py-3 text-sm leading-relaxed shadow-sm",
+                            message.role === "user"
+                              ? "rounded-br-md bg-foreground text-background"
+                              : "rounded-bl-md bg-secondary text-foreground"
+                          )}
+                        >
+                          {message.content}
                         </div>
+
+                        {message.role === "ai" && message.visualBlock
+                          ? renderVisualBlock?.(message.visualBlock)
+                          : null}
+                      </div>
+
+                      {message.role === "user" ? (
+                        <Image
+                          src={USER_AVATAR}
+                          alt="Voce"
+                          width={28}
+                          height={28}
+                          className="rounded-full border border-border/60 object-cover"
+                        />
+                      ) : null}
+                    </div>
+                  )
+                })}
+
+                {isTyping && (
+                  <div className="flex items-end gap-2.5">
+                    <Image
+                      src={brandLogo}
+                      alt={brandName}
+                      width={28}
+                      height={28}
+                      className="rounded-full border border-border/60 object-cover"
+                    />
+                    <div className="rounded-[22px] rounded-bl-md bg-secondary px-4 py-3 text-foreground shadow-sm">
+                      <div className="flex items-center gap-1">
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.2s]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.1s]" />
+                        <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50" />
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  <div ref={messagesEndRef} />
-                </div>
-              ) : (
-                <div className="px-4 pb-3">
-                  <p className="text-xs text-muted-foreground">
-                    {showContextRow ? "Contexto pronto para continuar a conversa." : "A conversa continua aqui quando voce enviar a proxima mensagem."}
-                  </p>
-                </div>
-              )}
+                <div ref={messagesEndRef} />
+              </div>
             </div>
-          )}
+          ) : null}
 
           {!hasConversation && showContextRow && (
-            <div className="border-b border-border/50 px-4 py-2.5">
+            <div ref={contextRailRef} className="border-b border-border/50 px-4 py-2.5">
               <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {contextItems.map((item) => renderContextChip(item))}
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex items-center gap-3 px-3 py-2.5">
+          <form ref={composerFormRef} onSubmit={handleSubmit} className="flex shrink-0 items-center gap-3 px-3 py-2.5">
             <button
               type="button"
               disabled
