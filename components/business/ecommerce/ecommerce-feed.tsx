@@ -12,6 +12,7 @@ import { ContextSelectable } from "../context-selectable"
 import { createConversationalSearchVisualBlockRenderer } from "../conversational-search-results"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
+import { EcommerceProductFeedCard } from "./ecommerce-product-feed-card"
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
@@ -90,62 +91,18 @@ function ProductsModule({
     <div className="space-y-6">
       {/* Ofertas em destaque */}
       <div className="grid grid-cols-2 gap-3">
-        {featuredProducts.map((product) => {
-          const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
-          const contextItem = {
-            id: `ecommerce-product-${product.id}`,
-            title: product.name,
-            image: product.images[0],
-            subtitle: "Produto",
-          }
-          return (
-            <ContextSelectable
-              key={product.id}
-              as="div"
-              onClick={() => onSelectProduct(product)}
-              onLongPress={() => onToggleConversationContext?.(contextItem)}
-              conversationContextItem={contextItem}
-              selected={isInConversation?.(contextItem.id) ?? false}
-              className="relative group"
-            >
-              <div className="w-full text-left">
-                <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
-                  <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                  {discount > 0 && (
-                    <Badge className="absolute top-2 left-2 bg-red-500 text-white border-0">-{discount}%</Badge>
-                  )}
-                </div>
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-foreground line-clamp-2">{product.name}</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs text-muted-foreground">{product.rating} ({product.reviewCount})</span>
-                  </div>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="font-bold text-accent">R$ {product.price.toFixed(2).replace(".", ",")}</span>
-                    {product.originalPrice && (
-                      <span className="text-xs text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => onToggleFavorite(product.id)}
-                className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-              >
-                <Heart className={`w-4 h-4 ${favorites.has(product.id) ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
-              </button>
-              <Button
-                size="sm"
-                className="w-full mt-2 h-9"
-                onClick={() => onAddToCart(product)}
-              >
-                <ShoppingBag className="w-4 h-4 mr-1" />
-                Adicionar
-              </Button>
-            </ContextSelectable>
-          )
-        })}
+        {featuredProducts.map((product) => (
+          <EcommerceProductFeedCard
+            key={product.id}
+            product={product}
+            onSelectProduct={onSelectProduct}
+            onAddToCart={onAddToCart}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite}
+            onToggleConversationContext={onToggleConversationContext}
+            isInConversation={isInConversation}
+          />
+        ))}
       </div>
       
       {/* Frete gratis */}
@@ -569,19 +526,51 @@ export function EcommerceFeed() {
     setProductDrawerOpen(true)
   }, [])
 
-  const handleConversationProductCtaClick = useCallback((productId: string) => {
-    const product = products.find((candidate) => candidate.id === productId)
-    if (!product) return
-
-    handleOpenProductDrawer(product)
-  }, [handleOpenProductDrawer])
-
   const renderConversationVisualBlock = useMemo(
     () =>
       createConversationalSearchVisualBlockRenderer({
-        onProductCtaClick: handleConversationProductCtaClick,
+        renderProducts: (matchedProducts) => {
+          const resolvedProducts = matchedProducts
+            .map((matchedProduct) => products.find((candidate) => candidate.id === matchedProduct.id))
+            .filter((product): product is Product => Boolean(product))
+
+          if (resolvedProducts.length === 0) {
+            return null
+          }
+
+          return (
+            <div className="grid grid-cols-2 gap-3">
+              {resolvedProducts.map((product) => (
+                <EcommerceProductFeedCard
+                  key={product.id}
+                  product={product}
+                  onSelectProduct={handleOpenProductDrawer}
+                  onAddToCart={(selectedProduct) => {
+                    if (selectedProduct.variants && selectedProduct.variants.length > 0) {
+                      handleOpenProductDrawer(selectedProduct)
+                      return
+                    }
+
+                    handleAddToCartAndOpenCart(selectedProduct)
+                  }}
+                  favorites={favorites}
+                  onToggleFavorite={handleToggleFavorite}
+                  onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+                  isInConversation={conversationSelection.isConversationSelected}
+                />
+              ))}
+            </div>
+          )
+        },
       }),
-    [handleConversationProductCtaClick]
+    [
+      conversationSelection.isConversationSelected,
+      conversationSelection.toggleConversationContextItem,
+      favorites,
+      handleAddToCartAndOpenCart,
+      handleOpenProductDrawer,
+      handleToggleFavorite,
+    ]
   )
   
   // Secoes do feed
