@@ -416,10 +416,10 @@ export function ConversationalAI({
                         <div className={cn("flex max-w-full flex-col gap-2", message.role === "user" ? "items-end" : "items-start")}>
                           <div
                             className={cn(
-                              "max-w-[82%] whitespace-pre-wrap break-words text-[15px] leading-[1.45] [overflow-wrap:anywhere]",
+                              "whitespace-pre-wrap break-words text-[15px] leading-[1.45] [overflow-wrap:break-word]",
                               message.role === "user"
-                                ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
-                                : "px-0 py-0.5 text-white/[0.94]"
+                                ? "max-w-[90%] rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
+                                : "max-w-[82%] px-0 py-0.5 text-white/[0.94]"
                             )}
                           >
                             {message.content}
