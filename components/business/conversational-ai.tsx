@@ -418,7 +418,7 @@ export function ConversationalAI({
                             className={cn(
                               "whitespace-pre-wrap text-[15px] leading-[1.45]",
                               message.role === "user"
-                                ? "min-w-0 w-fit max-w-[92%] rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)] [overflow-wrap:break-word]"
+                                ? "inline-block min-w-0 w-max max-w-[92%] rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)] [overflow-wrap:break-word]"
                                 : "max-w-[82%] px-0 py-0.5 text-white/[0.94]"
                             )}
                           >
