@@ -179,6 +179,7 @@ export function ConversationalAI({
     pointerId: number
     startY: number
     startHeight: number
+    startedCollapsed: boolean
   } | null>(null)
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
 
@@ -563,14 +564,11 @@ export function ConversationalAI({
       return
     }
 
-    if (isConversationCollapsed) {
-      setIsConversationCollapsed(false)
-    }
-
     dragStateRef.current = {
       pointerId: event.pointerId,
       startY: event.clientY,
       startHeight: resolvedSheetHeight || sheetMetrics.compact,
+      startedCollapsed: isConversationCollapsed,
     }
 
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -587,6 +585,12 @@ export function ConversationalAI({
 
     const deltaY = event.clientY - dragState.startY
     const nextHeight = Math.min(sheetMetrics.expanded, Math.max(0, dragState.startHeight - deltaY))
+
+    if (dragState.startedCollapsed && nextHeight > dragState.startHeight) {
+      setIsConversationCollapsed(false)
+      dragState.startedCollapsed = false
+    }
+
     setDragHeight(nextHeight)
   }
 
@@ -603,6 +607,11 @@ export function ConversationalAI({
 
     const currentHeight = dragHeight ?? dragState.startHeight
     dragStateRef.current = null
+
+    if (dragState.startedCollapsed && currentHeight <= dragState.startHeight) {
+      setDragHeight(null)
+      return
+    }
 
     if (currentHeight < sheetMetrics.closeThreshold) {
       commitSheetClose()
