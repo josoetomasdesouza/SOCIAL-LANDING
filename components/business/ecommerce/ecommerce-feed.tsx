@@ -884,7 +884,7 @@ export function EcommerceFeed() {
       
       {/* Barra fixa do carrinho */}
       {shouldShowCartBar && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-40">
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-[60]">
           <div className="max-w-lg mx-auto">
             <Button className="w-full h-12" onClick={() => setCartDrawerOpen(true)}>
               <ShoppingBag className="w-5 h-5 mr-2" />
