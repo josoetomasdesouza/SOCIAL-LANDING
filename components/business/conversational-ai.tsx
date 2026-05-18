@@ -12,7 +12,7 @@ import type {
 } from "@/lib/mock-data/conversational-search"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
-const COMPOSER_MASK_TOP_OFFSET_PX = 48
+const COMPOSER_MASK_TOP_OFFSET_PX = 8
 
 export type ConversationContextItem = ConversationContextPayload
 
