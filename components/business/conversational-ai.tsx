@@ -326,12 +326,13 @@ export function ConversationalAI({
   }
 
   const conversationPanelPatternStyle = {
-    backgroundImage: `radial-gradient(circle at top, rgba(255,255,255,0.03), rgba(255,255,255,0) 48%), linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0)), ${CONVERSATION_DOODLE_PATTERN}`,
-    backgroundPosition: "center top, center",
-    backgroundRepeat: "no-repeat, no-repeat, repeat",
-    backgroundSize: "100% 100%, 100% 100%, 180px 180px",
-    opacity: 0.34,
+    backgroundImage: CONVERSATION_DOODLE_PATTERN,
+    backgroundPosition: "center",
+    backgroundRepeat: "repeat",
+    backgroundSize: "180px 180px",
+    opacity: 0.12,
   } as const
+  const composerSurfaceStyle = { backgroundColor: COMPOSER_SURFACE_COLOR } as const
 
   return (
     <>
@@ -352,10 +353,10 @@ export function ConversationalAI({
         <section
           data-conversation-composer="true"
           className="pointer-events-auto overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px]"
-          style={{ backgroundColor: COMPOSER_SURFACE_COLOR }}
+          style={composerSurfaceStyle}
         >
           {hasConversation && (
-            <div className="border-b border-white/[0.07]">
+            <div className="border-b border-white/[0.07]" style={composerSurfaceStyle}>
               <div className="px-4 pt-3 pb-2">
                 <div className="relative flex items-center justify-center">
                   <div className="h-1 w-11 rounded-full bg-white/12" />
@@ -380,13 +381,9 @@ export function ConversationalAI({
                 </div>
               </div>
               {showExpandedConversation ? (
-                <div className="relative overflow-hidden border-t border-white/[0.04]">
-                  <div className="relative max-h-[34vh] overflow-y-auto" style={{ backgroundColor: COMPOSER_SURFACE_COLOR }}>
+                <div className="relative overflow-hidden border-t border-white/[0.04]" style={composerSurfaceStyle}>
+                  <div className="relative max-h-[34vh] overflow-y-auto" style={composerSurfaceStyle}>
                     <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={conversationPanelPatternStyle} />
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(7,16,24,0.18)] via-[rgba(7,16,24,0.06)] to-transparent"
-                    />
                     <div className="relative z-10 px-4 py-4">
                     {messages.map((message, index) => {
                     const previousMessage = messages[index - 1]
@@ -470,7 +467,7 @@ export function ConversationalAI({
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex items-center gap-3 px-3 py-2.5">
+          <form onSubmit={handleSubmit} className="flex items-center gap-3 px-3 py-2.5" style={composerSurfaceStyle}>
             <button
               type="button"
               disabled
