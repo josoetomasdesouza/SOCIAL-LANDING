@@ -159,11 +159,25 @@ export function ConversationalAI({
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
   const hasEngagedConversation = hasConversation && isConversationSessionActive
   const pendingContextIdSet = useMemo(() => new Set(pendingContextIds), [pendingContextIds])
+  const immediatePendingContextIdSet = useMemo(() => {
+    const previousActiveContextIds = new Set(activeContextIdsRef.current)
+
+    return new Set(
+      contextItems
+        .filter((item) => !previousActiveContextIds.has(item.id))
+        .map((item) => item.id)
+    )
+  }, [contextItems])
   const contextRowItems = useMemo(
-    () => contextItems.filter((item) => pendingContextIdSet.has(item.id)),
-    [contextItems, pendingContextIdSet]
+    () =>
+      contextItems.filter(
+        (item) => pendingContextIdSet.has(item.id) || immediatePendingContextIdSet.has(item.id)
+      ),
+    [contextItems, immediatePendingContextIdSet, pendingContextIdSet]
   )
-  const showContextRow = contextRowItems.length > 0 && !hasEngagedConversation
+  const showContextRow =
+    contextRowItems.length > 0 &&
+    (!hasEngagedConversation || (isConversationCollapsed && immediatePendingContextIdSet.size > 0))
   const shouldShowConversationBody = hasEngagedConversation && !isConversationCollapsed
   const shouldRenderConversationBody = hasEngagedConversation
   const shouldShowTopArea = hasEngagedConversation || showContextRow
