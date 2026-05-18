@@ -54,13 +54,14 @@ export function ActionDrawer({
     ? `translate(-50%, ${isOpen ? "0" : "100%"})`
     : `translateY(${isOpen ? "0" : "100%"})`
   const innerWidthClasses = "w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
-  const reservedBottomSpace = reserveComposerSpace ? 156 : 0
+  const reservedBottomSpace = reserveComposerSpace ? 88 : 0
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-50 transition-opacity"
+        className="fixed inset-x-0 top-0 bg-black/50 z-50 transition-opacity"
+        style={{ bottom: reservedBottomSpace }}
         onClick={onClose}
       />
 

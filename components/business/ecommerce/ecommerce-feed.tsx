@@ -430,6 +430,7 @@ function ProductDetailDrawer({
   onToggleFavorite,
   onToggleConversationContext,
   isInConversation,
+  reserveComposerSpace = false,
 }: { 
   product: Product | null
   isOpen: boolean
@@ -439,6 +440,7 @@ function ProductDetailDrawer({
   onToggleFavorite: () => void
   onToggleConversationContext?: (item: ConversationContextItem) => void
   isInConversation?: (id: string) => boolean
+  reserveComposerSpace?: boolean
 }) {
   if (!product) return null
   
@@ -448,7 +450,7 @@ function ProductDetailDrawer({
       onClose={onClose}
       title={product.name}
       size="lg"
-      reserveComposerSpace
+      reserveComposerSpace={reserveComposerSpace}
     >
       <EcommerceProductDetailPanel
         product={product}
@@ -899,6 +901,7 @@ export function EcommerceFeed() {
         onToggleFavorite={() => selectedProduct && handleToggleFavorite(selectedProduct.id)}
         onToggleConversationContext={conversationSelection.toggleConversationContextItem}
         isInConversation={conversationSelection.isConversationSelected}
+        reserveComposerSpace={shouldShowCartBar}
       />
       
       <CartDrawerComponent
