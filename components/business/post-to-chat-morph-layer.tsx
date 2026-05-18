@@ -1,18 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { X } from "lucide-react"
 import { useEffect, useRef } from "react"
-import { cn } from "@/lib/utils"
-import {
-  conversationContextChipMediaClassName,
-  conversationContextChipRemoveButtonClassName,
-  conversationContextChipRemovablePaddingClassName,
-  conversationContextChipShellClassName,
-  conversationContextChipSubtitleClassName,
-  conversationContextChipTextClassName,
-  conversationContextChipTitleClassName,
-} from "@/components/business/conversation-context-chip-styles"
+import { ConversationContextChipVisual } from "@/components/business/conversation-context-chip-visual"
 import { getConversationContextChipRect } from "@/components/business/conversation-context-chip-dom"
 
 export interface PostToChatMorphRect {
@@ -102,15 +91,18 @@ export function PostToChatMorphLayer({
       const currentFromRect = fromRectRef.current
       const currentToRect = getConversationContextChipRect(preview.id) ?? toRectRef.current
       const easedProgress = easeOutCubic(rawProgress)
-      const translateX = lerp(0, currentToRect.left - currentFromRect.left, easedProgress)
-      const translateY = lerp(0, currentToRect.top - currentFromRect.top, easedProgress)
-      const scaleX = lerp(1, currentToRect.width / currentFromRect.width, easedProgress)
-      const scaleY = lerp(1, currentToRect.height / currentFromRect.height, easedProgress)
-      const borderRadius = lerp(currentFromRect.borderRadius, currentToRect.borderRadius, easedProgress)
+      const translateX = lerp(currentFromRect.left - currentToRect.left, 0, easedProgress)
+      const translateY = lerp(currentFromRect.top - currentToRect.top, 0, easedProgress)
+      const scaleX = lerp(currentFromRect.width / currentToRect.width, 1, easedProgress)
+      const scaleY = lerp(currentFromRect.height / currentToRect.height, 1, easedProgress)
       const opacity = lerp(0.9, 1, clamp(rawProgress * 1.35, 0, 1))
 
+      node.style.left = `${currentToRect.left}px`
+      node.style.top = `${currentToRect.top}px`
+      node.style.width = `${currentToRect.width}px`
+      node.style.height = `${currentToRect.height}px`
+      node.style.borderRadius = `${currentToRect.borderRadius}px`
       node.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scaleX}, ${scaleY})`
-      node.style.borderRadius = `${borderRadius}px`
       node.style.opacity = String(opacity)
     }
 
@@ -151,44 +143,22 @@ export function PostToChatMorphLayer({
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[65] overflow-hidden">
-      <div
+      <ConversationContextChipVisual
         ref={nodeRef}
-        className={cn(
-          conversationContextChipShellClassName,
-          conversationContextChipRemovablePaddingClassName,
-          "absolute left-0 top-0 origin-top-left overflow-hidden will-change-transform"
-        )}
+        item={preview}
+        removeMode="decorative"
+        className="absolute left-0 top-0 origin-top-left overflow-hidden will-change-transform"
         style={{
-          left: fromRect.left,
-          top: fromRect.top,
-          width: fromRect.width,
-          height: fromRect.height,
-          borderRadius: fromRect.borderRadius,
+          left: toRect.left,
+          top: toRect.top,
+          width: toRect.width,
+          height: toRect.height,
+          borderRadius: toRect.borderRadius,
           backfaceVisibility: "hidden",
+          transform: `translate3d(${fromRect.left - toRect.left}px, ${fromRect.top - toRect.top}px, 0) scale(${fromRect.width / toRect.width}, ${fromRect.height / toRect.height})`,
+          opacity: 0.9,
         }}
-      >
-        <div className={conversationContextChipMediaClassName}>
-            <img
-              alt=""
-              src={preview.image}
-              decoding="async"
-              draggable={false}
-              loading="eager"
-              className="h-full w-full select-none object-cover"
-            />
-          </div>
-          <div className={conversationContextChipTextClassName}>
-            {preview.subtitle ? (
-              <p className={conversationContextChipSubtitleClassName}>
-                {preview.subtitle}
-              </p>
-            ) : null}
-            <p className={conversationContextChipTitleClassName}>{preview.title}</p>
-          </div>
-          <div aria-hidden="true" className={conversationContextChipRemoveButtonClassName}>
-            <X className="h-3.5 w-3.5" />
-          </div>
-        </div>
+      />
     </div>
   )
 }

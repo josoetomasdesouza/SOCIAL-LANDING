@@ -5,15 +5,7 @@ import Image from "next/image"
 import { ChevronDown, ChevronUp, Loader2, Send, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ConversationContextPayload, ConversationMessage } from "@/lib/business-types"
-import {
-  conversationContextChipMediaClassName,
-  conversationContextChipRemoveButtonClassName,
-  conversationContextChipRemovablePaddingClassName,
-  conversationContextChipShellClassName,
-  conversationContextChipSubtitleClassName,
-  conversationContextChipTextClassName,
-  conversationContextChipTitleClassName,
-} from "@/components/business/conversation-context-chip-styles"
+import { ConversationContextChipVisual } from "@/components/business/conversation-context-chip-visual"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlock,
@@ -319,42 +311,15 @@ export function ConversationalAI({
     const isHidden = hiddenContextIdSet.has(item.id)
 
     return (
-    <div
-      key={item.id}
-      data-conversation-context-chip={item.id}
-      aria-hidden={isHidden || undefined}
-      className={cn(
-        conversationContextChipShellClassName,
-        conversationContextChipRemovablePaddingClassName,
-        isHidden && "pointer-events-none opacity-0"
-      )}
-    >
-      <div className={conversationContextChipMediaClassName}>
-        <Image src={item.image} alt={item.title} fill className="object-cover" />
-      </div>
-
-      <div className={conversationContextChipTextClassName}>
-        {item.subtitle ? (
-          <p className={conversationContextChipSubtitleClassName}>
-            {item.subtitle}
-          </p>
-        ) : null}
-        <p className={conversationContextChipTitleClassName}>{item.title}</p>
-      </div>
-
-      {onRemoveContext ? (
-        <button
-          type="button"
-          onClick={() => handleRemoveContextItem(item.id)}
-          disabled={isHidden}
-          className={conversationContextChipRemoveButtonClassName}
-          aria-label={`Remover ${item.title}`}
-          tabIndex={isHidden ? -1 : undefined}
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
-      ) : null}
-    </div>
+      <ConversationContextChipVisual
+        key={item.id}
+        item={item}
+        hidden={isHidden}
+        dataConversationContextChip={item.id}
+        removeMode={onRemoveContext ? "interactive" : "none"}
+        onRemove={onRemoveContext ? () => handleRemoveContextItem(item.id) : undefined}
+        removeAriaLabel={`Remover ${item.title}`}
+      />
     )
   }
 
