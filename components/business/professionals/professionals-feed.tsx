@@ -42,6 +42,7 @@ function ServicesModule({
         <ContextSelectable
           key={service.id}
           as="div"
+          dataMorphSourceId={contextItem.id}
           onClick={() => onSelectService(service)}
           onLongPress={() => onToggleConversationContext?.(contextItem)}
           selected={isInConversation?.(contextItem.id) ?? false}
@@ -97,6 +98,7 @@ function AreasModule({
           <ContextSelectable
             key={area.id}
             as="div"
+            dataMorphSourceId={contextItem.id}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
@@ -220,7 +222,11 @@ export function ProfessionalsFeed() {
       icon: <Briefcase className="w-5 h-5 text-accent" />,
       type: "primary-action",
       customContent: (
-        <ServicesModule onSelectService={(s) => { setSelectedService(s); setServiceDrawerOpen(true) }} />
+        <ServicesModule
+          onSelectService={(s) => { setSelectedService(s); setServiceDrawerOpen(true) }}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
       )
     },
     {
@@ -228,7 +234,12 @@ export function ProfessionalsFeed() {
       title: "Areas de Atuacao",
       icon: <FileText className="w-5 h-5 text-accent" />,
       type: "specific",
-      customContent: <AreasModule />
+      customContent: (
+        <AreasModule
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
+      )
     },
     {
       id: "videos",

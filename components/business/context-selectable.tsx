@@ -4,6 +4,43 @@ import { useRef, useState, type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 const LONG_PRESS_MS = 420
+const MORPH_SOURCE_MEMORY_MS = 1800
+
+interface RememberedMorphSource {
+  id: string
+  element: HTMLElement
+  timestamp: number
+}
+
+let rememberedMorphSource: RememberedMorphSource | null = null
+
+function rememberMorphSourceElement(sourceId: string | undefined, element: HTMLElement) {
+  if (!sourceId) return
+
+  rememberedMorphSource = {
+    id: sourceId,
+    element,
+    timestamp: Date.now(),
+  }
+}
+
+export function getRememberedMorphSourceElement(sourceId: string) {
+  if (!rememberedMorphSource || rememberedMorphSource.id !== sourceId) {
+    return null
+  }
+
+  if (Date.now() - rememberedMorphSource.timestamp > MORPH_SOURCE_MEMORY_MS) {
+    rememberedMorphSource = null
+    return null
+  }
+
+  if (!rememberedMorphSource.element.isConnected) {
+    rememberedMorphSource = null
+    return null
+  }
+
+  return rememberedMorphSource.element
+}
 
 function isInteractiveTarget(target: EventTarget | null) {
   if (!(target instanceof Element)) return false
@@ -53,8 +90,11 @@ export function ContextSelectable({
 
     if (ignoreInteractionRef.current || !onLongPress) return
 
+    const sourceElement = event.currentTarget
+
     timerRef.current = window.setTimeout(() => {
       longPressTriggeredRef.current = true
+      rememberMorphSourceElement(dataMorphSourceId, sourceElement)
       onLongPress()
 
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
@@ -137,7 +177,7 @@ export function ContextSelectable({
           }
         : {})}
       className={cn(
-        "relative isolate will-change-transform transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] after:opacity-0 after:transition-[opacity,background-color] after:duration-200 after:ease-[cubic-bezier(0.22,1,0.36,1)]",
+        "relative isolate select-none [-webkit-touch-callout:none] [-webkit-user-select:none] [user-select:none] will-change-transform transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] after:opacity-0 after:transition-[opacity,background-color] after:duration-200 after:ease-[cubic-bezier(0.22,1,0.36,1)]",
         isPressing && selectionStyles[selectionStyle].pressing,
         selected && selectionStyles[selectionStyle].selected,
         className

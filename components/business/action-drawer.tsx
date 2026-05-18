@@ -13,6 +13,9 @@ interface ActionDrawerProps {
   footer?: React.ReactNode
   size?: "sm" | "md" | "lg" | "full"
   matchFeedWidth?: boolean
+  reserveComposerSpace?: boolean
+  visibleBottomInsetPx?: number
+  fillVisibleBottomInset?: boolean
 }
 
 export function ActionDrawer({
@@ -23,7 +26,9 @@ export function ActionDrawer({
   children,
   footer,
   size = "md",
-  matchFeedWidth = false
+  matchFeedWidth = false,
+  visibleBottomInsetPx = 0,
+  fillVisibleBottomInset = false,
 }: ActionDrawerProps) {
   // Bloqueia scroll do body quando aberto
   useEffect(() => {
@@ -39,11 +44,11 @@ export function ActionDrawer({
 
   if (!isOpen) return null
 
-  const sizeClasses = {
-    sm: "max-h-[40vh]",
-    md: "max-h-[60vh]",
-    lg: "max-h-[80vh]",
-    full: "max-h-[95vh]"
+  const sizeMaxHeights = {
+    sm: "40vh",
+    md: "60vh",
+    lg: "80vh",
+    full: "95vh",
   }
   const widthClasses = matchFeedWidth
     ? "left-1/2 right-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
@@ -52,19 +57,30 @@ export function ActionDrawer({
     ? `translate(-50%, ${isOpen ? "0" : "100%"})`
     : `translateY(${isOpen ? "0" : "100%"})`
   const innerWidthClasses = "w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
+  const reservedBottomSpace = Math.max(0, visibleBottomInsetPx)
+  const shouldBlendBottomInset = fillVisibleBottomInset && reservedBottomSpace > 0
+  const drawerBottom = shouldBlendBottomInset ? 0 : reservedBottomSpace
+  const drawerMaxHeight = shouldBlendBottomInset
+    ? `calc(${sizeMaxHeights[size]} + ${reservedBottomSpace}px)`
+    : sizeMaxHeights[size]
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-50 transition-opacity"
+        className="fixed inset-x-0 top-0 bg-black/50 z-50 transition-opacity"
+        style={{ bottom: drawerBottom }}
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
-        className={`fixed ${widthClasses} bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
-        style={{ transform: drawerTransform }}
+        className={`fixed ${widthClasses} bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out`}
+        style={{
+          transform: drawerTransform,
+          bottom: drawerBottom,
+          maxHeight: drawerMaxHeight,
+        }}
       >
         {/* Handle */}
         <div className="flex flex-shrink-0 justify-center pt-3 pb-2">
@@ -106,6 +122,14 @@ export function ActionDrawer({
             </div>
           </div>
         )}
+
+        {shouldBlendBottomInset ? (
+          <div
+            aria-hidden="true"
+            className="shrink-0 bg-card"
+            style={{ height: reservedBottomSpace }}
+          />
+        ) : null}
       </div>
     </>
   )

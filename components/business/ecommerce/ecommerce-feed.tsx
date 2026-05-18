@@ -1,8 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useId, useMemo, useState } from "react"
 import Image from "next/image"
-import { ShoppingBag, Heart, Star, Truck, ChevronRight, Plus, Minus, Check, X, Play, Newspaper } from "lucide-react"
+import { ShoppingBag, Heart, Star, Truck, ChevronLeft, ChevronRight, Plus, Minus, Check, X, Play, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
@@ -12,10 +12,17 @@ import { ContextSelectable } from "../context-selectable"
 import { createConversationalSearchVisualBlockRenderer } from "../conversational-search-results"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
+import {
+  EcommerceProductFeedCard,
+  toEcommerceProductConversationContextItem,
+} from "./ecommerce-product-feed-card"
+import { EcommerceConversationProductsBlock } from "./ecommerce-conversation-products-block"
+import { EcommerceProductDetailPanel } from "./ecommerce-product-detail-panel"
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product, VariantOption } from "@/lib/business-types"
+import { cn } from "@/lib/utils"
 
 type SelectedVariantsById = Record<string, string>
 type SelectedVariant = {
@@ -90,61 +97,18 @@ function ProductsModule({
     <div className="space-y-6">
       {/* Ofertas em destaque */}
       <div className="grid grid-cols-2 gap-3">
-        {featuredProducts.map((product) => {
-          const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
-          const contextItem = {
-            id: `ecommerce-product-${product.id}`,
-            title: product.name,
-            image: product.images[0],
-            subtitle: "Produto",
-          }
-          return (
-            <ContextSelectable
-              key={product.id}
-              as="div"
-              onClick={() => onSelectProduct(product)}
-              onLongPress={() => onToggleConversationContext?.(contextItem)}
-              selected={isInConversation?.(contextItem.id) ?? false}
-              className="relative group"
-            >
-              <div className="w-full text-left">
-                <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
-                  <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                  {discount > 0 && (
-                    <Badge className="absolute top-2 left-2 bg-red-500 text-white border-0">-{discount}%</Badge>
-                  )}
-                </div>
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-foreground line-clamp-2">{product.name}</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs text-muted-foreground">{product.rating} ({product.reviewCount})</span>
-                  </div>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="font-bold text-accent">R$ {product.price.toFixed(2).replace(".", ",")}</span>
-                    {product.originalPrice && (
-                      <span className="text-xs text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => onToggleFavorite(product.id)}
-                className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-              >
-                <Heart className={`w-4 h-4 ${favorites.has(product.id) ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
-              </button>
-              <Button
-                size="sm"
-                className="w-full mt-2 h-9"
-                onClick={() => onAddToCart(product)}
-              >
-                <ShoppingBag className="w-4 h-4 mr-1" />
-                Adicionar
-              </Button>
-            </ContextSelectable>
-          )
-        })}
+        {featuredProducts.map((product) => (
+          <EcommerceProductFeedCard
+            key={product.id}
+            product={product}
+            onSelectProduct={onSelectProduct}
+            onAddToCart={onAddToCart}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite}
+            onToggleConversationContext={onToggleConversationContext}
+            isInConversation={isInConversation}
+          />
+        ))}
       </div>
       
       {/* Frete gratis */}
@@ -185,6 +149,7 @@ function CategoriesModule({
           <ContextSelectable
             key={category.id}
             as="div"
+            dataMorphSourceId={contextItem.id}
             onClick={() => onSelectCategory(category.id)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
@@ -203,71 +168,98 @@ function CategoriesModule({
 // ========================================
 // DRAWER: DETALHES DO PRODUTO
 // ========================================
-function ProductDetailDrawer({ 
-  product, 
-  isOpen, 
-  onClose,
-  onAddToCart,
-  isFavorite,
-  onToggleFavorite,
-  onToggleConversationContext,
-  isInConversation,
-}: { 
-  product: Product | null
-  isOpen: boolean
-  onClose: () => void
+interface ProductDetailSurfaceProps {
+  product: Product
   onAddToCart: (product: Product, quantity: number, selectedVariants: SelectedVariant[]) => void
   isFavorite: boolean
   onToggleFavorite: () => void
   onToggleConversationContext?: (item: ConversationContextItem) => void
   isInConversation?: (id: string) => boolean
-}) {
+  renderContext?: "drawer" | "composer"
+  onBack?: () => void
+  onAfterAddToCart?: () => void
+}
+
+function ProductDetailSurface({
+  product,
+  onAddToCart,
+  isFavorite,
+  onToggleFavorite,
+  onToggleConversationContext,
+  isInConversation,
+  renderContext = "drawer",
+  onBack,
+  onAfterAddToCart,
+}: ProductDetailSurfaceProps) {
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [selectedVariants, setSelectedVariants] = useState<SelectedVariantsById>({})
 
   useEffect(() => {
-    if (isOpen) {
-      setSelectedImage(0)
-      setQuantity(1)
-      setSelectedVariants({})
-    }
-  }, [isOpen, product?.id])
-  
-  if (!product) return null
-  
+    setSelectedImage(0)
+    setQuantity(1)
+    setSelectedVariants({})
+  }, [product.id, renderContext])
+
   const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
-  const reviews = productReviews.filter(r => r.productId === product.id)
+  const reviews = productReviews.filter((review) => review.productId === product.id)
   const resolvedVariants = getSelectedVariants(product, selectedVariants)
   const missingRequiredVariant = product.variants?.some((variant) => !selectedVariants[variant.id]) || false
   const unitPrice = product.price + getVariantPriceModifier(resolvedVariants)
   const totalPrice = unitPrice * quantity
-  const productContextItem = {
-    id: `ecommerce-product-${product.id}`,
-    title: product.name,
-    image: product.images[0],
-    subtitle: "Produto",
-  }
-  
+  const productContextItem = toEcommerceProductConversationContextItem(product)
+  const isComposer = renderContext === "composer"
+  const shellClassName = isComposer
+    ? "w-full max-w-[340px] rounded-[26px] border border-white/[0.08] bg-[rgba(49,55,64,0.88)] p-4 text-white shadow-[0_26px_58px_-34px_rgba(0,0,0,0.62)]"
+    : "space-y-6"
+  const contentClassName = isComposer ? "space-y-6" : ""
+  const secondaryCardClassName = isComposer ? "bg-white/[0.06] border-white/[0.08] text-white" : "bg-secondary/50"
+  const mutedTextClassName = isComposer ? "text-slate-300" : "text-muted-foreground"
+  const subtleTextClassName = isComposer ? "text-slate-400" : "text-muted-foreground"
+  const optionBaseClassName = isComposer
+    ? "border-white/[0.1] bg-white/[0.03] text-white hover:border-white/30"
+    : "border-border hover:border-accent/50"
+  const optionSelectedClassName = isComposer
+    ? "border-white/70 bg-white/[0.12]"
+    : "border-accent bg-accent/10"
+  const ghostButtonClassName = isComposer
+    ? "border-white/[0.12] bg-white/[0.06] text-white hover:bg-white/[0.1]"
+    : undefined
+  const primaryButtonClassName = isComposer
+    ? "w-full h-12 bg-white/[0.96] text-[rgba(7,16,24,0.94)] hover:bg-white/90"
+    : "w-full h-12"
+
   return (
-    <ActionDrawer
-      isOpen={isOpen}
-      onClose={onClose}
-      title={product.name}
-      size="lg"
-      reserveComposerSpace
-    >
-      <div className="space-y-6">
-        {/* Imagens */}
+    <div className={shellClassName}>
+      <div className={contentClassName}>
+        {isComposer ? (
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.06] text-white transition-colors hover:bg-white/[0.1]"
+              aria-label="Voltar para os resultados"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">Modo composer</p>
+              <p className="text-sm font-medium text-white/92">Explorando produto dentro da conversa</p>
+            </div>
+          </div>
+        ) : null}
+
         <div className="space-y-3">
-          <div className="relative aspect-square rounded-xl overflow-hidden bg-secondary">
+          <div className="relative aspect-square overflow-hidden rounded-xl bg-secondary">
             <Image src={product.images[selectedImage]} alt={product.name} fill className="object-cover" />
             {discount > 0 && (
-              <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0 text-sm">-{discount}%</Badge>
+              <Badge className="absolute top-3 left-3 border-0 bg-red-500 text-sm text-white">-{discount}%</Badge>
             )}
             <button
+              type="button"
               onClick={onToggleFavorite}
-              className="absolute top-3 right-3 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+              className="absolute top-3 right-3 rounded-full bg-white/85 p-2 transition-colors hover:bg-white"
+              aria-label={`Favoritar ${product.name}`}
             >
               <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
             </button>
@@ -277,8 +269,12 @@ function ProductDetailDrawer({
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => setSelectedImage(idx)}
-                  className={`relative w-16 h-16 rounded-lg overflow-hidden ring-2 transition-colors ${selectedImage === idx ? "ring-accent" : "ring-transparent"}`}
+                  className={cn(
+                    "relative h-16 w-16 overflow-hidden rounded-lg ring-2 transition-colors",
+                    selectedImage === idx ? "ring-accent" : "ring-transparent"
+                  )}
                 >
                   <Image src={img} alt="" fill className="object-cover" />
                 </button>
@@ -286,40 +282,42 @@ function ProductDetailDrawer({
             </div>
           )}
         </div>
-        
-        {/* Info */}
+
         <ContextSelectable
           as="div"
+          dataMorphSourceId={productContextItem.id}
           onLongPress={() => onToggleConversationContext?.(productContextItem)}
           selected={isInConversation?.(productContextItem.id) ?? false}
         >
-          <div className="flex items-center gap-2 mb-2">
+          <div className="mb-2 flex items-center gap-2">
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
               <span className="font-medium">{product.rating}</span>
             </div>
-            <span className="text-sm text-muted-foreground">({product.reviewCount} avaliacoes)</span>
+            <span className={cn("text-sm", mutedTextClassName)}>({product.reviewCount} avaliacoes)</span>
           </div>
           <h2 className="text-xl font-bold">{product.name}</h2>
-          <p className="text-muted-foreground mt-2">{product.fullDescription || product.description}</p>
+          <p className={cn("mt-2", mutedTextClassName)}>{product.fullDescription || product.description}</p>
         </ContextSelectable>
-        
-        {/* Preco */}
+
         <div className="flex items-baseline gap-3">
           <span className="text-3xl font-bold text-accent">R$ {unitPrice.toFixed(2).replace(".", ",")}</span>
           {product.originalPrice && (
-            <span className="text-lg text-muted-foreground line-through">R$ {product.originalPrice.toFixed(2).replace(".", ",")}</span>
+            <span className={cn("text-lg line-through", subtleTextClassName)}>
+              R$ {product.originalPrice.toFixed(2).replace(".", ",")}
+            </span>
           )}
         </div>
-        
-        {/* Variacoes */}
+
         {product.variants && product.variants.length > 0 && (
           <div className="space-y-4">
             {product.variants.map((variant) => (
               <div key={variant.id}>
-                <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="mb-2 flex items-center justify-between gap-3">
                   <h4 className="font-medium">{variant.name}</h4>
-                  <Badge>Obrigatorio</Badge>
+                  <Badge className={cn(isComposer && "border-white/[0.12] bg-white/[0.08] text-white hover:bg-white/[0.08]")}>
+                    Obrigatorio
+                  </Badge>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {variant.options.map((option) => {
@@ -328,19 +326,22 @@ function ProductDetailDrawer({
                     return (
                       <button
                         key={option.id}
+                        type="button"
                         disabled={!option.available}
                         onClick={() => setSelectedVariants((prev) => ({ ...prev, [variant.id]: option.id }))}
-                        className={`p-3 rounded-xl border text-left transition-colors ${
-                          isSelected ? "border-accent bg-accent/10" : "border-border hover:border-accent/50"
-                        } ${!option.available ? "opacity-50 cursor-not-allowed" : ""}`}
+                        className={cn(
+                          "rounded-xl border p-3 text-left transition-colors",
+                          isSelected ? optionSelectedClassName : optionBaseClassName,
+                          !option.available && "cursor-not-allowed opacity-50"
+                        )}
                       >
-                        <p className="font-medium text-sm">{option.value}</p>
+                        <p className="text-sm font-medium">{option.value}</p>
                         {option.priceModifier ? (
-                          <p className="text-xs text-muted-foreground">
+                          <p className={cn("text-xs", subtleTextClassName)}>
                             {option.priceModifier > 0 ? "+" : "-"} R$ {Math.abs(option.priceModifier).toFixed(2).replace(".", ",")}
                           </p>
                         ) : (
-                          <p className="text-xs text-muted-foreground">Preco base</p>
+                          <p className={cn("text-xs", subtleTextClassName)}>Preco base</p>
                         )}
                       </button>
                     )
@@ -351,31 +352,40 @@ function ProductDetailDrawer({
           </div>
         )}
 
-        {/* Quantidade */}
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium">Quantidade:</span>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
+            <Button
+              variant="outline"
+              size="icon"
+              className={cn("h-8 w-8", ghostButtonClassName)}
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+            >
               <Minus className="w-4 h-4" />
             </Button>
             <span className="w-8 text-center font-medium">{quantity}</span>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(quantity + 1)}>
+            <Button
+              variant="outline"
+              size="icon"
+              className={cn("h-8 w-8", ghostButtonClassName)}
+              onClick={() => setQuantity(quantity + 1)}
+            >
               <Plus className="w-4 h-4" />
             </Button>
           </div>
         </div>
-        
-        {/* Avaliacoes resumidas */}
+
         {reviews.length > 0 && (
           <ContextSelectable
             as="div"
+            dataMorphSourceId={productContextItem.id}
             onLongPress={() => onToggleConversationContext?.(productContextItem)}
             selected={isInConversation?.(productContextItem.id) ?? false}
-            className="bg-secondary/50 rounded-xl p-4"
+            className={cn("rounded-xl p-4", secondaryCardClassName)}
           >
-            <h4 className="font-medium mb-3">Avaliacoes recentes</h4>
+            <h4 className="mb-3 font-medium">Avaliacoes recentes</h4>
             {reviews.slice(0, 2).map((review) => (
-              <div key={review.id} className="flex items-start gap-3 mb-3 last:mb-0">
+              <div key={review.id} className="mb-3 flex items-start gap-3 last:mb-0">
                 <div className="relative w-8 h-8 rounded-full overflow-hidden">
                   <Image src={review.userAvatar} alt={review.userName} fill className="object-cover" />
                 </div>
@@ -388,27 +398,169 @@ function ProductDetailDrawer({
                       ))}
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{review.comment}</p>
+                  <p className={cn("line-clamp-2 text-sm", mutedTextClassName)}>{review.comment}</p>
                 </div>
               </div>
             ))}
           </ContextSelectable>
         )}
-        
-        {/* Botao de compra */}
+
         <Button
-          className="w-full h-12"
+          className={primaryButtonClassName}
           disabled={missingRequiredVariant}
           onClick={() => {
             onAddToCart(product, quantity, resolvedVariants)
-            onClose()
+            onAfterAddToCart?.()
           }}
         >
           <ShoppingBag className="w-5 h-5 mr-2" />
           {missingRequiredVariant ? "Escolha as opcoes obrigatorias" : `Adicionar R$ ${totalPrice.toFixed(2).replace(".", ",")}`}
         </Button>
       </div>
+    </div>
+  )
+}
+
+function ProductDetailDrawer({ 
+  product, 
+  isOpen, 
+  onClose,
+  onAddToCart,
+  isFavorite,
+  onToggleFavorite,
+  onToggleConversationContext,
+  isInConversation,
+  hasVisibleCartBar = false,
+}: { 
+  product: Product | null
+  isOpen: boolean
+  onClose: () => void
+  onAddToCart: (product: Product, quantity: number, selectedVariants: SelectedVariant[]) => void
+  isFavorite: boolean
+  onToggleFavorite: () => void
+  onToggleConversationContext?: (item: ConversationContextItem) => void
+  isInConversation?: (id: string) => boolean
+  hasVisibleCartBar?: boolean
+}) {
+  if (!product) return null
+
+  const composerInsetPx = 104
+  const cartBarInsetPx = hasVisibleCartBar ? 88 : 0
+  
+  return (
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={product.name}
+      size="lg"
+      visibleBottomInsetPx={composerInsetPx + cartBarInsetPx}
+      fillVisibleBottomInset
+    >
+      <EcommerceProductDetailPanel
+        product={product}
+        onAddToCart={onAddToCart}
+        isFavorite={isFavorite}
+        onToggleFavorite={onToggleFavorite}
+        onToggleConversationContext={onToggleConversationContext}
+        isInConversation={isInConversation}
+        onClose={onClose}
+      />
     </ActionDrawer>
+  )
+}
+
+function ConversationProductRecommendationSurface({
+  matchedProducts,
+  favorites,
+  onToggleFavorite,
+  onToggleConversationContext,
+  isInConversation,
+  onAddToCart,
+  onFlowStateChange,
+}: {
+  matchedProducts: Product[]
+  favorites: Set<string>
+  onToggleFavorite: (id: string) => void
+  onToggleConversationContext: (item: ConversationContextItem) => void
+  isInConversation: (id: string) => boolean
+  onAddToCart: (product: Product, quantity: number, selectedVariants: SelectedVariant[]) => void
+  onFlowStateChange?: (instanceId: string, isActive: boolean) => void
+}) {
+  const instanceId = useId()
+  const [activeConversationView, setActiveConversationView] = useState<"recommendation" | "detail">("recommendation")
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+
+  const selectedProduct = useMemo(
+    () => matchedProducts.find((product) => product.id === selectedProductId) ?? null,
+    [matchedProducts, selectedProductId]
+  )
+
+  useEffect(() => {
+    if (activeConversationView === "detail" && !selectedProduct) {
+      setActiveConversationView("recommendation")
+      setSelectedProductId(null)
+    }
+  }, [activeConversationView, selectedProduct])
+
+  useEffect(() => {
+    onFlowStateChange?.(instanceId, activeConversationView !== "recommendation")
+
+    return () => {
+      onFlowStateChange?.(instanceId, false)
+    }
+  }, [activeConversationView, instanceId, onFlowStateChange])
+
+  if (activeConversationView === "detail" && selectedProduct) {
+    return (
+      <ProductDetailSurface
+        product={selectedProduct}
+        renderContext="composer"
+        onBack={() => {
+          setActiveConversationView("recommendation")
+          setSelectedProductId(null)
+        }}
+        onAddToCart={onAddToCart}
+        isFavorite={favorites.has(selectedProduct.id)}
+        onToggleFavorite={() => onToggleFavorite(selectedProduct.id)}
+        onToggleConversationContext={onToggleConversationContext}
+        isInConversation={isInConversation}
+        onAfterAddToCart={() => {
+          setActiveConversationView("recommendation")
+          setSelectedProductId(null)
+        }}
+      />
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        {matchedProducts.map((product) => (
+          <EcommerceProductFeedCard
+            key={product.id}
+            product={product}
+            renderContext="composer"
+            onSelectProduct={() => {
+              setSelectedProductId(product.id)
+              setActiveConversationView("detail")
+            }}
+            onAddToCart={(selectedProduct) => {
+              if (selectedProduct.variants && selectedProduct.variants.length > 0) {
+                setSelectedProductId(selectedProduct.id)
+                setActiveConversationView("detail")
+                return
+              }
+
+              onAddToCart(selectedProduct, 1, [])
+            }}
+            favorites={favorites}
+            onToggleFavorite={onToggleFavorite}
+            onToggleConversationContext={onToggleConversationContext}
+            isInConversation={isInConversation}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -565,19 +717,37 @@ export function EcommerceFeed() {
     setProductDrawerOpen(true)
   }, [])
 
-  const handleConversationProductCtaClick = useCallback((productId: string) => {
-    const product = products.find((candidate) => candidate.id === productId)
-    if (!product) return
-
-    handleOpenProductDrawer(product)
-  }, [handleOpenProductDrawer])
-
   const renderConversationVisualBlock = useMemo(
     () =>
       createConversationalSearchVisualBlockRenderer({
-        onProductCtaClick: handleConversationProductCtaClick,
+        renderProducts: (matchedProducts) => {
+          const resolvedProducts = matchedProducts
+            .map((matchedProduct) => products.find((candidate) => candidate.id === matchedProduct.id))
+            .filter((product): product is Product => Boolean(product))
+
+          if (resolvedProducts.length === 0) {
+            return null
+          }
+
+          return (
+            <EcommerceConversationProductsBlock
+              products={resolvedProducts}
+              favorites={favorites}
+              onToggleFavorite={handleToggleFavorite}
+              onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+              isInConversation={conversationSelection.isConversationSelected}
+              onAddToCart={handleAddToCart}
+            />
+          )
+        },
       }),
-    [handleConversationProductCtaClick]
+    [
+      conversationSelection.isConversationSelected,
+      conversationSelection.toggleConversationContextItem,
+      favorites,
+      handleAddToCart,
+      handleToggleFavorite,
+    ]
   )
   
   // Secoes do feed
@@ -600,6 +770,8 @@ export function EcommerceFeed() {
           }}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
         />
       )
     },
@@ -607,7 +779,13 @@ export function EcommerceFeed() {
       id: "categories",
       title: "Categorias",
       type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+      customContent: (
+        <CategoriesModule
+          onSelectCategory={() => {}}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
+      )
     },
     {
       id: "videos",
@@ -649,13 +827,19 @@ export function EcommerceFeed() {
           : "default"
 
     setComposerMode(nextMode)
-    setComposerOffsetClassName(!productDrawerOpen && cartItemCount > 0 ? "bottom-[88px]" : undefined)
+    setComposerOffsetClassName(undefined)
 
     return () => {
       setComposerMode("default")
       setComposerOffsetClassName(undefined)
     }
-  }, [cartDrawerOpen, cartItemCount, checkoutDrawerOpen, productDrawerOpen, setComposerMode, setComposerOffsetClassName])
+  }, [
+    cartDrawerOpen,
+    checkoutDrawerOpen,
+    productDrawerOpen,
+    setComposerMode,
+    setComposerOffsetClassName,
+  ])
   
   return (
     <ConversationSelectionProvider value={conversationSelection}>
@@ -666,6 +850,8 @@ export function EcommerceFeed() {
         sections={sections}
         conversationResponseResolver={ecommerceMockConversationResolver}
         renderConversationVisualBlock={renderConversationVisualBlock}
+        onHeaderCartClick={() => setCartDrawerOpen(true)}
+        headerCartCount={cartItemCount}
         onStoryClick={(story) => {
           if (story.isMain) {
             // Abre carrinho ou produtos
@@ -677,18 +863,6 @@ export function EcommerceFeed() {
           { label: "Contato", href: "#" },
         ]}
       />
-      
-      {/* Barra fixa do carrinho */}
-      {cartItemCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-40">
-          <div className="max-w-lg mx-auto">
-            <Button className="w-full h-12" onClick={() => setCartDrawerOpen(true)}>
-              <ShoppingBag className="w-5 h-5 mr-2" />
-              Ver carrinho ({cartItemCount} {cartItemCount === 1 ? "item" : "itens"})
-            </Button>
-          </div>
-        </div>
-      )}
       
       {/* Drawers */}
       <ProductDetailDrawer
