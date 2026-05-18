@@ -94,6 +94,7 @@ function MenuModule({
           <ContextSelectable
             as="div"
             key={item.id}
+            dataMorphSourceId={contextItem.id}
             onClick={() => onSelectItem(item)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
@@ -171,6 +172,7 @@ function CategoriesModule({
           <ContextSelectable
             key={cat.id}
             as="div"
+            dataMorphSourceId={contextItem.id}
             onClick={() => onSelectCategory(cat.id)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
@@ -260,6 +262,7 @@ function ItemDetailDrawer({
         
         <ContextSelectable
           as="div"
+          dataMorphSourceId={itemContextItem.id}
           onLongPress={() => onToggleConversationContext?.(itemContextItem)}
           selected={isInConversation?.(itemContextItem.id) ?? false}
         >
@@ -511,6 +514,8 @@ export function RestaurantFeed() {
         <MenuModule 
           onSelectItem={(item) => { setSelectedItem(item); setItemDrawerOpen(true) }}
           onAddToCart={handleAddToCart}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
         />
       )
     },
@@ -518,7 +523,13 @@ export function RestaurantFeed() {
       id: "categories",
       title: "Cardapio",
       type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+      customContent: (
+        <CategoriesModule
+          onSelectCategory={() => {}}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
+      )
     },
     {
       id: "videos",

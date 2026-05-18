@@ -42,6 +42,7 @@ function ProfessionalsModule({
         <ContextSelectable
           key={prof.id}
           as="div"
+          dataMorphSourceId={contextItem.id}
           onClick={() => onSelectProfessional(prof)}
           onLongPress={() => onToggleConversationContext?.(contextItem)}
           selected={isInConversation?.(contextItem.id) ?? false}
@@ -107,6 +108,7 @@ function SpecialtiesModule({
           <ContextSelectable
             key={spec.id}
             as="div"
+            dataMorphSourceId={contextItem.id}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[80px]"
@@ -155,6 +157,9 @@ function ProfessionalDrawer({
       <div className="space-y-6">
         <ContextSelectable
           as="div"
+          dataMorphSourceId={professionalContextItem.id}
+          onLongPress={() => onToggleConversationContext?.(professionalContextItem)}
+          selected={isInConversation?.(professionalContextItem.id) ?? false}
           className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl"
         >
           <div className="relative w-16 h-16 rounded-full overflow-hidden">
@@ -173,6 +178,9 @@ function ProfessionalDrawer({
         {professional.bio && (
           <ContextSelectable
             as="div"
+            dataMorphSourceId={professionalContextItem.id}
+            onLongPress={() => onToggleConversationContext?.(professionalContextItem)}
+            selected={isInConversation?.(professionalContextItem.id) ?? false}
             className="rounded-[28px] px-1 py-1"
           >
             <h4 className="font-medium mb-2">Sobre</h4>
@@ -248,14 +256,23 @@ export function HealthFeed() {
       icon: <Stethoscope className="w-5 h-5 text-accent" />,
       type: "primary-action",
       customContent: (
-        <ProfessionalsModule onSelectProfessional={(p) => { setSelectedProfessional(p); setProfessionalDrawerOpen(true) }} />
+        <ProfessionalsModule
+          onSelectProfessional={(p) => { setSelectedProfessional(p); setProfessionalDrawerOpen(true) }}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
       )
     },
     {
       id: "specialties",
       title: "Especialidades",
       type: "specific",
-      customContent: <SpecialtiesModule />
+      customContent: (
+        <SpecialtiesModule
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
+      )
     },
     {
       id: "videos",

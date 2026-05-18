@@ -43,6 +43,7 @@ function CoursesModule({
           <ContextSelectable
             key={course.id}
             as="div"
+            dataMorphSourceId={contextItem.id}
             onClick={() => onSelectCourse(course)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
@@ -126,6 +127,7 @@ function TracksModule({
           <ContextSelectable
             key={track.id}
             as="div"
+            dataMorphSourceId={contextItem.id}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="p-4 bg-secondary/50 hover:bg-secondary rounded-xl text-left transition-colors"
@@ -190,6 +192,7 @@ function CourseDetailDrawer({
         {/* Instrutor */}
         <ContextSelectable
           as="div"
+          dataMorphSourceId={courseContextItem.id}
           onLongPress={() => onToggleConversationContext?.(courseContextItem)}
           selected={isInConversation?.(courseContextItem.id) ?? false}
           className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl"
@@ -225,6 +228,7 @@ function CourseDetailDrawer({
         {/* Descricao */}
         <ContextSelectable
           as="div"
+          dataMorphSourceId={courseContextItem.id}
           onLongPress={() => onToggleConversationContext?.(courseContextItem)}
           selected={isInConversation?.(courseContextItem.id) ?? false}
         >
@@ -236,6 +240,7 @@ function CourseDetailDrawer({
         {course.features && (
           <ContextSelectable
             as="div"
+            dataMorphSourceId={courseContextItem.id}
             onLongPress={() => onToggleConversationContext?.(courseContextItem)}
             selected={isInConversation?.(courseContextItem.id) ?? false}
           >
@@ -307,14 +312,25 @@ export function CoursesFeed() {
       title: "Cursos em Destaque",
       icon: <GraduationCap className="w-5 h-5 text-accent" />,
       type: "primary-action",
-      customContent: <CoursesModule onSelectCourse={handleSelectCourse} />
+      customContent: (
+        <CoursesModule
+          onSelectCourse={handleSelectCourse}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
+      )
     },
     {
       id: "tracks",
       title: "Trilhas de Aprendizado",
       icon: <BookOpen className="w-5 h-5 text-accent" />,
       type: "specific",
-      customContent: <TracksModule />
+      customContent: (
+        <TracksModule
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
+      )
     },
     {
       id: "videos",
