@@ -23,7 +23,6 @@ const COMPACT_BODY_MIN_PX = 136
 const COMPACT_BODY_MAX_PX = 196
 const CLOSE_THRESHOLD_OFFSET_PX = 72
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
-const CONTEXT_REENTRY_APPEND_DELAY_MS = 420
 
 export type ConversationContextItem = ConversationContextPayload
 
@@ -146,7 +145,6 @@ export function ConversationalAI({
   const [isHistoryHydrated, setIsHistoryHydrated] = useState(false)
   const [isConversationSessionActive, setIsConversationSessionActive] = useState(false)
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
-  const [isContextReentryPending, setIsContextReentryPending] = useState(false)
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
   const [dragHeight, setDragHeight] = useState<number | null>(null)
   const [sheetMetrics, setSheetMetrics] = useState<SheetMetrics>({
@@ -159,7 +157,7 @@ export function ConversationalAI({
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
   const hasEngagedConversation = hasConversation && isConversationSessionActive
-  const showContextRow = contextItems.length > 0 && (!hasEngagedConversation || isContextReentryPending)
+  const showContextRow = contextItems.length > 0 && !hasEngagedConversation
   const shouldShowConversationBody = hasEngagedConversation && !isConversationCollapsed
   const shouldRenderConversationBody = hasEngagedConversation
   const shouldShowTopArea = hasEngagedConversation || showContextRow
@@ -195,7 +193,6 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
-    setIsContextReentryPending(false)
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
     setIsHistoryHydrated(true)
@@ -340,7 +337,6 @@ export function ConversationalAI({
       setManualSnapHeight(null)
       setDragHeight(null)
       setIsConversationCollapsed(false)
-      setIsContextReentryPending(false)
     }
   }, [hasEngagedConversation, showContextRow])
 
@@ -458,27 +454,6 @@ export function ConversationalAI({
   }, [])
 
   useEffect(() => {
-    if (!isContextReentryPending || isConversationCollapsed || !hasEngagedConversation) {
-      return
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      const pendingContextItems = contextItems.filter((item) => pendingContextIdsRef.current.includes(item.id))
-
-      if (pendingContextItems.length > 0) {
-        setMessages((prev) => appendContextEvent(prev, pendingContextItems))
-        clearPendingContextIds(pendingContextItems.map((item) => item.id))
-      }
-
-      setIsContextReentryPending(false)
-    }, CONTEXT_REENTRY_APPEND_DELAY_MS)
-
-    return () => {
-      window.clearTimeout(timeoutId)
-    }
-  }, [appendContextEvent, contextItems, hasEngagedConversation, isContextReentryPending, isConversationCollapsed])
-
-  useEffect(() => {
     const previousActiveContextIds = new Set(activeContextIdsRef.current)
     const nextContextIds = contextItems.map((item) => item.id)
     const removedContextIds = activeContextIdsRef.current.filter((id) => !nextContextIds.includes(id))
@@ -495,7 +470,7 @@ export function ConversationalAI({
 
       if (hasEngagedConversation) {
         if (isConversationCollapsed) {
-          setIsContextReentryPending(true)
+          setIsConversationSessionActive(false)
           setIsConversationCollapsed(false)
         } else {
           setMessages((prev) => appendContextEvent(prev, addedContextItems))
@@ -544,7 +519,6 @@ export function ConversationalAI({
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
     setIsConversationSessionActive(true)
     setIsConversationCollapsed(false)
-    setIsContextReentryPending(false)
     setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
     setInputValue("")
     setIsTyping(true)
@@ -575,7 +549,6 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
-    setIsContextReentryPending(false)
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
     onCloseConversation?.()
