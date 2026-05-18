@@ -1075,6 +1075,7 @@ export function BusinessSocialLanding({
           preview={activeMorph.preview}
           fromRect={activeMorph.fromRect}
           toRect={activeMorph.toRect}
+          targetContextId={activeMorph.contextId}
           resolveToRect={() => resolveMorphTargetRect(activeMorph.contextId)}
           durationMs={MORPH_DURATION_MS}
           onComplete={() => {
