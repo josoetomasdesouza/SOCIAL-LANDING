@@ -12,8 +12,9 @@ import type {
   ConversationVisualBlockRenderer,
 } from "@/lib/mock-data/conversational-search"
 
-const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
 const COMPOSER_MASK_TOP_OFFSET_PX = 8
+const CONVERSATION_DOODLE_PATTERN =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180' fill='none'%3E%3Cg stroke='%23242931' stroke-opacity='0.36' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 34c6-8 18-8 24 0 6 8 18 8 24 0'/%3E%3Cpath d='M112 22l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2 5-10Z'/%3E%3Cpath d='M36 96c0-7 6-13 13-13s13 6 13 13-6 13-13 13-13-6-13-13Z'/%3E%3Cpath d='M119 82c10-12 28-12 38 0'/%3E%3Cpath d='M121 92c8 9 20 9 28 0'/%3E%3Cpath d='M22 145c11-10 31-10 42 0'/%3E%3Cpath d='M74 126h20c7 0 12 5 12 12s-5 12-12 12H74c-7 0-12-5-12-12s5-12 12-12Z'/%3E%3Cpath d='M132 132c0-8 7-15 15-15s15 7 15 15-7 15-15 15-15-7-15-15Z'/%3E%3Cpath d='M92 60c0-6 5-11 11-11s11 5 11 11-5 11-11 11-11-5-11-11Z'/%3E%3C/g%3E%3C/svg%3E\")"
 
 export type ConversationContextItem = ConversationContextPayload
 
@@ -323,6 +324,14 @@ export function ConversationalAI({
     )
   }
 
+  const conversationPanelPatternStyle = {
+    backgroundColor: "#050608",
+    backgroundImage: `radial-gradient(circle at top, rgba(255,255,255,0.035), rgba(255,255,255,0) 48%), ${CONVERSATION_DOODLE_PATTERN}`,
+    backgroundPosition: "center top, center",
+    backgroundRepeat: "no-repeat, repeat",
+    backgroundSize: "100% 100%, 180px 180px",
+  } as const
+
   return (
     <>
       <div
@@ -369,8 +378,20 @@ export function ConversationalAI({
                 </div>
               </div>
               {showExpandedConversation ? (
-                <div className="space-y-3 overflow-y-auto px-4 py-4 max-h-[32vh]">
-                  {messages.map((message) => {
+                <div className="relative overflow-hidden border-t border-white/[0.04] bg-black/[0.26]">
+                  <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={conversationPanelPatternStyle} />
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/28 via-black/8 to-transparent"
+                  />
+                  <div className="relative z-10 max-h-[34vh] overflow-y-auto px-4 py-4">
+                  {messages.map((message, index) => {
+                    const previousMessage = messages[index - 1]
+                    const sharesGroupWithPrevious =
+                      previousMessage?.role === message.role && message.role !== "context_event"
+                    const spacingClass =
+                      index === 0 ? "" : sharesGroupWithPrevious ? "mt-2.5" : "mt-5"
+
                     if (message.role === "context_event") {
                       const eventContexts = message.contexts ?? (message.context ? [message.context] : [])
 
@@ -379,7 +400,7 @@ export function ConversationalAI({
                       }
 
                       return (
-                        <div key={message.id} className="py-0.5">
+                        <div key={message.id} className={cn(spacingClass, "py-0.5")}>
                           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                             {eventContexts.map((item) => renderContextChip(item))}
                           </div>
@@ -390,25 +411,15 @@ export function ConversationalAI({
                     return (
                       <div
                         key={message.id}
-                        className={cn("flex items-end gap-2.5", message.role === "user" && "justify-end")}
+                        className={cn(spacingClass, "flex", message.role === "user" ? "justify-end" : "justify-start")}
                       >
-                        {message.role !== "user" ? (
-                          <Image
-                            src={brandLogo}
-                            alt={brandName}
-                            width={28}
-                            height={28}
-                            className="rounded-full border border-border/60 object-cover"
-                          />
-                        ) : null}
-
-                        <div className={cn("flex max-w-[82%] flex-col gap-2", message.role === "user" && "items-end")}>
+                        <div className={cn("flex max-w-[88%] flex-col gap-2", message.role === "user" ? "items-end" : "items-start")}>
                           <div
                             className={cn(
-                              "rounded-[22px] px-4 py-3 text-sm leading-relaxed shadow-sm",
+                              "rounded-[24px] px-4 py-3.5 text-[15px] leading-[1.45] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]",
                               message.role === "user"
-                                ? "rounded-br-md bg-foreground text-background"
-                                : "rounded-bl-md bg-secondary text-foreground"
+                                ? "rounded-br-[10px] border border-white/[0.08] bg-black/[0.88] text-white/[0.96]"
+                                : "rounded-bl-[10px] border border-white/[0.05] bg-[linear-gradient(180deg,rgba(58,60,66,0.92)_0%,rgba(34,36,41,0.96)_100%)] text-white/[0.94]"
                             )}
                           >
                             {message.content}
@@ -418,40 +429,24 @@ export function ConversationalAI({
                             ? renderVisualBlock?.(message.visualBlock)
                             : null}
                         </div>
-
-                        {message.role === "user" ? (
-                          <Image
-                            src={USER_AVATAR}
-                            alt="Voce"
-                            width={28}
-                            height={28}
-                            className="rounded-full border border-border/60 object-cover"
-                          />
-                        ) : null}
                       </div>
                     )
                   })}
 
                   {isTyping && (
-                    <div className="flex items-end gap-2.5">
-                      <Image
-                        src={brandLogo}
-                        alt={brandName}
-                        width={28}
-                        height={28}
-                        className="rounded-full border border-border/60 object-cover"
-                      />
-                      <div className="rounded-[22px] rounded-bl-md bg-secondary px-4 py-3 text-foreground shadow-sm">
+                    <div className={cn(messages.length > 0 && "mt-5", "flex justify-start")}>
+                      <div className="rounded-[24px] rounded-bl-[10px] border border-white/[0.05] bg-[linear-gradient(180deg,rgba(58,60,66,0.92)_0%,rgba(34,36,41,0.96)_100%)] px-4 py-3 text-white/[0.92] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]">
                         <div className="flex items-center gap-1">
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.2s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.1s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/50" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/48 [animation-delay:-0.2s]" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/48 [animation-delay:-0.1s]" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/48" />
                         </div>
                       </div>
                     </div>
                   )}
 
                   <div ref={messagesEndRef} />
+                  </div>
                 </div>
               ) : (
                 <div className="px-4 pb-3">
