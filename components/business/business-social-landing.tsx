@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef, ReactNode, cloneElement, isValidElement } from "react"
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -842,11 +842,9 @@ export function BusinessSocialLanding({
   const [activeMorph, setActiveMorph] = useState<ActivePostMorph | null>(null)
   const [hiddenContextIds, setHiddenContextIds] = useState<string[]>([])
   const [queuedMorph, setQueuedMorph] = useState<QueuedPostMorph | null>(null)
-  const previousConversationContextIdsRef = useRef<string[] | null>(null)
   const {
     conversationContext,
     selectedContextIds,
-    upsertConversationContextItem,
     toggleConversationContextItem,
     removeConversationContext,
     clearConversationContext,
@@ -915,7 +913,7 @@ export function BusinessSocialLanding({
     }
   }, [])
 
-  const startConversationContextMorph = useCallback((contextItem: ConversationContextItem) => {
+  const queueConversationContextMorph = useCallback((contextItem: ConversationContextItem) => {
     if (typeof window === "undefined") {
       return
     }
@@ -949,43 +947,20 @@ export function BusinessSocialLanding({
     })
   }, [getMorphSourceRect])
 
-  useEffect(() => {
-    if (previousConversationContextIdsRef.current === null) {
-      previousConversationContextIdsRef.current = conversationContext.map((item) => item.id)
+  const toggleConversationContextItemWithMorph = useCallback((contextItem: ConversationContextItem) => {
+    if (selectedContextIds.has(contextItem.id)) {
+      removeConversationContext(contextItem.id)
       return
     }
 
-    const previousContextIds = new Set(previousConversationContextIdsRef.current)
-    const addedContextItems = conversationContext.filter((item) => !previousContextIds.has(item.id))
-
-    previousConversationContextIdsRef.current = conversationContext.map((item) => item.id)
-
-    if (addedContextItems.length === 0) {
-      return
-    }
-
-    const nextItem = addedContextItems[0]
-
-    if (
-      hiddenContextIds.includes(nextItem.id) ||
-      queuedMorph?.contextId === nextItem.id ||
-      activeMorph?.contextId === nextItem.id
-    ) {
-      return
-    }
-
-    startConversationContextMorph(nextItem)
-  }, [activeMorph?.contextId, conversationContext, hiddenContextIds, queuedMorph?.contextId, startConversationContextMorph])
+    queueConversationContextMorph(contextItem)
+    toggleConversationContextItem(contextItem)
+  }, [queueConversationContextMorph, removeConversationContext, selectedContextIds, toggleConversationContextItem])
 
   const toggleConversationContext = useCallback((post: BusinessPost) => {
-    if (selectedContextIds.has(post.id)) {
-      removeConversationContext(post.id)
-      return
-    }
-
     const contextItem = toConversationContextItem(post, config.logo)
-    upsertConversationContextItem(contextItem)
-  }, [config.logo, removeConversationContext, selectedContextIds, upsertConversationContextItem])
+    toggleConversationContextItemWithMorph(contextItem)
+  }, [config.logo, toggleConversationContextItemWithMorph])
   
   const handlePostClick = useCallback((post: BusinessPost) => {
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer
@@ -1057,7 +1032,7 @@ export function BusinessSocialLanding({
               onPostClick={handlePostClick}
               onPostLongPress={toggleConversationContext}
               selectedContextIds={selectedContextIds}
-              onToggleConversationContext={toggleConversationContextItem}
+              onToggleConversationContext={toggleConversationContextItemWithMorph}
               isConversationSelected={isConversationSelected}
             />
           ))}
@@ -1075,7 +1050,6 @@ export function BusinessSocialLanding({
           preview={activeMorph.preview}
           fromRect={activeMorph.fromRect}
           toRect={activeMorph.toRect}
-          targetContextId={activeMorph.contextId}
           resolveToRect={() => resolveMorphTargetRect(activeMorph.contextId)}
           durationMs={MORPH_DURATION_MS}
           onComplete={() => {

@@ -2,7 +2,7 @@
 "use client"
 
 import { X } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 export interface PostToChatMorphRect {
   left: number
@@ -25,7 +25,6 @@ interface PostToChatMorphLayerProps {
   preview: PostToChatMorphPreview
   fromRect: PostToChatMorphRect
   toRect: PostToChatMorphRect
-  targetContextId?: string
   resolveToRect?: () => PostToChatMorphRect | null
   durationMs?: number
   onComplete: () => void
@@ -48,45 +47,16 @@ export function PostToChatMorphLayer({
   preview,
   fromRect,
   toRect,
-  targetContextId,
   resolveToRect,
   durationMs = 480,
   onComplete,
 }: PostToChatMorphLayerProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
   const resolveToRectRef = useRef(resolveToRect)
-  const [clonedChipHtml, setClonedChipHtml] = useState<string | null>(null)
 
   useEffect(() => {
     resolveToRectRef.current = resolveToRect
   }, [resolveToRect])
-
-  useEffect(() => {
-    if (!targetContextId || typeof document === "undefined") {
-      setClonedChipHtml(null)
-      return
-    }
-
-    const escapedContextId =
-      typeof CSS !== "undefined" && typeof CSS.escape === "function"
-        ? CSS.escape(targetContextId)
-        : targetContextId.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
-    const chipElement = document.querySelector<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`)
-
-    if (!chipElement) {
-      setClonedChipHtml(null)
-      return
-    }
-
-    const clone = chipElement.cloneNode(true) as HTMLElement
-    clone.removeAttribute("aria-hidden")
-    clone.classList.remove("pointer-events-none", "opacity-0")
-    clone.style.width = "100%"
-    clone.style.height = "100%"
-    clone.style.minWidth = "0"
-    clone.style.boxSizing = "border-box"
-    setClonedChipHtml(clone.outerHTML)
-  }, [targetContextId])
 
   useEffect(() => {
     const node = nodeRef.current
@@ -167,11 +137,7 @@ export function PostToChatMorphLayer({
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[65] overflow-hidden">
       <div
         ref={nodeRef}
-        className={
-          clonedChipHtml
-            ? "absolute left-0 top-0 origin-top-left will-change-transform"
-            : "absolute left-0 top-0 origin-top-left flex items-center gap-2 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)] will-change-transform"
-        }
+        className="absolute left-0 top-0 origin-top-left flex items-center gap-2 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)] will-change-transform"
         style={{
           left: fromRect.left,
           top: fromRect.top,
@@ -181,38 +147,29 @@ export function PostToChatMorphLayer({
           backfaceVisibility: "hidden",
         }}
       >
-        {clonedChipHtml ? (
-          <div
-            className="h-full w-full"
-            dangerouslySetInnerHTML={{ __html: clonedChipHtml }}
+        <div className="relative h-full aspect-square shrink-0 overflow-hidden rounded-full">
+          <img
+            alt=""
+            src={preview.image}
+            decoding="async"
+            draggable={false}
+            loading="eager"
+            className="h-full w-full select-none object-cover"
           />
-        ) : (
-          <>
-            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
-              <img
-                alt=""
-                src={preview.image}
-                decoding="async"
-                draggable={false}
-                loading="eager"
-                className="h-full w-full select-none object-cover"
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              {preview.subtitle ? (
-                <p className="truncate text-[10px] font-medium uppercase tracking-wide text-white/42">
-                  {preview.subtitle}
-                </p>
-              ) : null}
-              <p className="truncate text-xs font-medium text-white/92">{preview.title}</p>
-            </div>
-            {preview.showDismiss !== false ? (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/56">
-                <X className="h-3.5 w-3.5" />
-              </div>
-            ) : null}
-          </>
-        )}
+        </div>
+        <div className="min-w-0 flex-1">
+          {preview.subtitle ? (
+            <p className="truncate text-[10px] font-medium uppercase tracking-wide text-white/42">
+              {preview.subtitle}
+            </p>
+          ) : null}
+          <p className="truncate text-xs font-medium text-white/92">{preview.title}</p>
+        </div>
+        {preview.showDismiss !== false ? (
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/56">
+            <X className="h-3.5 w-3.5" />
+          </div>
+        ) : null}
       </div>
     </div>
   )
