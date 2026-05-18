@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { Product } from "@/lib/business-types"
 import type { ConversationContextItem } from "../conversational-ai"
 import { EcommerceProductDetailPanel, type EcommerceSelectedVariant } from "./ecommerce-product-detail-panel"
@@ -23,6 +23,7 @@ export function EcommerceConversationProductsBlock({
   isInConversation,
   onAddToCart,
 }: EcommerceConversationProductsBlockProps) {
+  const [activeConversationView, setActiveConversationView] = useState<"recommendation" | "detail" | "checkout">("recommendation")
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
 
   const selectedProduct = useMemo(
@@ -30,44 +31,63 @@ export function EcommerceConversationProductsBlock({
     [products, selectedProductId]
   )
 
+  useEffect(() => {
+    if (activeConversationView === "detail" && !selectedProduct) {
+      setActiveConversationView("recommendation")
+      setSelectedProductId(null)
+    }
+  }, [activeConversationView, selectedProduct])
+
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3">
-        {products.map((product) => (
-          <EcommerceProductFeedCard
-            key={product.id}
-            product={product}
-            renderContext="composer"
-            onSelectProduct={(selectedProduct) => setSelectedProductId(selectedProduct.id)}
-            onAddToCart={(selected) => {
-              if (selected.variants && selected.variants.length > 0) {
-                setSelectedProductId(selected.id)
-                return
-              }
+      {activeConversationView === "recommendation" ? (
+        <div className="grid grid-cols-2 gap-3">
+          {products.map((product) => (
+            <EcommerceProductFeedCard
+              key={product.id}
+              product={product}
+              renderContext="composer"
+              onSelectProduct={(selectedProduct) => {
+                setSelectedProductId(selectedProduct.id)
+                setActiveConversationView("detail")
+              }}
+              onAddToCart={(selected) => {
+                if (selected.variants && selected.variants.length > 0) {
+                  setSelectedProductId(selected.id)
+                  setActiveConversationView("detail")
+                  return
+                }
 
-              onAddToCart(selected, 1, [])
-            }}
-            favorites={favorites}
-            onToggleFavorite={onToggleFavorite}
-            onToggleConversationContext={onToggleConversationContext}
-            isInConversation={isInConversation}
-          />
-        ))}
-      </div>
+                onAddToCart(selected, 1, [])
+              }}
+              favorites={favorites}
+              onToggleFavorite={onToggleFavorite}
+              onToggleConversationContext={onToggleConversationContext}
+              isInConversation={isInConversation}
+            />
+          ))}
+        </div>
+      ) : null}
 
-      {selectedProduct ? (
+      {activeConversationView === "detail" && selectedProduct ? (
         <EcommerceProductDetailPanel
           product={selectedProduct}
           onAddToCart={(product, quantity, selectedVariants) => {
             onAddToCart(product, quantity, selectedVariants)
-            setSelectedProductId(null)
           }}
           isFavorite={favorites.has(selectedProduct.id)}
           onToggleFavorite={() => onToggleFavorite(selectedProduct.id)}
           onToggleConversationContext={onToggleConversationContext}
           isInConversation={isInConversation}
           renderContext="composer"
-          onClose={() => setSelectedProductId(null)}
+          onBack={() => {
+            setActiveConversationView("recommendation")
+            setSelectedProductId(null)
+          }}
+          onClose={() => {
+            setActiveConversationView("recommendation")
+            setSelectedProductId(null)
+          }}
         />
       ) : null}
     </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Heart, Minus, Plus, ShoppingBag, Star, X } from "lucide-react"
+import { ChevronLeft, Heart, Minus, Plus, ShoppingBag, Star, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -48,6 +48,7 @@ interface EcommerceProductDetailPanelProps {
   onToggleConversationContext?: (item: ConversationContextItem) => void
   isInConversation?: (id: string) => boolean
   renderContext?: "drawer" | "composer"
+  onBack?: () => void
   onClose?: () => void
 }
 
@@ -59,6 +60,7 @@ export function EcommerceProductDetailPanel({
   onToggleConversationContext,
   isInConversation,
   renderContext = "drawer",
+  onBack,
   onClose,
 }: EcommerceProductDetailPanelProps) {
   const [selectedImage, setSelectedImage] = useState(0)
@@ -106,7 +108,16 @@ export function EcommerceProductDetailPanel({
   return (
     <div className={panelClassName}>
       {isComposerContext ? (
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={onBack ?? onClose}
+            className="inline-flex items-center gap-1 rounded-full bg-white/[0.06] px-3 py-1.5 text-sm text-white/78 transition-colors hover:bg-white/[0.1] hover:text-white"
+            aria-label="Voltar para recomendacoes"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Voltar
+          </button>
           <button
             type="button"
             onClick={onClose}
