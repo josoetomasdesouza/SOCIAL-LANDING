@@ -73,6 +73,8 @@ interface BusinessSocialLandingProps {
   conversationResponseResolver?: ConversationResponseResolver
   renderConversationVisualBlock?: ConversationVisualBlockRenderer
   reserveHeaderSpace?: boolean | "compact"
+  onHeaderCartClick?: () => void
+  headerCartCount?: number
 }
 
 const conversationContextLabels: Record<BusinessPost["type"], string> = {
@@ -302,7 +304,15 @@ function SocialActions({ onComment }: { onComment?: () => void }) {
 // ========================================
 // HEADER
 // ========================================
-function BusinessHeader({ config }: { config: BusinessConfig }) {
+function BusinessHeader({
+  config,
+  onCartClick,
+  cartCount = 0,
+}: {
+  config: BusinessConfig
+  onCartClick?: () => void
+  cartCount?: number
+}) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
   
   return (
@@ -325,8 +335,18 @@ function BusinessHeader({ config }: { config: BusinessConfig }) {
             <button className="p-2.5 hover:bg-secondary rounded-full transition-colors">
               <Search className="w-5 h-5 text-foreground" />
             </button>
-            <button className="p-2.5 hover:bg-secondary rounded-full transition-colors">
+            <button
+              type="button"
+              aria-label={cartCount > 0 ? `Abrir carrinho com ${cartCount} itens` : "Abrir carrinho"}
+              onClick={onCartClick}
+              className="relative p-2.5 hover:bg-secondary rounded-full transition-colors"
+            >
               <ShoppingBag className="w-5 h-5 text-foreground" />
+              {cartCount > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-accent-foreground">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              ) : null}
             </button>
             <div className="relative w-8 h-8 rounded-full overflow-hidden ml-1">
               <Image src={userAvatar} alt="Perfil" fill className="object-cover" />
@@ -847,7 +867,9 @@ export function BusinessSocialLanding({
   conversationalAI,
   conversationResponseResolver,
   renderConversationVisualBlock,
-  reserveHeaderSpace = true
+  reserveHeaderSpace = true,
+  onHeaderCartClick,
+  headerCartCount = 0,
 }: BusinessSocialLandingProps) {
   const sharedConversationSelection = useConversationSelectionContext()
   const localConversationSelection = useConversationSelectionState()
@@ -1037,7 +1059,7 @@ export function BusinessSocialLanding({
   return (
     <div className="min-h-screen bg-background pb-32">
       {/* Fixed Header */}
-      <BusinessHeader config={config} />
+      <BusinessHeader config={config} onCartClick={onHeaderCartClick} cartCount={headerCartCount} />
       
       {/* Spacer for fixed header */}
       {reserveHeaderSpace && <div className={headerSpacerClass} />}

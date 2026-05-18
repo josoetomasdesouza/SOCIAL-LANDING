@@ -674,7 +674,6 @@ export function EcommerceFeed() {
   const [productDrawerOpen, setProductDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
   const [checkoutDrawerOpen, setCheckoutDrawerOpen] = useState(false)
-  const [activeComposerFlowInstances, setActiveComposerFlowInstances] = useState<Set<string>>(new Set())
   const [cart, setCart] = useState<CartItem[]>([])
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   
@@ -718,20 +717,6 @@ export function EcommerceFeed() {
     setProductDrawerOpen(true)
   }, [])
 
-  const handleComposerFlowStateChange = useCallback((instanceId: string, isActive: boolean) => {
-    setActiveComposerFlowInstances((previous) => {
-      const next = new Set(previous)
-
-      if (isActive) {
-        next.add(instanceId)
-      } else {
-        next.delete(instanceId)
-      }
-
-      return next
-    })
-  }, [])
-
   const renderConversationVisualBlock = useMemo(
     () =>
       createConversationalSearchVisualBlockRenderer({
@@ -752,7 +737,6 @@ export function EcommerceFeed() {
               onToggleConversationContext={conversationSelection.toggleConversationContextItem}
               isInConversation={conversationSelection.isConversationSelected}
               onAddToCart={handleAddToCart}
-              onFlowStateChange={handleComposerFlowStateChange}
             />
           )
         },
@@ -762,7 +746,6 @@ export function EcommerceFeed() {
       conversationSelection.toggleConversationContextItem,
       favorites,
       handleAddToCart,
-      handleComposerFlowStateChange,
       handleToggleFavorite,
     ]
   )
@@ -834,9 +817,6 @@ export function EcommerceFeed() {
   ]
 
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
-  const hasActiveComposerFlow = activeComposerFlowInstances.size > 0
-  const shouldShowCartBar =
-    cartItemCount > 0 && !cartDrawerOpen && !checkoutDrawerOpen && !hasActiveComposerFlow
 
   useEffect(() => {
     const nextMode =
@@ -847,7 +827,7 @@ export function EcommerceFeed() {
           : "default"
 
     setComposerMode(nextMode)
-    setComposerOffsetClassName(shouldShowCartBar ? "bottom-[88px]" : undefined)
+    setComposerOffsetClassName(undefined)
 
     return () => {
       setComposerMode("default")
@@ -859,7 +839,6 @@ export function EcommerceFeed() {
     productDrawerOpen,
     setComposerMode,
     setComposerOffsetClassName,
-    shouldShowCartBar,
   ])
   
   return (
@@ -871,6 +850,8 @@ export function EcommerceFeed() {
         sections={sections}
         conversationResponseResolver={ecommerceMockConversationResolver}
         renderConversationVisualBlock={renderConversationVisualBlock}
+        onHeaderCartClick={() => setCartDrawerOpen(true)}
+        headerCartCount={cartItemCount}
         onStoryClick={(story) => {
           if (story.isMain) {
             // Abre carrinho ou produtos
@@ -883,18 +864,6 @@ export function EcommerceFeed() {
         ]}
       />
       
-      {/* Barra fixa do carrinho */}
-      {shouldShowCartBar && (
-        <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-[60] p-4">
-          <div className="pointer-events-auto max-w-lg mx-auto">
-            <Button className="w-full h-12" onClick={() => setCartDrawerOpen(true)}>
-              <ShoppingBag className="w-5 h-5 mr-2" />
-              Ver carrinho ({cartItemCount} {cartItemCount === 1 ? "item" : "itens"})
-            </Button>
-          </div>
-        </div>
-      )}
-      
       {/* Drawers */}
       <ProductDetailDrawer
         product={selectedProduct}
@@ -905,7 +874,6 @@ export function EcommerceFeed() {
         onToggleFavorite={() => selectedProduct && handleToggleFavorite(selectedProduct.id)}
         onToggleConversationContext={conversationSelection.toggleConversationContextItem}
         isInConversation={conversationSelection.isConversationSelected}
-        hasVisibleCartBar={shouldShowCartBar}
       />
       
       <CartDrawerComponent
