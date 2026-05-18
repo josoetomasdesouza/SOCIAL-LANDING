@@ -830,7 +830,7 @@ export function EcommerceFeed() {
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
   const hasActiveComposerFlow = activeComposerFlowInstances.size > 0
   const shouldShowCartBar =
-    cartItemCount > 0 && !productDrawerOpen && !cartDrawerOpen && !checkoutDrawerOpen && !hasActiveComposerFlow
+    cartItemCount > 0 && !cartDrawerOpen && !checkoutDrawerOpen && !hasActiveComposerFlow
 
   useEffect(() => {
     const nextMode =

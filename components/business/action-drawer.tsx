@@ -25,6 +25,7 @@ export function ActionDrawer({
   footer,
   size = "md",
   matchFeedWidth = false,
+  reserveComposerSpace = false,
 }: ActionDrawerProps) {
   // Bloqueia scroll do body quando aberto
   useEffect(() => {
@@ -53,6 +54,7 @@ export function ActionDrawer({
     ? `translate(-50%, ${isOpen ? "0" : "100%"})`
     : `translateY(${isOpen ? "0" : "100%"})`
   const innerWidthClasses = "w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
+  const reservedBottomSpace = reserveComposerSpace ? 156 : 0
 
   return (
     <>
@@ -65,7 +67,10 @@ export function ActionDrawer({
       {/* Drawer */}
       <div
         className={`fixed ${widthClasses} bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out ${sizeClasses[size]}`}
-        style={{ transform: drawerTransform }}
+        style={{
+          transform: drawerTransform,
+          bottom: reservedBottomSpace,
+        }}
       >
         {/* Handle */}
         <div className="flex flex-shrink-0 justify-center pt-3 pb-2">
