@@ -325,11 +325,11 @@ export function ConversationalAI({
   }
 
   const conversationPanelPatternStyle = {
-    backgroundColor: "#050608",
-    backgroundImage: `radial-gradient(circle at top, rgba(255,255,255,0.035), rgba(255,255,255,0) 48%), ${CONVERSATION_DOODLE_PATTERN}`,
+    backgroundColor: "rgba(7,16,24,0.76)",
+    backgroundImage: `radial-gradient(circle at top, rgba(255,255,255,0.03), rgba(255,255,255,0) 48%), linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0)), ${CONVERSATION_DOODLE_PATTERN}`,
     backgroundPosition: "center top, center",
-    backgroundRepeat: "no-repeat, repeat",
-    backgroundSize: "100% 100%, 180px 180px",
+    backgroundRepeat: "no-repeat, no-repeat, repeat",
+    backgroundSize: "100% 100%, 100% 100%, 180px 180px",
   } as const
 
   return (
@@ -378,11 +378,11 @@ export function ConversationalAI({
                 </div>
               </div>
               {showExpandedConversation ? (
-                <div className="relative overflow-hidden border-t border-white/[0.04] bg-black/[0.26]">
+                <div className="relative overflow-hidden border-t border-white/[0.04] bg-[rgba(7,16,24,0.58)]">
                   <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={conversationPanelPatternStyle} />
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/28 via-black/8 to-transparent"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(7,16,24,0.42)] via-[rgba(7,16,24,0.12)] to-transparent"
                   />
                   <div className="relative z-10 max-h-[34vh] overflow-y-auto px-4 py-4">
                   {messages.map((message, index) => {
@@ -413,10 +413,10 @@ export function ConversationalAI({
                         key={message.id}
                         className={cn(spacingClass, "flex", message.role === "user" ? "justify-end" : "justify-start")}
                       >
-                        <div className={cn("flex max-w-[88%] flex-col gap-2", message.role === "user" ? "items-end" : "items-start")}>
+                        <div className={cn("flex max-w-full flex-col gap-2", message.role === "user" ? "items-end" : "items-start")}>
                           <div
                             className={cn(
-                              "rounded-[24px] px-4 py-3.5 text-[15px] leading-[1.45] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]",
+                              "max-w-[82%] whitespace-pre-wrap break-words rounded-[24px] px-4 py-3.5 text-[15px] leading-[1.45] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)] [overflow-wrap:anywhere]",
                               message.role === "user"
                                 ? "rounded-br-[10px] border border-white/[0.08] bg-black/[0.88] text-white/[0.96]"
                                 : "rounded-bl-[10px] border border-white/[0.05] bg-[linear-gradient(180deg,rgba(58,60,66,0.92)_0%,rgba(34,36,41,0.96)_100%)] text-white/[0.94]"
@@ -435,7 +435,7 @@ export function ConversationalAI({
 
                   {isTyping && (
                     <div className={cn(messages.length > 0 && "mt-5", "flex justify-start")}>
-                      <div className="rounded-[24px] rounded-bl-[10px] border border-white/[0.05] bg-[linear-gradient(180deg,rgba(58,60,66,0.92)_0%,rgba(34,36,41,0.96)_100%)] px-4 py-3 text-white/[0.92] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]">
+                      <div className="max-w-[82%] rounded-[24px] rounded-bl-[10px] border border-white/[0.05] bg-[linear-gradient(180deg,rgba(58,60,66,0.92)_0%,rgba(34,36,41,0.96)_100%)] px-4 py-3 text-white/[0.92] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]">
                         <div className="flex items-center gap-1">
                           <span className="h-2 w-2 animate-bounce rounded-full bg-white/48 [animation-delay:-0.2s]" />
                           <span className="h-2 w-2 animate-bounce rounded-full bg-white/48 [animation-delay:-0.1s]" />
