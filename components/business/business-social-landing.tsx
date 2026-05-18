@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, useLayoutEffect, ReactNode, cloneElement, isValidElement } from "react"
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -842,6 +842,7 @@ export function BusinessSocialLanding({
   const [activeMorph, setActiveMorph] = useState<ActivePostMorph | null>(null)
   const [hiddenContextIds, setHiddenContextIds] = useState<string[]>([])
   const [queuedMorph, setQueuedMorph] = useState<QueuedPostMorph | null>(null)
+  const previousConversationContextIdsRef = useRef<string[] | null>(null)
   const {
     conversationContext,
     selectedContextIds,
@@ -891,9 +892,9 @@ export function BusinessSocialLanding({
     setQueuedMorph(null)
   }, [queuedMorph, resolveMorphTargetRect])
 
-  const getPostSourceRect = useCallback((postId: string): PostToChatMorphRect | null => {
-    const escapedPostId = getEscapedSelectorValue(postId)
-    const sourceElement = document.querySelector<HTMLElement>(`[data-post-context-source="${escapedPostId}"]`)
+  const getMorphSourceRect = useCallback((sourceId: string): PostToChatMorphRect | null => {
+    const escapedSourceId = getEscapedSelectorValue(sourceId)
+    const sourceElement = document.querySelector<HTMLElement>(`[data-post-context-source="${escapedSourceId}"]`)
 
     if (!sourceElement) {
       return null
@@ -914,7 +915,7 @@ export function BusinessSocialLanding({
     }
   }, [])
 
-  const startPostToChatMorph = useCallback((post: BusinessPost, contextItem: ConversationContextItem) => {
+  const startConversationContextMorph = useCallback((contextItem: ConversationContextItem) => {
     if (typeof window === "undefined") {
       return
     }
@@ -923,7 +924,7 @@ export function BusinessSocialLanding({
       return
     }
 
-    const sourceRect = getPostSourceRect(post.id)
+    const sourceRect = getMorphSourceRect(contextItem.id)
 
     if (!sourceRect) {
       return
@@ -942,10 +943,39 @@ export function BusinessSocialLanding({
         title: contextItem.title,
         subtitle: contextItem.subtitle,
         image: contextItem.image,
+        showDismiss: true,
       },
       sourceRect,
     })
-  }, [getPostSourceRect])
+  }, [getMorphSourceRect])
+
+  useEffect(() => {
+    if (previousConversationContextIdsRef.current === null) {
+      previousConversationContextIdsRef.current = conversationContext.map((item) => item.id)
+      return
+    }
+
+    const previousContextIds = new Set(previousConversationContextIdsRef.current)
+    const addedContextItems = conversationContext.filter((item) => !previousContextIds.has(item.id))
+
+    previousConversationContextIdsRef.current = conversationContext.map((item) => item.id)
+
+    if (addedContextItems.length === 0) {
+      return
+    }
+
+    const nextItem = addedContextItems[0]
+
+    if (
+      hiddenContextIds.includes(nextItem.id) ||
+      queuedMorph?.contextId === nextItem.id ||
+      activeMorph?.contextId === nextItem.id
+    ) {
+      return
+    }
+
+    startConversationContextMorph(nextItem)
+  }, [activeMorph?.contextId, conversationContext, hiddenContextIds, queuedMorph?.contextId, startConversationContextMorph])
 
   const toggleConversationContext = useCallback((post: BusinessPost) => {
     if (selectedContextIds.has(post.id)) {
@@ -955,8 +985,7 @@ export function BusinessSocialLanding({
 
     const contextItem = toConversationContextItem(post, config.logo)
     upsertConversationContextItem(contextItem)
-    startPostToChatMorph(post, contextItem)
-  }, [config.logo, removeConversationContext, selectedContextIds, startPostToChatMorph, upsertConversationContextItem])
+  }, [config.logo, removeConversationContext, selectedContextIds, upsertConversationContextItem])
   
   const handlePostClick = useCallback((post: BusinessPost) => {
     // Se for post de conteudo (video, news, review, social), abre o FeedDrawer

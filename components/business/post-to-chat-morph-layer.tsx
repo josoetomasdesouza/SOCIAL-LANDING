@@ -17,6 +17,7 @@ export interface PostToChatMorphPreview {
   title: string
   subtitle?: string
   image: string
+  showDismiss?: boolean
 }
 
 interface PostToChatMorphLayerProps {
@@ -147,7 +148,7 @@ export function PostToChatMorphLayer({
           boxShadow: "0 10px 24px -20px rgba(2, 6, 23, 0.6)",
         }}
       >
-        <div className="absolute inset-0 flex items-center gap-2 rounded-[inherit] bg-white/[0.055] pr-1.5 pl-0 text-white/92">
+        <div className="absolute inset-0 flex items-center gap-2 rounded-[inherit] pr-1.5 text-white/92">
           <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full">
             <img
               alt=""
@@ -166,9 +167,11 @@ export function PostToChatMorphLayer({
             ) : null}
             <p className="truncate text-xs font-medium text-white/92">{preview.title}</p>
           </div>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/56">
-            <X className="h-3.5 w-3.5" />
-          </div>
+          {preview.showDismiss !== false ? (
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/56">
+              <X className="h-3.5 w-3.5" />
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

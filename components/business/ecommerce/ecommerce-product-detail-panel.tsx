@@ -162,6 +162,7 @@ export function EcommerceProductDetailPanel({
 
       <ContextSelectable
         as="div"
+        dataMorphSourceId={productContextItem.id}
         onLongPress={() => onToggleConversationContext?.(productContextItem)}
         selected={isInConversation?.(productContextItem.id) ?? false}
       >
@@ -244,6 +245,7 @@ export function EcommerceProductDetailPanel({
       {reviews.length > 0 ? (
         <ContextSelectable
           as="div"
+          dataMorphSourceId={productContextItem.id}
           onLongPress={() => onToggleConversationContext?.(productContextItem)}
           selected={isInConversation?.(productContextItem.id) ?? false}
           className={reviewsSurfaceClassName}

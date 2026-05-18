@@ -102,6 +102,7 @@ function EventsModule({
           <ContextSelectable
             as="div"
             key={event.id}
+            dataMorphSourceId={contextItem.id}
             onClick={() => onSelectEvent(event)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
@@ -184,6 +185,7 @@ function CategoriesModule({
           <ContextSelectable
             key={cat.id}
             as="div"
+            dataMorphSourceId={contextItem.id}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
@@ -244,6 +246,7 @@ function EventDetailDrawer({
         
         <ContextSelectable
           as="div"
+          dataMorphSourceId={eventContextItem.id}
           onLongPress={() => onToggleConversationContext?.(eventContextItem)}
           selected={isInConversation?.(eventContextItem.id) ?? false}
         >
@@ -254,6 +257,7 @@ function EventDetailDrawer({
         
         <ContextSelectable
           as="div"
+          dataMorphSourceId={eventContextItem.id}
           onLongPress={() => onToggleConversationContext?.(eventContextItem)}
           selected={isInConversation?.(eventContextItem.id) ?? false}
           className="grid grid-cols-2 gap-3"
@@ -272,6 +276,7 @@ function EventDetailDrawer({
         {eventArtists.length > 0 && (
           <ContextSelectable
             as="div"
+            dataMorphSourceId={eventContextItem.id}
             onLongPress={() => onToggleConversationContext?.(eventContextItem)}
             selected={isInConversation?.(eventContextItem.id) ?? false}
           >
@@ -339,6 +344,8 @@ export function EventsFeed() {
           onSelectEvent={(e) => { setSelectedEvent(e); setEventDrawerOpen(true) }}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
         />
       )
     },
@@ -346,7 +353,12 @@ export function EventsFeed() {
       id: "categories",
       title: "Categorias",
       type: "specific",
-      customContent: <CategoriesModule />
+      customContent: (
+        <CategoriesModule
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
+      )
     },
     {
       id: "videos",

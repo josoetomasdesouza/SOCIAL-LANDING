@@ -149,6 +149,7 @@ function CategoriesModule({
           <ContextSelectable
             key={category.id}
             as="div"
+            dataMorphSourceId={contextItem.id}
             onClick={() => onSelectCategory(category.id)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
@@ -284,6 +285,7 @@ function ProductDetailSurface({
 
         <ContextSelectable
           as="div"
+          dataMorphSourceId={productContextItem.id}
           onLongPress={() => onToggleConversationContext?.(productContextItem)}
           selected={isInConversation?.(productContextItem.id) ?? false}
         >
@@ -376,6 +378,7 @@ function ProductDetailSurface({
         {reviews.length > 0 && (
           <ContextSelectable
             as="div"
+            dataMorphSourceId={productContextItem.id}
             onLongPress={() => onToggleConversationContext?.(productContextItem)}
             selected={isInConversation?.(productContextItem.id) ?? false}
             className={cn("rounded-xl p-4", secondaryCardClassName)}
@@ -778,6 +781,8 @@ export function EcommerceFeed() {
           }}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
         />
       )
     },
@@ -785,7 +790,13 @@ export function EcommerceFeed() {
       id: "categories",
       title: "Categorias",
       type: "specific",
-      customContent: <CategoriesModule onSelectCategory={() => {}} />
+      customContent: (
+        <CategoriesModule
+          onSelectCategory={() => {}}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
+      )
     },
     {
       id: "videos",

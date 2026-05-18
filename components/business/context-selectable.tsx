@@ -137,7 +137,7 @@ export function ContextSelectable({
           }
         : {})}
       className={cn(
-        "relative isolate will-change-transform transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] after:opacity-0 after:transition-[opacity,background-color] after:duration-200 after:ease-[cubic-bezier(0.22,1,0.36,1)]",
+        "relative isolate select-none [-webkit-touch-callout:none] [-webkit-user-select:none] [user-select:none] will-change-transform transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:content-[''] after:opacity-0 after:transition-[opacity,background-color] after:duration-200 after:ease-[cubic-bezier(0.22,1,0.36,1)]",
         isPressing && selectionStyles[selectionStyle].pressing,
         selected && selectionStyles[selectionStyle].selected,
         className

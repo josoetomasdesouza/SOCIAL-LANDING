@@ -81,6 +81,7 @@ function ScheduleModule({
             <ContextSelectable
               key={service.id}
               as="div"
+              dataMorphSourceId={contextItem.id}
               onClick={() => onSelectService(service)}
               onLongPress={() => onToggleConversationContext?.(contextItem)}
               selected={isInConversation?.(contextItem.id) ?? false}
@@ -131,6 +132,7 @@ function StylesModule({
         <ContextSelectable
           as="div"
           key={style.id}
+          dataMorphSourceId={contextItem.id}
           onClick={() => onSelectStyle(style)}
           onLongPress={() => onToggleConversationContext?.(contextItem)}
           selected={isInConversation?.(contextItem.id) ?? false}
@@ -345,6 +347,7 @@ function ServicesDrawer({
                   <ContextSelectable
                     as="div"
                     key={service.id}
+                    dataMorphSourceId={contextItem.id}
                     onClick={() => onSelectService(service)}
                     onLongPress={() => onToggleConversationContext?.(contextItem)}
                     selected={isInConversation?.(contextItem.id) ?? false}
@@ -410,6 +413,7 @@ function ProfessionalsDrawer({
       <div className="space-y-5">
         <ContextSelectable
           as="div"
+          dataMorphSourceId={serviceContextItem.id}
           onLongPress={() => onToggleConversationContext?.(serviceContextItem)}
           selected={isInConversation?.(serviceContextItem.id) ?? false}
           className="bg-secondary/50 rounded-xl p-4"
@@ -436,6 +440,7 @@ function ProfessionalsDrawer({
               <ContextSelectable
                 as="div"
                 key={barber.id}
+                dataMorphSourceId={contextItem.id}
                 onClick={() => onSelectBarber(barber)}
                 onLongPress={() => onToggleConversationContext?.(contextItem)}
                 selected={isInConversation?.(contextItem.id) ?? false}
@@ -625,6 +630,7 @@ export function AppointmentFeed() {
           />
           <ContextSelectable
             as="div"
+            dataMorphSourceId="appointment-about-house"
             onLongPress={() => conversationSelection.toggleConversationContextItem({
               id: "appointment-about-house",
               title: "Sobre a casa",

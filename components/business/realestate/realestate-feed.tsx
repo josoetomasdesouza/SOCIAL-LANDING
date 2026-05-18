@@ -76,6 +76,7 @@ function PropertiesModule({
           <ContextSelectable
             as="div"
             key={property.id}
+            dataMorphSourceId={contextItem.id}
             onClick={() => onSelectProperty(property)}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
@@ -162,6 +163,7 @@ function PropertyTypesModule({
           <ContextSelectable
             key={type.id}
             as="div"
+            dataMorphSourceId={contextItem.id}
             onLongPress={() => onToggleConversationContext?.(contextItem)}
             selected={isInConversation?.(contextItem.id) ?? false}
             className="flex flex-col items-center gap-2 flex-shrink-0 p-4 bg-secondary/50 hover:bg-secondary rounded-xl transition-colors min-w-[90px]"
@@ -236,6 +238,7 @@ function PropertyDetailDrawer({
         {/* Info */}
         <ContextSelectable
           as="div"
+          dataMorphSourceId={propertyContextItem.id}
           onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
           selected={isInConversation?.(propertyContextItem.id) ?? false}
         >
@@ -250,6 +253,7 @@ function PropertyDetailDrawer({
         {/* Caracteristicas */}
         <ContextSelectable
           as="div"
+          dataMorphSourceId={propertyContextItem.id}
           onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
           selected={isInConversation?.(propertyContextItem.id) ?? false}
           className="grid grid-cols-4 gap-3"
@@ -279,6 +283,7 @@ function PropertyDetailDrawer({
         {/* Descricao */}
         <ContextSelectable
           as="div"
+          dataMorphSourceId={propertyContextItem.id}
           onLongPress={() => onToggleConversationContext?.(propertyContextItem)}
           selected={isInConversation?.(propertyContextItem.id) ?? false}
         >
@@ -348,6 +353,8 @@ export function RealEstateFeed() {
           onSelectProperty={(p) => { setSelectedProperty(p); setPropertyDrawerOpen(true) }}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
         />
       )
     },
@@ -356,7 +363,12 @@ export function RealEstateFeed() {
       title: "Tipos de Imovel",
       icon: <Building className="w-5 h-5 text-accent" />,
       type: "specific",
-      customContent: <PropertyTypesModule />
+      customContent: (
+        <PropertyTypesModule
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
+      )
     },
     {
       id: "videos",

@@ -59,6 +59,7 @@ export function EcommerceProductFeedCard({
   return (
     <ContextSelectable
       as="div"
+      dataMorphSourceId={contextItem.id}
       onClick={() => onSelectProduct(product)}
       onLongPress={() => onToggleConversationContext?.(contextItem)}
       selected={isInConversation?.(contextItem.id) ?? false}

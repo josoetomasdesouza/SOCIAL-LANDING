@@ -41,6 +41,7 @@ function PlansModule({
         <ContextSelectable
           key={plan.id}
           as="div"
+          dataMorphSourceId={contextItem.id}
           onClick={() => onSelectPlan(plan)}
           onLongPress={() => onToggleConversationContext?.(contextItem)}
           selected={isInConversation?.(contextItem.id) ?? false}
@@ -95,6 +96,7 @@ function ClassesModule({
         <ContextSelectable
           key={cls.id}
           as="div"
+          dataMorphSourceId={contextItem.id}
           onLongPress={() => onToggleConversationContext?.(contextItem)}
           selected={isInConversation?.(contextItem.id) ?? false}
           className="flex-shrink-0 w-40"
@@ -151,6 +153,7 @@ function PlanDetailDrawer({
       <div className="space-y-6">
         <ContextSelectable
           as="div"
+          dataMorphSourceId={planContextItem.id}
           onLongPress={() => onToggleConversationContext?.(planContextItem)}
           selected={isInConversation?.(planContextItem.id) ?? false}
           className={`p-4 rounded-xl ${plan.popular ? "bg-accent/10" : "bg-secondary/50"}`}
@@ -164,6 +167,7 @@ function PlanDetailDrawer({
         
         <ContextSelectable
           as="div"
+          dataMorphSourceId={planContextItem.id}
           onLongPress={() => onToggleConversationContext?.(planContextItem)}
           selected={isInConversation?.(planContextItem.id) ?? false}
         >
@@ -215,7 +219,11 @@ export function GymFeed() {
       icon: <Dumbbell className="w-5 h-5 text-accent" />,
       type: "primary-action",
       customContent: (
-        <PlansModule onSelectPlan={(p) => { setSelectedPlan(p); setPlanDrawerOpen(true) }} />
+        <PlansModule
+          onSelectPlan={(p) => { setSelectedPlan(p); setPlanDrawerOpen(true) }}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
       )
     },
     {
@@ -223,7 +231,12 @@ export function GymFeed() {
       title: "Aulas Disponiveis",
       icon: <Calendar className="w-5 h-5 text-accent" />,
       type: "specific",
-      customContent: <ClassesModule />
+      customContent: (
+        <ClassesModule
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
+      )
     },
     {
       id: "videos",

@@ -301,6 +301,7 @@ export function BusinessFeedDrawer({
                   <ContextSelectable
                     as="article"
                     key={post.id}
+                    dataMorphSourceId={post.id}
                     onLongPress={() => onPostLongPress?.(post)}
                     selected={selectedContextIdSet.has(post.id)}
                     className={cn(
