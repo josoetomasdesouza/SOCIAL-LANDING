@@ -729,13 +729,20 @@ export function ConversationalAI({
     )
   }
 
-  const renderContextChip = (item: ConversationContextItem) => {
-    const isHidden = hiddenContextIdSet.has(item.id)
+  const renderContextChip = (
+    item: ConversationContextItem,
+    options?: {
+      measurementTarget?: boolean
+    }
+  ) => {
+    const isMeasurementTarget = options?.measurementTarget === true
+    const isHidden = !isMeasurementTarget && hiddenContextIdSet.has(item.id)
 
     return (
       <div
         key={item.id}
-        data-conversation-context-chip={item.id}
+        data-conversation-context-chip={isMeasurementTarget ? undefined : item.id}
+        data-conversation-context-chip-target={isMeasurementTarget ? item.id : undefined}
         aria-hidden={isHidden || undefined}
         className={cn(
           "flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)]",
@@ -847,6 +854,14 @@ export function ConversationalAI({
                 )}
                 style={composerSurfaceStyle}
               >
+                {hasEngagedConversation && contextRowItems.length > 0 ? (
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-0 top-0 z-0 flex gap-2 px-4 py-2.5 opacity-0"
+                  >
+                    {contextRowItems.map((item) => renderContextChip(item, { measurementTarget: true }))}
+                  </div>
+                ) : null}
                 <div
                   aria-hidden="true"
                   className={cn("pointer-events-none absolute inset-0", !shouldShowConversationBody && "opacity-0")}

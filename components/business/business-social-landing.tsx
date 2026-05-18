@@ -169,23 +169,43 @@ function getComposerFallbackRect(): PostToChatMorphRect {
 
 function getComposerChipRect(contextId: string): PostToChatMorphRect | null {
   const escapedContextId = getEscapedSelectorValue(contextId)
-  const chipElement = document.querySelector<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`)
+  const chipElements = Array.from(
+    document.querySelectorAll<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`)
+  )
+  const chipElement = chipElements
+    .map((element) => ({ element, rect: element.getBoundingClientRect() }))
+    .filter(({ rect }) => isVisibleRect(rect))
+    .at(-1)
 
   if (!chipElement) {
-    return null
-  }
+    const measurementTargetElement = document.querySelector<HTMLElement>(
+      `[data-conversation-context-chip-target="${escapedContextId}"]`
+    )
 
-  const chipRect = chipElement.getBoundingClientRect()
+    if (!measurementTargetElement) {
+      return null
+    }
 
-  if (!isVisibleRect(chipRect)) {
-    return null
+    const measurementRect = measurementTargetElement.getBoundingClientRect()
+
+    if (!isVisibleRect(measurementRect)) {
+      return null
+    }
+
+    return {
+      left: measurementRect.left,
+      top: measurementRect.top,
+      width: measurementRect.width,
+      height: measurementRect.height,
+      borderRadius: 999,
+    }
   }
 
   return {
-    left: chipRect.left,
-    top: chipRect.top,
-    width: chipRect.width,
-    height: chipRect.height,
+    left: chipElement.rect.left,
+    top: chipElement.rect.top,
+    width: chipElement.rect.width,
+    height: chipElement.rect.height,
     borderRadius: 999,
   }
 }
