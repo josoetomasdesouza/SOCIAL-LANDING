@@ -972,9 +972,9 @@ export function ConversationalAI({
                 type="button"
                 disabled
                 className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10"
-                aria-label="Marca"
+                aria-label="Usuario"
               >
-                <Image src={brandLogo} alt={brandName} fill className="object-cover" />
+                <Image src={USER_AVATAR} alt="Usuario" fill className="object-cover" />
               </button>
               <input
                 type="text"
