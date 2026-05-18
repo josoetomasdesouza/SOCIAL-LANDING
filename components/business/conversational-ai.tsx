@@ -333,6 +333,13 @@ export function ConversationalAI({
     opacity: 0.12,
   } as const
   const composerSurfaceStyle = { backgroundColor: COMPOSER_SURFACE_COLOR } as const
+  const messageTextBubbleStyle = {
+    width: "fit-content",
+    maxWidth: "78%",
+    whiteSpace: "normal",
+    overflowWrap: "break-word",
+    wordBreak: "normal",
+  } as const
 
   return (
     <>
@@ -413,27 +420,16 @@ export function ConversationalAI({
                         key={message.id}
                         className={cn(spacingClass, "flex", message.role === "user" ? "justify-end" : "justify-start")}
                       >
-                        <div className={cn("flex max-w-full flex-col gap-2", message.role === "user" ? "items-end" : "items-start")}>
+                        <div className={cn("flex w-full max-w-full flex-col gap-2", message.role === "user" ? "items-end" : "items-start")}>
                           <div className={cn("w-full", message.role === "user" ? "text-right" : "text-left")}>
                             <div
                               className={cn(
                                 "inline-block text-[15px] leading-[1.45] align-top",
                                 message.role === "user"
                                   ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
-                                  : "max-w-[82%] px-0 py-0.5 text-left text-white/[0.94]"
+                                  : "px-0 py-0.5 text-left text-white/[0.94]"
                               )}
-                              style={
-                                message.role === "user"
-                                  ? {
-                                      width: "fit-content",
-                                      maxWidth: "min(78%, 560px)",
-                                      minWidth: "max-content",
-                                      whiteSpace: "normal",
-                                      overflowWrap: "break-word",
-                                      wordBreak: "normal",
-                                    }
-                                  : undefined
-                              }
+                              style={messageTextBubbleStyle}
                             >
                               {message.content}
                             </div>
