@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useId, useMemo, useState } from "react"
 import Image from "next/image"
 import { ShoppingBag, Heart, Star, Truck, ChevronLeft, ChevronRight, Plus, Minus, Check, X, Play, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,7 @@ import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversationa
 import { ecommerceConfig, products, productReviews, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product, VariantOption } from "@/lib/business-types"
+import { cn } from "@/lib/utils"
 
 type SelectedVariantsById = Record<string, string>
 type SelectedVariant = {
@@ -464,6 +465,7 @@ function ConversationProductRecommendationSurface({
   onToggleConversationContext,
   isInConversation,
   onAddToCart,
+  onFlowStateChange,
 }: {
   matchedProducts: Product[]
   favorites: Set<string>
@@ -471,41 +473,70 @@ function ConversationProductRecommendationSurface({
   onToggleConversationContext: (item: ConversationContextItem) => void
   isInConversation: (id: string) => boolean
   onAddToCart: (product: Product, quantity: number, selectedVariants: SelectedVariant[]) => void
+  onFlowStateChange?: (instanceId: string, isActive: boolean) => void
 }) {
-  const [activeProductId, setActiveProductId] = useState<string | null>(null)
+  const instanceId = useId()
+  const [activeConversationView, setActiveConversationView] = useState<"recommendation" | "detail">("recommendation")
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
 
-  const activeProduct = useMemo(
-    () => matchedProducts.find((product) => product.id === activeProductId) || null,
-    [activeProductId, matchedProducts]
+  const selectedProduct = useMemo(
+    () => matchedProducts.find((product) => product.id === selectedProductId) ?? null,
+    [matchedProducts, selectedProductId]
   )
 
-  if (activeProduct) {
+  useEffect(() => {
+    if (activeConversationView === "detail" && !selectedProduct) {
+      setActiveConversationView("recommendation")
+      setSelectedProductId(null)
+    }
+  }, [activeConversationView, selectedProduct])
+
+  useEffect(() => {
+    onFlowStateChange?.(instanceId, activeConversationView !== "recommendation")
+
+    return () => {
+      onFlowStateChange?.(instanceId, false)
+    }
+  }, [activeConversationView, instanceId, onFlowStateChange])
+
+  if (activeConversationView === "detail" && selectedProduct) {
     return (
       <ProductDetailSurface
-        product={activeProduct}
+        product={selectedProduct}
         renderContext="composer"
-        onBack={() => setActiveProductId(null)}
+        onBack={() => {
+          setActiveConversationView("recommendation")
+          setSelectedProductId(null)
+        }}
         onAddToCart={onAddToCart}
-        isFavorite={favorites.has(activeProduct.id)}
-        onToggleFavorite={() => onToggleFavorite(activeProduct.id)}
+        isFavorite={favorites.has(selectedProduct.id)}
+        onToggleFavorite={() => onToggleFavorite(selectedProduct.id)}
         onToggleConversationContext={onToggleConversationContext}
         isInConversation={isInConversation}
+        onAfterAddToCart={() => {
+          setActiveConversationView("recommendation")
+          setSelectedProductId(null)
+        }}
       />
     )
   }
 
   return (
-    <div className="w-full max-w-[340px]">
+    <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         {matchedProducts.map((product) => (
           <EcommerceProductFeedCard
             key={product.id}
             product={product}
             renderContext="composer"
-            onSelectProduct={() => setActiveProductId(product.id)}
+            onSelectProduct={() => {
+              setSelectedProductId(product.id)
+              setActiveConversationView("detail")
+            }}
             onAddToCart={(selectedProduct) => {
               if (selectedProduct.variants && selectedProduct.variants.length > 0) {
-                setActiveProductId(selectedProduct.id)
+                setSelectedProductId(selectedProduct.id)
+                setActiveConversationView("detail")
                 return
               }
 
@@ -632,6 +663,7 @@ export function EcommerceFeed() {
   const [productDrawerOpen, setProductDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
   const [checkoutDrawerOpen, setCheckoutDrawerOpen] = useState(false)
+  const [activeComposerFlowInstances, setActiveComposerFlowInstances] = useState<Set<string>>(new Set())
   const [cart, setCart] = useState<CartItem[]>([])
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   
@@ -675,6 +707,20 @@ export function EcommerceFeed() {
     setProductDrawerOpen(true)
   }, [])
 
+  const handleComposerFlowStateChange = useCallback((instanceId: string, isActive: boolean) => {
+    setActiveComposerFlowInstances((previous) => {
+      const next = new Set(previous)
+
+      if (isActive) {
+        next.add(instanceId)
+      } else {
+        next.delete(instanceId)
+      }
+
+      return next
+    })
+  }, [])
+
   const renderConversationVisualBlock = useMemo(
     () =>
       createConversationalSearchVisualBlockRenderer({
@@ -695,6 +741,7 @@ export function EcommerceFeed() {
               onToggleConversationContext={conversationSelection.toggleConversationContextItem}
               isInConversation={conversationSelection.isConversationSelected}
               onAddToCart={handleAddToCart}
+              onFlowStateChange={handleComposerFlowStateChange}
             />
           )
         },
@@ -703,8 +750,8 @@ export function EcommerceFeed() {
       conversationSelection.isConversationSelected,
       conversationSelection.toggleConversationContextItem,
       favorites,
-      handleAddToCartAndOpenCart,
-      handleOpenProductDrawer,
+      handleAddToCart,
+      handleComposerFlowStateChange,
       handleToggleFavorite,
     ]
   )
@@ -768,6 +815,9 @@ export function EcommerceFeed() {
   ]
 
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const hasActiveComposerFlow = activeComposerFlowInstances.size > 0
+  const shouldShowCartBar =
+    cartItemCount > 0 && !productDrawerOpen && !cartDrawerOpen && !checkoutDrawerOpen && !hasActiveComposerFlow
 
   useEffect(() => {
     const nextMode =
@@ -778,13 +828,20 @@ export function EcommerceFeed() {
           : "default"
 
     setComposerMode(nextMode)
-    setComposerOffsetClassName(!productDrawerOpen && cartItemCount > 0 ? "bottom-[88px]" : undefined)
+    setComposerOffsetClassName(shouldShowCartBar ? "bottom-[88px]" : undefined)
 
     return () => {
       setComposerMode("default")
       setComposerOffsetClassName(undefined)
     }
-  }, [cartDrawerOpen, cartItemCount, checkoutDrawerOpen, productDrawerOpen, setComposerMode, setComposerOffsetClassName])
+  }, [
+    cartDrawerOpen,
+    checkoutDrawerOpen,
+    productDrawerOpen,
+    setComposerMode,
+    setComposerOffsetClassName,
+    shouldShowCartBar,
+  ])
   
   return (
     <ConversationSelectionProvider value={conversationSelection}>
@@ -808,7 +865,7 @@ export function EcommerceFeed() {
       />
       
       {/* Barra fixa do carrinho */}
-      {cartItemCount > 0 && (
+      {shouldShowCartBar && (
         <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-40">
           <div className="max-w-lg mx-auto">
             <Button className="w-full h-12" onClick={() => setCartDrawerOpen(true)}>

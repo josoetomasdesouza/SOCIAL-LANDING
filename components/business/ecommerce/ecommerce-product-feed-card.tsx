@@ -4,7 +4,6 @@ import Image from "next/image"
 import { Heart, ShoppingBag, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
 import type { Product } from "@/lib/business-types"
@@ -41,7 +40,21 @@ export function EcommerceProductFeedCard({
 }: EcommerceProductFeedCardProps) {
   const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
   const contextItem = toEcommerceProductConversationContextItem(product)
-  const isComposer = renderContext === "composer"
+  const isComposerContext = renderContext === "composer"
+  const cardSurfaceClassName = isComposerContext
+    ? "rounded-2xl border border-white/[0.06] bg-white/[0.04] p-2.5"
+    : ""
+  const mediaSurfaceClassName = isComposerContext ? "bg-white/[0.04]" : "bg-secondary"
+  const titleClassName = isComposerContext ? "line-clamp-2 text-sm font-medium text-white/94" : "line-clamp-2 text-sm font-medium text-foreground"
+  const metaClassName = isComposerContext ? "text-xs text-white/58" : "text-xs text-muted-foreground"
+  const priceClassName = isComposerContext ? "font-bold text-white/96" : "font-bold text-accent"
+  const originalPriceClassName = isComposerContext ? "text-xs text-white/35 line-through" : "text-xs text-muted-foreground line-through"
+  const favoriteButtonClassName = isComposerContext
+    ? "absolute right-2 top-2 rounded-full bg-white/[0.12] p-2 transition-colors hover:bg-white/[0.18]"
+    : "absolute right-2 top-2 rounded-full bg-white/80 p-2 transition-colors hover:bg-white"
+  const addButtonClassName = isComposerContext
+    ? "mt-2 h-9 w-full bg-white/[0.14] text-white hover:bg-white/[0.2]"
+    : "mt-2 h-9 w-full"
 
   return (
     <ContextSelectable
@@ -49,19 +62,10 @@ export function EcommerceProductFeedCard({
       onClick={() => onSelectProduct(product)}
       onLongPress={() => onToggleConversationContext?.(contextItem)}
       selected={isInConversation?.(contextItem.id) ?? false}
-      className={cn(
-        "relative group",
-        isComposer &&
-          "rounded-[24px] border border-white/[0.08] bg-[rgba(49,55,64,0.82)] p-2.5 shadow-[0_24px_54px_-34px_rgba(0,0,0,0.58)]"
-      )}
+      className={`relative group ${cardSurfaceClassName}`}
     >
       <div className="w-full text-left">
-        <div
-          className={cn(
-            "relative aspect-square overflow-hidden rounded-xl bg-secondary",
-            isComposer && "bg-black/20"
-          )}
-        >
+        <div className={`relative aspect-square overflow-hidden rounded-xl ${mediaSurfaceClassName}`}>
           <Image
             src={product.images[0]}
             alt={product.name}
@@ -73,19 +77,17 @@ export function EcommerceProductFeedCard({
           ) : null}
         </div>
         <div className="mt-2">
-          <p className={cn("line-clamp-2 text-sm font-medium text-foreground", isComposer && "text-white/[0.96]")}>
-            {product.name}
-          </p>
+          <p className={titleClassName}>{product.name}</p>
           <div className="mt-1 flex items-center gap-1">
             <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-            <span className={cn("text-xs text-muted-foreground", isComposer && "text-slate-300")}>
+            <span className={metaClassName}>
               {product.rating} ({product.reviewCount})
             </span>
           </div>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="font-bold text-accent">R$ {product.price.toFixed(2).replace(".", ",")}</span>
+            <span className={priceClassName}>R$ {product.price.toFixed(2).replace(".", ",")}</span>
             {product.originalPrice ? (
-              <span className={cn("text-xs text-muted-foreground line-through", isComposer && "text-slate-400")}>
+              <span className={originalPriceClassName}>
                 R$ {product.originalPrice.toFixed(2).replace(".", ",")}
               </span>
             ) : null}
@@ -94,24 +96,24 @@ export function EcommerceProductFeedCard({
       </div>
       <button
         type="button"
-        onClick={() => onToggleFavorite(product.id)}
-        className={cn(
-          "absolute right-2 top-2 rounded-full bg-white/80 p-2 transition-colors hover:bg-white",
-          isComposer && "bg-white/[0.9] hover:bg-white"
-        )}
+        onClick={(event) => {
+          event.stopPropagation()
+          onToggleFavorite(product.id)
+        }}
+        className={favoriteButtonClassName}
         aria-label={`Favoritar ${product.name}`}
       >
         <Heart
-          className={`h-4 w-4 ${favorites.has(product.id) ? "fill-red-500 text-red-500" : "text-gray-600"}`}
+          className={`h-4 w-4 ${favorites.has(product.id) ? "fill-red-500 text-red-500" : isComposerContext ? "text-white/70" : "text-gray-600"}`}
         />
       </button>
       <Button
         size="sm"
-        className={cn(
-          "mt-2 h-9 w-full",
-          isComposer && "bg-white/[0.96] text-[rgba(7,16,24,0.94)] hover:bg-white/90"
-        )}
-        onClick={() => onAddToCart(product)}
+        className={addButtonClassName}
+        onClick={(event) => {
+          event.stopPropagation()
+          onAddToCart(product)
+        }}
       >
         <ShoppingBag className="mr-1 h-4 w-4" />
         Adicionar

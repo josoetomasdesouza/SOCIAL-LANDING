@@ -13,6 +13,7 @@ interface ActionDrawerProps {
   footer?: React.ReactNode
   size?: "sm" | "md" | "lg" | "full"
   matchFeedWidth?: boolean
+  reserveComposerSpace?: boolean
 }
 
 export function ActionDrawer({
@@ -23,7 +24,7 @@ export function ActionDrawer({
   children,
   footer,
   size = "md",
-  matchFeedWidth = false
+  matchFeedWidth = false,
 }: ActionDrawerProps) {
   // Bloqueia scroll do body quando aberto
   useEffect(() => {

@@ -615,8 +615,8 @@ export function ConversationalAI({
   }
 
   const conversationPanelPatternStyle = {
-    backgroundColor: "#040506",
-    backgroundImage: `radial-gradient(circle at top, rgba(255,255,255,0.028), rgba(255,255,255,0) 46%), ${CONVERSATION_DOODLE_PATTERN}`,
+    backgroundColor: COMPOSER_SURFACE_COLOR,
+    backgroundImage: `radial-gradient(circle at top, rgba(255,255,255,0.032), rgba(255,255,255,0) 46%), ${CONVERSATION_DOODLE_PATTERN}`,
     backgroundPosition: "center top, center",
     backgroundRepeat: "no-repeat, repeat",
     backgroundSize: "100% 100%, 180px 180px",
@@ -638,7 +638,7 @@ export function ConversationalAI({
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
           background:
-            "linear-gradient(to top, rgba(10, 14, 18, 0.42) 0%, rgba(10, 14, 18, 0.22) 26%, rgba(10, 14, 18, 0.08) 58%, rgba(10, 14, 18, 0.02) 82%, rgba(10, 14, 18, 0) 100%)",
+            "linear-gradient(to top, rgba(24, 29, 36, 0.72) 0%, rgba(24, 29, 36, 0.48) 24%, rgba(24, 29, 36, 0.2) 56%, rgba(24, 29, 36, 0.05) 82%, rgba(24, 29, 36, 0) 100%)",
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
@@ -681,11 +681,18 @@ export function ConversationalAI({
             </div>
 
             {hasConversation ? (
-              <div className="relative min-h-0 flex-1 overflow-hidden border-t border-white/[0.035] bg-[#040506]">
+              <div
+                className="relative min-h-0 flex-1 overflow-hidden border-t border-white/[0.035]"
+                style={composerSurfaceStyle}
+              >
                 <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={conversationPanelPatternStyle} />
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/34 via-black/10 to-transparent"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
+                  style={{
+                    background:
+                      "linear-gradient(to top, rgba(24,29,36,0.96) 0%, rgba(24,29,36,0.78) 26%, rgba(24,29,36,0.34) 68%, rgba(24,29,36,0) 100%)",
+                  }}
                 />
                 <div ref={messagesContentRef} className="relative z-10 h-full overflow-y-auto px-4 py-4 overscroll-contain">
                   {messages.map((message, index) => {
