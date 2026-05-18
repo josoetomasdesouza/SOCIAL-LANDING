@@ -5,6 +5,15 @@ import Image from "next/image"
 import { ChevronDown, ChevronUp, Loader2, Send, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ConversationContextPayload, ConversationMessage } from "@/lib/business-types"
+import {
+  conversationContextChipMediaClassName,
+  conversationContextChipRemoveButtonClassName,
+  conversationContextChipRemovablePaddingClassName,
+  conversationContextChipShellClassName,
+  conversationContextChipSubtitleClassName,
+  conversationContextChipTextClassName,
+  conversationContextChipTitleClassName,
+} from "@/components/business/conversation-context-chip-styles"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlock,
@@ -315,21 +324,22 @@ export function ConversationalAI({
       data-conversation-context-chip={item.id}
       aria-hidden={isHidden || undefined}
       className={cn(
-        "flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)]",
+        conversationContextChipShellClassName,
+        conversationContextChipRemovablePaddingClassName,
         isHidden && "pointer-events-none opacity-0"
       )}
     >
-      <div className="relative h-11 w-11 overflow-hidden rounded-full">
+      <div className={conversationContextChipMediaClassName}>
         <Image src={item.image} alt={item.title} fill className="object-cover" />
       </div>
 
-      <div className="min-w-0 flex-1">
+      <div className={conversationContextChipTextClassName}>
         {item.subtitle ? (
-          <p className="truncate text-[10px] font-medium uppercase tracking-wide text-white/42">
+          <p className={conversationContextChipSubtitleClassName}>
             {item.subtitle}
           </p>
         ) : null}
-        <p className="truncate text-xs font-medium text-white/92">{item.title}</p>
+        <p className={conversationContextChipTitleClassName}>{item.title}</p>
       </div>
 
       {onRemoveContext ? (
@@ -337,7 +347,7 @@ export function ConversationalAI({
           type="button"
           onClick={() => handleRemoveContextItem(item.id)}
           disabled={isHidden}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/56 transition-colors hover:bg-white/[0.12] hover:text-white/90"
+          className={conversationContextChipRemoveButtonClassName}
           aria-label={`Remover ${item.title}`}
           tabIndex={isHidden ? -1 : undefined}
         >

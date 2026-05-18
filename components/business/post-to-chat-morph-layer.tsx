@@ -1,7 +1,18 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
+import { X } from "lucide-react"
 import { useEffect, useRef } from "react"
+import { cn } from "@/lib/utils"
+import {
+  conversationContextChipMediaClassName,
+  conversationContextChipRemoveButtonClassName,
+  conversationContextChipRemovablePaddingClassName,
+  conversationContextChipShellClassName,
+  conversationContextChipSubtitleClassName,
+  conversationContextChipTextClassName,
+  conversationContextChipTitleClassName,
+} from "@/components/business/conversation-context-chip-styles"
 
 export interface PostToChatMorphRect {
   left: number
@@ -127,7 +138,11 @@ export function PostToChatMorphLayer({
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[65] overflow-hidden">
       <div
         ref={nodeRef}
-        className="absolute left-0 top-0 origin-top-left overflow-hidden rounded-full border border-white/[0.08] bg-[rgba(7,16,24,0.88)] backdrop-blur-[18px] will-change-transform"
+        className={cn(
+          conversationContextChipShellClassName,
+          conversationContextChipRemovablePaddingClassName,
+          "absolute left-0 top-0 origin-top-left overflow-hidden will-change-transform"
+        )}
         style={{
           left: fromRect.left,
           top: fromRect.top,
@@ -135,11 +150,9 @@ export function PostToChatMorphLayer({
           height: fromRect.height,
           borderRadius: fromRect.borderRadius,
           backfaceVisibility: "hidden",
-          boxShadow: "0 18px 34px -24px rgba(2, 6, 23, 0.72), 0 10px 22px -18px rgba(15, 23, 42, 0.42)",
         }}
       >
-        <div className="absolute inset-0 flex items-center gap-2.5 rounded-[inherit] bg-transparent px-2.5 text-white/92">
-          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.055]">
+        <div className={conversationContextChipMediaClassName}>
             <img
               alt=""
               src={preview.image}
@@ -149,13 +162,16 @@ export function PostToChatMorphLayer({
               className="h-full w-full select-none object-cover"
             />
           </div>
-          <div className="min-w-0 flex-1">
+          <div className={conversationContextChipTextClassName}>
             {preview.subtitle ? (
-              <p className="truncate text-[10px] font-medium uppercase tracking-wide text-white/42">
+              <p className={conversationContextChipSubtitleClassName}>
                 {preview.subtitle}
               </p>
             ) : null}
-            <p className="truncate text-xs font-medium text-white/92">{preview.title}</p>
+            <p className={conversationContextChipTitleClassName}>{preview.title}</p>
+          </div>
+          <div aria-hidden="true" className={conversationContextChipRemoveButtonClassName}>
+            <X className="h-3.5 w-3.5" />
           </div>
         </div>
       </div>
