@@ -937,9 +937,9 @@ export function ConversationalAI({
                     {isTyping && (
                       <div className={cn(messages.length > 0 && "mt-5", "flex justify-start")}>
                         <div className="flex max-w-[82%] items-center gap-1 px-0 py-0.5 text-white/[0.74]">
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/42 [animation-delay:-0.2s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/42 [animation-delay:-0.1s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/42" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)] [animation-delay:-0.2s]" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)] [animation-delay:-0.1s]" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]" />
                         </div>
                       </div>
                     )}
