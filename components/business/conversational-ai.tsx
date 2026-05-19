@@ -845,7 +845,7 @@ export function ConversationalAI({
                   onKeyDown={handleSheetHandleKeyDown}
                   className="flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
                 >
-                  <div className="h-1 w-10 rounded-full bg-white/12" />
+                  <div className="h-1 w-10 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.26] to-white/[0.08]" />
                 </div>
               </div>
             ) : null}
@@ -937,9 +937,9 @@ export function ConversationalAI({
                     {isTyping && (
                       <div className={cn(messages.length > 0 && "mt-5", "flex justify-start")}>
                         <div className="flex max-w-[82%] items-center gap-1 px-0 py-0.5 text-white/[0.74]">
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/42 [animation-delay:-0.2s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/42 [animation-delay:-0.1s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/42" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)] [animation-delay:-0.2s]" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)] [animation-delay:-0.1s]" />
+                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]" />
                         </div>
                       </div>
                     )}
