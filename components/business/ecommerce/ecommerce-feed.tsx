@@ -96,7 +96,7 @@ function ProductsModule({
   return (
     <div className="space-y-6">
       {/* Ofertas em destaque */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-3">
         {featuredProducts.map((product) => (
           <EcommerceProductFeedCard
             key={product.id}
@@ -534,7 +534,7 @@ function ConversationProductRecommendationSurface({
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-3">
         {matchedProducts.map((product) => (
           <EcommerceProductFeedCard
             key={product.id}
