@@ -450,23 +450,12 @@ export function ConversationalAI({
           1
         )
       : 0
-  const sectionBlurPx = Math.round(12 + expansionProgress * 8)
-  const sectionSaturation = (1.18 + expansionProgress * 0.08).toFixed(2)
-  const sectionBackgroundAlpha = hasEngagedConversation
-    ? 0.84 - expansionProgress * 0.08
-    : showContextRow
-      ? 0.86
-      : 0.9
-  const sectionBorderAlpha = hasEngagedConversation
-    ? 0.05 + expansionProgress * 0.02
-    : showContextRow
-      ? 0.065
-      : 0.075
-  const maskBackground = hasEngagedConversation
-    ? `linear-gradient(to top, rgba(15, 23, 42, ${0.18 + expansionProgress * 0.08}) 0%, rgba(15, 23, 42, ${
-        0.12 + expansionProgress * 0.06
-      }) 24%, rgba(15, 23, 42, 0.05) 58%, rgba(15, 23, 42, 0.015) 82%, rgba(15, 23, 42, 0) 100%)`
-    : "linear-gradient(to top, rgba(15, 23, 42, 0.16) 0%, rgba(15, 23, 42, 0.1) 22%, rgba(15, 23, 42, 0.035) 54%, rgba(15, 23, 42, 0.01) 80%, rgba(15, 23, 42, 0) 100%)"
+  const sectionBlurPx = 14
+  const sectionSaturation = "1.12"
+  const sectionBackgroundAlpha = 0.94
+  const sectionBorderAlpha = 0.07
+  const maskBackground =
+    "linear-gradient(to top, rgba(15, 23, 42, 0.14) 0%, rgba(15, 23, 42, 0.08) 26%, rgba(15, 23, 42, 0.025) 56%, rgba(15, 23, 42, 0.005) 80%, rgba(15, 23, 42, 0) 100%)"
   const handleOpacity = clampNumber(
     (hasEngagedConversation ? 0.36 : 0.3) - expansionProgress * 0.14 + (isHandleActive ? 0.22 : 0),
     0.18,
@@ -931,17 +920,15 @@ export function ConversationalAI({
   }
 
   const conversationPanelPatternStyle = {
-    backgroundColor: "rgba(45,50,58,0.14)",
+    backgroundColor: "transparent",
     backgroundImage: CONVERSATION_DOODLE_PATTERN,
     backgroundPosition: "center",
     backgroundRepeat: "repeat",
     backgroundSize: "180px 180px",
-    opacity: 0.42 + expansionProgress * 0.08,
+    opacity: 0.22,
   } as const
   const composerSurfaceStyle = {
     backgroundColor: `rgba(45, 50, 58, ${sectionBackgroundAlpha.toFixed(3)})`,
-    backgroundImage:
-      "linear-gradient(180deg, rgba(255,255,255,0.075) 0%, rgba(255,255,255,0.028) 32%, rgba(255,255,255,0.01) 100%)",
     backdropFilter: `blur(${sectionBlurPx}px) saturate(${sectionSaturation})`,
     WebkitBackdropFilter: `blur(${sectionBlurPx}px) saturate(${sectionSaturation})`,
   } as const
