@@ -845,7 +845,7 @@ export function ConversationalAI({
                   onKeyDown={handleSheetHandleKeyDown}
                   className="flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
                 >
-                  <div className="h-1 w-10 rounded-full bg-white/12" />
+                  <div className="h-1 w-10 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.26] to-white/[0.08]" />
                 </div>
               </div>
             ) : null}
