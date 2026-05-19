@@ -559,6 +559,7 @@ export function ConversationalAI({
 
       setMessages((prev) => [...prev, aiMessage])
       setIsTyping(false)
+      setIsConversationCollapsed(false)
       replyTimeoutRef.current = null
     }, 700)
   }
