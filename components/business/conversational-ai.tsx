@@ -13,7 +13,6 @@ import type {
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
 const COMPOSER_MASK_TOP_OFFSET_PX = 8
-const COMPOSER_SURFACE_COLOR = "rgba(45,50,58,0.96)"
 const SHEET_TOP_SAFE_MARGIN_PX = 16
 const CONVERSATION_DOODLE_PATTERN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180' fill='none'%3E%3Cg stroke='%23242931' stroke-opacity='0.36' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 34c6-8 18-8 24 0 6 8 18 8 24 0'/%3E%3Cpath d='M112 22l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2 5-10Z'/%3E%3Cpath d='M36 96c0-7 6-13 13-13s13 6 13 13-6 13-13 13-13-6-13-13Z'/%3E%3Cpath d='M119 82c10-12 28-12 38 0'/%3E%3Cpath d='M121 92c8 9 20 9 28 0'/%3E%3Cpath d='M22 145c11-10 31-10 42 0'/%3E%3Cpath d='M74 126h20c7 0 12 5 12 12s-5 12-12 12H74c-7 0-12-5-12-12s5-12 12-12Z'/%3E%3Cpath d='M132 132c0-8 7-15 15-15s15 7 15 15-7 15-15 15-15-7-15-15Z'/%3E%3Cpath d='M92 60c0-6 5-11 11-11s11 5 11 11-5 11-11 11-11-5-11-11Z'/%3E%3C/g%3E%3C/svg%3E\")"
@@ -24,6 +23,10 @@ const COMPACT_BODY_MIN_PX = 136
 const COMPACT_BODY_MAX_PX = 196
 const CLOSE_THRESHOLD_OFFSET_PX = 72
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
+const HANDLE_IDLE_DELAY_MS = 1200
+const REOPEN_REBUILD_STAGE_ONE_DELAY_MS = 120
+const REOPEN_REBUILD_STAGE_TWO_DELAY_MS = 260
+const REOPEN_REBUILD_COMPLETE_DELAY_MS = 460
 
 export type ConversationContextItem = ConversationContextPayload
 
@@ -52,6 +55,10 @@ interface SheetMetrics {
   medium: number
   expanded: number
   closeThreshold: number
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
 }
 
 function summarizeContext(items: ConversationContextItem[]) {
@@ -149,6 +156,8 @@ export function ConversationalAI({
   const [pendingContextIds, setPendingContextIds] = useState<string[]>([])
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
   const [dragHeight, setDragHeight] = useState<number | null>(null)
+  const [reopenVisualHeight, setReopenVisualHeight] = useState<number | null>(null)
+  const [isHandleActive, setIsHandleActive] = useState(false)
   const [sheetMetrics, setSheetMetrics] = useState<SheetMetrics>({
     compact: 0,
     auto: 0,
@@ -166,8 +175,12 @@ export function ConversationalAI({
   const messagesMeasureRef = useRef<HTMLDivElement>(null)
   const composerFormRef = useRef<HTMLFormElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
+  const handleIdleTimeoutRef = useRef<number | null>(null)
+  const reopenAnimationTimeoutsRef = useRef<number[]>([])
+  const shouldRebuildExpansionOnReopenRef = useRef(false)
   const activeContextIdsRef = useRef<string[]>([])
   const pendingContextIdsRef = useRef<string[]>([])
+  const previousCollapsedStateRef = useRef(false)
   const dragStateRef = useRef<{
     pointerId: number
     startY: number
@@ -246,6 +259,39 @@ export function ConversationalAI({
       }
     }
   }, [])
+
+  const clearHandleIdleTimeout = useCallback(() => {
+    if (handleIdleTimeoutRef.current !== null) {
+      window.clearTimeout(handleIdleTimeoutRef.current)
+      handleIdleTimeoutRef.current = null
+    }
+  }, [])
+
+  const clearReopenAnimationTimeouts = useCallback(() => {
+    reopenAnimationTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId))
+    reopenAnimationTimeoutsRef.current = []
+  }, [])
+
+  const cancelReopenAnimation = useCallback(() => {
+    clearReopenAnimationTimeouts()
+    setReopenVisualHeight(null)
+  }, [clearReopenAnimationTimeouts])
+
+  const primeHandleVisibility = useCallback((lingerMs: number = HANDLE_IDLE_DELAY_MS) => {
+    clearHandleIdleTimeout()
+    setIsHandleActive(true)
+    handleIdleTimeoutRef.current = window.setTimeout(() => {
+      setIsHandleActive(false)
+      handleIdleTimeoutRef.current = null
+    }, lingerMs)
+  }, [clearHandleIdleTimeout])
+
+  useEffect(() => {
+    return () => {
+      clearHandleIdleTimeout()
+      clearReopenAnimationTimeouts()
+    }
+  }, [clearHandleIdleTimeout, clearReopenAnimationTimeouts])
 
   const measureSheetLayout = useCallback(() => {
     if (typeof window === "undefined") {
@@ -358,9 +404,11 @@ export function ConversationalAI({
     if (!hasEngagedConversation && !showContextRow) {
       setManualSnapHeight(null)
       setDragHeight(null)
+      cancelReopenAnimation()
       setIsConversationCollapsed(false)
+      shouldRebuildExpansionOnReopenRef.current = false
     }
-  }, [hasEngagedConversation, showContextRow])
+  }, [cancelReopenAnimation, hasEngagedConversation, showContextRow])
 
   useEffect(() => {
     if (manualSnapHeight === null) {
@@ -389,7 +437,42 @@ export function ConversationalAI({
     sheetMetrics.expanded || Number.POSITIVE_INFINITY,
     Math.max(sheetMetrics.compact || 0, Math.max(sheetMetrics.auto, manualSnapHeight ?? 0))
   )
-  const resolvedSheetHeight = dragHeight ?? resolvedAutoHeight
+  const autoTargetHeight = Math.min(
+    sheetMetrics.expanded || Number.POSITIVE_INFINITY,
+    Math.max(sheetMetrics.compact || 0, sheetMetrics.auto)
+  )
+  const resolvedSheetHeight = dragHeight ?? reopenVisualHeight ?? resolvedAutoHeight
+  const expansionProgress =
+    sheetMetrics.expanded > sheetMetrics.compact
+      ? clampNumber(
+          (resolvedSheetHeight - sheetMetrics.compact) / (sheetMetrics.expanded - sheetMetrics.compact),
+          0,
+          1
+        )
+      : 0
+  const sectionBlurPx = Math.round(12 + expansionProgress * 8)
+  const sectionSaturation = (1.18 + expansionProgress * 0.08).toFixed(2)
+  const sectionBackgroundAlpha = hasEngagedConversation
+    ? 0.84 - expansionProgress * 0.08
+    : showContextRow
+      ? 0.86
+      : 0.9
+  const sectionBorderAlpha = hasEngagedConversation
+    ? 0.05 + expansionProgress * 0.02
+    : showContextRow
+      ? 0.065
+      : 0.075
+  const maskBackground = hasEngagedConversation
+    ? `linear-gradient(to top, rgba(15, 23, 42, ${0.18 + expansionProgress * 0.08}) 0%, rgba(15, 23, 42, ${
+        0.12 + expansionProgress * 0.06
+      }) 24%, rgba(15, 23, 42, 0.05) 58%, rgba(15, 23, 42, 0.015) 82%, rgba(15, 23, 42, 0) 100%)`
+    : "linear-gradient(to top, rgba(15, 23, 42, 0.16) 0%, rgba(15, 23, 42, 0.1) 22%, rgba(15, 23, 42, 0.035) 54%, rgba(15, 23, 42, 0.01) 80%, rgba(15, 23, 42, 0) 100%)"
+  const handleOpacity = clampNumber(
+    (hasEngagedConversation ? 0.36 : 0.3) - expansionProgress * 0.14 + (isHandleActive ? 0.22 : 0),
+    0.18,
+    0.56
+  )
+  const handleWidthPx = Math.round(26 - expansionProgress * 6)
 
   const getNearestSnapHeight = useCallback(
     (height: number) => {
@@ -403,6 +486,50 @@ export function ConversationalAI({
     },
     [snapHeights]
   )
+
+  const startReopenExpansionRebuild = useCallback(() => {
+    if (sheetMetrics.compact <= 0 || autoTargetHeight <= sheetMetrics.compact + 8) {
+      shouldRebuildExpansionOnReopenRef.current = false
+      setReopenVisualHeight(null)
+      return
+    }
+
+    clearReopenAnimationTimeouts()
+    setReopenVisualHeight(sheetMetrics.compact)
+
+    const delta = autoTargetHeight - sheetMetrics.compact
+    const stageOneHeight = sheetMetrics.compact + delta * 0.42
+    const stageTwoHeight = sheetMetrics.compact + delta * 0.76
+
+    reopenAnimationTimeoutsRef.current = [
+      window.setTimeout(() => {
+        setReopenVisualHeight(stageOneHeight)
+      }, REOPEN_REBUILD_STAGE_ONE_DELAY_MS),
+      window.setTimeout(() => {
+        setReopenVisualHeight(stageTwoHeight)
+      }, REOPEN_REBUILD_STAGE_TWO_DELAY_MS),
+      window.setTimeout(() => {
+        shouldRebuildExpansionOnReopenRef.current = false
+        setReopenVisualHeight(null)
+      }, REOPEN_REBUILD_COMPLETE_DELAY_MS),
+    ]
+  }, [autoTargetHeight, clearReopenAnimationTimeouts, sheetMetrics.compact])
+
+  useEffect(() => {
+    const wasCollapsed = previousCollapsedStateRef.current
+
+    if (
+      wasCollapsed &&
+      !isConversationCollapsed &&
+      hasEngagedConversation &&
+      shouldRebuildExpansionOnReopenRef.current &&
+      dragStateRef.current === null
+    ) {
+      startReopenExpansionRebuild()
+    }
+
+    previousCollapsedStateRef.current = isConversationCollapsed
+  }, [hasEngagedConversation, isConversationCollapsed, startReopenExpansionRebuild])
 
   useLayoutEffect(() => {
     const shellElement = composerShellRef.current
@@ -547,6 +674,10 @@ export function ConversationalAI({
     }
 
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
+    if (isConversationCollapsed) {
+      setManualSnapHeight(null)
+      setDragHeight(null)
+    }
     setIsConversationSessionActive(true)
     setIsConversationCollapsed(false)
     setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
@@ -579,29 +710,38 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
+    setManualSnapHeight(null)
+    setDragHeight(null)
+    cancelReopenAnimation()
+    shouldRebuildExpansionOnReopenRef.current = false
     setPendingContextIds([])
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
     onCloseConversation?.()
-  }, [onCloseConversation])
+  }, [cancelReopenAnimation, onCloseConversation])
 
   const commitSheetClose = useCallback(() => {
     setManualSnapHeight(null)
     setDragHeight(null)
+    cancelReopenAnimation()
 
     if (hasEngagedConversation) {
+      shouldRebuildExpansionOnReopenRef.current = true
       setIsConversationCollapsed(true)
       return
     }
 
+    shouldRebuildExpansionOnReopenRef.current = false
     handleCloseConversation()
-  }, [handleCloseConversation, hasEngagedConversation])
+  }, [cancelReopenAnimation, handleCloseConversation, hasEngagedConversation])
 
   const handleSheetPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (sheetMetrics.compact <= 0) {
       return
     }
 
+    cancelReopenAnimation()
+    primeHandleVisibility()
     dragStateRef.current = {
       pointerId: event.pointerId,
       startY: event.clientY,
@@ -625,6 +765,7 @@ export function ConversationalAI({
     const nextHeight = Math.min(sheetMetrics.expanded, Math.max(0, dragState.startHeight - deltaY))
 
     if (dragState.startedCollapsed && nextHeight > dragState.startHeight) {
+      shouldRebuildExpansionOnReopenRef.current = false
       setIsConversationCollapsed(false)
       dragState.startedCollapsed = false
     }
@@ -645,6 +786,7 @@ export function ConversationalAI({
 
     const currentHeight = dragHeight ?? dragState.startHeight
     dragStateRef.current = null
+    primeHandleVisibility()
 
     if (dragState.startedCollapsed && currentHeight <= dragState.startHeight) {
       setDragHeight(null)
@@ -657,6 +799,7 @@ export function ConversationalAI({
     }
 
     setIsConversationCollapsed(false)
+    shouldRebuildExpansionOnReopenRef.current = false
     setManualSnapHeight(getNearestSnapHeight(currentHeight))
     setDragHeight(null)
   }
@@ -666,8 +809,11 @@ export function ConversationalAI({
       return
     }
 
+    primeHandleVisibility()
+
     if (event.key === "Home") {
       event.preventDefault()
+      shouldRebuildExpansionOnReopenRef.current = false
       setIsConversationCollapsed(false)
       setManualSnapHeight(sheetMetrics.compact)
       return
@@ -675,6 +821,7 @@ export function ConversationalAI({
 
     if (event.key === "End") {
       event.preventDefault()
+      shouldRebuildExpansionOnReopenRef.current = false
       setIsConversationCollapsed(false)
       setManualSnapHeight(sheetMetrics.expanded)
       return
@@ -685,6 +832,7 @@ export function ConversationalAI({
     }
 
     event.preventDefault()
+    shouldRebuildExpansionOnReopenRef.current = false
     setIsConversationCollapsed(false)
 
     const currentHeight = resolvedSheetHeight || sheetMetrics.compact
@@ -783,13 +931,29 @@ export function ConversationalAI({
   }
 
   const conversationPanelPatternStyle = {
-    backgroundColor: COMPOSER_SURFACE_COLOR,
+    backgroundColor: "rgba(45,50,58,0.14)",
     backgroundImage: CONVERSATION_DOODLE_PATTERN,
     backgroundPosition: "center",
     backgroundRepeat: "repeat",
     backgroundSize: "180px 180px",
+    opacity: 0.42 + expansionProgress * 0.08,
   } as const
-  const composerSurfaceStyle = { backgroundColor: COMPOSER_SURFACE_COLOR } as const
+  const composerSurfaceStyle = {
+    backgroundColor: `rgba(45, 50, 58, ${sectionBackgroundAlpha.toFixed(3)})`,
+    backgroundImage:
+      "linear-gradient(180deg, rgba(255,255,255,0.075) 0%, rgba(255,255,255,0.028) 32%, rgba(255,255,255,0.01) 100%)",
+    backdropFilter: `blur(${sectionBlurPx}px) saturate(${sectionSaturation})`,
+    WebkitBackdropFilter: `blur(${sectionBlurPx}px) saturate(${sectionSaturation})`,
+  } as const
+  const shellFrameClassName = hasEngagedConversation
+    ? "mx-auto w-full px-1.5 transition-[max-width,padding] duration-300 ease-out sm:px-2"
+    : "mx-auto max-w-lg px-4 transition-[max-width,padding] duration-300 ease-out sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
+  const shellFrameStyle = {
+    maxWidth: hasEngagedConversation ? "min(780px, calc(100vw - 8px))" : undefined,
+    paddingBottom: hasEngagedConversation
+      ? "calc(env(safe-area-inset-bottom, 0px) + 6px)"
+      : "calc(env(safe-area-inset-bottom, 0px) + 16px)",
+  } as const
   const messageTextBubbleStyle = {
     width: "fit-content",
     maxWidth: "78%",
@@ -804,31 +968,30 @@ export function ConversationalAI({
         ref={composerMaskRef}
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
-        style={{
-          background:
-            "linear-gradient(to top, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.56) 24%, rgba(255, 255, 255, 0.2) 56%, rgba(255, 255, 255, 0.04) 82%, rgba(255, 255, 255, 0) 100%)",
-        }}
+        style={{ background: maskBackground }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
         <div
           ref={composerShellRef}
-          className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
+          className={shellFrameClassName}
+          style={shellFrameStyle}
         >
           <section
             data-conversation-composer="true"
             className={cn(
-              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px] transition-[height] duration-300 ease-out",
+              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] shadow-[0_24px_60px_-38px_rgba(2,6,23,0.6),0_10px_24px_-20px_rgba(15,23,42,0.32)] transition-[height,border-radius] duration-300 ease-out",
               dragHeight !== null && "transition-none"
             )}
             style={{
               ...composerSurfaceStyle,
+              border: `1px solid rgba(255, 255, 255, ${sectionBorderAlpha.toFixed(3)})`,
               ...(shouldApplySheetHeight && resolvedSheetHeight > 0 ? { height: `${resolvedSheetHeight}px` } : {}),
             }}
           >
             {shouldShowTopArea ? (
               <div
                 ref={topAreaRef}
-                className="shrink-0 border-b border-white/[0.07] px-4 pt-3 pb-2"
+                className="shrink-0 border-b border-white/[0.055] px-4 pt-3 pb-2"
                 style={composerSurfaceStyle}
               >
                 <div
@@ -843,9 +1006,18 @@ export function ConversationalAI({
                   onPointerUp={handleSheetPointerRelease}
                   onPointerCancel={handleSheetPointerRelease}
                   onKeyDown={handleSheetHandleKeyDown}
-                  className="flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
+                  className="flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none transition-opacity duration-300"
+                  style={{ opacity: handleOpacity }}
                 >
-                  <div className="h-1 w-10 rounded-full bg-white/12" />
+                  <div
+                    className="rounded-full bg-white/100 transition-[opacity,width,transform] duration-300 ease-out"
+                    style={{
+                      width: `${handleWidthPx}px`,
+                      height: "3px",
+                      opacity: clampNumber(handleOpacity + (isHandleActive ? 0.12 : 0), 0.24, 0.62),
+                      transform: `scaleY(${isHandleActive ? 1 : 0.92})`,
+                    }}
+                  />
                 </div>
               </div>
             ) : null}
