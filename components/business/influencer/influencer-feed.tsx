@@ -5,6 +5,8 @@ import { BusinessSocialLanding } from "../business-social-landing"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
+import { SocialCompactHero } from "../social-compact-hero"
+import { SocialContactCTA } from "../social-contact-cta"
 import { 
   Link2, Instagram, Youtube, Twitter, Mail, 
   ExternalLink, Copy, Check, Users, Eye, Heart,
@@ -84,6 +86,14 @@ export function InfluencerFeed() {
       posts: [],
       customContent: (
         <div className="space-y-3">
+          <SocialCompactHero
+            variant="editorial"
+            brandLogo={influencerConfig.logo}
+            brandName={influencerConfig.name}
+            contextLabel="Quem e a Camila"
+            headline="Viagem, lifestyle e bastidores contados do jeito que eu vivo."
+            subheadline="Aqui voce encontra meus links, collabs, rotina real e os projetos que compartilho com a comunidade."
+          />
           {influencerLinks.map((link) => {
             const Icon = link.icon
             return (
@@ -165,6 +175,39 @@ export function InfluencerFeed() {
             </button>
           ))}
         </div>
+      )
+    },
+    {
+      id: "contact",
+      title: "Bora conversar",
+      type: "custom" as const,
+      posts: [],
+      customContent: (
+        <SocialContactCTA
+          contextLabel="Bora conversar"
+          headline="Quer falar sobre collab, acompanhar meus canais ou trocar ideia com a comunidade?"
+          subheadline="Pega meus contatos principais e abre o media kit para ver formatos, alcance e oportunidades."
+          primaryContact={{
+            label: "Email",
+            value: "contato@camilatorres.com",
+            href: "mailto:contato@camilatorres.com",
+            icon: "mail",
+          }}
+          secondaryItems={[
+            {
+              label: "Instagram",
+              value: influencerConfig.instagram,
+              icon: "instagram",
+            },
+            {
+              label: "YouTube",
+              value: influencerConfig.youtube,
+              icon: "youtube",
+            },
+          ]}
+          primaryActionLabel="Abrir media kit"
+          onPrimaryAction={() => setMediaKitDrawerOpen(true)}
+        />
       )
     },
     // Videos
