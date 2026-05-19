@@ -927,18 +927,19 @@ export function ConversationalAI({
     backgroundSize: "180px 180px",
     opacity: 0.22,
   } as const
+  const shouldUseExpandedConversationShell = hasEngagedConversation && !isConversationCollapsed
   const composerSurfaceStyle = {
     backgroundColor: `rgba(45, 50, 58, ${sectionBackgroundAlpha.toFixed(3)})`,
     backdropFilter: `blur(${sectionBlurPx}px) saturate(${sectionSaturation})`,
     WebkitBackdropFilter: `blur(${sectionBlurPx}px) saturate(${sectionSaturation})`,
   } as const
-  const shellFrameClassName = hasEngagedConversation
-    ? "mx-auto w-full px-1.5 transition-[max-width,padding] duration-300 ease-out sm:px-2"
+  const shellFrameClassName = shouldUseExpandedConversationShell
+    ? "mx-auto w-full px-1 transition-[max-width,padding] duration-300 ease-out"
     : "mx-auto max-w-lg px-4 transition-[max-width,padding] duration-300 ease-out sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
   const shellFrameStyle = {
-    maxWidth: hasEngagedConversation ? "min(780px, calc(100vw - 8px))" : undefined,
-    paddingBottom: hasEngagedConversation
-      ? "calc(env(safe-area-inset-bottom, 0px) + 6px)"
+    maxWidth: shouldUseExpandedConversationShell ? "none" : undefined,
+    paddingBottom: shouldUseExpandedConversationShell
+      ? "calc(env(safe-area-inset-bottom, 0px) + 2px)"
       : "calc(env(safe-area-inset-bottom, 0px) + 16px)",
   } as const
   const messageTextBubbleStyle = {
@@ -966,7 +967,8 @@ export function ConversationalAI({
           <section
             data-conversation-composer="true"
             className={cn(
-              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] shadow-[0_24px_60px_-38px_rgba(2,6,23,0.6),0_10px_24px_-20px_rgba(15,23,42,0.32)] transition-[height,border-radius] duration-300 ease-out",
+              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden shadow-[0_24px_60px_-38px_rgba(2,6,23,0.6),0_10px_24px_-20px_rgba(15,23,42,0.32)] transition-[height,border-radius] duration-300 ease-out",
+              shouldUseExpandedConversationShell ? "rounded-t-[28px] rounded-b-[10px]" : "rounded-[28px]",
               dragHeight !== null && "transition-none"
             )}
             style={{
