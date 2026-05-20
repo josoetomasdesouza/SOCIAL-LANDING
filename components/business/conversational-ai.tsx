@@ -287,18 +287,28 @@ export function ConversationalAI({
     const contextHeight = showContextRow ? contextRailRef.current?.offsetHeight ?? 0 : 0
     const formHeight = composerFormRef.current?.offsetHeight ?? 0
     const chromeHeight = topAreaHeight + contextHeight + formHeight
-    const compactBodyHeight = shouldShowConversationBody
-      ? Math.min(
-          COMPACT_BODY_MAX_PX,
-          Math.max(COMPACT_BODY_MIN_PX, Math.round(availableViewportHeight * COMPACT_BODY_MIN_RATIO))
-        )
+    const messagesContentElement = messagesContentRef.current
+    const messagesContentStyle = messagesContentElement ? window.getComputedStyle(messagesContentElement) : null
+    const messagesContentPaddingY = messagesContentStyle
+      ? parseFloat(messagesContentStyle.paddingTop) + parseFloat(messagesContentStyle.paddingBottom)
       : 0
-    const compact = Math.min(expanded, shouldShowConversationBody ? chromeHeight + compactBodyHeight : chromeHeight)
-    const conversationContentHeight = shouldShowConversationBody
+    const measuredConversationContentHeight = shouldShowConversationBody
       ? isResumeAutoGrowActive
         ? autoGrowMeasureRef.current?.offsetHeight ?? 0
         : messagesMeasureRef.current?.offsetHeight ?? messagesContentRef.current?.scrollHeight ?? 0
       : 0
+    const conversationContentHeight = shouldShowConversationBody
+      ? measuredConversationContentHeight + (isCompactResumePreview ? messagesContentPaddingY : 0)
+      : 0
+    const compactBodyHeight = shouldShowConversationBody
+      ? isCompactResumePreview
+        ? conversationContentHeight
+        : Math.min(
+            COMPACT_BODY_MAX_PX,
+            Math.max(COMPACT_BODY_MIN_PX, Math.round(availableViewportHeight * COMPACT_BODY_MIN_RATIO))
+          )
+      : 0
+    const compact = Math.min(expanded, shouldShowConversationBody ? chromeHeight + compactBodyHeight : chromeHeight)
     const auto = shouldShowConversationBody
       ? Math.min(expanded, Math.max(compact, chromeHeight + conversationContentHeight))
       : compact
@@ -576,12 +586,14 @@ export function ConversationalAI({
       role: "user",
       content: nextMessage,
     }
+    const shouldResumeFromCurrentMessages =
+      messages.length > 0 && (isConversationCollapsed || isCompactResumePreview || !isConversationSessionActive)
 
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
     setIsConversationSessionActive(true)
     setIsCompactResumePreview(false)
 
-    if (messages.length > 0 && (isConversationCollapsed || !isConversationSessionActive)) {
+    if (shouldResumeFromCurrentMessages) {
       setResumeSessionStartIndex(messages.length)
     }
 
