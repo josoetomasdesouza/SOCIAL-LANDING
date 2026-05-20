@@ -167,6 +167,7 @@ export function ConversationalAI({
   const messagesMeasureRef = useRef<HTMLDivElement>(null)
   const composerFormRef = useRef<HTMLFormElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
+  const baselineContentHeightRef = useRef(0)
   const activeContextIdsRef = useRef<string[]>([])
   const pendingContextIdsRef = useRef<string[]>([])
   const dragStateRef = useRef<{
@@ -395,7 +396,7 @@ export function ConversationalAI({
     sheetMetrics.expanded || Number.POSITIVE_INFINITY,
     Math.max(sheetMetrics.compact || 0, Math.max(sheetMetrics.auto, manualSnapHeight ?? 0))
   )
-  const resolvedSheetHeight = dragHeight ?? (holdAtCompact && sheetMetrics.compact > 0 ? sheetMetrics.compact : resolvedAutoHeight)
+  const resolvedSheetHeight = dragHeight ?? (holdAtCompact && sheetMetrics.compact > 0 ? Math.max(sheetMetrics.compact, sheetMetrics.auto - baselineContentHeightRef.current) : resolvedAutoHeight)
 
   const getNearestSnapHeight = useCallback(
     (height: number) => {
@@ -554,7 +555,10 @@ export function ConversationalAI({
 
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
     setIsConversationSessionActive(true)
-    if (isConversationCollapsed) setHoldAtCompact(true)
+    if (isConversationCollapsed) {
+      baselineContentHeightRef.current = messagesMeasureRef.current?.offsetHeight ?? 0
+      setHoldAtCompact(true)
+    }
     setIsConversationCollapsed(false)
     setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
     setInputValue("")
