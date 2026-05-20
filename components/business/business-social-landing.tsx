@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect, useLayoutEffect, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
-import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
+import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -302,9 +302,9 @@ function SocialActions({ onComment }: { onComment?: () => void }) {
 }
 
 // ========================================
-// HEADER
+// FEED INTRO
 // ========================================
-function BusinessHeader({
+function BusinessFeedIntro({
   config,
   onCartClick,
   cartCount = 0,
@@ -314,47 +314,64 @@ function BusinessHeader({
   cartCount?: number
 }) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
+  const brandColor = config.brandColor || "#F97316"
   
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/98 backdrop-blur-xl border-b border-border/50 shadow-sm">
-      <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5">
-        <div className="flex items-center justify-between h-14">
-          <div className="flex items-center gap-3">
-            <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-border/50">
+    <section className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5">
+      <div className="relative overflow-hidden rounded-[28px] border border-border/50 bg-card/80 px-4 py-4 shadow-[0_18px_42px_-34px_rgba(15,23,42,0.42)]">
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-1"
+          style={{ background: `linear-gradient(90deg, ${brandColor}00, ${brandColor}99, ${brandColor}00)` }}
+        />
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl ring-1 ring-border/60">
               <Image src={config.logo} alt={config.name} fill className="object-cover" />
             </div>
-            <div>
-              <h1 className="font-semibold text-foreground text-base leading-tight">{config.name}</h1>
+            <div className="min-w-0">
+              <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Feed ao vivo
+              </p>
+              <h1 className="truncate text-base font-semibold leading-tight text-foreground">{config.name}</h1>
               {config.description && (
-                <p className="text-xs text-muted-foreground truncate max-w-[150px]">{config.description}</p>
+                <p className="mt-1 line-clamp-2 text-sm leading-snug text-muted-foreground">{config.description}</p>
               )}
             </div>
           </div>
           
-          <div className="flex items-center gap-1">
-            <button className="p-2.5 hover:bg-secondary rounded-full transition-colors">
-              <Search className="w-5 h-5 text-foreground" />
+          <div className="flex shrink-0 items-center gap-1 pt-0.5">
+            <button
+              type="button"
+              aria-label="Buscar no feed"
+              className="rounded-full bg-secondary/65 p-2.5 transition-colors hover:bg-secondary"
+            >
+              <Search className="h-5 w-5 text-foreground" />
             </button>
             <button
               type="button"
               aria-label={cartCount > 0 ? `Abrir carrinho com ${cartCount} itens` : "Abrir carrinho"}
               onClick={onCartClick}
-              className="relative p-2.5 hover:bg-secondary rounded-full transition-colors"
+              className="relative rounded-full bg-secondary/65 p-2.5 transition-colors hover:bg-secondary"
             >
-              <ShoppingBag className="w-5 h-5 text-foreground" />
+              <ShoppingBag className="h-5 w-5 text-foreground" />
               {cartCount > 0 ? (
                 <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-accent-foreground">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               ) : null}
             </button>
-            <div className="relative w-8 h-8 rounded-full overflow-hidden ml-1">
+            <div className="relative ml-1 h-8 w-8 overflow-hidden rounded-full ring-1 ring-border/60">
               <Image src={userAvatar} alt="Perfil" fill className="object-cover" />
             </div>
           </div>
         </div>
+        <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: brandColor }} />
+          <span className="truncate">conversas, novidades e escolhas em contexto</span>
+        </div>
       </div>
-    </header>
+    </section>
   )
 }
 
@@ -867,7 +884,6 @@ export function BusinessSocialLanding({
   conversationalAI,
   conversationResponseResolver,
   renderConversationVisualBlock,
-  reserveHeaderSpace = true,
   onHeaderCartClick,
   headerCartCount = 0,
 }: BusinessSocialLandingProps) {
@@ -895,7 +911,6 @@ export function BusinessSocialLanding({
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
   const [storyInitialIndex, setStoryInitialIndex] = useState(0)
-  const headerSpacerClass = "h-14"
   
   // Coleta todos os posts de conteudo para o FeedDrawer
   const allContentPosts = useMemo(() => {
@@ -1058,18 +1073,13 @@ export function BusinessSocialLanding({
   
   return (
     <div className="min-h-screen bg-background pb-32">
-      {/* Fixed Header */}
-      <BusinessHeader config={config} onCartClick={onHeaderCartClick} cartCount={headerCartCount} />
-      
-      {/* Spacer for fixed header */}
-      {reserveHeaderSpace && <div className={headerSpacerClass} />}
-      
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
+        {/* Feed intro */}
+        <BusinessFeedIntro config={config} onCartClick={onHeaderCartClick} cartCount={headerCartCount} />
+
         {/* Stories */}
-        <div className={reserveHeaderSpace ? "-mt-3" : undefined}>
-          <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
-        </div>
+        <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
 
         {/* Top content slot */}
         {topContent}
