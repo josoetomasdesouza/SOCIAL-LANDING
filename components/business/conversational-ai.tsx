@@ -13,7 +13,7 @@ import type {
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
 const COMPOSER_MASK_TOP_OFFSET_PX = 8
-const COMPOSER_SURFACE_COLOR = "rgba(45,50,58,0.96)"
+const COMPOSER_SURFACE_COLOR = "rgba(45,50,58,0.95)"
 const SHEET_TOP_SAFE_MARGIN_PX = 16
 const CONVERSATION_DOODLE_PATTERN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180' fill='none'%3E%3Cg stroke='%23242931' stroke-opacity='0.36' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 34c6-8 18-8 24 0 6 8 18 8 24 0'/%3E%3Cpath d='M112 22l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2 5-10Z'/%3E%3Cpath d='M36 96c0-7 6-13 13-13s13 6 13 13-6 13-13 13-13-6-13-13Z'/%3E%3Cpath d='M119 82c10-12 28-12 38 0'/%3E%3Cpath d='M121 92c8 9 20 9 28 0'/%3E%3Cpath d='M22 145c11-10 31-10 42 0'/%3E%3Cpath d='M74 126h20c7 0 12 5 12 12s-5 12-12 12H74c-7 0-12-5-12-12s5-12 12-12Z'/%3E%3Cpath d='M132 132c0-8 7-15 15-15s15 7 15 15-7 15-15 15-15-7-15-15Z'/%3E%3Cpath d='M92 60c0-6 5-11 11-11s11 5 11 11-5 11-11 11-11-5-11-11Z'/%3E%3C/g%3E%3C/svg%3E\")"
@@ -202,6 +202,7 @@ export function ConversationalAI({
   const shouldShowConversationBody = hasEngagedConversation && !isConversationCollapsed
   const shouldRenderConversationBody = hasEngagedConversation
   const shouldShowTopArea = hasEngagedConversation || showContextRow
+  const isCompactComposer = shouldShowTopArea && !shouldShowConversationBody
   const hasSheetBody = shouldRenderConversationBody || showContextRow
   const shouldApplySheetHeight = shouldShowTopArea || hasSheetBody
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
@@ -948,7 +949,10 @@ export function ConversationalAI({
             {shouldShowTopArea ? (
               <div
                 ref={topAreaRef}
-                className="shrink-0 border-b border-white/[0.07] px-4 pt-3 pb-2"
+                className={cn(
+                  "shrink-0 border-b px-4",
+                  isCompactComposer ? "border-white/[0.025] pt-1 pb-0" : "border-white/[0.07] pt-3 pb-2"
+                )}
                 style={composerSurfaceStyle}
               >
                 <div
@@ -963,9 +967,19 @@ export function ConversationalAI({
                   onPointerUp={handleSheetPointerRelease}
                   onPointerCancel={handleSheetPointerRelease}
                   onKeyDown={handleSheetHandleKeyDown}
-                  className="flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
+                  className={cn(
+                    "flex cursor-row-resize select-none touch-none items-center justify-center outline-none",
+                    isCompactComposer ? "py-1" : "py-1.5"
+                  )}
                 >
-                  <div className="h-1 w-10 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.26] to-white/[0.08]" />
+                  <div
+                    className={cn(
+                      "rounded-full bg-gradient-to-r",
+                      isCompactComposer
+                        ? "h-0.5 w-7 from-white/[0.04] via-white/[0.14] to-white/[0.04]"
+                        : "h-1 w-10 from-white/[0.08] via-white/[0.26] to-white/[0.08]"
+                    )}
+                  />
                 </div>
               </div>
             ) : null}
