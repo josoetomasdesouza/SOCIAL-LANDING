@@ -13,7 +13,7 @@ import type {
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
 const COMPOSER_MASK_TOP_OFFSET_PX = 8
-const COMPOSER_SURFACE_COLOR = "rgba(45,50,58,0.96)"
+const COMPOSER_SURFACE_COLOR = "rgba(45,50,58,0.95)"
 const SHEET_TOP_SAFE_MARGIN_PX = 16
 const CONVERSATION_DOODLE_PATTERN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180' fill='none'%3E%3Cg stroke='%23242931' stroke-opacity='0.36' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 34c6-8 18-8 24 0 6 8 18 8 24 0'/%3E%3Cpath d='M112 22l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2 5-10Z'/%3E%3Cpath d='M36 96c0-7 6-13 13-13s13 6 13 13-6 13-13 13-13-6-13-13Z'/%3E%3Cpath d='M119 82c10-12 28-12 38 0'/%3E%3Cpath d='M121 92c8 9 20 9 28 0'/%3E%3Cpath d='M22 145c11-10 31-10 42 0'/%3E%3Cpath d='M74 126h20c7 0 12 5 12 12s-5 12-12 12H74c-7 0-12-5-12-12s5-12 12-12Z'/%3E%3Cpath d='M132 132c0-8 7-15 15-15s15 7 15 15-7 15-15 15-15-7-15-15Z'/%3E%3Cpath d='M92 60c0-6 5-11 11-11s11 5 11 11-5 11-11 11-11-5-11-11Z'/%3E%3C/g%3E%3C/svg%3E\")"
@@ -23,6 +23,7 @@ const COMPACT_BODY_MIN_RATIO = 0.22
 const COMPACT_BODY_MIN_PX = 136
 const COMPACT_BODY_MAX_PX = 196
 const CLOSE_THRESHOLD_OFFSET_PX = 72
+const PREVIEW_DRAG_INTENT_THRESHOLD_PX = 4
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
 
 export type ConversationContextItem = ConversationContextPayload
@@ -146,6 +147,7 @@ export function ConversationalAI({
   const [isHistoryHydrated, setIsHistoryHydrated] = useState(false)
   const [isConversationSessionActive, setIsConversationSessionActive] = useState(false)
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
+  const [isCompactResumePreview, setIsCompactResumePreview] = useState(false)
   const [resumeSessionStartIndex, setResumeSessionStartIndex] = useState<number | null>(null)
   const [pendingContextIds, setPendingContextIds] = useState<string[]>([])
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
@@ -167,6 +169,7 @@ export function ConversationalAI({
   const messagesMeasureRef = useRef<HTMLDivElement>(null)
   const autoGrowMeasureRef = useRef<HTMLDivElement>(null)
   const composerFormRef = useRef<HTMLFormElement>(null)
+  const composerInputRef = useRef<HTMLInputElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
   const activeContextIdsRef = useRef<string[]>([])
   const pendingContextIdsRef = useRef<string[]>([])
@@ -175,6 +178,7 @@ export function ConversationalAI({
     startY: number
     startHeight: number
     startedCollapsed: boolean
+    startedPreview: boolean
   } | null>(null)
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
@@ -202,6 +206,19 @@ export function ConversationalAI({
   const shouldShowConversationBody = hasEngagedConversation && !isConversationCollapsed
   const shouldRenderConversationBody = hasEngagedConversation
   const shouldShowTopArea = hasEngagedConversation || showContextRow
+  const isCompactComposer = shouldShowTopArea && !shouldShowConversationBody
+  const isCollapsedConversation = hasEngagedConversation && isConversationCollapsed
+  const displayedMessages = useMemo(() => {
+    if (!isCompactResumePreview) {
+      return messages
+    }
+
+    const latestMessage =
+      [...messages].reverse().find((message) => message.role !== "context_event") ??
+      messages[messages.length - 1]
+
+    return latestMessage ? [latestMessage] : []
+  }, [isCompactResumePreview, messages])
   const hasSheetBody = shouldRenderConversationBody || showContextRow
   const shouldApplySheetHeight = shouldShowTopArea || hasSheetBody
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
@@ -224,6 +241,7 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
+    setIsCompactResumePreview(false)
     setResumeSessionStartIndex(null)
     setPendingContextIds([])
     activeContextIdsRef.current = []
@@ -250,6 +268,12 @@ export function ConversationalAI({
     }
   }, [shouldShowConversationBody, messages, isTyping])
 
+  useLayoutEffect(() => {
+    if (isCompactResumePreview) {
+      composerInputRef.current?.focus({ preventScroll: true })
+    }
+  }, [isCompactResumePreview])
+
   useEffect(() => {
     return () => {
       if (replyTimeoutRef.current !== null) {
@@ -272,18 +296,28 @@ export function ConversationalAI({
     const contextHeight = showContextRow ? contextRailRef.current?.offsetHeight ?? 0 : 0
     const formHeight = composerFormRef.current?.offsetHeight ?? 0
     const chromeHeight = topAreaHeight + contextHeight + formHeight
-    const compactBodyHeight = shouldShowConversationBody
-      ? Math.min(
-          COMPACT_BODY_MAX_PX,
-          Math.max(COMPACT_BODY_MIN_PX, Math.round(availableViewportHeight * COMPACT_BODY_MIN_RATIO))
-        )
+    const messagesContentElement = messagesContentRef.current
+    const messagesContentStyle = messagesContentElement ? window.getComputedStyle(messagesContentElement) : null
+    const messagesContentPaddingY = messagesContentStyle
+      ? parseFloat(messagesContentStyle.paddingTop) + parseFloat(messagesContentStyle.paddingBottom)
       : 0
-    const compact = Math.min(expanded, shouldShowConversationBody ? chromeHeight + compactBodyHeight : chromeHeight)
-    const conversationContentHeight = shouldShowConversationBody
+    const measuredConversationContentHeight = shouldShowConversationBody
       ? isResumeAutoGrowActive
         ? autoGrowMeasureRef.current?.offsetHeight ?? 0
         : messagesMeasureRef.current?.offsetHeight ?? messagesContentRef.current?.scrollHeight ?? 0
       : 0
+    const conversationContentHeight = shouldShowConversationBody
+      ? measuredConversationContentHeight + (isCompactResumePreview ? messagesContentPaddingY : 0)
+      : 0
+    const compactBodyHeight = shouldShowConversationBody
+      ? isCompactResumePreview
+        ? conversationContentHeight
+        : Math.min(
+            COMPACT_BODY_MAX_PX,
+            Math.max(COMPACT_BODY_MIN_PX, Math.round(availableViewportHeight * COMPACT_BODY_MIN_RATIO))
+          )
+      : 0
+    const compact = Math.min(expanded, shouldShowConversationBody ? chromeHeight + compactBodyHeight : chromeHeight)
     const auto = shouldShowConversationBody
       ? Math.min(expanded, Math.max(compact, chromeHeight + conversationContentHeight))
       : compact
@@ -366,13 +400,14 @@ export function ConversationalAI({
 
   useLayoutEffect(() => {
     measureSheetLayout()
-  }, [measureSheetLayout, messages, isTyping, contextItems.length, hiddenContextIds.length])
+  }, [measureSheetLayout, messages, isTyping, isCompactResumePreview, contextItems.length, hiddenContextIds.length])
 
   useEffect(() => {
     if (!hasEngagedConversation && !showContextRow) {
       setManualSnapHeight(null)
       setDragHeight(null)
       setIsConversationCollapsed(false)
+      setIsCompactResumePreview(false)
       setResumeSessionStartIndex(null)
     }
   }, [hasEngagedConversation, showContextRow])
@@ -560,11 +595,14 @@ export function ConversationalAI({
       role: "user",
       content: nextMessage,
     }
+    const shouldResumeFromCurrentMessages =
+      messages.length > 0 && (isConversationCollapsed || isCompactResumePreview || !isConversationSessionActive)
 
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
     setIsConversationSessionActive(true)
+    setIsCompactResumePreview(false)
 
-    if (messages.length > 0 && (isConversationCollapsed || !isConversationSessionActive)) {
+    if (shouldResumeFromCurrentMessages) {
       setResumeSessionStartIndex(messages.length)
     }
 
@@ -580,6 +618,7 @@ export function ConversationalAI({
       setMessages((prev) => [...prev, aiMessage])
       setIsTyping(false)
       setIsConversationCollapsed(false)
+      setIsCompactResumePreview(false)
       replyTimeoutRef.current = null
     }, 700)
   }
@@ -600,6 +639,7 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
+    setIsCompactResumePreview(false)
     setResumeSessionStartIndex(null)
     setPendingContextIds([])
     activeContextIdsRef.current = []
@@ -610,6 +650,7 @@ export function ConversationalAI({
   const commitSheetClose = useCallback(() => {
     setManualSnapHeight(null)
     setDragHeight(null)
+    setIsCompactResumePreview(false)
 
     if (hasEngagedConversation) {
       setIsConversationCollapsed(true)
@@ -629,6 +670,7 @@ export function ConversationalAI({
       startY: event.clientY,
       startHeight: resolvedSheetHeight || sheetMetrics.compact,
       startedCollapsed: isConversationCollapsed,
+      startedPreview: isCompactResumePreview,
     }
 
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -645,6 +687,11 @@ export function ConversationalAI({
 
     const deltaY = event.clientY - dragState.startY
     const nextHeight = Math.min(sheetMetrics.expanded, Math.max(0, dragState.startHeight - deltaY))
+
+    if (dragState.startedPreview && Math.abs(deltaY) >= PREVIEW_DRAG_INTENT_THRESHOLD_PX) {
+      setIsCompactResumePreview(false)
+      dragState.startedPreview = false
+    }
 
     if (dragState.startedCollapsed && nextHeight > dragState.startHeight) {
       setIsConversationCollapsed(false)
@@ -668,6 +715,11 @@ export function ConversationalAI({
     const currentHeight = dragHeight ?? dragState.startHeight
     dragStateRef.current = null
 
+    if (dragState.startedPreview && currentHeight <= dragState.startHeight) {
+      setDragHeight(null)
+      return
+    }
+
     if (dragState.startedCollapsed && currentHeight <= dragState.startHeight) {
       setDragHeight(null)
       return
@@ -683,6 +735,19 @@ export function ConversationalAI({
     setDragHeight(null)
   }
 
+  const handleCompactComposerPress = (event: React.PointerEvent<HTMLElement>) => {
+    if (!isCollapsedConversation || (event.pointerType === "mouse" && event.button !== 0)) {
+      return
+    }
+
+    event.preventDefault()
+    setDragHeight(null)
+    setManualSnapHeight(null)
+    setResumeSessionStartIndex(null)
+    setIsCompactResumePreview(true)
+    setIsConversationCollapsed(false)
+  }
+
   const handleSheetHandleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (snapHeights.length === 0) {
       return
@@ -690,6 +755,7 @@ export function ConversationalAI({
 
     if (event.key === "Home") {
       event.preventDefault()
+      setIsCompactResumePreview(false)
       setIsConversationCollapsed(false)
       setManualSnapHeight(sheetMetrics.compact)
       return
@@ -697,6 +763,7 @@ export function ConversationalAI({
 
     if (event.key === "End") {
       event.preventDefault()
+      setIsCompactResumePreview(false)
       setIsConversationCollapsed(false)
       setManualSnapHeight(sheetMetrics.expanded)
       return
@@ -707,6 +774,7 @@ export function ConversationalAI({
     }
 
     event.preventDefault()
+    setIsCompactResumePreview(false)
     setIsConversationCollapsed(false)
 
     const currentHeight = resolvedSheetHeight || sheetMetrics.compact
@@ -926,7 +994,7 @@ export function ConversationalAI({
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
           background:
-            "linear-gradient(to top, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.56) 24%, rgba(255, 255, 255, 0.2) 56%, rgba(255, 255, 255, 0.04) 82%, rgba(255, 255, 255, 0) 100%)",
+            "linear-gradient(to top, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.5) 24%, rgba(255, 255, 255, 0.18) 56%, rgba(255, 255, 255, 0.035) 82%, rgba(255, 255, 255, 0) 100%)",
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
@@ -936,8 +1004,9 @@ export function ConversationalAI({
         >
           <section
             data-conversation-composer="true"
+            onPointerDownCapture={handleCompactComposerPress}
             className={cn(
-              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px] transition-[height] duration-300 ease-out",
+              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] border border-white/[0.07] shadow-[0_24px_60px_-36px_rgba(2,6,23,0.62),0_10px_24px_-22px_rgba(15,23,42,0.34)] backdrop-blur-[18px] transition-[height] duration-300 ease-out",
               dragHeight !== null && "transition-none"
             )}
             style={{
@@ -945,10 +1014,13 @@ export function ConversationalAI({
               ...(shouldApplySheetHeight && resolvedSheetHeight > 0 ? { height: `${resolvedSheetHeight}px` } : {}),
             }}
           >
-            {shouldShowTopArea ? (
+            {shouldShowTopArea && !isCompactComposer ? (
               <div
                 ref={topAreaRef}
-                className="shrink-0 border-b border-white/[0.07] px-4 pt-3 pb-2"
+                className={cn(
+                  "shrink-0 border-b px-4",
+                  "border-white/[0.07] pt-3 pb-2"
+                )}
                 style={composerSurfaceStyle}
               >
                 <div
@@ -963,9 +1035,11 @@ export function ConversationalAI({
                   onPointerUp={handleSheetPointerRelease}
                   onPointerCancel={handleSheetPointerRelease}
                   onKeyDown={handleSheetHandleKeyDown}
-                  className="flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
+                  className="relative flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
                 >
-                  <div className="h-1 w-10 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.26] to-white/[0.08]" />
+                  <div
+                    className="h-1 w-10 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.26] to-white/[0.08]"
+                  />
                 </div>
               </div>
             ) : null}
@@ -999,9 +1073,11 @@ export function ConversationalAI({
                   )}
                 >
                   <div ref={messagesMeasureRef}>
-                    {messages.map((message, index) => renderConversationMessage(message, index, messages))}
+                    {displayedMessages.map((message, index) =>
+                      renderConversationMessage(message, index, displayedMessages)
+                    )}
 
-                    {isTyping ? renderTypingIndicator(messages.length > 0) : null}
+                    {isTyping ? renderTypingIndicator(displayedMessages.length > 0) : null}
 
                     <div ref={messagesEndRef} />
                   </div>
@@ -1049,6 +1125,7 @@ export function ConversationalAI({
                 <Image src={USER_AVATAR} alt="Usuario" fill className="object-cover" />
               </button>
               <input
+                ref={composerInputRef}
                 type="text"
                 value={inputValue}
                 onChange={(event) => setInputValue(event.target.value)}
