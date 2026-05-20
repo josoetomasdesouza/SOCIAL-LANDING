@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useMemo, useEffect, useLayoutEffect, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
-import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, ShoppingBag } from "lucide-react"
+import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import type { BusinessConfig } from "@/lib/business-types"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
@@ -224,10 +225,6 @@ function createMorphSpawnRect(sourceRect: PostToChatMorphRect, targetRect: PostT
   }
 }
 
-function getBusinessAccentColor(config: BusinessConfig) {
-  return (config as BusinessConfig & { brandColor?: string }).brandColor || config.primaryColor || "#F97316"
-}
-
 // ========================================
 // AVATARES E PROVA SOCIAL
 // ========================================
@@ -305,9 +302,9 @@ function SocialActions({ onComment }: { onComment?: () => void }) {
 }
 
 // ========================================
-// FEED INTRO
+// HEADER
 // ========================================
-function BusinessFeedIntro({
+function BusinessHeader({
   config,
   onCartClick,
   cartCount = 0,
@@ -319,40 +316,45 @@ function BusinessFeedIntro({
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
   
   return (
-    <section className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-1 ring-border/60">
-            <Image src={config.logo} alt={config.name} fill className="object-cover" />
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/98 backdrop-blur-xl border-b border-border/50 shadow-sm">
+      <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5">
+        <div className="flex items-center justify-between h-14">
+          <div className="flex items-center gap-3">
+            <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-border/50">
+              <Image src={config.logo} alt={config.name} fill className="object-cover" />
+            </div>
+            <div>
+              <h1 className="font-semibold text-foreground text-base leading-tight">{config.name}</h1>
+              {config.description && (
+                <p className="text-xs text-muted-foreground truncate max-w-[150px]">{config.description}</p>
+              )}
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-base font-semibold leading-tight text-foreground">{config.name}</h1>
-            {config.description && (
-              <p className="mt-1 line-clamp-2 text-sm leading-snug text-muted-foreground">{config.description}</p>
-            )}
-          </div>
-        </div>
-        
-        <div className="flex shrink-0 items-center gap-1 pt-0.5">
-          <button
-            type="button"
-            aria-label={cartCount > 0 ? `Abrir carrinho com ${cartCount} itens` : "Abrir carrinho"}
-            onClick={onCartClick}
-            className="relative rounded-full p-2.5 transition-colors hover:bg-secondary"
-          >
-            <ShoppingBag className="h-5 w-5 text-foreground" />
-            {cartCount > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-accent-foreground">
-                {cartCount > 99 ? "99+" : cartCount}
-              </span>
-            ) : null}
-          </button>
-          <div className="relative ml-1 h-8 w-8 overflow-hidden rounded-full">
-            <Image src={userAvatar} alt="Perfil" fill className="object-cover" />
+          
+          <div className="flex items-center gap-1">
+            <button className="p-2.5 hover:bg-secondary rounded-full transition-colors">
+              <Search className="w-5 h-5 text-foreground" />
+            </button>
+            <button
+              type="button"
+              aria-label={cartCount > 0 ? `Abrir carrinho com ${cartCount} itens` : "Abrir carrinho"}
+              onClick={onCartClick}
+              className="relative p-2.5 hover:bg-secondary rounded-full transition-colors"
+            >
+              <ShoppingBag className="w-5 h-5 text-foreground" />
+              {cartCount > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-accent-foreground">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              ) : null}
+            </button>
+            <div className="relative w-8 h-8 rounded-full overflow-hidden ml-1">
+              <Image src={userAvatar} alt="Perfil" fill className="object-cover" />
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </header>
   )
 }
 
@@ -503,10 +505,10 @@ function BusinessStories({ stories, config, onStoryClick }: {
   onStoryClick?: (story: BusinessStory, index: number) => void 
 }) {
   // Gera gradiente baseado na cor da marca
-  const brandColor = getBusinessAccentColor(config)
+  const brandColor = config.brandColor || "#F97316"
   
   return (
-    <section className="border-y border-border/50 bg-background py-5">
+    <section className="pt-0 pb-5 border-b border-border/50 bg-background">
       <div className="px-4 sm:px-5">
         <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:-mx-5 sm:px-5">
           {stories.map((story, index) => (
@@ -540,6 +542,26 @@ function BusinessStories({ stories, config, onStoryClick }: {
               </span>
             </button>
           ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ========================================
+// SEARCH BAR
+// ========================================
+function BusinessSearchBar({ placeholder }: { placeholder?: string }) {
+  return (
+    <section className="py-5 bg-background">
+      <div className="px-4 sm:px-5">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder={placeholder || "O que voce quer encontrar?"}
+            className="w-full h-12 pl-12 pr-4 bg-secondary border-0 rounded-2xl text-[15px] placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-accent"
+          />
         </div>
       </div>
     </section>
@@ -845,6 +867,7 @@ export function BusinessSocialLanding({
   conversationalAI,
   conversationResponseResolver,
   renderConversationVisualBlock,
+  reserveHeaderSpace = true,
   onHeaderCartClick,
   headerCartCount = 0,
 }: BusinessSocialLandingProps) {
@@ -872,6 +895,7 @@ export function BusinessSocialLanding({
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
   const [storyInitialIndex, setStoryInitialIndex] = useState(0)
+  const headerSpacerClass = "h-14"
   
   // Coleta todos os posts de conteudo para o FeedDrawer
   const allContentPosts = useMemo(() => {
@@ -1034,16 +1058,24 @@ export function BusinessSocialLanding({
   
   return (
     <div className="min-h-screen bg-background pb-32">
+      {/* Fixed Header */}
+      <BusinessHeader config={config} onCartClick={onHeaderCartClick} cartCount={headerCartCount} />
+      
+      {/* Spacer for fixed header */}
+      {reserveHeaderSpace && <div className={headerSpacerClass} />}
+      
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
-        {/* Feed intro */}
-        <BusinessFeedIntro config={config} onCartClick={onHeaderCartClick} cartCount={headerCartCount} />
-
         {/* Stories */}
-        <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
+        <div className={reserveHeaderSpace ? "-mt-3" : undefined}>
+          <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
+        </div>
 
         {/* Top content slot */}
         {topContent}
+        
+        {/* Search Bar */}
+        <BusinessSearchBar placeholder={`Buscar em ${config.name}...`} />
         
         {/* Sections */}
         <div className="px-4 sm:px-5 py-6">
