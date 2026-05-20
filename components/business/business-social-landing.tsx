@@ -506,7 +506,7 @@ function BusinessStories({ stories, config, onStoryClick }: {
   const brandColor = getBusinessAccentColor(config)
   
   return (
-    <section className="border-y border-border/50 bg-background pt-0 pb-5">
+    <section className="border-y border-border/50 bg-background py-5">
       <div className="px-4 sm:px-5">
         <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:-mx-5 sm:px-5">
           {stories.map((story, index) => (
