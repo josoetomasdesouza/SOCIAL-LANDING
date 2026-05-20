@@ -23,6 +23,7 @@ const COMPACT_BODY_MIN_RATIO = 0.22
 const COMPACT_BODY_MIN_PX = 136
 const COMPACT_BODY_MAX_PX = 196
 const CLOSE_THRESHOLD_OFFSET_PX = 72
+const PREVIEW_DRAG_INTENT_THRESHOLD_PX = 4
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
 
 export type ConversationContextItem = ConversationContextPayload
@@ -168,6 +169,7 @@ export function ConversationalAI({
   const messagesMeasureRef = useRef<HTMLDivElement>(null)
   const autoGrowMeasureRef = useRef<HTMLDivElement>(null)
   const composerFormRef = useRef<HTMLFormElement>(null)
+  const composerInputRef = useRef<HTMLInputElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
   const activeContextIdsRef = useRef<string[]>([])
   const pendingContextIdsRef = useRef<string[]>([])
@@ -176,6 +178,7 @@ export function ConversationalAI({
     startY: number
     startHeight: number
     startedCollapsed: boolean
+    startedPreview: boolean
   } | null>(null)
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
@@ -264,6 +267,12 @@ export function ConversationalAI({
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
   }, [shouldShowConversationBody, messages, isTyping])
+
+  useLayoutEffect(() => {
+    if (isCompactResumePreview) {
+      composerInputRef.current?.focus({ preventScroll: true })
+    }
+  }, [isCompactResumePreview])
 
   useEffect(() => {
     return () => {
@@ -656,13 +665,12 @@ export function ConversationalAI({
       return
     }
 
-    setIsCompactResumePreview(false)
-
     dragStateRef.current = {
       pointerId: event.pointerId,
       startY: event.clientY,
       startHeight: resolvedSheetHeight || sheetMetrics.compact,
       startedCollapsed: isConversationCollapsed,
+      startedPreview: isCompactResumePreview,
     }
 
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -679,6 +687,11 @@ export function ConversationalAI({
 
     const deltaY = event.clientY - dragState.startY
     const nextHeight = Math.min(sheetMetrics.expanded, Math.max(0, dragState.startHeight - deltaY))
+
+    if (dragState.startedPreview && Math.abs(deltaY) >= PREVIEW_DRAG_INTENT_THRESHOLD_PX) {
+      setIsCompactResumePreview(false)
+      dragState.startedPreview = false
+    }
 
     if (dragState.startedCollapsed && nextHeight > dragState.startHeight) {
       setIsConversationCollapsed(false)
@@ -701,6 +714,11 @@ export function ConversationalAI({
 
     const currentHeight = dragHeight ?? dragState.startHeight
     dragStateRef.current = null
+
+    if (dragState.startedPreview && currentHeight <= dragState.startHeight) {
+      setDragHeight(null)
+      return
+    }
 
     if (dragState.startedCollapsed && currentHeight <= dragState.startHeight) {
       setDragHeight(null)
@@ -1107,6 +1125,7 @@ export function ConversationalAI({
                 <Image src={USER_AVATAR} alt="Usuario" fill className="object-cover" />
               </button>
               <input
+                ref={composerInputRef}
                 type="text"
                 value={inputValue}
                 onChange={(event) => setInputValue(event.target.value)}
