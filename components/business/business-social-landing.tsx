@@ -225,6 +225,10 @@ function createMorphSpawnRect(sourceRect: PostToChatMorphRect, targetRect: PostT
   }
 }
 
+function getBusinessAccentColor(config: BusinessConfig) {
+  return (config as BusinessConfig & { brandColor?: string }).brandColor || config.primaryColor || "#F97316"
+}
+
 // ========================================
 // AVATARES E PROVA SOCIAL
 // ========================================
@@ -314,7 +318,7 @@ function BusinessFeedIntro({
   cartCount?: number
 }) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
-  const brandColor = config.brandColor || "#F97316"
+  const brandColor = getBusinessAccentColor(config)
   
   return (
     <section className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5">
@@ -522,7 +526,7 @@ function BusinessStories({ stories, config, onStoryClick }: {
   onStoryClick?: (story: BusinessStory, index: number) => void 
 }) {
   // Gera gradiente baseado na cor da marca
-  const brandColor = config.brandColor || "#F97316"
+  const brandColor = getBusinessAccentColor(config)
   
   return (
     <section className="pt-0 pb-5 border-b border-border/50 bg-background">
