@@ -146,6 +146,7 @@ export function ConversationalAI({
   const [isHistoryHydrated, setIsHistoryHydrated] = useState(false)
   const [isConversationSessionActive, setIsConversationSessionActive] = useState(false)
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
+  const [holdAtCompact, setHoldAtCompact] = useState(false)
   const [pendingContextIds, setPendingContextIds] = useState<string[]>([])
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
   const [dragHeight, setDragHeight] = useState<number | null>(null)
@@ -363,6 +364,12 @@ export function ConversationalAI({
   }, [hasEngagedConversation, showContextRow])
 
   useEffect(() => {
+    if (!holdAtCompact) return
+    const id = setTimeout(() => setHoldAtCompact(false), 300)
+    return () => clearTimeout(id)
+  }, [holdAtCompact])
+
+  useEffect(() => {
     if (manualSnapHeight === null) {
       return
     }
@@ -389,7 +396,7 @@ export function ConversationalAI({
     sheetMetrics.expanded || Number.POSITIVE_INFINITY,
     Math.max(sheetMetrics.compact || 0, Math.max(sheetMetrics.auto, manualSnapHeight ?? 0))
   )
-  const resolvedSheetHeight = dragHeight ?? resolvedAutoHeight
+  const resolvedSheetHeight = dragHeight ?? (holdAtCompact && sheetMetrics.compact > 0 ? sheetMetrics.compact : resolvedAutoHeight)
 
   const getNearestSnapHeight = useCallback(
     (height: number) => {
@@ -548,6 +555,7 @@ export function ConversationalAI({
 
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
     setIsConversationSessionActive(true)
+    if (isConversationCollapsed) setHoldAtCompact(true)
     setIsConversationCollapsed(false)
     setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
     setInputValue("")
