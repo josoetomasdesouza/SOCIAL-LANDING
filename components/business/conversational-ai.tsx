@@ -365,9 +365,8 @@ export function ConversationalAI({
 
   useEffect(() => {
     if (!holdAtCompact) return
-    const id = setTimeout(() => setHoldAtCompact(false), 300)
-    return () => clearTimeout(id)
-  }, [holdAtCompact])
+    if (!hasEngagedConversation || manualSnapHeight !== null) setHoldAtCompact(false)
+  }, [holdAtCompact, hasEngagedConversation, manualSnapHeight])
 
   useEffect(() => {
     if (manualSnapHeight === null) {
