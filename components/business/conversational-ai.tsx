@@ -23,6 +23,7 @@ const COMPACT_BODY_MIN_RATIO = 0.22
 const COMPACT_BODY_MIN_PX = 136
 const COMPACT_BODY_MAX_PX = 196
 const CLOSE_THRESHOLD_OFFSET_PX = 72
+const COMPACT_COMPOSER_DRAG_THRESHOLD_PX = 8
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
 
 export type ConversationContextItem = ConversationContextPayload
@@ -175,6 +176,11 @@ export function ConversationalAI({
     startY: number
     startHeight: number
     startedCollapsed: boolean
+  } | null>(null)
+  const compactComposerDragCandidateRef = useRef<{
+    pointerId: number
+    startX: number
+    startY: number
   } | null>(null)
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
@@ -620,14 +626,14 @@ export function ConversationalAI({
     handleCloseConversation()
   }, [handleCloseConversation, hasEngagedConversation])
 
-  const handleSheetPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const startSheetDrag = (event: React.PointerEvent<HTMLElement>, startY = event.clientY) => {
     if (sheetMetrics.compact <= 0) {
       return
     }
 
     dragStateRef.current = {
       pointerId: event.pointerId,
-      startY: event.clientY,
+      startY,
       startHeight: resolvedSheetHeight || sheetMetrics.compact,
       startedCollapsed: isConversationCollapsed,
     }
@@ -635,7 +641,11 @@ export function ConversationalAI({
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
-  const handleSheetPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handleSheetPointerDown = (event: React.PointerEvent<HTMLElement>) => {
+    startSheetDrag(event)
+  }
+
+  const handleSheetPointerMove = (event: React.PointerEvent<HTMLElement>) => {
     const dragState = dragStateRef.current
 
     if (!dragState || dragState.pointerId !== event.pointerId) {
@@ -655,7 +665,7 @@ export function ConversationalAI({
     setDragHeight(nextHeight)
   }
 
-  const handleSheetPointerRelease = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handleSheetPointerRelease = (event: React.PointerEvent<HTMLElement>) => {
     const dragState = dragStateRef.current
 
     if (!dragState || dragState.pointerId !== event.pointerId) {
@@ -682,6 +692,57 @@ export function ConversationalAI({
     setIsConversationCollapsed(false)
     setManualSnapHeight(getNearestSnapHeight(currentHeight))
     setDragHeight(null)
+  }
+
+  const handleCompactComposerPointerDown = (event: React.PointerEvent<HTMLFormElement>) => {
+    if (!isCompactComposer || sheetMetrics.compact <= 0) {
+      return
+    }
+
+    compactComposerDragCandidateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+    }
+  }
+
+  const handleCompactComposerPointerMove = (event: React.PointerEvent<HTMLFormElement>) => {
+    const dragState = dragStateRef.current
+
+    if (dragState?.pointerId === event.pointerId) {
+      handleSheetPointerMove(event)
+      return
+    }
+
+    const candidate = compactComposerDragCandidateRef.current
+
+    if (!candidate || candidate.pointerId !== event.pointerId) {
+      return
+    }
+
+    const deltaX = event.clientX - candidate.startX
+    const deltaY = event.clientY - candidate.startY
+
+    if (
+      Math.abs(deltaY) < COMPACT_COMPOSER_DRAG_THRESHOLD_PX ||
+      Math.abs(deltaY) <= Math.abs(deltaX)
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    startSheetDrag(event, candidate.startY)
+    handleSheetPointerMove(event)
+  }
+
+  const handleCompactComposerPointerRelease = (event: React.PointerEvent<HTMLFormElement>) => {
+    if (dragStateRef.current?.pointerId === event.pointerId) {
+      handleSheetPointerRelease(event)
+    }
+
+    if (compactComposerDragCandidateRef.current?.pointerId === event.pointerId) {
+      compactComposerDragCandidateRef.current = null
+    }
   }
 
   const handleSheetHandleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -1053,7 +1114,14 @@ export function ConversationalAI({
             <form
               ref={composerFormRef}
               onSubmit={handleSubmit}
-              className="flex shrink-0 items-center gap-3 px-3 py-2.5"
+              onPointerDown={handleCompactComposerPointerDown}
+              onPointerMove={handleCompactComposerPointerMove}
+              onPointerUp={handleCompactComposerPointerRelease}
+              onPointerCancel={handleCompactComposerPointerRelease}
+              className={cn(
+                "flex shrink-0 items-center gap-3 px-3 py-2.5",
+                isCompactComposer && "touch-none"
+              )}
               style={composerSurfaceStyle}
             >
               <button
