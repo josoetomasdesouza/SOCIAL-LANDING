@@ -926,7 +926,7 @@ export function ConversationalAI({
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
           background:
-            "linear-gradient(to top, rgba(255, 255, 255, 0.44) 0%, rgba(255, 255, 255, 0.18) 18%, rgba(255, 255, 255, 0.06) 44%, rgba(255, 255, 255, 0.01) 72%, rgba(255, 255, 255, 0) 100%)",
+            "linear-gradient(to top, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.56) 24%, rgba(255, 255, 255, 0.2) 56%, rgba(255, 255, 255, 0.04) 82%, rgba(255, 255, 255, 0) 100%)",
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
@@ -937,7 +937,7 @@ export function ConversationalAI({
           <section
             data-conversation-composer="true"
             className={cn(
-              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_4px_28px_-8px_rgba(2,6,23,0.24),0_2px_12px_-6px_rgba(15,23,42,0.16)] backdrop-blur-[18px] transition-[height] duration-300 ease-out",
+              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_28px_68px_-34px_rgba(2,6,23,0.72),0_12px_28px_-22px_rgba(15,23,42,0.42)] backdrop-blur-[18px] transition-[height] duration-300 ease-out",
               dragHeight !== null && "transition-none"
             )}
             style={{
