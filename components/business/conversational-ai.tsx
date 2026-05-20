@@ -968,8 +968,10 @@ export function ConversationalAI({
                   onPointerCancel={handleSheetPointerRelease}
                   onKeyDown={handleSheetHandleKeyDown}
                   className={cn(
-                    "flex cursor-row-resize select-none touch-none items-center justify-center outline-none",
-                    isCompactComposer ? "py-1" : "py-1.5"
+                    "relative flex cursor-row-resize select-none touch-none items-center justify-center outline-none",
+                    isCompactComposer
+                      ? "py-1 before:absolute before:-inset-x-4 before:-inset-y-3 before:rounded-full before:bg-transparent before:content-['']"
+                      : "py-1.5"
                   )}
                 >
                   <div
