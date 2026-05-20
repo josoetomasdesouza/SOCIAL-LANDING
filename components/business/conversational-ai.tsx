@@ -366,6 +366,16 @@ export function ConversationalAI({
 
   useEffect(() => {
     if (!holdAtCompact) return
+    if (process.env.NODE_ENV !== "production") {
+      const willClear = !hasEngagedConversation || manualSnapHeight !== null
+      console.log("[COMPOSER_AUTOGROW_DEBUG] holdAtCompact cleanup check", {
+        holdAtCompact,
+        hasEngagedConversation,
+        manualSnapHeight,
+        willClear,
+        reason: !hasEngagedConversation ? "no-conversation" : manualSnapHeight !== null ? "manual-snap" : "none",
+      })
+    }
     if (!hasEngagedConversation || manualSnapHeight !== null) setHoldAtCompact(false)
   }, [holdAtCompact, hasEngagedConversation, manualSnapHeight])
 
@@ -397,6 +407,21 @@ export function ConversationalAI({
     Math.max(sheetMetrics.compact || 0, Math.max(sheetMetrics.auto, manualSnapHeight ?? 0))
   )
   const resolvedSheetHeight = dragHeight ?? (holdAtCompact && sheetMetrics.compact > 0 ? Math.max(sheetMetrics.compact, sheetMetrics.auto - baselineContentHeightRef.current) : resolvedAutoHeight)
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return
+    console.log("[COMPOSER_AUTOGROW_DEBUG] resolvedSheetHeight", {
+      holdAtCompact,
+      compact: sheetMetrics.compact,
+      auto: sheetMetrics.auto,
+      baseline: baselineContentHeightRef.current,
+      autoMinusBaseline: sheetMetrics.auto - baselineContentHeightRef.current,
+      resolvedAutoHeight,
+      resolvedSheetHeight,
+      dragHeight,
+      manualSnapHeight,
+    })
+  })
 
   const getNearestSnapHeight = useCallback(
     (height: number) => {
@@ -555,10 +580,29 @@ export function ConversationalAI({
 
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
     setIsConversationSessionActive(true)
+
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[COMPOSER_AUTOGROW_DEBUG] handleSendMessage — before collapse check", {
+        isConversationCollapsed,
+        holdAtCompactBefore: holdAtCompact,
+        messagesLength: messages.length,
+        manualSnapHeight,
+        messagesHeightDOM: messagesMeasureRef.current?.offsetHeight,
+        baselineBefore: baselineContentHeightRef.current,
+      })
+    }
+
     if (isConversationCollapsed) {
       baselineContentHeightRef.current = messagesMeasureRef.current?.offsetHeight ?? 0
       setHoldAtCompact(true)
+      if (process.env.NODE_ENV !== "production") {
+        console.log("[COMPOSER_AUTOGROW_DEBUG] handleSendMessage — baseline captured", {
+          baselineAfterCapture: baselineContentHeightRef.current,
+          holdAtCompactWillBeTrue: true,
+        })
+      }
     }
+
     setIsConversationCollapsed(false)
     setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
     setInputValue("")
