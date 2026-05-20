@@ -2,10 +2,9 @@
 
 import { useState, useCallback, useMemo, useEffect, useLayoutEffect, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
-import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, Search, ShoppingBag } from "lucide-react"
+import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, ShoppingBag } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import type { BusinessConfig } from "@/lib/business-types"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
@@ -337,13 +336,6 @@ function BusinessFeedIntro({
         <div className="flex shrink-0 items-center gap-1 pt-0.5">
           <button
             type="button"
-            aria-label="Buscar no feed"
-            className="rounded-full p-2.5 transition-colors hover:bg-secondary"
-          >
-            <Search className="h-5 w-5 text-foreground" />
-          </button>
-          <button
-            type="button"
             aria-label={cartCount > 0 ? `Abrir carrinho com ${cartCount} itens` : "Abrir carrinho"}
             onClick={onCartClick}
             className="relative rounded-full p-2.5 transition-colors hover:bg-secondary"
@@ -514,7 +506,7 @@ function BusinessStories({ stories, config, onStoryClick }: {
   const brandColor = getBusinessAccentColor(config)
   
   return (
-    <section className="pt-0 pb-5 border-b border-border/50 bg-background">
+    <section className="border-y border-border/50 bg-background pt-0 pb-5">
       <div className="px-4 sm:px-5">
         <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:-mx-5 sm:px-5">
           {stories.map((story, index) => (
@@ -548,26 +540,6 @@ function BusinessStories({ stories, config, onStoryClick }: {
               </span>
             </button>
           ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ========================================
-// SEARCH BAR
-// ========================================
-function BusinessSearchBar({ placeholder }: { placeholder?: string }) {
-  return (
-    <section className="py-5 bg-background">
-      <div className="px-4 sm:px-5">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder={placeholder || "O que voce quer encontrar?"}
-            className="w-full h-12 pl-12 pr-4 bg-secondary border-0 rounded-2xl text-[15px] placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-accent"
-          />
         </div>
       </div>
     </section>
@@ -1072,9 +1044,6 @@ export function BusinessSocialLanding({
 
         {/* Top content slot */}
         {topContent}
-        
-        {/* Search Bar */}
-        <BusinessSearchBar placeholder={`Buscar em ${config.name}...`} />
         
         {/* Sections */}
         <div className="px-4 sm:px-5 py-6">
