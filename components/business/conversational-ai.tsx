@@ -146,6 +146,7 @@ export function ConversationalAI({
   const [isHistoryHydrated, setIsHistoryHydrated] = useState(false)
   const [isConversationSessionActive, setIsConversationSessionActive] = useState(false)
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
+  const [isCompactResumePreview, setIsCompactResumePreview] = useState(false)
   const [resumeSessionStartIndex, setResumeSessionStartIndex] = useState<number | null>(null)
   const [pendingContextIds, setPendingContextIds] = useState<string[]>([])
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
@@ -204,6 +205,17 @@ export function ConversationalAI({
   const shouldShowTopArea = hasEngagedConversation || showContextRow
   const isCompactComposer = shouldShowTopArea && !shouldShowConversationBody
   const isCollapsedConversation = hasEngagedConversation && isConversationCollapsed
+  const displayedMessages = useMemo(() => {
+    if (!isCompactResumePreview) {
+      return messages
+    }
+
+    const latestMessage =
+      [...messages].reverse().find((message) => message.role !== "context_event") ??
+      messages[messages.length - 1]
+
+    return latestMessage ? [latestMessage] : []
+  }, [isCompactResumePreview, messages])
   const hasSheetBody = shouldRenderConversationBody || showContextRow
   const shouldApplySheetHeight = shouldShowTopArea || hasSheetBody
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
@@ -226,6 +238,7 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
+    setIsCompactResumePreview(false)
     setResumeSessionStartIndex(null)
     setPendingContextIds([])
     activeContextIdsRef.current = []
@@ -368,13 +381,14 @@ export function ConversationalAI({
 
   useLayoutEffect(() => {
     measureSheetLayout()
-  }, [measureSheetLayout, messages, isTyping, contextItems.length, hiddenContextIds.length])
+  }, [measureSheetLayout, messages, isTyping, isCompactResumePreview, contextItems.length, hiddenContextIds.length])
 
   useEffect(() => {
     if (!hasEngagedConversation && !showContextRow) {
       setManualSnapHeight(null)
       setDragHeight(null)
       setIsConversationCollapsed(false)
+      setIsCompactResumePreview(false)
       setResumeSessionStartIndex(null)
     }
   }, [hasEngagedConversation, showContextRow])
@@ -565,6 +579,7 @@ export function ConversationalAI({
 
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
     setIsConversationSessionActive(true)
+    setIsCompactResumePreview(false)
 
     if (messages.length > 0 && (isConversationCollapsed || !isConversationSessionActive)) {
       setResumeSessionStartIndex(messages.length)
@@ -582,6 +597,7 @@ export function ConversationalAI({
       setMessages((prev) => [...prev, aiMessage])
       setIsTyping(false)
       setIsConversationCollapsed(false)
+      setIsCompactResumePreview(false)
       replyTimeoutRef.current = null
     }, 700)
   }
@@ -602,6 +618,7 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
+    setIsCompactResumePreview(false)
     setResumeSessionStartIndex(null)
     setPendingContextIds([])
     activeContextIdsRef.current = []
@@ -612,6 +629,7 @@ export function ConversationalAI({
   const commitSheetClose = useCallback(() => {
     setManualSnapHeight(null)
     setDragHeight(null)
+    setIsCompactResumePreview(false)
 
     if (hasEngagedConversation) {
       setIsConversationCollapsed(true)
@@ -625,6 +643,8 @@ export function ConversationalAI({
     if (sheetMetrics.compact <= 0) {
       return
     }
+
+    setIsCompactResumePreview(false)
 
     dragStateRef.current = {
       pointerId: event.pointerId,
@@ -693,6 +713,8 @@ export function ConversationalAI({
     event.preventDefault()
     setDragHeight(null)
     setManualSnapHeight(null)
+    setResumeSessionStartIndex(null)
+    setIsCompactResumePreview(true)
     setIsConversationCollapsed(false)
   }
 
@@ -703,6 +725,7 @@ export function ConversationalAI({
 
     if (event.key === "Home") {
       event.preventDefault()
+      setIsCompactResumePreview(false)
       setIsConversationCollapsed(false)
       setManualSnapHeight(sheetMetrics.compact)
       return
@@ -710,6 +733,7 @@ export function ConversationalAI({
 
     if (event.key === "End") {
       event.preventDefault()
+      setIsCompactResumePreview(false)
       setIsConversationCollapsed(false)
       setManualSnapHeight(sheetMetrics.expanded)
       return
@@ -720,6 +744,7 @@ export function ConversationalAI({
     }
 
     event.preventDefault()
+    setIsCompactResumePreview(false)
     setIsConversationCollapsed(false)
 
     const currentHeight = resolvedSheetHeight || sheetMetrics.compact
@@ -1018,9 +1043,11 @@ export function ConversationalAI({
                   )}
                 >
                   <div ref={messagesMeasureRef}>
-                    {messages.map((message, index) => renderConversationMessage(message, index, messages))}
+                    {displayedMessages.map((message, index) =>
+                      renderConversationMessage(message, index, displayedMessages)
+                    )}
 
-                    {isTyping ? renderTypingIndicator(messages.length > 0) : null}
+                    {isTyping ? renderTypingIndicator(displayedMessages.length > 0) : null}
 
                     <div ref={messagesEndRef} />
                   </div>
