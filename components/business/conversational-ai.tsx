@@ -23,6 +23,7 @@ const COMPACT_BODY_MIN_RATIO = 0.22
 const COMPACT_BODY_MIN_PX = 136
 const COMPACT_BODY_MAX_PX = 196
 const CLOSE_THRESHOLD_OFFSET_PX = 72
+const COMPACT_SURFACE_DRAG_THRESHOLD_PX = 12
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
 
 export type ConversationContextItem = ConversationContextPayload
@@ -175,6 +176,11 @@ export function ConversationalAI({
     startY: number
     startHeight: number
     startedCollapsed: boolean
+  } | null>(null)
+  const compactSurfaceDragCandidateRef = useRef<{
+    pointerId: number
+    startX: number
+    startY: number
   } | null>(null)
   const hasConversation = messages.length > 0 || isTyping
   const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
@@ -620,14 +626,14 @@ export function ConversationalAI({
     handleCloseConversation()
   }, [handleCloseConversation, hasEngagedConversation])
 
-  const handleSheetPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const startSheetDrag = (event: React.PointerEvent<HTMLElement>, startY = event.clientY) => {
     if (sheetMetrics.compact <= 0) {
       return
     }
 
     dragStateRef.current = {
       pointerId: event.pointerId,
-      startY: event.clientY,
+      startY,
       startHeight: resolvedSheetHeight || sheetMetrics.compact,
       startedCollapsed: isConversationCollapsed,
     }
@@ -635,7 +641,11 @@ export function ConversationalAI({
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
-  const handleSheetPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handleSheetPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    startSheetDrag(event)
+  }
+
+  const handleSheetPointerMove = (event: React.PointerEvent<HTMLElement>) => {
     const dragState = dragStateRef.current
 
     if (!dragState || dragState.pointerId !== event.pointerId) {
@@ -655,7 +665,7 @@ export function ConversationalAI({
     setDragHeight(nextHeight)
   }
 
-  const handleSheetPointerRelease = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handleSheetPointerRelease = (event: React.PointerEvent<HTMLElement>) => {
     const dragState = dragStateRef.current
 
     if (!dragState || dragState.pointerId !== event.pointerId) {
@@ -682,6 +692,66 @@ export function ConversationalAI({
     setIsConversationCollapsed(false)
     setManualSnapHeight(getNearestSnapHeight(currentHeight))
     setDragHeight(null)
+  }
+
+  const handleCompactSurfacePointerDown = (event: React.PointerEvent<HTMLElement>) => {
+    if (!isCompactComposer || event.pointerType !== "touch" || sheetMetrics.compact <= 0) {
+      return
+    }
+
+    if (dragStateRef.current?.pointerId === event.pointerId) {
+      return
+    }
+
+    compactSurfaceDragCandidateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+    }
+  }
+
+  const handleCompactSurfacePointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    if (event.pointerType !== "touch") {
+      return
+    }
+
+    if (dragStateRef.current?.pointerId === event.pointerId) {
+      if (compactSurfaceDragCandidateRef.current?.pointerId === event.pointerId) {
+        handleSheetPointerMove(event)
+      }
+
+      return
+    }
+
+    const candidate = compactSurfaceDragCandidateRef.current
+
+    if (!candidate || candidate.pointerId !== event.pointerId) {
+      return
+    }
+
+    const deltaX = event.clientX - candidate.startX
+    const deltaY = event.clientY - candidate.startY
+
+    if (
+      Math.abs(deltaY) < COMPACT_SURFACE_DRAG_THRESHOLD_PX ||
+      Math.abs(deltaY) <= Math.abs(deltaX)
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    startSheetDrag(event, candidate.startY)
+    handleSheetPointerMove(event)
+  }
+
+  const handleCompactSurfacePointerRelease = (event: React.PointerEvent<HTMLElement>) => {
+    if (dragStateRef.current?.pointerId === event.pointerId) {
+      handleSheetPointerRelease(event)
+    }
+
+    if (compactSurfaceDragCandidateRef.current?.pointerId === event.pointerId) {
+      compactSurfaceDragCandidateRef.current = null
+    }
   }
 
   const handleSheetHandleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -937,8 +1007,13 @@ export function ConversationalAI({
         >
           <section
             data-conversation-composer="true"
+            onPointerDown={handleCompactSurfacePointerDown}
+            onPointerMove={handleCompactSurfacePointerMove}
+            onPointerUp={handleCompactSurfacePointerRelease}
+            onPointerCancel={handleCompactSurfacePointerRelease}
             className={cn(
               "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] border border-white/[0.07] shadow-[0_24px_60px_-36px_rgba(2,6,23,0.62),0_10px_24px_-22px_rgba(15,23,42,0.34)] backdrop-blur-[18px] transition-[height] duration-300 ease-out",
+              isCompactComposer && "touch-none",
               dragHeight !== null && "transition-none"
             )}
             style={{
