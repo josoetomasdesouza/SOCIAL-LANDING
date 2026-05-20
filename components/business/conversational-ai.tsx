@@ -146,7 +146,7 @@ export function ConversationalAI({
   const [isHistoryHydrated, setIsHistoryHydrated] = useState(false)
   const [isConversationSessionActive, setIsConversationSessionActive] = useState(false)
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
-  const [holdAtCompact, setHoldAtCompact] = useState(false)
+  const [resumeSessionStartIndex, setResumeSessionStartIndex] = useState<number | null>(null)
   const [pendingContextIds, setPendingContextIds] = useState<string[]>([])
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
   const [dragHeight, setDragHeight] = useState<number | null>(null)
@@ -165,9 +165,9 @@ export function ConversationalAI({
   const contextRailRef = useRef<HTMLDivElement>(null)
   const messagesContentRef = useRef<HTMLDivElement>(null)
   const messagesMeasureRef = useRef<HTMLDivElement>(null)
+  const autoGrowMeasureRef = useRef<HTMLDivElement>(null)
   const composerFormRef = useRef<HTMLFormElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
-  const baselineContentHeightRef = useRef(0)
   const activeContextIdsRef = useRef<string[]>([])
   const pendingContextIdsRef = useRef<string[]>([])
   const dragStateRef = useRef<{
@@ -205,6 +205,14 @@ export function ConversationalAI({
   const hasSheetBody = shouldRenderConversationBody || showContextRow
   const shouldApplySheetHeight = shouldShowTopArea || hasSheetBody
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
+  const isResumeAutoGrowActive = resumeSessionStartIndex !== null
+  const autoGrowMessages = useMemo(() => {
+    if (resumeSessionStartIndex === null) {
+      return messages
+    }
+
+    return messages.slice(Math.min(resumeSessionStartIndex, messages.length))
+  }, [messages, resumeSessionStartIndex])
 
   useEffect(() => {
     const restoredMessages = readPersistedConversationMessages(
@@ -216,6 +224,7 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
+    setResumeSessionStartIndex(null)
     setPendingContextIds([])
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
@@ -271,7 +280,9 @@ export function ConversationalAI({
       : 0
     const compact = Math.min(expanded, shouldShowConversationBody ? chromeHeight + compactBodyHeight : chromeHeight)
     const conversationContentHeight = shouldShowConversationBody
-      ? messagesMeasureRef.current?.offsetHeight ?? messagesContentRef.current?.scrollHeight ?? 0
+      ? isResumeAutoGrowActive
+        ? autoGrowMeasureRef.current?.offsetHeight ?? 0
+        : messagesMeasureRef.current?.offsetHeight ?? messagesContentRef.current?.scrollHeight ?? 0
       : 0
     const auto = shouldShowConversationBody
       ? Math.min(expanded, Math.max(compact, chromeHeight + conversationContentHeight))
@@ -301,7 +312,7 @@ export function ConversationalAI({
         closeThreshold,
       }
     })
-  }, [shouldShowConversationBody, shouldShowTopArea, showContextRow])
+  }, [isResumeAutoGrowActive, shouldShowConversationBody, shouldShowTopArea, showContextRow])
 
   useEffect(() => {
     measureSheetLayout()
@@ -342,6 +353,7 @@ export function ConversationalAI({
       contextRailRef.current,
       messagesContentRef.current,
       messagesMeasureRef.current,
+      autoGrowMeasureRef.current,
       composerFormRef.current,
     ].filter(Boolean)
 
@@ -361,23 +373,9 @@ export function ConversationalAI({
       setManualSnapHeight(null)
       setDragHeight(null)
       setIsConversationCollapsed(false)
+      setResumeSessionStartIndex(null)
     }
   }, [hasEngagedConversation, showContextRow])
-
-  useEffect(() => {
-    if (!holdAtCompact) return
-    if (process.env.NODE_ENV !== "production") {
-      const willClear = !hasEngagedConversation || manualSnapHeight !== null
-      console.log("[COMPOSER_AUTOGROW_DEBUG] holdAtCompact cleanup check", {
-        holdAtCompact,
-        hasEngagedConversation,
-        manualSnapHeight,
-        willClear,
-        reason: !hasEngagedConversation ? "no-conversation" : manualSnapHeight !== null ? "manual-snap" : "none",
-      })
-    }
-    if (!hasEngagedConversation || manualSnapHeight !== null) setHoldAtCompact(false)
-  }, [holdAtCompact, hasEngagedConversation, manualSnapHeight])
 
   useEffect(() => {
     if (manualSnapHeight === null) {
@@ -406,22 +404,7 @@ export function ConversationalAI({
     sheetMetrics.expanded || Number.POSITIVE_INFINITY,
     Math.max(sheetMetrics.compact || 0, Math.max(sheetMetrics.auto, manualSnapHeight ?? 0))
   )
-  const resolvedSheetHeight = dragHeight ?? (holdAtCompact && sheetMetrics.compact > 0 ? Math.max(sheetMetrics.compact, sheetMetrics.auto - baselineContentHeightRef.current) : resolvedAutoHeight)
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === "production") return
-    console.log("[COMPOSER_AUTOGROW_DEBUG] resolvedSheetHeight", {
-      holdAtCompact,
-      compact: sheetMetrics.compact,
-      auto: sheetMetrics.auto,
-      baseline: baselineContentHeightRef.current,
-      autoMinusBaseline: sheetMetrics.auto - baselineContentHeightRef.current,
-      resolvedAutoHeight,
-      resolvedSheetHeight,
-      dragHeight,
-      manualSnapHeight,
-    })
-  })
+  const resolvedSheetHeight = dragHeight ?? resolvedAutoHeight
 
   const getNearestSnapHeight = useCallback(
     (height: number) => {
@@ -581,26 +564,8 @@ export function ConversationalAI({
     clearPendingContextIds(pendingContextItems.map((item) => item.id))
     setIsConversationSessionActive(true)
 
-    if (process.env.NODE_ENV !== "production") {
-      console.log("[COMPOSER_AUTOGROW_DEBUG] handleSendMessage — before collapse check", {
-        isConversationCollapsed,
-        holdAtCompactBefore: holdAtCompact,
-        messagesLength: messages.length,
-        manualSnapHeight,
-        messagesHeightDOM: messagesMeasureRef.current?.offsetHeight,
-        baselineBefore: baselineContentHeightRef.current,
-      })
-    }
-
-    if (isConversationCollapsed) {
-      baselineContentHeightRef.current = messagesMeasureRef.current?.offsetHeight ?? 0
-      setHoldAtCompact(true)
-      if (process.env.NODE_ENV !== "production") {
-        console.log("[COMPOSER_AUTOGROW_DEBUG] handleSendMessage — baseline captured", {
-          baselineAfterCapture: baselineContentHeightRef.current,
-          holdAtCompactWillBeTrue: true,
-        })
-      }
+    if (messages.length > 0 && (isConversationCollapsed || !isConversationSessionActive)) {
+      setResumeSessionStartIndex(messages.length)
     }
 
     setIsConversationCollapsed(false)
@@ -635,6 +600,7 @@ export function ConversationalAI({
     setIsTyping(false)
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
+    setResumeSessionStartIndex(null)
     setPendingContextIds([])
     activeContextIdsRef.current = []
     pendingContextIdsRef.current = []
@@ -838,6 +804,30 @@ export function ConversationalAI({
     )
   }
 
+  const renderMeasurementContextChip = (item: ConversationContextItem) => (
+    <div
+      key={item.id}
+      className="flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)]"
+    >
+      <div className="h-11 w-11 shrink-0 rounded-full bg-white/[0.08]" />
+
+      <div className="min-w-0 flex-1">
+        {item.subtitle ? (
+          <p className="truncate text-[10px] font-medium uppercase tracking-wide text-white/42">
+            {item.subtitle}
+          </p>
+        ) : null}
+        <p className="truncate text-xs font-medium text-white/92">{item.title}</p>
+      </div>
+
+      {onRemoveContext ? (
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/56">
+          <X className="h-3.5 w-3.5" />
+        </div>
+      ) : null}
+    </div>
+  )
+
   const conversationPanelPatternStyle = {
     backgroundColor: COMPOSER_SURFACE_COLOR,
     backgroundImage: CONVERSATION_DOODLE_PATTERN,
@@ -853,6 +843,80 @@ export function ConversationalAI({
     overflowWrap: "break-word",
     wordBreak: "normal",
   } as const
+
+  const renderConversationMessage = (
+    message: ConversationRuntimeMessage,
+    index: number,
+    messageList: ConversationRuntimeMessage[],
+    options?: {
+      measurementOnly?: boolean
+    }
+  ) => {
+    const previousMessage = messageList[index - 1]
+    const sharesGroupWithPrevious =
+      previousMessage?.role === message.role && message.role !== "context_event"
+    const spacingClass = index === 0 ? "" : sharesGroupWithPrevious ? "mt-2.5" : "mt-5"
+
+    if (message.role === "context_event") {
+      const eventContexts = message.contexts ?? (message.context ? [message.context] : [])
+
+      if (eventContexts.length === 0) {
+        return null
+      }
+
+      return (
+        <div key={message.id} className={cn(spacingClass, "py-0.5")}>
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            {eventContexts.map((item) =>
+              options?.measurementOnly ? renderMeasurementContextChip(item) : renderContextChip(item)
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div
+        key={message.id}
+        className={cn(spacingClass, "flex", message.role === "user" ? "justify-end" : "justify-start")}
+      >
+        <div
+          className={cn(
+            "flex w-full max-w-full flex-col gap-2",
+            message.role === "user" ? "items-end" : "items-start"
+          )}
+        >
+          <div className={cn("w-full", message.role === "user" ? "text-right" : "text-left")}>
+            <div
+              className={cn(
+                "inline-block text-[15px] leading-[1.45] align-top",
+                message.role === "user"
+                  ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
+                  : "px-0 py-0.5 text-left text-white/[0.94]"
+              )}
+              style={messageTextBubbleStyle}
+            >
+              {message.content}
+            </div>
+          </div>
+
+          {!options?.measurementOnly && message.role === "ai" && message.visualBlock
+            ? renderVisualBlock?.(message.visualBlock)
+            : null}
+        </div>
+      </div>
+    )
+  }
+
+  const renderTypingIndicator = (hasPreviousMessages: boolean) => (
+    <div className={cn(hasPreviousMessages && "mt-5", "flex justify-start")}>
+      <div className="flex max-w-[82%] items-center gap-1 px-0 py-0.5 text-white/[0.74]">
+        <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)] [animation-delay:-0.2s]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)] [animation-delay:-0.1s]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]" />
+      </div>
+    </div>
+  )
 
   return (
     <>
@@ -935,73 +999,25 @@ export function ConversationalAI({
                   )}
                 >
                   <div ref={messagesMeasureRef}>
-                    {messages.map((message, index) => {
-                    const previousMessage = messages[index - 1]
-                    const sharesGroupWithPrevious =
-                      previousMessage?.role === message.role && message.role !== "context_event"
-                    const spacingClass = index === 0 ? "" : sharesGroupWithPrevious ? "mt-2.5" : "mt-5"
+                    {messages.map((message, index) => renderConversationMessage(message, index, messages))}
 
-                    if (message.role === "context_event") {
-                      const eventContexts = message.contexts ?? (message.context ? [message.context] : [])
-
-                      if (eventContexts.length === 0) {
-                        return null
-                      }
-
-                      return (
-                        <div key={message.id} className={cn(spacingClass, "py-0.5")}>
-                          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                            {eventContexts.map((item) => renderContextChip(item))}
-                          </div>
-                        </div>
-                      )
-                    }
-
-                    return (
-                        <div
-                          key={message.id}
-                          className={cn(spacingClass, "flex", message.role === "user" ? "justify-end" : "justify-start")}
-                        >
-                          <div
-                            className={cn(
-                              "flex w-full max-w-full flex-col gap-2",
-                              message.role === "user" ? "items-end" : "items-start"
-                            )}
-                          >
-                            <div className={cn("w-full", message.role === "user" ? "text-right" : "text-left")}>
-                              <div
-                                className={cn(
-                                  "inline-block text-[15px] leading-[1.45] align-top",
-                                  message.role === "user"
-                                    ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
-                                    : "px-0 py-0.5 text-left text-white/[0.94]"
-                                )}
-                                style={messageTextBubbleStyle}
-                              >
-                                {message.content}
-                              </div>
-                            </div>
-
-                            {message.role === "ai" && message.visualBlock
-                              ? renderVisualBlock?.(message.visualBlock)
-                              : null}
-                          </div>
-                        </div>
-                      )
-                    })}
-
-                    {isTyping && (
-                      <div className={cn(messages.length > 0 && "mt-5", "flex justify-start")}>
-                        <div className="flex max-w-[82%] items-center gap-1 px-0 py-0.5 text-white/[0.74]">
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)] [animation-delay:-0.2s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)] [animation-delay:-0.1s]" />
-                          <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]" />
-                        </div>
-                      </div>
-                    )}
+                    {isTyping ? renderTypingIndicator(messages.length > 0) : null}
 
                     <div ref={messagesEndRef} />
                   </div>
+                  {isResumeAutoGrowActive ? (
+                    <div
+                      ref={autoGrowMeasureRef}
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-4 right-4 top-4 opacity-0"
+                    >
+                      {autoGrowMessages.map((message, index) =>
+                        renderConversationMessage(message, index, autoGrowMessages, { measurementOnly: true })
+                      )}
+
+                      {isTyping ? renderTypingIndicator(autoGrowMessages.length > 0) : null}
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ) : null}
