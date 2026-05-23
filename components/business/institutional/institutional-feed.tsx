@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
@@ -195,6 +196,7 @@ const institutionalNews = [
 ]
 
 export function InstitutionalFeed() {
+  const conversationSelection = useConversationSelectionState()
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false)
   const [teamDrawerOpen, setTeamDrawerOpen] = useState(false)
   const [projectDrawerOpen, setProjectDrawerOpen] = useState(false)
@@ -480,13 +482,14 @@ export function InstitutionalFeed() {
     }
   ]
   
-return (
-  <>
-<BusinessSocialLanding
-  config={institutionalConfig}
-  stories={institutionalStories}
-  sections={sections}
-  />
+  return (
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
+      <BusinessSocialLanding
+        config={institutionalConfig}
+        stories={institutionalStories}
+        sections={sections}
+      />
       
       {/* Contact Drawer */}
       <Drawer open={contactDrawerOpen} onOpenChange={setContactDrawerOpen}>
@@ -581,6 +584,7 @@ return (
           )}
         </DrawerContent>
       </Drawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

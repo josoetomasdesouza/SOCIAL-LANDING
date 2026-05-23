@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
@@ -89,6 +90,7 @@ const personalPhotos = [
 ]
 
 export function PersonalFeed() {
+  const conversationSelection = useConversationSelectionState()
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false)
   const [projectDrawerOpen, setProjectDrawerOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<typeof personalProjects[0] | null>(null)
@@ -239,7 +241,8 @@ export function PersonalFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={personalConfig}
         stories={personalStories}
@@ -309,6 +312,7 @@ export function PersonalFeed() {
           )}
         </DrawerContent>
       </Drawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }

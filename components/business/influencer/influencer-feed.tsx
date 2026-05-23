@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
+import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
@@ -60,6 +61,7 @@ const influencerCollabs = [
 ]
 
 export function InfluencerFeed() {
+  const conversationSelection = useConversationSelectionState()
   const [selectedLink, setSelectedLink] = useState<typeof influencerLinks[0] | null>(null)
   const [linksDrawerOpen, setLinksDrawerOpen] = useState(false)
   const [collabDrawerOpen, setCollabDrawerOpen] = useState(false)
@@ -201,7 +203,8 @@ export function InfluencerFeed() {
   ]
   
   return (
-    <>
+    <ConversationSelectionProvider value={conversationSelection}>
+      <>
       <BusinessSocialLanding
         config={influencerConfig}
         stories={influencerStories}
@@ -286,6 +289,7 @@ export function InfluencerFeed() {
           </div>
         </DrawerContent>
       </Drawer>
-    </>
+      </>
+    </ConversationSelectionProvider>
   )
 }
