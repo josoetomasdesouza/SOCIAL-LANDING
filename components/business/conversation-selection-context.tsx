@@ -1,6 +1,7 @@
 "use client"
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react"
+import { observeComposerModeChanged } from "@/lib/events/instrumentation"
 import type { ConversationContextItem } from "./conversational-ai"
 
 export type ConversationComposerMode = "default" | "overlay" | "hidden"
@@ -23,8 +24,20 @@ const ConversationSelectionContext = createContext<ConversationSelectionControll
 
 export function useConversationSelectionState(): ConversationSelectionController {
   const [conversationContext, setConversationContext] = useState<ConversationContextItem[]>([])
-  const [composerMode, setComposerMode] = useState<ConversationComposerMode>("default")
+  const [composerMode, setComposerModeState] = useState<ConversationComposerMode>("default")
   const [composerOffsetClassName, setComposerOffsetClassName] = useState<string | undefined>(undefined)
+  const composerModeRef = useRef<ConversationComposerMode>("default")
+
+  const setComposerMode = useCallback((mode: ConversationComposerMode) => {
+    const from = composerModeRef.current
+    composerModeRef.current = mode
+    setComposerModeState(mode)
+    observeComposerModeChanged({
+      from,
+      to: mode,
+      source: "conversation-context",
+    })
+  }, [])
 
   const selectedContextIds = useMemo(
     () => new Set(conversationContext.map((item) => item.id)),

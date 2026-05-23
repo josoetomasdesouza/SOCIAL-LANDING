@@ -16,6 +16,7 @@ import {
   type PostToChatMorphPreview,
   type PostToChatMorphRect,
 } from "./post-to-chat-morph-layer"
+import { observeMorphCompleted, observeMorphStarted } from "@/lib/events/instrumentation"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
@@ -895,6 +896,7 @@ export function BusinessSocialLanding({
 
     const targetRect = resolveMorphTargetRect(queuedMorph.contextId)
 
+    observeMorphStarted({ itemId: queuedMorph.contextId, source: "long-press", vertical: config.model })
     setActiveMorph({
       key: queuedMorph.key,
       contextId: queuedMorph.contextId,
@@ -903,7 +905,7 @@ export function BusinessSocialLanding({
       toRect: targetRect,
     })
     setQueuedMorph(null)
-  }, [queuedMorph, resolveMorphTargetRect])
+  }, [queuedMorph, resolveMorphTargetRect, config.model])
 
   const getMorphSourceRect = useCallback((sourceId: string): PostToChatMorphRect | null => {
     const rememberedSourceElement = getRememberedMorphSourceElement(sourceId)
@@ -946,10 +948,6 @@ export function BusinessSocialLanding({
 
   const queueConversationContextMorph = useCallback((contextItem: ConversationContextItem) => {
     if (typeof window === "undefined") {
-      return
-    }
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return
     }
 
@@ -1033,7 +1031,7 @@ export function BusinessSocialLanding({
   }, [clearConversationContext])
   
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-48">
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
         {/* Feed intro */}
@@ -1076,6 +1074,7 @@ export function BusinessSocialLanding({
           resolveToRect={() => resolveMorphTargetRect(activeMorph.contextId)}
           durationMs={MORPH_DURATION_MS}
           onComplete={() => {
+            observeMorphCompleted({ itemId: activeMorph.contextId, vertical: config.model })
             setHiddenContextIds((currentIds) => currentIds.filter((contextId) => contextId !== activeMorph.contextId))
             setActiveMorph((currentMorph) => (currentMorph?.key === activeMorph.key ? null : currentMorph))
           }}

@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
+import { observeDrawerClosed, observeDrawerOpened } from "@/lib/events/instrumentation"
 import { X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -30,6 +31,8 @@ export function ActionDrawer({
   visibleBottomInsetPx = 0,
   fillVisibleBottomInset = false,
 }: ActionDrawerProps) {
+  const wasOpenRef = useRef(false)
+
   // Bloqueia scroll do body quando aberto
   useEffect(() => {
     if (isOpen) {
@@ -41,6 +44,24 @@ export function ActionDrawer({
       document.body.style.overflow = ""
     }
   }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      observeDrawerOpened({
+        drawerId: title,
+        drawerKind: "action",
+        title,
+        source: "action-drawer",
+      })
+    } else if (!isOpen && wasOpenRef.current) {
+      observeDrawerClosed({
+        drawerId: title,
+        drawerKind: "action",
+        source: "action-drawer",
+      })
+    }
+    wasOpenRef.current = isOpen
+  }, [isOpen, title])
 
   if (!isOpen) return null
 

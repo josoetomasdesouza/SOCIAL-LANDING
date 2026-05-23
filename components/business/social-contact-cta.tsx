@@ -1,5 +1,6 @@
 "use client"
 
+import { observeWhatsAppClicked } from "@/lib/events/instrumentation"
 import { Clock3, Mail, MapPin, MessageCircle, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { socialPatternClasses } from "./social-patterns"
@@ -109,6 +110,15 @@ export function SocialContactCTA({
               href={resolvedPrimaryContact.href}
               target={resolvedPrimaryContact.href ? "_blank" : undefined}
               rel={resolvedPrimaryContact.href ? "noreferrer" : undefined}
+              onClick={() => {
+                if (whatsapp && resolvedPrimaryContact.href?.includes("wa.me")) {
+                  observeWhatsAppClicked({
+                    phone: whatsapp,
+                    context: resolvedContextLabel,
+                    href: resolvedPrimaryContact.href,
+                  })
+                }
+              }}
               className={`flex items-center gap-3 ${socialPatternClasses.itemSurface} transition-colors hover:bg-background`}
             >
               {renderContactIcon(resolvedPrimaryContact.icon)}

@@ -1,6 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { EventDebugPanel } from "@/components/dev/event-debug-panel"
+import { PassiveEventProvider } from "@/components/dev/passive-event-provider"
+import { observeFeedVerticalChanged } from "@/lib/events/instrumentation"
 import { BusinessSelector } from "@/components/business/business-selector"
 import { AppointmentFeed } from "@/components/business/appointment/appointment-feed"
 import { EcommerceFeed } from "@/components/business/ecommerce/ecommerce-feed"
@@ -18,9 +21,27 @@ import type { BusinessType } from "@/lib/business-types"
 
 export default function DemoPage() {
   const [selectedType, setSelectedType] = useState<BusinessType | null>(null)
+  const previousVerticalRef = useRef<BusinessType | null>(null)
+
+  useEffect(() => {
+    if (!selectedType) {
+      return
+    }
+    observeFeedVerticalChanged({
+      from: previousVerticalRef.current,
+      to: selectedType,
+      source: "demo",
+    })
+    previousVerticalRef.current = selectedType
+  }, [selectedType])
   
   if (!selectedType) {
-    return <BusinessSelector onSelect={setSelectedType} />
+    return (
+      <PassiveEventProvider>
+        <BusinessSelector onSelect={setSelectedType} />
+        <EventDebugPanel />
+      </PassiveEventProvider>
+    )
   }
 
   const renderBusinessFeed = () => {
@@ -55,9 +76,12 @@ export default function DemoPage() {
   }
   
   return (
-    <div className="min-h-screen bg-background">
-      {/* Business Feed */}
-      {renderBusinessFeed()}
-    </div>
+    <PassiveEventProvider>
+      <div className="min-h-screen bg-background">
+        {/* Business Feed */}
+        {renderBusinessFeed()}
+      </div>
+      <EventDebugPanel />
+    </PassiveEventProvider>
   )
 }

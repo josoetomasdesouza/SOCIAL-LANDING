@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useCallback, useState } from "react"
 import Image from "next/image"
 import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Newspaper } from "lucide-react"
+import { observeDrawerClosed, observeDrawerOpened } from "@/lib/events/instrumentation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { BusinessPost } from "./business-social-landing"
@@ -218,6 +219,7 @@ export function BusinessFeedDrawer({
 }: BusinessFeedDrawerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const initialPostRef = useRef<HTMLDivElement>(null)
+  const wasOpenRef = useRef(false)
   const selectedContextIdSet = useMemo(() => new Set(selectedContextIds), [selectedContextIds])
 
   const filteredPosts = useMemo(() => {
@@ -250,6 +252,25 @@ export function BusinessFeedDrawer({
       document.body.style.overflow = ""
     }
   }, [isOpen])
+
+  useEffect(() => {
+    const drawerId = `feed:${category}:${initialPost?.id ?? "none"}`
+    if (isOpen && !wasOpenRef.current) {
+      observeDrawerOpened({
+        drawerId,
+        drawerKind: "feed",
+        title: category,
+        source: "feed-drawer",
+      })
+    } else if (!isOpen && wasOpenRef.current) {
+      observeDrawerClosed({
+        drawerId,
+        drawerKind: "feed",
+        source: "feed-drawer",
+      })
+    }
+    wasOpenRef.current = isOpen
+  }, [category, initialPost?.id, isOpen])
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
