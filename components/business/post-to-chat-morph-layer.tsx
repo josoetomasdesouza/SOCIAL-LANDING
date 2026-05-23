@@ -129,7 +129,10 @@ export function PostToChatMorphLayer({
     return () => {
       window.cancelAnimationFrame(rafId)
       detachListeners()
-      finish()
+      // Do NOT call finish() here — Strict Mode cleanup fires onComplete()
+      // before any visible frame. Real completions happen in:
+      // 1. RAF step completion
+      // 2. scroll/resize cancelAnimation
     }
   }, [animationKey, durationMs, fromRect.borderRadius, fromRect.height, fromRect.left, fromRect.top, fromRect.width, onComplete, toRect.borderRadius, toRect.height, toRect.left, toRect.top, toRect.width])
 
