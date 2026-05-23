@@ -4,6 +4,7 @@ import { useState } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
+import { InstrumentedDrawerBridge } from "../instrumented-drawer-bridge"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -492,7 +493,14 @@ export function InstitutionalFeed() {
       />
       
       {/* Contact Drawer */}
-      <Drawer open={contactDrawerOpen} onOpenChange={setContactDrawerOpen}>
+      <InstrumentedDrawerBridge
+        drawerId="institutional:contact"
+        drawerKind="other"
+        title="Fale Conosco"
+        vertical="institutional"
+        open={contactDrawerOpen}
+        onOpenChange={setContactDrawerOpen}
+      >
         <DrawerContent className="max-h-[90vh]">
           <DrawerHeader>
             <DrawerTitle>Fale Conosco</DrawerTitle>
@@ -520,7 +528,7 @@ export function InstitutionalFeed() {
             )}
           </div>
         </DrawerContent>
-      </Drawer>
+      </InstrumentedDrawerBridge>
       
       {/* Team Drawer */}
       <Drawer open={teamDrawerOpen} onOpenChange={setTeamDrawerOpen}>
