@@ -531,7 +531,14 @@ export function InstitutionalFeed() {
       </InstrumentedDrawerBridge>
       
       {/* Team Drawer */}
-      <Drawer open={teamDrawerOpen} onOpenChange={setTeamDrawerOpen}>
+      <InstrumentedDrawerBridge
+        drawerId="institutional:team"
+        drawerKind="other"
+        title="Nossa Equipe"
+        vertical="institutional"
+        open={teamDrawerOpen}
+        onOpenChange={setTeamDrawerOpen}
+      >
         <DrawerContent className="max-h-[90vh]">
           <DrawerHeader>
             <DrawerTitle>Nossa Equipe</DrawerTitle>
@@ -553,7 +560,7 @@ export function InstitutionalFeed() {
             ))}
           </div>
         </DrawerContent>
-      </Drawer>
+      </InstrumentedDrawerBridge>
       
       {/* Project Drawer */}
       <Drawer open={projectDrawerOpen} onOpenChange={setProjectDrawerOpen}>
