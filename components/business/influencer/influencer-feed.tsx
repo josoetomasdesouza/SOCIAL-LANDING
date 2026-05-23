@@ -4,6 +4,7 @@ import { useState } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
+import { InstrumentedDrawerBridge } from "../instrumented-drawer-bridge"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { 
@@ -212,7 +213,14 @@ export function InfluencerFeed() {
       />
       
       {/* Media Kit Drawer */}
-      <Drawer open={mediaKitDrawerOpen} onOpenChange={setMediaKitDrawerOpen}>
+      <InstrumentedDrawerBridge
+        drawerId="influencer:media-kit"
+        drawerKind="other"
+        title="Media Kit"
+        vertical="influencer"
+        open={mediaKitDrawerOpen}
+        onOpenChange={setMediaKitDrawerOpen}
+      >
         <DrawerContent className="max-h-[90vh]">
           <DrawerHeader>
             <DrawerTitle>Media Kit</DrawerTitle>
@@ -245,7 +253,7 @@ export function InfluencerFeed() {
             </Button>
           </div>
         </DrawerContent>
-      </Drawer>
+      </InstrumentedDrawerBridge>
       
       {/* Links Drawer */}
       <Drawer open={linksDrawerOpen} onOpenChange={setLinksDrawerOpen}>
