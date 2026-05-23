@@ -951,6 +951,10 @@ export function BusinessSocialLanding({
       return
     }
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return
+    }
+
     const sourceRect = getMorphSourceRect(contextItem.id)
 
     if (!sourceRect) {
@@ -1031,7 +1035,7 @@ export function BusinessSocialLanding({
   }, [clearConversationContext])
   
   return (
-    <div className="min-h-screen bg-background pb-48">
+    <div className="min-h-screen bg-background pb-32">
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
         {/* Feed intro */}

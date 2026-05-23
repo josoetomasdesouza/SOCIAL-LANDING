@@ -13,13 +13,11 @@ import type {
 import { observeAiSurfaceOpened } from "@/lib/events/instrumentation"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
-const COMPOSER_MASK_TOP_OFFSET_PX = 88
-const COMPOSER_SURFACE_COLOR = "rgba(31,28,26,0.94)"
+const COMPOSER_MASK_TOP_OFFSET_PX = 8
+const COMPOSER_SURFACE_COLOR = "rgba(45,50,58,0.95)"
 const SHEET_TOP_SAFE_MARGIN_PX = 16
-const COMPOSER_GRAIN =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)' opacity='0.009'/%3E%3C/svg%3E\")"
 const CONVERSATION_DOODLE_PATTERN =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400' fill='none'%3E%3Cpath d='M50 370C30 200 370 240 350 20' stroke='white' stroke-opacity='0.014' stroke-width='1.6' stroke-linecap='round'/%3E%3Cpath d='M15 80A260 260 0 0 1 350 300' stroke='white' stroke-opacity='0.009' stroke-width='1.1' stroke-linecap='round'/%3E%3Cpath d='M395 45C300 88 245 195 185 268' stroke='white' stroke-opacity='0.010' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M15 285C68 242 115 255 148 298' stroke='white' stroke-opacity='0.007' stroke-width='1.0' stroke-linecap='round'/%3E%3Cpath d='M128 12A98 98 0 0 1 288 52' stroke='white' stroke-opacity='0.007' stroke-width='1.0' stroke-linecap='round'/%3E%3C/svg%3E\")"
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180' fill='none'%3E%3Cg stroke='%23242931' stroke-opacity='0.36' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 34c6-8 18-8 24 0 6 8 18 8 24 0'/%3E%3Cpath d='M112 22l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2 5-10Z'/%3E%3Cpath d='M36 96c0-7 6-13 13-13s13 6 13 13-6 13-13 13-13-6-13-13Z'/%3E%3Cpath d='M119 82c10-12 28-12 38 0'/%3E%3Cpath d='M121 92c8 9 20 9 28 0'/%3E%3Cpath d='M22 145c11-10 31-10 42 0'/%3E%3Cpath d='M74 126h20c7 0 12 5 12 12s-5 12-12 12H74c-7 0-12-5-12-12s5-12 12-12Z'/%3E%3Cpath d='M132 132c0-8 7-15 15-15s15 7 15 15-7 15-15 15-15-7-15-15Z'/%3E%3Cpath d='M92 60c0-6 5-11 11-11s11 5 11 11-5 11-11 11-11-5-11-11Z'/%3E%3C/g%3E%3C/svg%3E\")"
 const SHEET_MAX_VIEWPORT_RATIO = 0.9
 const SHEET_MID_VIEWPORT_RATIO = 0.55
 const COMPACT_BODY_MIN_RATIO = 0.22
@@ -52,7 +50,6 @@ type ConversationRuntimeMessage = ConversationMessage & {
 
 interface SheetMetrics {
   compact: number
-  chromeOnlyCompact: number
   auto: number
   medium: number
   expanded: number
@@ -158,7 +155,6 @@ export function ConversationalAI({
   const [dragHeight, setDragHeight] = useState<number | null>(null)
   const [sheetMetrics, setSheetMetrics] = useState<SheetMetrics>({
     compact: 0,
-    chromeOnlyCompact: 0,
     auto: 0,
     medium: 0,
     expanded: 0,
@@ -332,12 +328,9 @@ export function ConversationalAI({
     )
     const closeThreshold = Math.max(chromeHeight * 0.72, compact - CLOSE_THRESHOLD_OFFSET_PX)
 
-    const chromeOnlyCompact = Math.min(expanded, chromeHeight)
-
     setSheetMetrics((previousMetrics) => {
       if (
         previousMetrics.compact === compact &&
-        previousMetrics.chromeOnlyCompact === chromeOnlyCompact &&
         previousMetrics.auto === auto &&
         previousMetrics.medium === medium &&
         previousMetrics.expanded === expanded &&
@@ -348,7 +341,6 @@ export function ConversationalAI({
 
       return {
         compact,
-        chromeOnlyCompact,
         auto,
         medium,
         expanded,
@@ -449,14 +441,6 @@ export function ConversationalAI({
     Math.max(sheetMetrics.compact || 0, Math.max(sheetMetrics.auto, manualSnapHeight ?? 0))
   )
   const resolvedSheetHeight = dragHeight ?? resolvedAutoHeight
-
-  const feedDimProgress = (() => {
-    const lowerBound = sheetMetrics.chromeOnlyCompact || sheetMetrics.compact
-    const range = sheetMetrics.expanded - lowerBound
-    if (range <= 0) return 0
-    const raw = (resolvedSheetHeight - lowerBound) / range
-    return Math.max(0, Math.min(1, (raw - 0.4) / 0.6))
-  })()
 
   const getNearestSnapHeight = useCallback(
     (height: number) => {
@@ -916,10 +900,10 @@ export function ConversationalAI({
 
   const conversationPanelPatternStyle = {
     backgroundColor: COMPOSER_SURFACE_COLOR,
-    backgroundImage: `${COMPOSER_GRAIN}, ${CONVERSATION_DOODLE_PATTERN}`,
-    backgroundPosition: "center, center",
-    backgroundRepeat: "repeat, repeat",
-    backgroundSize: "200px 200px, 400px 400px",
+    backgroundImage: CONVERSATION_DOODLE_PATTERN,
+    backgroundPosition: "center",
+    backgroundRepeat: "repeat",
+    backgroundSize: "180px 180px",
   } as const
   const composerSurfaceStyle = { backgroundColor: COMPOSER_SURFACE_COLOR } as const
   const messageTextBubbleStyle = {
@@ -977,7 +961,7 @@ export function ConversationalAI({
               className={cn(
                 "inline-block text-[15px] leading-[1.45] align-top",
                 message.role === "user"
-                  ? "rounded-[24px] rounded-br-[10px] border border-white/[0.08] bg-[rgba(65,63,66,0.72)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_3px_8px_-4px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.07)]"
+                  ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
                   : "px-0 py-0.5 text-left text-white/[0.94]"
               )}
               style={messageTextBubbleStyle}
@@ -1007,43 +991,28 @@ export function ConversationalAI({
   return (
     <>
       <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-[28]"
-        style={{
-          backgroundColor: `rgba(0,0,0,${(0.30 * feedDimProgress).toFixed(3)})`,
-          backdropFilter: `blur(${(2.5 * feedDimProgress).toFixed(2)}px)`,
-          transition: "background-color 320ms cubic-bezier(0.16,1,0.3,1), backdrop-filter 320ms cubic-bezier(0.16,1,0.3,1)",
-        }}
-      />
-      <div
         ref={composerMaskRef}
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
           background:
-            "linear-gradient(to top, rgba(255, 255, 255, 0.44) 0%, rgba(255, 255, 255, 0.20) 14%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.03) 48%, rgba(255, 255, 255, 0.01) 66%, rgba(255, 255, 255, 0) 100%)",
+            "linear-gradient(to top, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.5) 24%, rgba(255, 255, 255, 0.18) 56%, rgba(255, 255, 255, 0.035) 82%, rgba(255, 255, 255, 0) 100%)",
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
         <div
           ref={composerShellRef}
-          className="mx-auto max-w-lg px-4 pb-2 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
+          className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
         >
           <section
             data-conversation-composer="true"
             onPointerDownCapture={handleCompactComposerPress}
             className={cn(
-              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] border border-white/[0.08] shadow-[0_20px_52px_-32px_rgba(2,6,23,0.44),0_6px_18px_-18px_rgba(15,23,42,0.18)] backdrop-blur-[14px] transition-[height] duration-[320ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
+              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] border border-white/[0.07] shadow-[0_24px_60px_-36px_rgba(2,6,23,0.62),0_10px_24px_-22px_rgba(15,23,42,0.34)] backdrop-blur-[18px] transition-[height] duration-300 ease-out",
               dragHeight !== null && "transition-none"
             )}
             style={{
-              backgroundColor: COMPOSER_SURFACE_COLOR,
-              backgroundImage: shouldShowConversationBody
-                ? `linear-gradient(to bottom, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 35%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.18) 100%), ${COMPOSER_GRAIN}, ${CONVERSATION_DOODLE_PATTERN}`
-                : `${COMPOSER_GRAIN}, ${CONVERSATION_DOODLE_PATTERN}`,
-              backgroundPosition: shouldShowConversationBody ? "top left, top left, top left" : "top left, top left",
-              backgroundRepeat: shouldShowConversationBody ? "no-repeat, repeat, repeat" : "repeat, repeat",
-              backgroundSize: shouldShowConversationBody ? "100% 100%, 200px 200px, 400px 400px" : "200px 200px, 400px 400px",
+              ...composerSurfaceStyle,
               ...(shouldApplySheetHeight && resolvedSheetHeight > 0 ? { height: `${resolvedSheetHeight}px` } : {}),
             }}
           >
@@ -1052,8 +1021,9 @@ export function ConversationalAI({
                 ref={topAreaRef}
                 className={cn(
                   "shrink-0 border-b px-4",
-                  "border-white/[0.022] pt-3 pb-2"
+                  "border-white/[0.07] pt-3 pb-2"
                 )}
+                style={composerSurfaceStyle}
               >
                 <div
                   role="slider"
@@ -1070,7 +1040,7 @@ export function ConversationalAI({
                   className="relative flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
                 >
                   <div
-                    className="h-[2px] w-8 rounded-full bg-gradient-to-r from-white/[0.04] via-white/[0.11] to-white/[0.04]"
+                    className="h-1 w-10 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.26] to-white/[0.08]"
                   />
                 </div>
               </div>
@@ -1080,9 +1050,9 @@ export function ConversationalAI({
               <div
                 className={cn(
                   "relative min-h-0 flex-1 overflow-hidden",
-                  false && "border-t border-white/[0.018]"
+                  shouldShowConversationBody && "border-t border-white/[0.035]"
                 )}
-                style={undefined}
+                style={composerSurfaceStyle}
               >
                 {hasEngagedConversation && contextRowItems.length > 0 ? (
                   <div
@@ -1094,7 +1064,8 @@ export function ConversationalAI({
                 ) : null}
                 <div
                   aria-hidden="true"
-                  className={cn("pointer-events-none absolute inset-0 z-0", !shouldShowConversationBody && "opacity-0")}
+                  className={cn("pointer-events-none absolute inset-0", !shouldShowConversationBody && "opacity-0")}
+                  style={conversationPanelPatternStyle}
                 />
                 <div
                   ref={messagesContentRef}
@@ -1133,6 +1104,7 @@ export function ConversationalAI({
               <div
                 ref={contextRailRef}
                 className="shrink-0 px-4 py-2.5"
+                style={composerSurfaceStyle}
               >
                 <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
                   {contextRowItems.map((item) => renderContextChip(item))}
@@ -1144,6 +1116,7 @@ export function ConversationalAI({
               ref={composerFormRef}
               onSubmit={handleSubmit}
               className="flex shrink-0 items-center gap-3 px-3 py-2.5"
+              style={composerSurfaceStyle}
             >
               <button
                 type="button"
