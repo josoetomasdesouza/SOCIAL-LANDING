@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, useLayoutEffect, ReactNode, cloneElement, isValidElement } from "react"
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, ShoppingBag } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -10,7 +10,11 @@ import type { BusinessConfig } from "@/lib/business-types"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
 import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
 import { ContextSelectable, getRememberedMorphSourceElement } from "./context-selectable"
-import { useConversationSelectionContext, useConversationSelectionState } from "./conversation-selection-context"
+import {
+  useConversationSelectionContext,
+  useConversationSelectionState,
+  type ConversationComposerMode,
+} from "./conversation-selection-context"
 import {
   PostToChatMorphLayer,
   type PostToChatMorphPreview,
@@ -868,8 +872,33 @@ export function BusinessSocialLanding({
     isConversationSelected,
     composerMode,
     composerOffsetClassName,
+    setComposerMode,
   } = conversationSelection
-  
+  const composerModeBeforeFeedDrawerRef = useRef<ConversationComposerMode>("default")
+
+  const syncFeedDrawerComposerOpen = useCallback(() => {
+    if (composerMode === "hidden") {
+      return
+    }
+    composerModeBeforeFeedDrawerRef.current = composerMode
+    if (composerMode !== "overlay") {
+      setComposerMode("overlay")
+    }
+  }, [composerMode, setComposerMode])
+
+  const syncFeedDrawerComposerClose = useCallback(() => {
+    const savedMode = composerModeBeforeFeedDrawerRef.current
+    if (composerMode !== "hidden" && composerMode === "overlay" && savedMode !== "overlay") {
+      setComposerMode(savedMode)
+    }
+  }, [composerMode, setComposerMode])
+
+  useEffect(() => {
+    if (feedDrawerOpen && composerMode === "default") {
+      setComposerMode("overlay")
+    }
+  }, [feedDrawerOpen, composerMode, setComposerMode])
+
   // Story viewer state
   const [storyViewerOpen, setStoryViewerOpen] = useState(false)
   const [storyInitialIndex, setStoryInitialIndex] = useState(0)
@@ -1001,6 +1030,7 @@ export function BusinessSocialLanding({
     if (contentTypes.includes(post.type)) {
       setSelectedPost(post)
       setFeedDrawerCategory(post.type)
+      syncFeedDrawerComposerOpen()
       setFeedDrawerOpen(true)
     } else {
       // Para outros tipos (products, etc), usa o drawer customizado
@@ -1008,7 +1038,7 @@ export function BusinessSocialLanding({
       setDrawerOpen(true)
       onPostClick?.(post)
     }
-  }, [onPostClick])
+  }, [onPostClick, syncFeedDrawerComposerOpen])
   
   const handleCloseDrawer = useCallback(() => {
     setDrawerOpen(false)
@@ -1018,7 +1048,8 @@ export function BusinessSocialLanding({
   const handleCloseFeedDrawer = useCallback(() => {
     setFeedDrawerOpen(false)
     setSelectedPost(null)
-  }, [])
+    syncFeedDrawerComposerClose()
+  }, [syncFeedDrawerComposerClose])
   
   const handleStoryClick = useCallback((story: BusinessStory, index: number) => {
     setStoryInitialIndex(index)
@@ -1165,6 +1196,7 @@ export function BusinessSocialLanding({
           if (allContentPosts.length > 0) {
             setSelectedPost(allContentPosts[0])
             setFeedDrawerCategory("all")
+            syncFeedDrawerComposerOpen()
             setFeedDrawerOpen(true)
           }
         }}
