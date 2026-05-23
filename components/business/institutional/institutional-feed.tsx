@@ -5,7 +5,7 @@ import { BusinessSocialLanding } from "../business-social-landing"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
 import { InstrumentedDrawerBridge } from "../instrumented-drawer-bridge"
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
+import { DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -563,7 +563,14 @@ export function InstitutionalFeed() {
       </InstrumentedDrawerBridge>
       
       {/* Project Drawer */}
-      <Drawer open={projectDrawerOpen} onOpenChange={setProjectDrawerOpen}>
+      <InstrumentedDrawerBridge
+        drawerId="institutional:project"
+        drawerKind="other"
+        title={selectedProject?.title ?? "Projeto"}
+        vertical="institutional"
+        open={projectDrawerOpen}
+        onOpenChange={setProjectDrawerOpen}
+      >
         <DrawerContent className="max-h-[90vh]">
           {selectedProject && (
             <>
@@ -598,7 +605,7 @@ export function InstitutionalFeed() {
             </>
           )}
         </DrawerContent>
-      </Drawer>
+      </InstrumentedDrawerBridge>
       </>
     </ConversationSelectionProvider>
   )
