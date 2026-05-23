@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef, ReactNode, cloneElement, isValidElement } from "react"
+import { useState, useCallback, useMemo, useEffect, useLayoutEffect, useRef, Fragment, ReactNode, cloneElement, isValidElement } from "react"
 import Image from "next/image"
 import { Heart, MessageCircle, Share, Bookmark, Play, Star, Newspaper, ChevronDown, ChevronLeft, ChevronRight, X, ShoppingBag } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -10,6 +10,7 @@ import type { BusinessConfig } from "@/lib/business-types"
 import { BusinessFeedDrawer } from "./business-feed-drawer"
 import { ConversationalAI, type ConversationContextItem } from "./conversational-ai"
 import { ContextSelectable, getRememberedMorphSourceElement } from "./context-selectable"
+import { CustomContentBridge } from "./custom-content-bridge"
 import {
   useConversationSelectionContext,
   useConversationSelectionState,
@@ -747,6 +748,36 @@ function PostCard({
 // ========================================
 // SECTION
 // ========================================
+function renderSectionCustomContent(
+  customContent: ReactNode,
+  injection: {
+    onToggleConversationContext: (item: ConversationContextItem) => void
+    isInConversation: (id: string) => boolean
+  }
+) {
+  if (!isValidElement(customContent)) {
+    return customContent
+  }
+
+  const injectionProps = injection as Record<string, unknown>
+
+  if (customContent.type === CustomContentBridge) {
+    return cloneElement(customContent, injectionProps)
+  }
+
+  const needsBridge = typeof customContent.type === "string" || customContent.type === Fragment
+
+  if (needsBridge) {
+    return (
+      <CustomContentBridge {...injection}>
+        {customContent}
+      </CustomContentBridge>
+    )
+  }
+
+  return cloneElement(customContent, injectionProps)
+}
+
 function BusinessSectionComponent({ 
   section, 
   config, 
@@ -766,12 +797,10 @@ function BusinessSectionComponent({
 }) {
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
-  const renderedCustomContent = isValidElement(section.customContent)
-    ? cloneElement(section.customContent, {
-        onToggleConversationContext,
-        isInConversation: isConversationSelected,
-      } as Record<string, unknown>)
-    : section.customContent
+  const renderedCustomContent = renderSectionCustomContent(section.customContent, {
+    onToggleConversationContext,
+    isInConversation: isConversationSelected,
+  })
   
   return (
     <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
