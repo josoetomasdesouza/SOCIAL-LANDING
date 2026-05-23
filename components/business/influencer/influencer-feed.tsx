@@ -5,7 +5,7 @@ import { BusinessSocialLanding } from "../business-social-landing"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
 import { InstrumentedDrawerBridge } from "../instrumented-drawer-bridge"
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
+import { DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { 
   Link2, Instagram, Youtube, Twitter, Mail, 
@@ -256,7 +256,14 @@ export function InfluencerFeed() {
       </InstrumentedDrawerBridge>
       
       {/* Links Drawer */}
-      <Drawer open={linksDrawerOpen} onOpenChange={setLinksDrawerOpen}>
+      <InstrumentedDrawerBridge
+        drawerId="influencer:links"
+        drawerKind="other"
+        title="Todos os Links"
+        vertical="influencer"
+        open={linksDrawerOpen}
+        onOpenChange={setLinksDrawerOpen}
+      >
         <DrawerContent className="max-h-[90vh]">
           <DrawerHeader>
             <DrawerTitle>Todos os Links</DrawerTitle>
@@ -296,7 +303,7 @@ export function InfluencerFeed() {
             })}
           </div>
         </DrawerContent>
-      </Drawer>
+      </InstrumentedDrawerBridge>
       </>
     </ConversationSelectionProvider>
   )
