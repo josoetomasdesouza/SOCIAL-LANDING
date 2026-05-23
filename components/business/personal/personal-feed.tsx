@@ -4,6 +4,7 @@ import { useState } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
+import { InstrumentedDrawerBridge } from "../instrumented-drawer-bridge"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -250,7 +251,14 @@ export function PersonalFeed() {
       />
       
       {/* Contact Drawer */}
-      <Drawer open={contactDrawerOpen} onOpenChange={setContactDrawerOpen}>
+      <InstrumentedDrawerBridge
+        drawerId="personal:contact"
+        drawerKind="other"
+        title="Enviar mensagem"
+        vertical="personal"
+        open={contactDrawerOpen}
+        onOpenChange={setContactDrawerOpen}
+      >
         <DrawerContent className="max-h-[90vh]">
           <DrawerHeader>
             <DrawerTitle>Enviar mensagem</DrawerTitle>
@@ -277,7 +285,7 @@ export function PersonalFeed() {
             )}
           </div>
         </DrawerContent>
-      </Drawer>
+      </InstrumentedDrawerBridge>
       
       {/* Project Drawer */}
       <Drawer open={projectDrawerOpen} onOpenChange={setProjectDrawerOpen}>
