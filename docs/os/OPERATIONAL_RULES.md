@@ -1,7 +1,7 @@
 # Regras Operacionais — Social Landing
 
 **Autoridade:** Este documento  
-**Extensão:** [`docs/ai-handoffs/CHANGE_PROTOCOL.md`](../ai-handoffs/CHANGE_PROTOCOL.md), [`docs/ai-handoffs/EVOLUTION_PROTOCOL.md`](../ai-handoffs/EVOLUTION_PROTOCOL.md)
+**Extensão:** [`docs/ai-handoffs/CHANGE_PROTOCOL.md`](../ai-handoffs/CHANGE_PROTOCOL.md), [`docs/ai-handoffs/EVOLUTION_PROTOCOL.md`](../ai-handoffs/EVOLUTION_PROTOCOL.md), [`EVOLUTION_MANDATE.md`](EVOLUTION_MANDATE.md)
 
 ---
 

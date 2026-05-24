@@ -20,6 +20,7 @@ Desvio entre **intenção documentada**, **código runtime** e **processo operac
 | Docs duplicados/conflitantes | Decisões contraditórias | OS prevalece; dedupe |
 | Dois feeds / três drawers | Fragmentação arquitetural | Convergência controlada |
 | Agentes ignoram frozen | Regressão Tier 1 | Bootstrap OS obrigatório |
+| Governança vira contemplação | Paralisia; OS teórico sem runtime | [`EVOLUTION_MANDATE.md`](EVOLUTION_MANDATE.md) |
 
 ---
 

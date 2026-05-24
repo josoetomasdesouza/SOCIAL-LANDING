@@ -11,6 +11,7 @@ Leia o Sistema Operacional de Produto:
 ```
 docs/os/README.md          ← índice, precedência, ordem de leitura
 docs/os/NORTH_STAR.md      ← direção
+docs/os/EVOLUTION_MANDATE.md ← runtime soberano; evolução > contemplação
 docs/os/PRIORITIES.md      ← o que fazer agora
 docs/os/ANTI_DRIFT.md      ← o que evitar
 docs/os/FROZEN_ZONES.md    ← alma do produto — revisão estratégica
