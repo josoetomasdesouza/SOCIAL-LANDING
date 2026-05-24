@@ -19,9 +19,10 @@ Ler nesta ordem:
 
 1. [`docs/os/README.md`](README.md)
 2. [`docs/os/NORTH_STAR.md`](NORTH_STAR.md)
-3. [`docs/os/PRIORITIES.md`](PRIORITIES.md)
-4. [`docs/os/ANTI_DRIFT.md`](ANTI_DRIFT.md)
-5. [`docs/os/OPERATIONAL_RULES.md`](OPERATIONAL_RULES.md)
+3. [`docs/os/EVOLUTION_MANDATE.md`](EVOLUTION_MANDATE.md)
+4. [`docs/os/PRIORITIES.md`](PRIORITIES.md)
+5. [`docs/os/ANTI_DRIFT.md`](ANTI_DRIFT.md)
+6. [`docs/os/OPERATIONAL_RULES.md`](OPERATIONAL_RULES.md)
 
 ### Passo 2 — Contexto da tarefa
 

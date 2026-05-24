@@ -26,10 +26,11 @@ Review humano continua **soberano**.
 1. `docs/os/README.md`
 2. `AGENTS.md`
 3. `CLAUDE.md`
-4. `docs/os/PRODUCT_DRIFT_CHECKLIST.md`
-5. `docs/os/FROZEN_ZONES.md`
-6. `docs/os/NORTH_STAR.md`
-7. PR template + diff do PR alvo
+4. `docs/os/EVOLUTION_MANDATE.md`
+5. `docs/os/PRODUCT_DRIFT_CHECKLIST.md`
+6. `docs/os/FROZEN_ZONES.md`
+7. `docs/os/NORTH_STAR.md`
+8. PR template + diff do PR alvo
 
 ---
 
@@ -77,6 +78,8 @@ Constituição: tag os-baseline-2026
 
 ## Recomendações (sem implementar): ...
 ```
+
+**Regra de evolução:** tensões observadas vão em *Derivações futuras* — não bloqueiam GO se o PR entrega runtime coerente. Ver [`EVOLUTION_MANDATE.md`](EVOLUTION_MANDATE.md).
 
 ---
 

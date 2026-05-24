@@ -19,7 +19,7 @@ Protocolo completo: [`docs/os/CLAUDE_REVIEWER_MODE.md`](docs/os/CLAUDE_REVIEWER_
 Execute o bootstrap do Sistema Operacional **antes de qualquer código ou análise destrutiva**:
 
 1. Leia `docs/os/README.md`
-2. Leia os 5 docs do bootstrap mínimo (listados em `AGENTS.md`)
+2. Leia o bootstrap mínimo (listado em `AGENTS.md`)
 3. Leia pilares adicionais conforme o tipo de tarefa
 4. Rode `git status --short --branch` e confirme branch/escopo
 
@@ -45,6 +45,7 @@ Superfícies principais:
 | Necessidade | Documento |
 |-------------|-----------|
 | Direção estratégica | `docs/os/NORTH_STAR.md` |
+| Evolução vs paralisia | `docs/os/EVOLUTION_MANDATE.md` |
 | UX / morph / composer | `docs/os/EXPERIENCE_PHILOSOPHY.md` + `docs/ai-handoffs/FROZEN_SYSTEMS.md` |
 | Arquitetura | `docs/os/ARCHITECTURE_RULES.md` |
 | Integrações | `docs/os/BOUNDARIES.md` |

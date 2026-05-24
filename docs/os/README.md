@@ -1,6 +1,6 @@
 # Social Landing — Sistema Operacional de Produto
 
-**Versão:** 1.1  
+**Versão:** 1.2  
 **Data:** 2026-05-24  
 **Status:** Autoridade institucional — qualquer agente deve ler isto antes de tocar o projeto.
 
@@ -11,6 +11,8 @@
 Este diretório é o **sistema operacional** da Social Landing: a camada que transforma ideias dispersas em decisões coerentes, repetíveis e anti-drift.
 
 Não é burocracia. É **memória institucional mínima** com ordem de leitura clara.
+
+**Equilíbrio:** governança acelera evolução coerente — ver [`EVOLUTION_MANDATE.md`](EVOLUTION_MANDATE.md).
 
 ---
 
@@ -42,25 +44,26 @@ O agente entende **primeiro a filosofia**, depois **as regras**, depois **a exec
 
 ---
 
-## Camadas do OS (15 pilares)
+## Camadas do OS (16 pilares)
 
 | # | Pilar | Documento | Quando ler |
 |---|-------|-----------|------------|
 | 1 | North Star | [`NORTH_STAR.md`](NORTH_STAR.md) | Sempre — primeira leitura |
-| 2 | Filosofia do produto | [`PRODUCT_PHILOSOPHY.md`](PRODUCT_PHILOSOPHY.md) | Features, escopo, integrações |
-| 3 | Filosofia da experiência | [`EXPERIENCE_PHILOSOPHY.md`](EXPERIENCE_PHILOSOPHY.md) | UX, composer, feed, morph |
-| 4 | Identidade visual | [`VISUAL_IDENTITY.md`](VISUAL_IDENTITY.md) | UI, spacing, z-index, blur |
-| 5 | Regras arquiteturais | [`ARCHITECTURE_RULES.md`](ARCHITECTURE_RULES.md) | Código, módulos, Tier 1/2 |
-| 6 | Boundaries | [`BOUNDARIES.md`](BOUNDARIES.md) | Ports, providers, o que não internalizar |
-| 7 | Regras operacionais | [`OPERATIONAL_RULES.md`](OPERATIONAL_RULES.md) | Antes/durante implementação |
-| 8 | Governança | [`GOVERNANCE.md`](GOVERNANCE.md) | Estado, evolução, frozen systems |
-| 9 | Anti-drift | [`ANTI_DRIFT.md`](ANTI_DRIFT.md) | Riscos, árvore suja, regressões |
-| 10 | **Frozen zones** | [`FROZEN_ZONES.md`](FROZEN_ZONES.md) | Refactor amplo — revisão estratégica |
-| 11 | **Product drift checklist** | [`PRODUCT_DRIFT_CHECKLIST.md`](PRODUCT_DRIFT_CHECKLIST.md) | Lint filosófico por feature |
-| 12 | Workstreams | [`WORKSTREAMS.md`](WORKSTREAMS.md) | Branches, isolamento, peel |
-| 13 | Handoffs | [`HANDOFFS.md`](HANDOFFS.md) | Protocolos, logs, PRs |
-| 14 | Prioridades | [`PRIORITIES.md`](PRIORITIES.md) | O que fazer agora vs depois |
-| 15 | Claude operating system | [`CLAUDE_OPERATING_SYSTEM.md`](CLAUDE_OPERATING_SYSTEM.md) | Bootstrap de agentes |
+| 2 | **Evolução obrigatória** | [`EVOLUTION_MANDATE.md`](EVOLUTION_MANDATE.md) | Sempre — evitar paralisia por governança |
+| 3 | Filosofia do produto | [`PRODUCT_PHILOSOPHY.md`](PRODUCT_PHILOSOPHY.md) | Features, escopo, integrações |
+| 4 | Filosofia da experiência | [`EXPERIENCE_PHILOSOPHY.md`](EXPERIENCE_PHILOSOPHY.md) | UX, composer, feed, morph |
+| 5 | Identidade visual | [`VISUAL_IDENTITY.md`](VISUAL_IDENTITY.md) | UI, spacing, z-index, blur |
+| 6 | Regras arquiteturais | [`ARCHITECTURE_RULES.md`](ARCHITECTURE_RULES.md) | Código, módulos, Tier 1/2 |
+| 7 | Boundaries | [`BOUNDARIES.md`](BOUNDARIES.md) | Ports, providers, o que não internalizar |
+| 8 | Regras operacionais | [`OPERATIONAL_RULES.md`](OPERATIONAL_RULES.md) | Antes/durante implementação |
+| 9 | Governança | [`GOVERNANCE.md`](GOVERNANCE.md) | Estado, evolução, frozen systems |
+| 10 | Anti-drift | [`ANTI_DRIFT.md`](ANTI_DRIFT.md) | Riscos, árvore suja, regressões |
+| 11 | **Frozen zones** | [`FROZEN_ZONES.md`](FROZEN_ZONES.md) | Refactor amplo — revisão estratégica |
+| 12 | **Product drift checklist** | [`PRODUCT_DRIFT_CHECKLIST.md`](PRODUCT_DRIFT_CHECKLIST.md) | Lint filosófico por feature |
+| 13 | Workstreams | [`WORKSTREAMS.md`](WORKSTREAMS.md) | Branches, isolamento, peel |
+| 14 | Handoffs | [`HANDOFFS.md`](HANDOFFS.md) | Protocolos, logs, PRs |
+| 15 | Prioridades | [`PRIORITIES.md`](PRIORITIES.md) | O que fazer agora vs depois |
+| 16 | Claude operating system | [`CLAUDE_OPERATING_SYSTEM.md`](CLAUDE_OPERATING_SYSTEM.md) | Bootstrap de agentes |
 
 ---
 
@@ -69,11 +72,12 @@ O agente entende **primeiro a filosofia**, depois **as regras**, depois **a exec
 ### Bootstrap mínimo (qualquer tarefa)
 
 1. `NORTH_STAR.md`
-2. `PRIORITIES.md`
-3. `ANTI_DRIFT.md`
-4. `FROZEN_ZONES.md`
-5. `OPERATIONAL_RULES.md`
-6. `CLAUDE_OPERATING_SYSTEM.md`
+2. `EVOLUTION_MANDATE.md`
+3. `PRIORITIES.md`
+4. `ANTI_DRIFT.md`
+5. `FROZEN_ZONES.md`
+6. `OPERATIONAL_RULES.md`
+7. `CLAUDE_OPERATING_SYSTEM.md`
 
 ### Por tipo de tarefa
 
