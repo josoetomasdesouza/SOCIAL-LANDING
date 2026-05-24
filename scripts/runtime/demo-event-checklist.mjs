@@ -1,6 +1,13 @@
 /**
- * Stabilization QA — passive events on /demo (DEV).
- * Run: PLAYWRIGHT_BROWSERS_PATH=~/Library/Caches/ms-playwright npm exec --yes --package=playwright@1.52.0 -- node scripts/demo-event-checklist.mjs
+ * Global /demo event protocol — passive events (DEV).
+ *
+ * Prerequisites:
+ *   pnpm dev
+ *   pnpm exec playwright install chromium
+ *
+ * Run:
+ *   pnpm qa:events
+ *   DEMO_URL=http://127.0.0.1:3000/demo pnpm qa:events
  */
 import { chromium } from "playwright"
 
