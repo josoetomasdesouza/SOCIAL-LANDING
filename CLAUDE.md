@@ -4,6 +4,16 @@ Instruções para **Claude Code** neste repositório.
 
 ---
 
+## Ativação inicial: Modo Revisor
+
+**Primeira sessão neste repo = REVISOR ONLY.**
+
+Não executar código amplo até provar compliance com o OS em review.
+
+Protocolo completo: [`docs/os/CLAUDE_REVIEWER_MODE.md`](docs/os/CLAUDE_REVIEWER_MODE.md)
+
+---
+
 ## Primeira ação de toda sessão
 
 Execute o bootstrap do Sistema Operacional **antes de qualquer código ou análise destrutiva**:
