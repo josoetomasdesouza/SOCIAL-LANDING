@@ -77,6 +77,7 @@ Ver `docs/audit/EVENT_CONTRACTS.md`.
 
 | Documento | Conteúdo |
 |-----------|----------|
+| **`docs/os/README.md`** | **Sistema Operacional de Produto (constituição — ler primeiro)** |
 | `docs/audit/ARCHITECTURE_REPORT.md` | Auditoria completa |
 | `docs/audit/FROZEN_SYSTEMS.md` | Sistemas congelados |
 | `docs/audit/EVENT_MAP.md` | Mapa de eventos |

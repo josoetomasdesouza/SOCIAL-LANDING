@@ -1,0 +1,28 @@
+---
+description: Bootstrap obrigatório do Sistema Operacional Social Landing antes de qualquer tarefa
+alwaysApply: true
+---
+
+# Social Landing OS — Bootstrap Obrigatório
+
+Antes de implementar, refatorar ou analisar código neste projeto:
+
+1. Leia `docs/os/README.md` e o bootstrap mínimo em `AGENTS.md`
+2. Confirme prioridades em `docs/os/PRIORITIES.md` — respeite lista NO-GO
+3. Features de produto → `docs/os/PRODUCT_DRIFT_CHECKLIST.md` antes de codar
+4. UI/composer/morph/frozen zones → `docs/os/FROZEN_ZONES.md` + `docs/ai-handoffs/FROZEN_SYSTEMS.md`
+5. Conflito doc vs ação → precedência em `docs/os/README.md` (constituição vence inferência)
+6. Rode `git status --short --branch` — nunca edite `main` diretamente
+
+## Regras
+
+- Diff mínimo; sem refactors não solicitados
+- Tier 1 congelado: feed, morph, composer, drawers, z-index, timings
+- Decisões sensíveis → `docs/ai-handoffs/EVOLUTION_LOG.md`
+- Em conflito doc vs ação: `docs/os/` prevalece
+
+## Proibido
+
+- Bypass de ports (`lib/integrations`) para providers
+- Merge de workstreams misturados
+- Commit sem pedido explícito do humano
