@@ -1,11 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { BusinessSocialLanding } from "../business-social-landing"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
-import { InstrumentedDrawerBridge } from "../instrumented-drawer-bridge"
-import { DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
+import { ActionDrawer } from "../action-drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -98,6 +97,20 @@ export function PersonalFeed() {
   const [contactSent, setContactSent] = useState(false)
   
   const content = getBusinessContent("personal")
+
+  useEffect(() => {
+    if (!contactDrawerOpen && !projectDrawerOpen) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return
+      if (projectDrawerOpen) {
+        setProjectDrawerOpen(false)
+      } else if (contactDrawerOpen) {
+        setContactDrawerOpen(false)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [contactDrawerOpen, projectDrawerOpen])
   
   const handleSendMessage = () => {
     setContactSent(true)
@@ -250,83 +263,65 @@ export function PersonalFeed() {
         sections={sections}
       />
       
-      {/* Contact Drawer */}
-      <InstrumentedDrawerBridge
+      <ActionDrawer
+        isOpen={contactDrawerOpen}
+        onClose={() => setContactDrawerOpen(false)}
         drawerId="personal:contact"
-        drawerKind="other"
         title="Enviar mensagem"
-        vertical="personal"
-        open={contactDrawerOpen}
-        onOpenChange={setContactDrawerOpen}
+        size="lg"
       >
-        <DrawerContent className="max-h-[90vh]">
-          <DrawerHeader>
-            <DrawerTitle>Enviar mensagem</DrawerTitle>
-          </DrawerHeader>
-          <div className="p-6 space-y-4">
-            {contactSent ? (
-              <div className="flex flex-col items-center py-8">
-                <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-                  <Check className="w-8 h-8 text-green-500" />
-                </div>
-                <h3 className="text-lg font-semibold">Mensagem enviada!</h3>
-                <p className="text-muted-foreground">Responderei em breve.</p>
-              </div>
-            ) : (
-              <>
-                <Input placeholder="Seu nome" />
-                <Input placeholder="Seu email" type="email" />
-                <Textarea placeholder="Sua mensagem..." rows={4} />
-                <Button className="w-full" onClick={handleSendMessage}>
-                  <Send className="w-4 h-4 mr-2" />
-                  Enviar mensagem
-                </Button>
-              </>
-            )}
+        {contactSent ? (
+          <div className="flex flex-col items-center py-8">
+            <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
+              <Check className="w-8 h-8 text-green-500" />
+            </div>
+            <h3 className="text-lg font-semibold">Mensagem enviada!</h3>
+            <p className="text-muted-foreground">Responderei em breve.</p>
           </div>
-        </DrawerContent>
-      </InstrumentedDrawerBridge>
+        ) : (
+          <div className="space-y-4">
+            <Input placeholder="Seu nome" />
+            <Input placeholder="Seu email" type="email" />
+            <Textarea placeholder="Sua mensagem..." rows={4} />
+            <Button className="w-full" onClick={handleSendMessage}>
+              <Send className="w-4 h-4 mr-2" />
+              Enviar mensagem
+            </Button>
+          </div>
+        )}
+      </ActionDrawer>
       
-      {/* Project Drawer */}
-      <InstrumentedDrawerBridge
+      <ActionDrawer
+        isOpen={projectDrawerOpen}
+        onClose={() => setProjectDrawerOpen(false)}
         drawerId="personal:project"
-        drawerKind="other"
         title={selectedProject?.title ?? "Projeto"}
-        vertical="personal"
-        open={projectDrawerOpen}
-        onOpenChange={setProjectDrawerOpen}
+        size="lg"
       >
-        <DrawerContent className="max-h-[90vh]">
-          {selectedProject && (
-            <>
-              <DrawerHeader>
-                <DrawerTitle>{selectedProject.title}</DrawerTitle>
-              </DrawerHeader>
-              <div className="p-6 space-y-4">
-                <div className="aspect-video rounded-xl overflow-hidden">
-                  <Image 
-                    src={selectedProject.image} 
-                    alt={selectedProject.title} 
-                    width={400} 
-                    height={225} 
-                    className="object-cover w-full h-full" 
-                  />
-                </div>
-                <p className="text-muted-foreground">{selectedProject.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedProject.tags.map((tag) => (
-                    <span key={tag} className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm">{tag}</span>
-                  ))}
-                </div>
-                <Button className="w-full" variant="outline">
-                  <Github className="w-4 h-4 mr-2" />
-                  Ver no GitHub
-                </Button>
-              </div>
-            </>
-          )}
-        </DrawerContent>
-      </InstrumentedDrawerBridge>
+        {selectedProject && (
+          <div className="space-y-4">
+            <div className="aspect-video rounded-xl overflow-hidden">
+              <Image 
+                src={selectedProject.image} 
+                alt={selectedProject.title} 
+                width={400} 
+                height={225} 
+                className="object-cover w-full h-full" 
+              />
+            </div>
+            <p className="text-muted-foreground">{selectedProject.description}</p>
+            <div className="flex flex-wrap gap-2">
+              {selectedProject.tags.map((tag) => (
+                <span key={tag} className="px-3 py-1 rounded-full bg-accent/10 text-accent text-sm">{tag}</span>
+              ))}
+            </div>
+            <Button className="w-full" variant="outline">
+              <Github className="w-4 h-4 mr-2" />
+              Ver no GitHub
+            </Button>
+          </div>
+        )}
+      </ActionDrawer>
       </>
     </ConversationSelectionProvider>
   )

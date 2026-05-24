@@ -9,6 +9,8 @@ interface ActionDrawerProps {
   isOpen: boolean
   onClose: () => void
   title: string
+  /** Stable id for drawer/surface events; defaults to title when omitted */
+  drawerId?: string
   subtitle?: string
   children: React.ReactNode
   footer?: React.ReactNode
@@ -23,6 +25,7 @@ export function ActionDrawer({
   isOpen,
   onClose,
   title,
+  drawerId,
   subtitle,
   children,
   footer,
@@ -32,6 +35,7 @@ export function ActionDrawer({
   fillVisibleBottomInset = false,
 }: ActionDrawerProps) {
   const wasOpenRef = useRef(false)
+  const eventDrawerId = drawerId ?? title
 
   // Bloqueia scroll do body quando aberto
   useEffect(() => {
@@ -48,20 +52,20 @@ export function ActionDrawer({
   useEffect(() => {
     if (isOpen && !wasOpenRef.current) {
       observeDrawerOpened({
-        drawerId: title,
+        drawerId: eventDrawerId,
         drawerKind: "action",
         title,
         source: "action-drawer",
       })
     } else if (!isOpen && wasOpenRef.current) {
       observeDrawerClosed({
-        drawerId: title,
+        drawerId: eventDrawerId,
         drawerKind: "action",
         source: "action-drawer",
       })
     }
     wasOpenRef.current = isOpen
-  }, [isOpen, title])
+  }, [isOpen, title, eventDrawerId])
 
   if (!isOpen) return null
 
