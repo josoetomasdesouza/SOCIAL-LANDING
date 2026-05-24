@@ -52,7 +52,7 @@ export function EcommerceConversationProductsBlock({
   return (
     <div className="space-y-3">
       {activeConversationView === "recommendation" ? (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-2">
           {products.map((product) => (
             <EcommerceProductFeedCard
               key={product.id}
