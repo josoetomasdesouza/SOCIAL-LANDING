@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { BusinessPost } from "./business-social-landing"
 import { ContextSelectable } from "./context-selectable"
+import { resolveDrawerScrollPaddingBottom } from "@/lib/ui/drawer-scroll-clearance"
 
 interface BusinessFeedDrawerProps {
   isOpen: boolean
@@ -312,8 +313,11 @@ export function BusinessFeedDrawer({
         </div>
 
         {/* Feed Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6 pb-36">
+        <div
+          className="flex-1 overflow-y-auto overscroll-contain"
+          style={{ paddingBottom: resolveDrawerScrollPaddingBottom() }}
+        >
+          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6">
             <div className="space-y-8">
               {orderedPosts.map((post, index) => {
                 const isInitial = initialPost?.id === post.id

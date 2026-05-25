@@ -5,6 +5,7 @@ import { observeDrawerClosed, observeDrawerOpened } from "@/lib/events/instrumen
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { resolveDrawerScrollPaddingBottom } from "@/lib/ui/drawer-scroll-clearance"
 
 interface ActionDrawerProps {
   isOpen: boolean
@@ -150,8 +151,10 @@ export function ActionDrawer({
   const drawerMaxHeight = shouldBlendBottomInset
     ? `min(calc(100dvh - ${SHEET_TOP_SAFE_MARGIN_PX}px), calc(${visibleSheetMaxHeight} + ${reservedBottomSpace}px))`
     : visibleSheetMaxHeight
-  const contentScrollPaddingBottom =
-    reservedBottomSpace > 0 ? reservedBottomSpace + COMPOSER_SCROLL_CLEARANCE_PX : undefined
+  const contentScrollPaddingBottom = resolveDrawerScrollPaddingBottom(
+    reservedBottomSpace,
+    COMPOSER_SCROLL_CLEARANCE_PX
+  )
   const drawerTransform = matchFeedWidth
     ? `translate(-50%, ${dragOffsetPx}px)`
     : `translateY(${dragOffsetPx}px)`
