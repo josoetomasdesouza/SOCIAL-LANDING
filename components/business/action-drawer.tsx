@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { observeDrawerClosed, observeDrawerOpened } from "@/lib/events/instrumentation"
-import { X, ChevronDown } from "lucide-react"
+import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface ActionDrawerProps {
   isOpen: boolean
@@ -21,6 +22,17 @@ interface ActionDrawerProps {
   fillVisibleBottomInset?: boolean
 }
 
+const SHEET_TOP_SAFE_MARGIN_PX = 16
+const DRAG_CLOSE_THRESHOLD_PX = 72
+const COMPOSER_SCROLL_CLEARANCE_PX = 12
+
+const sizeMaxHeights = {
+  sm: "40dvh",
+  md: "60dvh",
+  lg: "80dvh",
+  full: "95dvh",
+} as const
+
 export function ActionDrawer({
   isOpen,
   onClose,
@@ -35,19 +47,40 @@ export function ActionDrawer({
   fillVisibleBottomInset = false,
 }: ActionDrawerProps) {
   const wasOpenRef = useRef(false)
+  const dragStateRef = useRef<{ pointerId: number; startY: number } | null>(null)
+  const [dragOffsetPx, setDragOffsetPx] = useState(0)
   const eventDrawerId = drawerId ?? title
 
-  // Bloqueia scroll do body quando aberto
+  const resetDrag = useCallback(() => {
+    dragStateRef.current = null
+    setDragOffsetPx(0)
+  }, [])
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
+      resetDrag()
     }
+
     return () => {
       document.body.style.overflow = ""
     }
-  }, [isOpen])
+  }, [isOpen, resetDrag])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [isOpen, onClose])
 
   useEffect(() => {
     if (isOpen && !wasOpenRef.current) {
@@ -67,93 +100,132 @@ export function ActionDrawer({
     wasOpenRef.current = isOpen
   }, [isOpen, title, eventDrawerId])
 
+  const handlePointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return
+
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }, [])
+
+  const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    const dragState = dragStateRef.current
+    if (!dragState || dragState.pointerId !== event.pointerId) return
+
+    const deltaY = Math.max(0, event.clientY - dragState.startY)
+    setDragOffsetPx(deltaY)
+  }, [])
+
+  const handlePointerEnd = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const dragState = dragStateRef.current
+      if (!dragState || dragState.pointerId !== event.pointerId) return
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId)
+      }
+
+      const deltaY = Math.max(0, event.clientY - dragState.startY)
+      resetDrag()
+
+      if (deltaY >= DRAG_CLOSE_THRESHOLD_PX) {
+        onClose()
+      }
+    },
+    [onClose, resetDrag]
+  )
+
   if (!isOpen) return null
 
-  const sizeMaxHeights = {
-    sm: "40vh",
-    md: "60vh",
-    lg: "80vh",
-    full: "95vh",
-  }
   const widthClasses = matchFeedWidth
     ? "left-1/2 right-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
     : "inset-x-0"
-  const drawerTransform = matchFeedWidth
-    ? `translate(-50%, ${isOpen ? "0" : "100%"})`
-    : `translateY(${isOpen ? "0" : "100%"})`
   const innerWidthClasses = "w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
   const reservedBottomSpace = Math.max(0, visibleBottomInsetPx)
   const shouldBlendBottomInset = fillVisibleBottomInset && reservedBottomSpace > 0
   const drawerBottom = shouldBlendBottomInset ? 0 : reservedBottomSpace
+  const visibleSheetMaxHeight = `min(${sizeMaxHeights[size]}, calc(100dvh - ${SHEET_TOP_SAFE_MARGIN_PX}px))`
   const drawerMaxHeight = shouldBlendBottomInset
-    ? `calc(${sizeMaxHeights[size]} + ${reservedBottomSpace}px)`
-    : sizeMaxHeights[size]
+    ? `min(calc(100dvh - ${SHEET_TOP_SAFE_MARGIN_PX}px), calc(${visibleSheetMaxHeight} + ${reservedBottomSpace}px))`
+    : visibleSheetMaxHeight
+  const contentScrollPaddingBottom =
+    reservedBottomSpace > 0 ? reservedBottomSpace + COMPOSER_SCROLL_CLEARANCE_PX : undefined
+  const drawerTransform = matchFeedWidth
+    ? `translate(-50%, ${dragOffsetPx}px)`
+    : `translateY(${dragOffsetPx}px)`
 
   return (
     <>
-      {/* Backdrop */}
       <div
-        className="fixed inset-x-0 top-0 bg-black/50 z-50 transition-opacity"
-        style={{ bottom: drawerBottom }}
+        className="fixed inset-x-0 top-0 z-50 bg-black/50 transition-opacity"
+        style={{
+          bottom: drawerBottom,
+          opacity: dragOffsetPx > 0 ? Math.max(0.2, 0.5 - dragOffsetPx / 320) : undefined,
+        }}
         onClick={onClose}
       />
 
-      {/* Drawer */}
       <div
-        className={`fixed ${widthClasses} bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out`}
+        className={cn(
+          "fixed bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl",
+          widthClasses,
+          dragOffsetPx > 0 ? "transition-none" : "transition-transform duration-300 ease-out"
+        )}
         style={{
           transform: drawerTransform,
           bottom: drawerBottom,
           maxHeight: drawerMaxHeight,
         }}
       >
-        {/* Handle */}
-        <div className="flex flex-shrink-0 justify-center pt-3 pb-2">
-          <div className="w-10 h-1 bg-border rounded-full" />
-        </div>
-
-        {/* Header */}
-        <div className="flex-shrink-0 border-b border-border/50">
-          <div className={`${innerWidthClasses} flex items-center justify-between px-5 pb-4`}>
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-              {subtitle && (
-                <p className="text-sm text-muted-foreground">{subtitle}</p>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-9 w-9 p-0 rounded-full"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+        <div
+          className="flex shrink-0 touch-none cursor-grab flex-col active:cursor-grabbing"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
+        >
+          <div className="flex justify-center pt-3 pb-2">
+            <div className="h-1 w-10 rounded-full bg-border" />
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className={`${innerWidthClasses} p-5`}>
-            {children}
-          </div>
-        </div>
-
-        {/* Footer */}
-        {footer && (
-          <div className="flex-shrink-0 border-t border-border/50 bg-card">
-            <div className={`${innerWidthClasses} p-5`}>
-              {footer}
+          <div className="border-b border-border/50">
+            <div className={`${innerWidthClasses} flex items-center justify-between px-5 pb-4`}>
+              <div className="min-w-0 pr-3">
+                <h3 className="truncate text-lg font-semibold text-foreground">{title}</h3>
+                {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-9 w-9 shrink-0 rounded-full p-0"
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
           </div>
-        )}
+        </div>
 
-        {shouldBlendBottomInset ? (
+        <div
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          style={{ paddingBottom: contentScrollPaddingBottom }}
+        >
+          <div className={`${innerWidthClasses} p-5`}>{children}</div>
+        </div>
+
+        {footer ? (
           <div
-            aria-hidden="true"
-            className="shrink-0 bg-card"
-            style={{ height: reservedBottomSpace }}
-          />
+            className="shrink-0 border-t border-border/50 bg-card"
+            style={{ paddingBottom: shouldBlendBottomInset ? reservedBottomSpace : undefined }}
+          >
+            <div className={`${innerWidthClasses} p-5`}>{footer}</div>
+          </div>
+        ) : null}
+
+        {shouldBlendBottomInset && !footer ? (
+          <div aria-hidden="true" className="shrink-0 bg-card" style={{ height: reservedBottomSpace }} />
         ) : null}
       </div>
     </>
@@ -318,7 +390,6 @@ export function ProductDetailDrawer({
       }
     >
       <div className="space-y-6">
-        {/* Imagens */}
         <div className="relative aspect-square rounded-2xl overflow-hidden">
           <img
             src={product.images[0]}
@@ -332,7 +403,6 @@ export function ProductDetailDrawer({
           )}
         </div>
 
-        {/* Preco */}
         <div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold text-foreground">
@@ -349,7 +419,6 @@ export function ProductDetailDrawer({
           </p>
         </div>
 
-        {/* Avaliacao */}
         <div className="flex items-center gap-2">
           <div className="flex">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -368,7 +437,6 @@ export function ProductDetailDrawer({
           </span>
         </div>
 
-        {/* Descricao */}
         <div>
           <h4 className="font-semibold text-foreground mb-2">Descricao</h4>
           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -376,7 +444,6 @@ export function ProductDetailDrawer({
           </p>
         </div>
 
-        {/* Especificacoes */}
         {product.specifications && product.specifications.length > 0 && (
           <div>
             <h4 className="font-semibold text-foreground mb-3">Especificacoes</h4>

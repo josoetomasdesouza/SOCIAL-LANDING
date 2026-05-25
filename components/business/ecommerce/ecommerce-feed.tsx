@@ -197,7 +197,7 @@ function ProductDetailDrawer({
 }) {
   if (!product) return null
 
-  const composerInsetPx = 104
+  const composerInsetPx = 120
   const cartBarInsetPx = hasVisibleCartBar ? 88 : 0
   
   return (
