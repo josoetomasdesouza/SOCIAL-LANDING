@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import type { ConversationContextPayload } from "@/lib/business-types"
+import type { ConversationContextPayload, Product } from "@/lib/business-types"
 import { products } from "@/lib/mock-data/ecommerce-data"
 import type { ConversationalSearchProductResult } from "@/lib/surface-flow/contracts"
 import {
@@ -42,6 +42,7 @@ export interface ConversationalSearchResultsPayload {
 }
 
 export const CONVERSATIONAL_SEARCH_RESULTS_KIND = "conversational-search-results"
+const ECOMMERCE_PRODUCT_CONTEXT_PREFIX = "ecommerce-product-"
 const CATALOG_PRODUCT_ENTITIES = products.map(catalogProductToProductEntity)
 const FACIAL_SEARCH_TERMS = [
   "facial",
@@ -57,6 +58,73 @@ const FACIAL_SEARCH_TERMS = [
 
 function normalizeText(value: string) {
   return normalizeSurfaceFlowText(value)
+}
+
+function getContextCatalogProducts(contextItems: ConversationContextPayload[]) {
+  const contextProductIds = new Set(
+    contextItems
+      .map((item) => {
+        if (!item.id.startsWith(ECOMMERCE_PRODUCT_CONTEXT_PREFIX)) {
+          return null
+        }
+
+        return item.id.slice(ECOMMERCE_PRODUCT_CONTEXT_PREFIX.length)
+      })
+      .filter(Boolean) as string[]
+  )
+
+  return products.filter((product) => contextProductIds.has(product.id))
+}
+
+function getSearchTermsFromContextProducts(contextProducts: Product[]) {
+  const terms = new Set<string>()
+
+  for (const product of contextProducts) {
+    const entity = catalogProductToProductEntity(product)
+
+    if (entity.category) {
+      terms.add(normalizeText(entity.category))
+    }
+
+    for (const keyword of entity.keywords || []) {
+      terms.add(normalizeText(keyword))
+    }
+  }
+
+  return [...terms]
+}
+
+function matchesContextualFollowUpIntent(message: string) {
+  const normalizedMessage = normalizeText(message)
+  const followUpCues = [
+    "similar",
+    "parecido",
+    "parecida",
+    "combina",
+    "complementa",
+    "alternativa",
+    "mais opco",
+    "outra op",
+    "outro produto",
+    "me mostra mais",
+    "mostra mais",
+    "e agora",
+    "e esse",
+    "sobre esse",
+    "nesse caso",
+    "com isso",
+    "com ele",
+    "com ela",
+    "junto",
+    "tambem",
+    "recomenda",
+    "indica",
+    "o que vai bem",
+    "faz sentido",
+    "combinacao",
+  ]
+
+  return followUpCues.some((cue) => normalizedMessage.includes(cue))
 }
 
 function matchesFacialProductsIntent(message: string) {
@@ -91,26 +159,92 @@ function matchesFacialProductsIntent(message: string) {
   return mentionsFacialCategory && (mentionsProductCue || mentionsSearchIntent)
 }
 
-function getCatalogProductsForConversationalSearch(message: string) {
-  const normalizedMessage = normalizeText(message)
-  const matchedTerms = FACIAL_SEARCH_TERMS.filter((term) => normalizedMessage.includes(term))
+function summarizeContextProductLabel(contextProducts: Product[]) {
+  if (contextProducts.length === 0) {
+    return null
+  }
 
-  return rankProductEntitiesForConversation(CATALOG_PRODUCT_ENTITIES, matchedTerms, 3)
+  if (contextProducts.length === 1) {
+    return contextProducts[0].name
+  }
+
+  return `${contextProducts[0].name} e mais ${contextProducts.length - 1}`
+}
+
+function getRelatedProductsFromContext(contextProducts: Product[], limit: number) {
+  const excludeIds = new Set(contextProducts.map((product) => product.id))
+  const terms = getSearchTermsFromContextProducts(contextProducts)
+
+  if (terms.length === 0) {
+    return []
+  }
+
+  return rankProductEntitiesForConversation(
+    CATALOG_PRODUCT_ENTITIES,
+    terms,
+    limit + excludeIds.size
+  )
+    .filter((entity) => !excludeIds.has(entity.id))
+    .slice(0, limit)
     .map(productEntityToConversationalResult)
 }
 
-export const ecommerceMockConversationResolver: ConversationResponseResolver = ({ message }) => {
-  if (!matchesFacialProductsIntent(message)) {
+function getCatalogProductsForConversationalSearch(message: string, contextProducts: Product[] = []) {
+  const normalizedMessage = normalizeText(message)
+  const messageTerms = FACIAL_SEARCH_TERMS.filter((term) => normalizedMessage.includes(term))
+  const contextTerms = getSearchTermsFromContextProducts(contextProducts)
+  const searchTerms = [...new Set([...messageTerms, ...contextTerms])]
+
+  return rankProductEntitiesForConversation(CATALOG_PRODUCT_ENTITIES, searchTerms, 3).map(
+    productEntityToConversationalResult
+  )
+}
+
+function buildSearchResultsResponse(
+  text: string,
+  searchResults: ConversationalSearchProductResult[]
+): ConversationResponseResolverResult | null {
+  if (searchResults.length === 0) {
     return null
   }
 
   return {
-    text: "Encontrei alguns produtos que combinam com isso.",
+    text,
     visualBlock: {
       kind: CONVERSATIONAL_SEARCH_RESULTS_KIND,
       payload: {
-        products: getCatalogProductsForConversationalSearch(message),
+        products: searchResults,
       } satisfies ConversationalSearchResultsPayload,
     },
   }
+}
+
+export const ecommerceMockConversationResolver: ConversationResponseResolver = ({
+  message,
+  contextItems,
+}) => {
+  const contextProducts = getContextCatalogProducts(contextItems)
+
+  if (contextProducts.length > 0 && matchesContextualFollowUpIntent(message)) {
+    const relatedProducts = getRelatedProductsFromContext(contextProducts, 3)
+    const contextLabel = summarizeContextProductLabel(contextProducts)
+
+    return buildSearchResultsResponse(
+      contextLabel
+        ? `Pensando em ${contextLabel}, separei algumas opcoes que combinam.`
+        : "Separei algumas opcoes que combinam com o que voce selecionou.",
+      relatedProducts
+    )
+  }
+
+  if (!matchesFacialProductsIntent(message)) {
+    return null
+  }
+
+  return buildSearchResultsResponse(
+    contextProducts.length > 0
+      ? "Considerando o que voce selecionou, encontrei alguns produtos que combinam."
+      : "Encontrei alguns produtos que combinam com isso.",
+    getCatalogProductsForConversationalSearch(message, contextProducts)
+  )
 }
