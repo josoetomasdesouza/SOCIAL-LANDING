@@ -162,3 +162,19 @@ runtime → review → hygiene → runtime → OS → runtime
 Evitar 3+ sessões seguidas apenas de docs/governança/reflexão.
 
 Enforcement Cursor: `.cursor/rules/runtime-first.mdc`
+
+---
+
+## Anti-drift filosófico
+
+Reflexão válida **só** se alterar: o que construir, o que NÃO construir, o que remover, timing, comportamento do agente, review perceptivo, prioridade runtime.
+
+**Desfecho em 1–2 ciclos:** runtime pequeno · observação device · hygiene · redução · não fazer agora.
+
+**3+ sinais** (termos demais, teoria > produto, conversa > software) → interromper meta-conversa.
+
+**Compressão:** `quietude emergente` → `se parecer ansioso, reduzir`.
+
+Runtime saudável no device > narrativa. Filosofia compete com execução → reduzir.
+
+Enforcement Cursor: `.cursor/rules/anti-philosophy-drift.mdc`
