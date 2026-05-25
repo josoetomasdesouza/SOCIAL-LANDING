@@ -2,9 +2,12 @@
 
 import { useEffect, useMemo, useRef, useCallback } from "react"
 import Image from "next/image"
-import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Send } from "lucide-react"
+import { Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Send } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { DrawerDragZone } from "@/components/ui/drawer-drag-chrome"
+import { resolveDrawerScrollPaddingBottom } from "@/lib/ui/drawer-scroll-clearance"
+import { getDrawerSheetTransform, useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
 import type { Post } from "@/lib/types"
 
 interface FeedDrawerProps {
@@ -253,6 +256,8 @@ function SimulatedConversation({
 export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, brandLogo }: FeedDrawerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const initialPostRef = useRef<HTMLDivElement>(null)
+  const { dragOffsetPx, resetDrag, isDragging, dragHandleProps, getBackdropOpacity } =
+    useDrawerSheetDrag(onClose)
 
   const filteredPosts = useMemo(() => {
     if (category === "all") return posts
@@ -279,11 +284,25 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
       document.body.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
+      resetDrag()
     }
     return () => {
       document.body.style.overflow = ""
     }
-  }, [isOpen])
+  }, [isOpen, resetDrag])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [isOpen, onClose])
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -295,34 +314,33 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm transition-opacity"
+      style={{ opacity: getBackdropOpacity(0.7) }}
       onClick={handleBackdropClick}
     >
       <div 
         ref={containerRef}
-        className="absolute inset-x-0 bottom-0 top-0 md:top-auto md:max-h-[92vh] bg-background rounded-t-3xl overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300 shadow-2xl"
+        className={cn(
+          "absolute inset-x-0 bottom-0 top-0 md:top-auto md:max-h-[92vh] bg-background rounded-t-3xl overflow-hidden flex flex-col shadow-2xl",
+          isDragging ? "transition-none" : "animate-in slide-in-from-bottom duration-300"
+        )}
+        style={{ transform: getDrawerSheetTransform(dragOffsetPx) }}
+        onClick={(event) => event.stopPropagation()}
       >
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/98 backdrop-blur-xl border-b border-border/50">
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-2.5">
-              <ChevronUp className="w-5 h-5 text-muted-foreground" />
-              <span className="font-semibold text-foreground tracking-tight">
-                {categoryLabels[category] || "Conteudos"}
-              </span>
-            </div>
-            <button 
-              onClick={onClose}
-              className="p-2.5 rounded-full hover:bg-secondary transition-all duration-200 active:scale-95"
-              aria-label="Fechar"
-            >
-              <X className="w-5 h-5 text-foreground" />
-            </button>
+        <DrawerDragZone dragHandleProps={dragHandleProps} className="sticky top-0 z-10 bg-background/98 backdrop-blur-xl border-b border-border/50">
+          <div className="flex items-center gap-2.5 px-5 pb-4">
+            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+            <span className="font-semibold text-foreground tracking-tight">
+              {categoryLabels[category] || "Conteudos"}
+            </span>
           </div>
-        </div>
+        </DrawerDragZone>
 
         {/* Feed Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div
+          className="flex-1 overflow-y-auto overscroll-contain"
+          style={{ paddingBottom: resolveDrawerScrollPaddingBottom() }}
+        >
           <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6">
             <div className="space-y-8">
               {orderedPosts.map((post, index) => {

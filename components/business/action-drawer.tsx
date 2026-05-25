@@ -1,11 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { observeDrawerClosed, observeDrawerOpened } from "@/lib/events/instrumentation"
-import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DrawerDragZone } from "@/components/ui/drawer-drag-chrome"
 import { cn } from "@/lib/utils"
 import { resolveDrawerScrollPaddingBottom } from "@/lib/ui/drawer-scroll-clearance"
+import { getDrawerSheetTransform, useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
 
 interface ActionDrawerProps {
   isOpen: boolean
@@ -24,7 +25,6 @@ interface ActionDrawerProps {
 }
 
 const SHEET_TOP_SAFE_MARGIN_PX = 16
-const DRAG_CLOSE_THRESHOLD_PX = 72
 const COMPOSER_SCROLL_CLEARANCE_PX = 12
 
 const sizeMaxHeights = {
@@ -48,14 +48,9 @@ export function ActionDrawer({
   fillVisibleBottomInset = false,
 }: ActionDrawerProps) {
   const wasOpenRef = useRef(false)
-  const dragStateRef = useRef<{ pointerId: number; startY: number } | null>(null)
-  const [dragOffsetPx, setDragOffsetPx] = useState(0)
   const eventDrawerId = drawerId ?? title
-
-  const resetDrag = useCallback(() => {
-    dragStateRef.current = null
-    setDragOffsetPx(0)
-  }, [])
+  const { dragOffsetPx, resetDrag, isDragging, dragHandleProps, getBackdropOpacity } =
+    useDrawerSheetDrag(onClose)
 
   useEffect(() => {
     if (isOpen) {
@@ -101,43 +96,6 @@ export function ActionDrawer({
     wasOpenRef.current = isOpen
   }, [isOpen, title, eventDrawerId])
 
-  const handlePointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return
-
-    dragStateRef.current = {
-      pointerId: event.pointerId,
-      startY: event.clientY,
-    }
-    event.currentTarget.setPointerCapture(event.pointerId)
-  }, [])
-
-  const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    const dragState = dragStateRef.current
-    if (!dragState || dragState.pointerId !== event.pointerId) return
-
-    const deltaY = Math.max(0, event.clientY - dragState.startY)
-    setDragOffsetPx(deltaY)
-  }, [])
-
-  const handlePointerEnd = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      const dragState = dragStateRef.current
-      if (!dragState || dragState.pointerId !== event.pointerId) return
-
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId)
-      }
-
-      const deltaY = Math.max(0, event.clientY - dragState.startY)
-      resetDrag()
-
-      if (deltaY >= DRAG_CLOSE_THRESHOLD_PX) {
-        onClose()
-      }
-    },
-    [onClose, resetDrag]
-  )
-
   if (!isOpen) return null
 
   const widthClasses = matchFeedWidth
@@ -155,9 +113,7 @@ export function ActionDrawer({
     reservedBottomSpace,
     COMPOSER_SCROLL_CLEARANCE_PX
   )
-  const drawerTransform = matchFeedWidth
-    ? `translate(-50%, ${dragOffsetPx}px)`
-    : `translateY(${dragOffsetPx}px)`
+  const drawerTransform = getDrawerSheetTransform(dragOffsetPx, { centered: matchFeedWidth })
 
   return (
     <>
@@ -165,7 +121,7 @@ export function ActionDrawer({
         className="fixed inset-x-0 top-0 z-50 bg-black/50 transition-opacity"
         style={{
           bottom: drawerBottom,
-          opacity: dragOffsetPx > 0 ? Math.max(0.2, 0.5 - dragOffsetPx / 320) : undefined,
+          opacity: getBackdropOpacity(0.5),
         }}
         onClick={onClose}
       />
@@ -174,7 +130,7 @@ export function ActionDrawer({
         className={cn(
           "fixed bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl",
           widthClasses,
-          dragOffsetPx > 0 ? "transition-none" : "transition-transform duration-300 ease-out"
+          isDragging ? "transition-none" : "transition-transform duration-300 ease-out"
         )}
         style={{
           transform: drawerTransform,
@@ -182,34 +138,16 @@ export function ActionDrawer({
           maxHeight: drawerMaxHeight,
         }}
       >
-        <div
-          className="flex shrink-0 touch-none cursor-grab flex-col active:cursor-grabbing"
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerEnd}
-          onPointerCancel={handlePointerEnd}
-        >
-          <div className="flex justify-center pt-3 pb-2">
-            <div className="h-1 w-10 rounded-full bg-border" />
-          </div>
-
+        <DrawerDragZone dragHandleProps={dragHandleProps}>
           <div className="border-b border-border/50">
-            <div className={`${innerWidthClasses} flex items-center justify-between px-5 pb-4`}>
-              <div className="min-w-0 pr-3">
+            <div className={`${innerWidthClasses} px-5 pb-4`}>
+              <div className="min-w-0">
                 <h3 className="truncate text-lg font-semibold text-foreground">{title}</h3>
                 {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="h-9 w-9 shrink-0 rounded-full p-0"
-              >
-                <X className="h-5 w-5" />
-              </Button>
             </div>
           </div>
-        </div>
+        </DrawerDragZone>
 
         <div
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
