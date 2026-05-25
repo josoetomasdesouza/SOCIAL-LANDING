@@ -1,0 +1,40 @@
+---
+description: Runtime-first — priorizar evolução viva antes de meta-conversa, governança ou abstração
+alwaysApply: true
+---
+
+# Runtime-First — Modo Operacional
+
+O objetivo **não** é conversa sofisticada. É **evoluir runtime vivo sem perder identidade**.
+
+Antes de discussão longa, revisão filosófica ou expansão de governança, validar:
+
+1. Isso destrava runtime real?
+2. Isso reduz drift operacional concreto?
+3. Isso protege identidade perceptiva relevante?
+4. Isso levará a entrega concreta em seguida?
+5. Existe evolução prática menor que deveria acontecer antes?
+
+Se **não** para a maioria → **voltar para runtime pequeno e real**.
+
+## Prioridade
+
+**Antes:** runtime perceptivo, comportamento vivo, pequenas evoluções, hygiene, sinais contextuais, aprendizado aplicado.
+
+**Depois:** abstrações, pilares, frameworks, filosofia longa, arquitetura prematura, governança adicional.
+
+## Alternância
+
+Evitar 3+ sessões seguidas só de docs/governança/reflexão.
+
+Preferir: `runtime → review → hygiene → runtime → OS → runtime`
+
+## Alertas
+
+- Múltiplas sessões sem runtime
+- Conversa elegante sem merge
+- Refinamento infinito / "vamos pensar mais"
+- Agente parecendo inteligente demais
+- Governança virando contemplação
+
+Constituição: [`docs/os/EVOLUTION_MANDATE.md`](docs/os/EVOLUTION_MANDATE.md)
