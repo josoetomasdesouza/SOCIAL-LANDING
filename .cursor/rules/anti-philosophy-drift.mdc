@@ -1,0 +1,46 @@
+---
+description: Anti-drift filosófico — reflexão deve gerar runtime, observação ou redução em 1–2 ciclos
+alwaysApply: true
+---
+
+# Anti-Philosophy Drift
+
+Reflexão **não substitui** evolução. Filosofia ornamental = parar.
+
+## Desfecho obrigatório (1–2 ciclos)
+
+Toda discussão conceitual deve resultar em **um**:
+
+- runtime pequeno
+- observação no device
+- hygiene invisível
+- redução/remoção
+- decisão explícita **não fazer agora**
+
+Senão → encerrar meta-conversa, voltar ao runtime.
+
+## Interromper se 3+ sinais
+
+- termos demais / abstração sobre abstração
+- zero impacto perceptivo observável
+- repetição sem aprendizado do runtime
+- linguagem mais sofisticada que o produto
+- conversa mais interessante que o software
+
+## Regra operacional
+
+Nunca **2+ sessões** seguidas sem: runtime, observação prática, review perceptivo, ou PR pequeno.
+
+## Compressão
+
+Preferir versão operacional:
+
+```txt
+“quietude perceptiva emergente” → “se parecer ansioso, reduzir”
+```
+
+## Soberania
+
+Runtime saudável no device > narrativa conceitual.
+
+Constituição: [`docs/os/EVOLUTION_MANDATE.md`](docs/os/EVOLUTION_MANDATE.md)
