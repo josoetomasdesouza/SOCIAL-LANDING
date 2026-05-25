@@ -313,19 +313,21 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
   if (!isOpen) return null
 
   return (
-    <div 
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm transition-opacity"
-      style={{ opacity: getBackdropOpacity(0.7) }}
-      onClick={handleBackdropClick}
-    >
-      <div 
+    <>
+      <div
+        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm transition-opacity"
+        style={{ opacity: getBackdropOpacity(0.7) }}
+        onClick={handleBackdropClick}
+        aria-hidden="true"
+      />
+
+      <div
         ref={containerRef}
         className={cn(
-          "absolute inset-x-0 bottom-0 top-0 md:top-auto md:max-h-[92vh] bg-background rounded-t-3xl overflow-hidden flex flex-col shadow-2xl",
+          "fixed inset-x-0 bottom-0 top-0 z-50 md:top-auto md:max-h-[92vh] bg-background rounded-t-3xl overflow-hidden flex flex-col shadow-2xl",
           isDragging ? "transition-none" : "animate-in slide-in-from-bottom duration-300"
         )}
         style={{ transform: getDrawerSheetTransform(dragOffsetPx) }}
-        onClick={(event) => event.stopPropagation()}
       >
         <DrawerDragZone dragHandleProps={dragHandleProps} className="sticky top-0 z-10 bg-background/98 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center gap-2.5 px-5 pb-4">
@@ -498,6 +500,6 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
