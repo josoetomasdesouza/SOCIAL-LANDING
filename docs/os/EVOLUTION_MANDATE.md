@@ -127,3 +127,38 @@ Se uma tensão foi detectada mas **nenhum** progresso concreto ocorreu em 2+ ses
 2. Separar o que **observa** do que **resolve**
 3. Entregar pelo menos hygiene ou validação perceptiva
 4. Escalar decisão filosófica ao humano — não adiar runtime indefinidamente
+
+---
+
+## Runtime-first — validação pré-sessão
+
+**Modo operacional ativo.** Antes de meta-conversa longa, validar:
+
+1. Isso destrava runtime real?
+2. Isso reduz drift operacional concreto?
+3. Isso protege identidade perceptiva relevante?
+4. Isso levará a entrega concreta em seguida?
+5. Existe evolução prática menor que deveria acontecer antes?
+
+Se **não** para a maioria → runtime pequeno e real.
+
+### Priorizar antes de abstrair
+
+- Runtime perceptivo, comportamento vivo, pequenas evoluções reais
+- Correções estruturais concretas, sinais contextuais, simplificação local
+- Aprendizado aplicado
+
+### Depois (só quando necessário)
+
+- Novas abstrações, pilares, frameworks
+- Discussões filosóficas longas, arquitetura prematura, governança adicional
+
+### Alternância saudável
+
+```txt
+runtime → review → hygiene → runtime → OS → runtime
+```
+
+Evitar 3+ sessões seguidas apenas de docs/governança/reflexão.
+
+Enforcement Cursor: `.cursor/rules/runtime-first.mdc`
