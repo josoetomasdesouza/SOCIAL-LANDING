@@ -26,6 +26,42 @@ const COMPACT_BODY_MAX_PX = 196
 const CLOSE_THRESHOLD_OFFSET_PX = 72
 const PREVIEW_DRAG_INTENT_THRESHOLD_PX = 4
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
+const ECOMMERCE_PRODUCT_CONTEXT_PREFIX = "ecommerce-product-"
+
+const SINGLE_PRODUCT_PLACEHOLDERS = [
+  "Pergunte o que combina com isso...",
+  "Explore opcoes similares...",
+  "Continue a descoberta...",
+] as const
+
+function isEcommerceProductContext(item: ConversationContextItem) {
+  return item.id.startsWith(ECOMMERCE_PRODUCT_CONTEXT_PREFIX)
+}
+
+function resolveContextualComposerPlaceholder(
+  contextItems: ConversationContextItem[],
+  fallbackPlaceholder: string
+) {
+  if (contextItems.length === 0) {
+    return fallbackPlaceholder
+  }
+
+  const productContexts = contextItems.filter(isEcommerceProductContext)
+
+  if (productContexts.length === 1 && contextItems.length === 1) {
+    const stableIndex =
+      productContexts[0].id.charCodeAt(productContexts[0].id.length - 1) %
+      SINGLE_PRODUCT_PLACEHOLDERS.length
+
+    return SINGLE_PRODUCT_PLACEHOLDERS[stableIndex]
+  }
+
+  if (productContexts.length > 0) {
+    return "Continue explorando a partir do que voce selecionou..."
+  }
+
+  return "Pergunte sobre os itens selecionados..."
+}
 
 export type ConversationContextItem = ConversationContextPayload
 
@@ -182,7 +218,10 @@ export function ConversationalAI({
     startedPreview: boolean
   } | null>(null)
   const hasConversation = messages.length > 0 || isTyping
-  const resolvedPlaceholder = contextItems.length > 0 ? "Pergunte sobre os itens selecionados..." : placeholder
+  const resolvedPlaceholder = useMemo(
+    () => resolveContextualComposerPlaceholder(contextItems, placeholder),
+    [contextItems, placeholder]
+  )
   const hasEngagedConversation = hasConversation && isConversationSessionActive
   const pendingContextIdSet = useMemo(() => new Set(pendingContextIds), [pendingContextIds])
   const immediatePendingContextIdSet = useMemo(() => {
