@@ -15,6 +15,13 @@ import { EcommerceProductFeedCard } from "./ecommerce-product-feed-card"
 import { EcommerceConversationProductsBlock } from "./ecommerce-conversation-products-block"
 import { EcommerceProductDetailPanel } from "./ecommerce-product-detail-panel"
 import { ecommerceMockConversationResolver } from "@/lib/mock-data/conversational-search"
+import {
+  getProductExplorationMemory,
+  hasQuietRevisitAwareness,
+  orderProductsWithExplorationAwareness,
+  recordProductExploration,
+  type ProductExplorationMemory,
+} from "@/lib/session/ecommerce-exploration-memory"
 import { ecommerceConfig, products, productCategories } from "@/lib/mock-data/ecommerce-data"
 import { ecommerceContent } from "@/lib/mock-data/business-content"
 import type { Product, VariantOption } from "@/lib/business-types"
@@ -78,6 +85,7 @@ function ProductsModule({
   onToggleFavorite,
   onToggleConversationContext,
   isInConversation,
+  explorationMemory,
 }: { 
   onSelectProduct: (product: Product) => void
   onAddToCart: (product: Product) => void
@@ -85,8 +93,12 @@ function ProductsModule({
   onToggleFavorite: (id: string) => void
   onToggleConversationContext?: (item: ConversationContextItem) => void
   isInConversation?: (id: string) => boolean
+  explorationMemory: ProductExplorationMemory
 }) {
-  const featuredProducts = products.filter(p => p.originalPrice && p.originalPrice > p.price).slice(0, 4)
+  const featuredProducts = useMemo(() => {
+    const candidates = products.filter((product) => product.originalPrice && product.originalPrice > product.price)
+    return orderProductsWithExplorationAwareness(candidates).slice(0, 4)
+  }, [explorationMemory])
   
   return (
     <div className="space-y-6">
@@ -102,6 +114,7 @@ function ProductsModule({
             onToggleFavorite={onToggleFavorite}
             onToggleConversationContext={onToggleConversationContext}
             isInConversation={isInConversation}
+            showQuietRevisitAwareness={hasQuietRevisitAwareness(product.id, explorationMemory)}
           />
         ))}
       </div>
@@ -320,6 +333,11 @@ export function EcommerceFeed() {
   const [checkoutDrawerOpen, setCheckoutDrawerOpen] = useState(false)
   const [cart, setCart] = useState<CartItem[]>([])
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
+  const [explorationMemory, setExplorationMemory] = useState<ProductExplorationMemory>({})
+  
+  useEffect(() => {
+    setExplorationMemory(getProductExplorationMemory())
+  }, [])
   
   // Handlers
   const handleAddToCart = (product: Product, quantity: number = 1, selectedVariants: SelectedVariant[] = []) => {
@@ -357,6 +375,7 @@ export function EcommerceFeed() {
   }
 
   const handleOpenProductDrawer = useCallback((product: Product) => {
+    setExplorationMemory(recordProductExploration(product.id))
     setSelectedProduct(product)
     setProductDrawerOpen(true)
   }, [])
@@ -416,6 +435,7 @@ export function EcommerceFeed() {
           onToggleFavorite={handleToggleFavorite}
           onToggleConversationContext={conversationSelection.toggleConversationContextItem}
           isInConversation={conversationSelection.isConversationSelected}
+          explorationMemory={explorationMemory}
         />
       )
     },

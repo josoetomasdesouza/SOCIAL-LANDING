@@ -25,6 +25,7 @@ interface EcommerceProductFeedCardProps {
   onToggleConversationContext?: (item: ConversationContextItem) => void
   isInConversation?: (id: string) => boolean
   renderContext?: "feed" | "composer"
+  showQuietRevisitAwareness?: boolean
 }
 
 export function EcommerceProductFeedCard({
@@ -36,6 +37,7 @@ export function EcommerceProductFeedCard({
   onToggleConversationContext,
   isInConversation,
   renderContext = "feed",
+  showQuietRevisitAwareness = false,
 }: EcommerceProductFeedCardProps) {
   const discount = product.originalPrice ? Math.round((1 - product.price / product.originalPrice) * 100) : 0
   const contextItem = toEcommerceProductConversationContextItem(product)
@@ -52,6 +54,12 @@ export function EcommerceProductFeedCard({
         selected={isInConversation?.(contextItem.id) ?? false}
         className="relative group rounded-2xl bg-card overflow-hidden shadow-[0_1px_6px_-1px_rgba(0,0,0,0.07)]"
       >
+        {showQuietRevisitAwareness ? (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-4 left-0 z-[1] w-[2px] rounded-full bg-foreground/[0.07]"
+          />
+        ) : null}
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onToggleFavorite(product.id) }}
