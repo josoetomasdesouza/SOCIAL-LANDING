@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useLayoutEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { Check, CreditCard, QrCode, Phone, Mail, MapPin, Clock, Calendar, User, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -71,9 +71,11 @@ interface EcommerceCheckoutProps {
   items: Array<{ name: string; image: string; price: number; quantity: number }>
   onComplete: () => void
   onBack: () => void
+  /** When set, primary actions render in the drawer footer (fixed when composer is hidden). */
+  onRegisterFooter?: (footer: React.ReactNode | null) => void
 }
 
-export function EcommerceCheckout({ items, onComplete, onBack }: EcommerceCheckoutProps) {
+export function EcommerceCheckout({ items, onComplete, onBack, onRegisterFooter }: EcommerceCheckoutProps) {
   const [step, setStep] = useState<"address" | "payment" | "confirmation">("address")
   const [paymentMethod, setPaymentMethod] = useState<"card" | "pix">("card")
   const [formData, setFormData] = useState({
@@ -90,6 +92,58 @@ export function EcommerceCheckout({ items, onComplete, onBack }: EcommerceChecko
   const shipping = 15.90
   const discount = paymentMethod === "pix" ? subtotal * 0.05 : 0
   const total = subtotal + shipping - discount
+  const usesPinnedFooter = Boolean(onRegisterFooter)
+
+  const pinnedFooter = useMemo(() => {
+    if (step === "confirmation") {
+      return null
+    }
+
+    if (step === "address") {
+      return (
+        <Button className="w-full h-12" onClick={() => setStep("payment")}>
+          Continuar
+        </Button>
+      )
+    }
+
+    return (
+      <div className="space-y-3">
+        <div className="bg-secondary/50 rounded-xl p-4 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Subtotal</span>
+            <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Frete</span>
+            <span>R$ {shipping.toFixed(2).replace(".", ",")}</span>
+          </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-sm text-green-600">
+              <span>Desconto PIX</span>
+              <span>-R$ {discount.toFixed(2).replace(".", ",")}</span>
+            </div>
+          )}
+          <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
+            <span>Total</span>
+            <span>R$ {total.toFixed(2).replace(".", ",")}</span>
+          </div>
+        </div>
+        <Button className="w-full h-12" onClick={() => setStep("confirmation")}>
+          {paymentMethod === "pix" ? "Gerar QR Code PIX" : "Finalizar compra"}
+        </Button>
+      </div>
+    )
+  }, [discount, paymentMethod, shipping, step, subtotal, total])
+
+  useLayoutEffect(() => {
+    if (!onRegisterFooter) {
+      return
+    }
+
+    onRegisterFooter(pinnedFooter)
+    return () => onRegisterFooter(null)
+  }, [onRegisterFooter, pinnedFooter])
   
   if (step === "confirmation") {
     return (
@@ -169,9 +223,11 @@ export function EcommerceCheckout({ items, onComplete, onBack }: EcommerceChecko
             </div>
           </div>
           
-          <Button className="w-full h-12" onClick={() => setStep("payment")}>
-            Continuar
-          </Button>
+          {!usesPinnedFooter ? (
+            <Button className="w-full h-12" onClick={() => setStep("payment")}>
+              Continuar
+            </Button>
+          ) : null}
         </>
       ) : (
         <>
@@ -211,31 +267,34 @@ export function EcommerceCheckout({ items, onComplete, onBack }: EcommerceChecko
             </button>
           </div>
           
-          {/* Resumo */}
-          <div className="bg-secondary/50 rounded-xl p-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Frete</span>
-              <span>R$ {shipping.toFixed(2).replace(".", ",")}</span>
-            </div>
-            {discount > 0 && (
-              <div className="flex justify-between text-sm text-green-600">
-                <span>Desconto PIX</span>
-                <span>-R$ {discount.toFixed(2).replace(".", ",")}</span>
+          {!usesPinnedFooter ? (
+            <>
+              <div className="bg-secondary/50 rounded-xl p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Frete</span>
+                  <span>R$ {shipping.toFixed(2).replace(".", ",")}</span>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Desconto PIX</span>
+                    <span>-R$ {discount.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
+                  <span>Total</span>
+                  <span>R$ {total.toFixed(2).replace(".", ",")}</span>
+                </div>
               </div>
-            )}
-            <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
-              <span>Total</span>
-              <span>R$ {total.toFixed(2).replace(".", ",")}</span>
-            </div>
-          </div>
-          
-          <Button className="w-full h-12" onClick={() => setStep("confirmation")}>
-            {paymentMethod === "pix" ? "Gerar QR Code PIX" : "Finalizar compra"}
-          </Button>
+              
+              <Button className="w-full h-12" onClick={() => setStep("confirmation")}>
+                {paymentMethod === "pix" ? "Gerar QR Code PIX" : "Finalizar compra"}
+              </Button>
+            </>
+          ) : null}
         </>
       )}
     </div>
@@ -399,13 +458,40 @@ interface ScheduleVisitFormProps {
   propertyAddress?: string
   onComplete: () => void
   onBack?: () => void
+  onRegisterFooter?: (footer: React.ReactNode | null) => void
 }
 
-export function ScheduleVisitForm({ propertyTitle, propertyAddress, onComplete, onBack }: ScheduleVisitFormProps) {
+export function ScheduleVisitForm({ propertyTitle, propertyAddress, onComplete, onBack, onRegisterFooter }: ScheduleVisitFormProps) {
   const [step, setStep] = useState<"form" | "confirmation">("form")
   const [selectedDate, setSelectedDate] = useState("")
   const [selectedTime, setSelectedTime] = useState("")
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" })
+  const usesPinnedFooter = Boolean(onRegisterFooter)
+
+  const pinnedFooter = useMemo(() => {
+    if (step === "confirmation") {
+      return null
+    }
+
+    return (
+      <Button
+        className="w-full h-12"
+        onClick={() => setStep("confirmation")}
+        disabled={!selectedDate || !selectedTime || !formData.name || !formData.phone}
+      >
+        Confirmar visita
+      </Button>
+    )
+  }, [formData.name, formData.phone, selectedDate, selectedTime, step])
+
+  useLayoutEffect(() => {
+    if (!onRegisterFooter) {
+      return
+    }
+
+    onRegisterFooter(pinnedFooter)
+    return () => onRegisterFooter(null)
+  }, [onRegisterFooter, pinnedFooter])
   
   // Gera datas dinamicamente (proximos 4 dias uteis)
   const generateAvailableDates = () => {
@@ -521,13 +607,15 @@ export function ScheduleVisitForm({ propertyTitle, propertyAddress, onComplete, 
         </div>
       )}
       
-      <Button 
-        className="w-full h-12" 
-        onClick={() => setStep("confirmation")}
-        disabled={!selectedDate || !selectedTime || !formData.name || !formData.phone}
-      >
-        Confirmar visita
-      </Button>
+      {!usesPinnedFooter ? (
+        <Button 
+          className="w-full h-12" 
+          onClick={() => setStep("confirmation")}
+          disabled={!selectedDate || !selectedTime || !formData.name || !formData.phone}
+        >
+          Confirmar visita
+        </Button>
+      ) : null}
     </div>
   )
 }
@@ -544,12 +632,14 @@ interface TicketCheckoutProps {
   ticketName?: string
   onComplete: () => void
   onBack?: () => void
+  onRegisterFooter?: (footer: React.ReactNode | null) => void
 }
 
-export function TicketCheckout({ eventName, eventDate, eventTime, eventLocation, ticketPrice, ticketName = "Ingresso Inteira", onComplete, onBack }: TicketCheckoutProps) {
+export function TicketCheckout({ eventName, eventDate, eventTime, eventLocation, ticketPrice, ticketName = "Ingresso Inteira", onComplete, onBack, onRegisterFooter }: TicketCheckoutProps) {
   const [step, setStep] = useState<"quantity" | "data" | "payment" | "confirmation">("quantity")
   const [quantity, setQuantity] = useState(1)
   const [formData, setFormData] = useState({ name: "", email: "", cpf: "" })
+  const usesPinnedFooter = Boolean(onRegisterFooter)
   
   const serviceFee = ticketPrice * 0.1 * quantity
   const total = ticketPrice * quantity + serviceFee
@@ -559,6 +649,51 @@ export function TicketCheckout({ eventName, eventDate, eventTime, eventLocation,
     day: "numeric",
     month: "long"
   })
+
+  const pinnedFooter = useMemo(() => {
+    if (step === "confirmation" || step === "payment") {
+      return null
+    }
+
+    if (step === "quantity") {
+      return (
+        <div className="space-y-3">
+          <div className="bg-secondary/50 rounded-xl p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{quantity}x {ticketName}</span>
+              <span>R$ {(ticketPrice * quantity).toFixed(2).replace(".", ",")}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Taxa de servico</span>
+              <span>R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
+            </div>
+            <div className="flex justify-between font-bold pt-2 border-t border-border">
+              <span>Total</span>
+              <span>R$ {total.toFixed(2).replace(".", ",")}</span>
+            </div>
+          </div>
+          <Button className="w-full h-12" onClick={() => setStep("data")}>
+            Continuar
+          </Button>
+        </div>
+      )
+    }
+
+    return (
+      <Button className="w-full h-12" onClick={() => setStep("payment")}>
+        Ir para pagamento
+      </Button>
+    )
+  }, [quantity, serviceFee, step, ticketName, ticketPrice, total])
+
+  useLayoutEffect(() => {
+    if (!onRegisterFooter) {
+      return
+    }
+
+    onRegisterFooter(pinnedFooter)
+    return () => onRegisterFooter(null)
+  }, [onRegisterFooter, pinnedFooter])
   
   if (step === "confirmation") {
     return (
@@ -615,24 +750,28 @@ export function TicketCheckout({ eventName, eventDate, eventTime, eventLocation,
             </div>
           </div>
           
-          <div className="bg-secondary/50 rounded-xl p-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{quantity}x {ticketName}</span>
-              <span>R$ {(ticketPrice * quantity).toFixed(2).replace(".", ",")}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Taxa de servico</span>
-              <span>R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
-            </div>
-            <div className="flex justify-between font-bold pt-2 border-t border-border">
-              <span>Total</span>
-              <span>R$ {total.toFixed(2).replace(".", ",")}</span>
-            </div>
-          </div>
-          
-          <Button className="w-full h-12" onClick={() => setStep("data")}>
-            Continuar
-          </Button>
+          {!usesPinnedFooter ? (
+            <>
+              <div className="bg-secondary/50 rounded-xl p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{quantity}x {ticketName}</span>
+                  <span>R$ {(ticketPrice * quantity).toFixed(2).replace(".", ",")}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Taxa de servico</span>
+                  <span>R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
+                </div>
+                <div className="flex justify-between font-bold pt-2 border-t border-border">
+                  <span>Total</span>
+                  <span>R$ {total.toFixed(2).replace(".", ",")}</span>
+                </div>
+              </div>
+              
+              <Button className="w-full h-12" onClick={() => setStep("data")}>
+                Continuar
+              </Button>
+            </>
+          ) : null}
         </>
       )}
       
@@ -657,9 +796,11 @@ export function TicketCheckout({ eventName, eventDate, eventTime, eventLocation,
               onChange={(e) => setFormData(prev => ({ ...prev, cpf: e.target.value }))}
             />
           </div>
-          <Button className="w-full h-12" onClick={() => setStep("payment")}>
-            Ir para pagamento
-          </Button>
+          {!usesPinnedFooter ? (
+            <Button className="w-full h-12" onClick={() => setStep("payment")}>
+              Ir para pagamento
+            </Button>
+          ) : null}
         </>
       )}
       
@@ -700,13 +841,36 @@ interface GymSignupFormProps {
   planPeriod?: string
   onComplete: () => void
   onBack?: () => void
+  onRegisterFooter?: (footer: React.ReactNode | null) => void
 }
 
-export function GymSignupForm({ planName, planPrice, planPeriod = "mes", onComplete, onBack }: GymSignupFormProps) {
+export function GymSignupForm({ planName, planPrice, planPeriod = "mes", onComplete, onBack, onRegisterFooter }: GymSignupFormProps) {
   const [step, setStep] = useState<"form" | "payment" | "confirmation">("form")
   const [formData, setFormData] = useState({
     name: "", email: "", phone: "", cpf: "", birthdate: ""
   })
+  const usesPinnedFooter = Boolean(onRegisterFooter)
+
+  const pinnedFooter = useMemo(() => {
+    if (step !== "form") {
+      return null
+    }
+
+    return (
+      <Button className="w-full h-12" onClick={() => setStep("payment")}>
+        Continuar
+      </Button>
+    )
+  }, [step])
+
+  useLayoutEffect(() => {
+    if (!onRegisterFooter) {
+      return
+    }
+
+    onRegisterFooter(pinnedFooter)
+    return () => onRegisterFooter(null)
+  }, [onRegisterFooter, pinnedFooter])
   
   if (step === "confirmation") {
     return (
@@ -769,9 +933,11 @@ export function GymSignupForm({ planName, planPrice, planPeriod = "mes", onCompl
             />
           </div>
           
-          <Button className="w-full h-12" onClick={() => setStep("payment")}>
-            Continuar
-          </Button>
+          {!usesPinnedFooter ? (
+            <Button className="w-full h-12" onClick={() => setStep("payment")}>
+              Continuar
+            </Button>
+          ) : null}
         </>
       )}
       
@@ -932,15 +1098,56 @@ interface CourseCheckoutProps {
   price: number
   onComplete: () => void
   onBack: () => void
+  onRegisterFooter?: (footer: React.ReactNode | null) => void
 }
 
-export function CourseCheckout({ courseName, courseThumbnail, instructorName, price, onComplete, onBack }: CourseCheckoutProps) {
+export function CourseCheckout({ courseName, courseThumbnail, instructorName, price, onComplete, onBack, onRegisterFooter }: CourseCheckoutProps) {
   const [step, setStep] = useState<"payment" | "confirmation">("payment")
   const [paymentMethod, setPaymentMethod] = useState<"card" | "pix">("card")
   const [formData, setFormData] = useState({ name: "", email: "", cpf: "" })
+  const usesPinnedFooter = Boolean(onRegisterFooter)
   
   const discount = paymentMethod === "pix" ? price * 0.05 : 0
   const total = price - discount
+
+  const pinnedFooter = useMemo(() => {
+    if (step === "confirmation") {
+      return null
+    }
+
+    return (
+      <div className="space-y-3">
+        <div className="bg-secondary/50 rounded-xl p-4 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Subtotal</span>
+            <span>R$ {price.toFixed(2).replace(".", ",")}</span>
+          </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-sm text-green-600">
+              <span>Desconto PIX</span>
+              <span>-R$ {discount.toFixed(2).replace(".", ",")}</span>
+            </div>
+          )}
+          <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
+            <span>Total</span>
+            <span className="text-accent">R$ {total.toFixed(2).replace(".", ",")}</span>
+          </div>
+        </div>
+        <Button className="w-full h-12" onClick={() => setStep("confirmation")}>
+          {paymentMethod === "pix" ? "Gerar QR Code PIX" : "Finalizar compra"}
+        </Button>
+      </div>
+    )
+  }, [discount, paymentMethod, price, step, total])
+
+  useLayoutEffect(() => {
+    if (!onRegisterFooter) {
+      return
+    }
+
+    onRegisterFooter(pinnedFooter)
+    return () => onRegisterFooter(null)
+  }, [onRegisterFooter, pinnedFooter])
   
   if (step === "confirmation") {
     return (
@@ -1024,27 +1231,30 @@ export function CourseCheckout({ courseName, courseThumbnail, instructorName, pr
         </button>
       </div>
       
-      {/* Resumo */}
-      <div className="bg-secondary/50 rounded-xl p-4 space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span>R$ {price.toFixed(2).replace(".", ",")}</span>
-        </div>
-        {discount > 0 && (
-          <div className="flex justify-between text-sm text-green-600">
-            <span>Desconto PIX</span>
-            <span>-R$ {discount.toFixed(2).replace(".", ",")}</span>
+      {!usesPinnedFooter ? (
+        <>
+          <div className="bg-secondary/50 rounded-xl p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>R$ {price.toFixed(2).replace(".", ",")}</span>
+            </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-sm text-green-600">
+                <span>Desconto PIX</span>
+                <span>-R$ {discount.toFixed(2).replace(".", ",")}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
+              <span>Total</span>
+              <span className="text-accent">R$ {total.toFixed(2).replace(".", ",")}</span>
+            </div>
           </div>
-        )}
-        <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
-          <span>Total</span>
-          <span className="text-accent">R$ {total.toFixed(2).replace(".", ",")}</span>
-        </div>
-      </div>
-      
-      <Button className="w-full h-12" onClick={() => setStep("confirmation")}>
-        {paymentMethod === "pix" ? "Gerar QR Code PIX" : "Finalizar compra"}
-      </Button>
+          
+          <Button className="w-full h-12" onClick={() => setStep("confirmation")}>
+            {paymentMethod === "pix" ? "Gerar QR Code PIX" : "Finalizar compra"}
+          </Button>
+        </>
+      ) : null}
       
       <p className="text-xs text-center text-muted-foreground">
         Garantia de 7 dias. Se nao gostar, devolvemos seu dinheiro.

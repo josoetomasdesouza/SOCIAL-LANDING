@@ -20,6 +20,7 @@ interface DrawerDragZoneProps {
 export function DrawerDragZone({ children, dragHandleProps, className }: DrawerDragZoneProps) {
   return (
     <div
+      data-drawer-drag-zone
       className={cn(
         "flex shrink-0 touch-none cursor-grab flex-col active:cursor-grabbing",
         className
@@ -27,6 +28,39 @@ export function DrawerDragZone({ children, dragHandleProps, className }: DrawerD
       {...dragHandleProps}
     >
       <DrawerDragHandleBar />
+      {children}
+    </div>
+  )
+}
+
+interface DrawerScrollBodyProps {
+  scrollRef?: React.Ref<HTMLDivElement>
+  isPulling?: boolean
+  className?: string
+  style?: React.CSSProperties
+  children: React.ReactNode
+}
+
+export function DrawerScrollBody({
+  scrollRef,
+  isPulling = false,
+  className,
+  style,
+  children,
+}: DrawerScrollBodyProps) {
+  return (
+    <div
+      ref={scrollRef}
+      data-drawer-scroll-body
+      className={cn(
+        "min-h-0 flex-1 overflow-y-auto overscroll-y-none",
+        "[&_img]:select-none [&_img]:[-webkit-user-drag:none]",
+        isPulling ? "touch-none" : "touch-pan-y",
+        className
+      )}
+      style={style}
+      onDragStart={(event) => event.preventDefault()}
+    >
       {children}
     </div>
   )

@@ -253,7 +253,6 @@ function ItemDetailDrawer({
       onClose={onClose}
       title={item.name}
       size="md"
-      reserveComposerSpace
     >
       <div className="space-y-6">
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
@@ -594,13 +593,13 @@ export function RestaurantFeed() {
           : "default"
 
     setComposerMode(nextMode)
-    setComposerOffsetClassName(!itemDrawerOpen && cartCount > 0 ? "bottom-[88px]" : undefined)
+    setComposerOffsetClassName(undefined)
 
     return () => {
       setComposerMode("default")
       setComposerOffsetClassName(undefined)
     }
-  }, [cartCount, cartDrawerOpen, checkoutOpen, itemDrawerOpen, setComposerMode, setComposerOffsetClassName])
+  }, [cartDrawerOpen, checkoutOpen, itemDrawerOpen, setComposerMode, setComposerOffsetClassName])
 
   const handleCheckoutCta = () => {
     if (checkoutStep === "address") {
@@ -625,23 +624,14 @@ export function RestaurantFeed() {
         stories={restaurantContent.stories}
         sections={sections}
         onPostClick={() => {}}
+        onHeaderCartClick={() => setCartDrawerOpen(true)}
+        headerCartCount={cartCount}
         footerLinks={[
           { label: "Sobre", href: "#" },
           { label: "Cardapio", href: "#" },
           { label: "Contato", href: "#" },
         ]}
       />
-      
-      {cartCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-40">
-          <div className="max-w-lg mx-auto">
-            <Button className="w-full h-12" onClick={() => setCartDrawerOpen(true)}>
-              <ShoppingBag className="w-5 h-5 mr-2" />
-              Ver pedido ({cartCount} {cartCount === 1 ? "item" : "itens"})
-            </Button>
-          </div>
-        </div>
-      )}
       
       <ItemDetailDrawer
         item={selectedItem}

@@ -5,9 +5,10 @@ import Image from "next/image"
 import { Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Send } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { DrawerDragZone } from "@/components/ui/drawer-drag-chrome"
-import { resolveDrawerScrollPaddingBottom } from "@/lib/ui/drawer-scroll-clearance"
-import { getDrawerSheetTransform, useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
+import { DrawerDragZone, DrawerScrollBody } from "@/components/ui/drawer-drag-chrome"
+import { useComposerScrollPaddingBottom } from "@/lib/ui/composer-scroll-clearance"
+import { resolveDrawerSheetStyle } from "@/lib/ui/drawer-layout"
+import { useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
 import type { Post } from "@/lib/types"
 
 interface FeedDrawerProps {
@@ -254,10 +255,10 @@ function SimulatedConversation({
 }
 
 export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, brandLogo }: FeedDrawerProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
   const initialPostRef = useRef<HTMLDivElement>(null)
-  const { dragOffsetPx, resetDrag, isDragging, dragHandleProps, getBackdropOpacity } =
-    useDrawerSheetDrag(onClose)
+  const contentScrollPaddingBottom = useComposerScrollPaddingBottom()
+  const { sheetRef, scrollRef, setScrollRef, rawDragOffsetPx, resetDrag, isDragging, isPulling, dragHandleProps, getBackdropOpacity } =
+    useDrawerSheetDrag(onClose, isOpen)
 
   const filteredPosts = useMemo(() => {
     if (category === "all") return posts
@@ -272,12 +273,16 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
   }, [filteredPosts, initialPost])
 
   useEffect(() => {
-    if (isOpen && initialPostRef.current) {
-      setTimeout(() => {
-        initialPostRef.current?.scrollIntoView({ behavior: "auto", block: "start" })
-      }, 100)
-    }
-  }, [isOpen, initialPost])
+    if (!isOpen) return
+
+    const timer = window.setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = 0
+      }
+    }, 100)
+
+    return () => window.clearTimeout(timer)
+  }, [isOpen, initialPost, scrollRef])
 
   useEffect(() => {
     if (isOpen) {
@@ -322,12 +327,15 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
       />
 
       <div
-        ref={containerRef}
+        ref={sheetRef}
         className={cn(
-          "fixed inset-x-0 bottom-0 top-0 z-50 md:top-auto md:max-h-[92vh] bg-background rounded-t-3xl overflow-hidden flex flex-col shadow-2xl",
-          isDragging ? "transition-none" : "animate-in slide-in-from-bottom duration-300"
+          "fixed inset-x-0 bottom-0 z-50 bg-background rounded-t-3xl overflow-hidden flex flex-col shadow-2xl",
+          isDragging ? "transition-none" : "animate-in slide-in-from-bottom duration-300 transition-[height,transform]"
         )}
-        style={{ transform: getDrawerSheetTransform(dragOffsetPx) }}
+        style={{
+          bottom: 0,
+          ...resolveDrawerSheetStyle(rawDragOffsetPx),
+        }}
       >
         <DrawerDragZone dragHandleProps={dragHandleProps} className="sticky top-0 z-10 bg-background/98 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center gap-2.5 px-5 pb-4">
@@ -339,9 +347,10 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
         </DrawerDragZone>
 
         {/* Feed Content */}
-        <div
-          className="flex-1 overflow-y-auto overscroll-contain"
-          style={{ paddingBottom: resolveDrawerScrollPaddingBottom() }}
+        <DrawerScrollBody
+          scrollRef={setScrollRef}
+          isPulling={isPulling}
+          style={{ paddingBottom: contentScrollPaddingBottom }}
         >
           <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6">
             <div className="space-y-8">
@@ -498,7 +507,7 @@ export function FeedDrawer({ isOpen, onClose, posts, initialPost, category, bran
               </p>
             </div>
           </div>
-        </div>
+        </DrawerScrollBody>
       </div>
     </>
   )

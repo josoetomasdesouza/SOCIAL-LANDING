@@ -11,6 +11,12 @@ import type {
   ConversationVisualBlockRenderer,
 } from "@/lib/mock-data/conversational-search"
 import { observeAiSurfaceOpened } from "@/lib/events/instrumentation"
+import { useConversationSelectionContext } from "./conversation-selection-context"
+import {
+  clearComposerScrollClearanceCssVar,
+  resolveComposerScrollClearancePx,
+  setComposerScrollClearanceCssVar,
+} from "@/lib/ui/composer-scroll-clearance"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
 const COMPOSER_MASK_TOP_OFFSET_PX = 8
@@ -78,6 +84,8 @@ interface ConversationalAIProps {
   onCloseConversation?: () => void
   responseResolver?: ConversationResponseResolver
   renderVisualBlock?: ConversationVisualBlockRenderer
+  /** Publishes compact composer footprint for scroll clearance on overlaid surfaces. */
+  trackCompactFootprint?: boolean
 }
 
 type ConversationRuntimeMessage = ConversationMessage & {
@@ -173,7 +181,9 @@ export function ConversationalAI({
   onCloseConversation,
   responseResolver,
   renderVisualBlock,
+  trackCompactFootprint = true,
 }: ConversationalAIProps) {
+  const conversationSelectionContext = useConversationSelectionContext()
   const conversationHistoryStorageKey = useMemo(
     () => getConversationHistoryStorageKey(brandName),
     [brandName]
@@ -386,7 +396,12 @@ export function ConversationalAI({
         closeThreshold,
       }
     })
-  }, [isResumeAutoGrowActive, shouldShowConversationBody, shouldShowTopArea, showContextRow])
+  }, [
+    isResumeAutoGrowActive,
+    shouldShowConversationBody,
+    shouldShowTopArea,
+    showContextRow,
+  ])
 
   useEffect(() => {
     measureSheetLayout()
@@ -481,6 +496,90 @@ export function ConversationalAI({
   )
   const resolvedSheetHeight = dragHeight ?? resolvedAutoHeight
 
+  const publishComposerScrollMetrics = useCallback(() => {
+    if (!trackCompactFootprint || typeof window === "undefined") {
+      return
+    }
+
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const composerWrapper = composerShellRef.current
+    const composerSection = composerWrapper?.querySelector<HTMLElement>(
+      '[data-conversation-composer="true"]'
+    )
+
+    if (!composerSection) {
+      return
+    }
+
+    const sectionRect = composerSection.getBoundingClientRect()
+    const wrapperRect = composerWrapper?.getBoundingClientRect()
+
+    if (sectionRect.height <= 0 || sectionRect.width <= 0) {
+      return
+    }
+
+    let footprintPx = Math.round(Math.max(0, viewportHeight - sectionRect.top))
+    let bottomInsetPx = Math.round(Math.max(0, viewportHeight - sectionRect.bottom))
+
+    if (footprintPx < 48) {
+      const wrapperBottomInset = wrapperRect
+        ? Math.round(Math.max(0, viewportHeight - wrapperRect.bottom))
+        : 16
+      footprintPx = Math.max(
+        footprintPx,
+        sheetMetrics.compact + Math.max(wrapperBottomInset, bottomInsetPx, 16)
+      )
+      bottomInsetPx = Math.max(bottomInsetPx, wrapperBottomInset, 16)
+    }
+
+    const clearancePx = resolveComposerScrollClearancePx(footprintPx, bottomInsetPx)
+
+    conversationSelectionContext?.setComposerScrollMetrics({
+      footprintPx,
+      bottomInsetPx,
+      clearancePx,
+    })
+    setComposerScrollClearanceCssVar(clearancePx)
+  }, [conversationSelectionContext, sheetMetrics.compact, trackCompactFootprint])
+
+  useEffect(() => {
+    if (trackCompactFootprint) {
+      return
+    }
+
+    conversationSelectionContext?.setComposerScrollMetrics({
+      footprintPx: 0,
+      bottomInsetPx: 0,
+      clearancePx: 0,
+    })
+    clearComposerScrollClearanceCssVar()
+  }, [conversationSelectionContext, trackCompactFootprint])
+
+  useEffect(() => {
+    return () => {
+      conversationSelectionContext?.setComposerScrollMetrics({
+        footprintPx: 0,
+        bottomInsetPx: 0,
+        clearancePx: 0,
+      })
+      clearComposerScrollClearanceCssVar()
+    }
+  }, [conversationSelectionContext])
+
+  useLayoutEffect(() => {
+    publishComposerScrollMetrics()
+    const frame = window.requestAnimationFrame(publishComposerScrollMetrics)
+    return () => window.cancelAnimationFrame(frame)
+  }, [
+    publishComposerScrollMetrics,
+    resolvedSheetHeight,
+    className,
+    contextItems.length,
+    hiddenContextIds.length,
+    hasEngagedConversation,
+    showContextRow,
+  ])
+
   const getNearestSnapHeight = useCallback(
     (height: number) => {
       if (snapHeights.length === 0) {
@@ -512,9 +611,15 @@ export function ConversationalAI({
     }
 
     updateMaskBounds()
+    publishComposerScrollMetrics()
 
     const resizeObserver =
-      typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => updateMaskBounds()) : null
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            updateMaskBounds()
+            publishComposerScrollMetrics()
+          })
+        : null
 
     resizeObserver?.observe(shellElement)
     window.addEventListener("resize", updateMaskBounds, { passive: true })
@@ -523,7 +628,7 @@ export function ConversationalAI({
       resizeObserver?.disconnect()
       window.removeEventListener("resize", updateMaskBounds)
     }
-  }, [className, contextItems.length, hasEngagedConversation, resolvedSheetHeight, showContextRow])
+  }, [className, contextItems.length, hasEngagedConversation, publishComposerScrollMetrics, resolvedSheetHeight, showContextRow])
 
   const buildContextEvent = useCallback((items: ConversationContextItem[]): ConversationRuntimeMessage => ({
     id: `context-${Date.now()}`,

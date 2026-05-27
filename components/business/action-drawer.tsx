@@ -1,12 +1,19 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { observeDrawerClosed, observeDrawerOpened } from "@/lib/events/instrumentation"
 import { Button } from "@/components/ui/button"
-import { DrawerDragZone } from "@/components/ui/drawer-drag-chrome"
+import { DrawerDragZone, DrawerScrollBody } from "@/components/ui/drawer-drag-chrome"
 import { cn } from "@/lib/utils"
-import { resolveDrawerScrollPaddingBottom } from "@/lib/ui/drawer-scroll-clearance"
-import { getDrawerSheetTransform, useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
+import { useConversationSelectionContext } from "./conversation-selection-context"
+import {
+  useComposerOverlayClearance,
+  resolveComposerScrollClearancePx,
+  resolveComposerPinnedFooterBottomInsetPx,
+  resolveComposerPinnedFooterScrollPaddingPx,
+} from "@/lib/ui/composer-scroll-clearance"
+import { resolveDrawerSheetStyle } from "@/lib/ui/drawer-layout"
+import { useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
 
 interface ActionDrawerProps {
   isOpen: boolean
@@ -19,20 +26,7 @@ interface ActionDrawerProps {
   footer?: React.ReactNode
   size?: "sm" | "md" | "lg" | "full"
   matchFeedWidth?: boolean
-  reserveComposerSpace?: boolean
-  visibleBottomInsetPx?: number
-  fillVisibleBottomInset?: boolean
 }
-
-const SHEET_TOP_SAFE_MARGIN_PX = 16
-const COMPOSER_SCROLL_CLEARANCE_PX = 12
-
-const sizeMaxHeights = {
-  sm: "40dvh",
-  md: "60dvh",
-  lg: "80dvh",
-  full: "95dvh",
-} as const
 
 export function ActionDrawer({
   isOpen,
@@ -44,13 +38,55 @@ export function ActionDrawer({
   footer,
   size = "md",
   matchFeedWidth = false,
-  visibleBottomInsetPx = 0,
-  fillVisibleBottomInset = false,
 }: ActionDrawerProps) {
   const wasOpenRef = useRef(false)
   const eventDrawerId = drawerId ?? title
-  const { dragOffsetPx, resetDrag, isDragging, dragHandleProps, getBackdropOpacity } =
-    useDrawerSheetDrag(onClose)
+  const conversationSelection = useConversationSelectionContext()
+  const { paddingBottom: composerClearance, isActive: composerOverlaysDrawer } =
+    useComposerOverlayClearance({
+      // Composer z-[70] sits on top of the drawer — reserve symmetric clearance.
+      reserveComposerClearance: conversationSelection?.composerMode === "overlay",
+    })
+
+  useEffect(() => {
+    if (!isOpen || conversationSelection?.composerMode !== "overlay") {
+      return
+    }
+
+    const publishLiveComposerMetrics = () => {
+      if (typeof window === "undefined") {
+        return
+      }
+
+      const composerSection = document.querySelector<HTMLElement>('[data-conversation-composer="true"]')
+      if (!composerSection) {
+        return
+      }
+
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+      const rect = composerSection.getBoundingClientRect()
+      const footprintPx = Math.round(Math.max(0, viewportHeight - rect.top))
+      const bottomInsetPx = Math.round(Math.max(0, viewportHeight - rect.bottom))
+      const clearancePx = resolveComposerScrollClearancePx(footprintPx, bottomInsetPx)
+
+      if (clearancePx <= 0) {
+        return
+      }
+
+      conversationSelection?.setComposerScrollMetrics({
+        footprintPx,
+        bottomInsetPx,
+        clearancePx,
+      })
+    }
+
+    publishLiveComposerMetrics()
+    const frame = window.requestAnimationFrame(publishLiveComposerMetrics)
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [conversationSelection, isOpen])
+  const { sheetRef, setScrollRef, rawDragOffsetPx, resetDrag, isDragging, isPulling, dragHandleProps, getBackdropOpacity } =
+    useDrawerSheetDrag(onClose, isOpen)
 
   useEffect(() => {
     if (isOpen) {
@@ -96,46 +132,93 @@ export function ActionDrawer({
     wasOpenRef.current = isOpen
   }, [isOpen, title, eventDrawerId])
 
+  const composerHidden = conversationSelection?.composerMode === "hidden"
+  const shouldPinFooterToScreen = Boolean(footer && composerHidden)
+  const pinnedFooterRef = useRef<HTMLDivElement>(null)
+  const [pinnedFooterHeightPx, setPinnedFooterHeightPx] = useState(0)
+
+  useLayoutEffect(() => {
+    if (!isOpen || !shouldPinFooterToScreen) {
+      setPinnedFooterHeightPx(0)
+      return
+    }
+
+    const measurePinnedFooter = () => {
+      setPinnedFooterHeightPx(pinnedFooterRef.current?.offsetHeight ?? 0)
+    }
+
+    measurePinnedFooter()
+    const frame = window.requestAnimationFrame(measurePinnedFooter)
+
+    const footerElement = pinnedFooterRef.current
+    const resizeObserver =
+      footerElement && typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(measurePinnedFooter)
+        : null
+    if (footerElement && resizeObserver) {
+      resizeObserver.observe(footerElement)
+    }
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      resizeObserver?.disconnect()
+    }
+  }, [footer, isOpen, shouldPinFooterToScreen])
+
   if (!isOpen) return null
 
   const widthClasses = matchFeedWidth
     ? "left-1/2 right-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
     : "inset-x-0"
   const innerWidthClasses = "w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
-  const reservedBottomSpace = Math.max(0, visibleBottomInsetPx)
-  const shouldBlendBottomInset = fillVisibleBottomInset && reservedBottomSpace > 0
-  const drawerBottom = shouldBlendBottomInset ? 0 : reservedBottomSpace
-  const visibleSheetMaxHeight = `min(${sizeMaxHeights[size]}, calc(100dvh - ${SHEET_TOP_SAFE_MARGIN_PX}px))`
-  const drawerMaxHeight = shouldBlendBottomInset
-    ? `min(calc(100dvh - ${SHEET_TOP_SAFE_MARGIN_PX}px), calc(${visibleSheetMaxHeight} + ${reservedBottomSpace}px))`
-    : visibleSheetMaxHeight
-  const contentScrollPaddingBottom = resolveDrawerScrollPaddingBottom(
-    reservedBottomSpace,
-    COMPOSER_SCROLL_CLEARANCE_PX
+  const pinnedFooterWidthClasses = matchFeedWidth
+    ? "left-1/2 right-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] -translate-x-1/2"
+    : "inset-x-0"
+  const composerPinnedBottomInsetPx = resolveComposerPinnedFooterBottomInsetPx(
+    conversationSelection?.composerBottomInsetPx
   )
-  const drawerTransform = getDrawerSheetTransform(dragOffsetPx, { centered: matchFeedWidth })
+  const sheetLayout = resolveDrawerSheetStyle(rawDragOffsetPx, {
+    translateX: matchFeedWidth ? "translateX(-50%)" : undefined,
+  })
+  const scrollPaddingBottom = composerOverlaysDrawer
+    ? composerClearance
+    : shouldPinFooterToScreen && pinnedFooterHeightPx > 0
+      ? `${resolveComposerPinnedFooterScrollPaddingPx(
+          pinnedFooterHeightPx,
+          conversationSelection?.composerBottomInsetPx
+        )}px`
+      : undefined
+
+  const footerContent = footer ? (
+    <div
+      className={`${innerWidthClasses} px-4 pt-4 ${shouldPinFooterToScreen ? "pb-0" : composerOverlaysDrawer ? "pb-0" : "pb-5"}`}
+    >
+      {footer}
+    </div>
+  ) : null
 
   return (
     <>
       <div
         className="fixed inset-x-0 top-0 z-50 bg-black/50 transition-opacity"
         style={{
-          bottom: drawerBottom,
+          bottom: 0,
           opacity: getBackdropOpacity(0.5),
         }}
         onClick={onClose}
       />
 
       <div
+        ref={sheetRef}
         className={cn(
           "fixed bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl",
           widthClasses,
-          isDragging ? "transition-none" : "transition-transform duration-300 ease-out"
+          isDragging ? "transition-none" : "transition-[height,transform] duration-300 ease-out"
         )}
         style={{
-          transform: drawerTransform,
-          bottom: drawerBottom,
-          maxHeight: drawerMaxHeight,
+          bottom: 0,
+          height: sheetLayout.height,
+          transform: sheetLayout.transform,
         }}
       >
         <DrawerDragZone dragHandleProps={dragHandleProps}>
@@ -149,26 +232,37 @@ export function ActionDrawer({
           </div>
         </DrawerDragZone>
 
-        <div
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
-          style={{ paddingBottom: contentScrollPaddingBottom }}
+        <DrawerScrollBody
+          scrollRef={setScrollRef}
+          isPulling={isPulling}
+          style={scrollPaddingBottom ? { paddingBottom: scrollPaddingBottom } : undefined}
         >
           <div className={`${innerWidthClasses} p-5`}>{children}</div>
-        </div>
+        </DrawerScrollBody>
 
-        {footer ? (
+        {footer && !shouldPinFooterToScreen ? (
           <div
             className="shrink-0 border-t border-border/50 bg-card"
-            style={{ paddingBottom: shouldBlendBottomInset ? reservedBottomSpace : undefined }}
+            style={composerOverlaysDrawer ? { paddingBottom: composerClearance } : undefined}
           >
-            <div className={`${innerWidthClasses} p-5`}>{footer}</div>
+            {footerContent}
           </div>
         ) : null}
-
-        {shouldBlendBottomInset && !footer ? (
-          <div aria-hidden="true" className="shrink-0 bg-card" style={{ height: reservedBottomSpace }} />
-        ) : null}
       </div>
+
+      {footer && shouldPinFooterToScreen ? (
+        <div
+          ref={pinnedFooterRef}
+          data-action-drawer-pinned-footer="true"
+          className={cn(
+            "fixed z-[55] border-t border-border/50 bg-card/98 backdrop-blur-sm shadow-[0_-8px_30px_rgba(15,23,42,0.08)]",
+            pinnedFooterWidthClasses
+          )}
+          style={{ bottom: composerPinnedBottomInsetPx }}
+        >
+          {footerContent}
+        </div>
+      ) : null}
     </>
   )
 }

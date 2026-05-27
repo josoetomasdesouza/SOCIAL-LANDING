@@ -221,7 +221,7 @@ export function InfluencerFeed() {
         open={mediaKitDrawerOpen}
         onOpenChange={setMediaKitDrawerOpen}
       >
-        <DrawerContent className="max-h-[90vh]">
+        <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Media Kit</DrawerTitle>
           </DrawerHeader>
@@ -264,7 +264,7 @@ export function InfluencerFeed() {
         open={linksDrawerOpen}
         onOpenChange={setLinksDrawerOpen}
       >
-        <DrawerContent className="max-h-[90vh]">
+        <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Todos os Links</DrawerTitle>
           </DrawerHeader>

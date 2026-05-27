@@ -328,7 +328,6 @@ function ServicesDrawer({
       onClose={onClose}
       title="Escolha o servico"
       size="lg"
-      reserveComposerSpace
     >
       <div className="space-y-6">
         {categories.map((category) => (
@@ -408,7 +407,6 @@ function ProfessionalsDrawer({
       onClose={onClose}
       title="Escolha o profissional"
       size="lg"
-      reserveComposerSpace
     >
       <div className="space-y-5">
         <ContextSelectable
@@ -556,7 +554,7 @@ function ConfirmationDrawer({
 // ========================================
 export function AppointmentFeed() {
   const conversationSelection = useConversationSelectionState()
-  const { setComposerMode } = conversationSelection
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [selectedBarber, setSelectedBarber] = useState<Professional | null>(null)
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [bookingStep, setBookingStep] = useState<BookingStep>(null)
@@ -573,11 +571,13 @@ export function AppointmentFeed() {
           : "default"
 
     setComposerMode(nextMode)
+    setComposerOffsetClassName(undefined)
 
     return () => {
       setComposerMode("default")
+      setComposerOffsetClassName(undefined)
     }
-  }, [bookingStep, setComposerMode])
+  }, [bookingStep, setComposerMode, setComposerOffsetClassName])
   
   // Handlers
   const handleStartBooking = () => {

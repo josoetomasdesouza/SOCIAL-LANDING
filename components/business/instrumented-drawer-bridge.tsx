@@ -52,7 +52,7 @@ export function InstrumentedDrawerBridge({
   }, [open, drawerId, drawerKind, title, vertical])
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer open={open} onOpenChange={onOpenChange} snapPoints={[0.95, 1]} closeThreshold={0.25}>
       {children}
     </Drawer>
   )

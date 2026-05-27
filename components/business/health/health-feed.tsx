@@ -153,7 +153,34 @@ function ProfessionalDrawer({
   }
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title="Agendar Consulta" size="lg">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Agendar Consulta"
+      size="lg"
+      footer={
+        <div className="space-y-3">
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm text-muted-foreground">Valor da consulta</span>
+            <span className="text-xl font-bold text-accent">
+              R$ {professional.consultationPrice?.toFixed(2).replace(".", ",")}
+            </span>
+          </div>
+          <Button
+            className="w-full h-12"
+            disabled={!selectedDate || !selectedTime}
+            onClick={() => {
+              if (selectedDate && selectedTime) {
+                onSchedule(selectedDate, selectedTime)
+              }
+            }}
+          >
+            <Calendar className="w-5 h-5 mr-2" />
+            Confirmar agendamento
+          </Button>
+        </div>
+      }
+    >
       <div className="space-y-6">
         <ContextSelectable
           as="div"
@@ -198,25 +225,6 @@ function ProfessionalDrawer({
             onSelectTime={setSelectedTime}
           />
         </div>
-        
-        <div className="bg-secondary/50 rounded-xl p-4">
-          <div className="flex items-baseline justify-between mb-3">
-            <span className="text-sm text-muted-foreground">Valor da consulta</span>
-            <span className="text-xl font-bold text-accent">R$ {professional.consultationPrice?.toFixed(2).replace(".", ",")}</span>
-          </div>
-          <Button 
-            className="w-full h-12"
-            disabled={!selectedDate || !selectedTime}
-            onClick={() => {
-              if (selectedDate && selectedTime) {
-                onSchedule(selectedDate, selectedTime)
-              }
-            }}
-          >
-            <Calendar className="w-5 h-5 mr-2" />
-            Confirmar agendamento
-          </Button>
-        </div>
       </div>
     </ActionDrawer>
   )
@@ -227,7 +235,7 @@ function ProfessionalDrawer({
 // ========================================
 export function HealthFeed() {
   const conversationSelection = useConversationSelectionState()
-  const { setComposerMode } = conversationSelection
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [selectedProfessional, setSelectedProfessional] = useState<HealthProfessional | null>(null)
   const [professionalDrawerOpen, setProfessionalDrawerOpen] = useState(false)
   const [confirmationOpen, setConfirmationOpen] = useState(false)
@@ -236,11 +244,13 @@ export function HealthFeed() {
 
   useEffect(() => {
     setComposerMode(professionalDrawerOpen || confirmationOpen ? "hidden" : "default")
+    setComposerOffsetClassName(undefined)
 
     return () => {
       setComposerMode("default")
+      setComposerOffsetClassName(undefined)
     }
-  }, [confirmationOpen, professionalDrawerOpen, setComposerMode])
+  }, [confirmationOpen, professionalDrawerOpen, setComposerMode, setComposerOffsetClassName])
   
   const handleSchedule = (date: string, time: string) => {
     setBookedDate(date)
