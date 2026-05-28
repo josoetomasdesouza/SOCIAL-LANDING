@@ -8,6 +8,9 @@
  * Run:
  *   pnpm qa:events
  *   DEMO_URL=http://127.0.0.1:3000/demo pnpm qa:events
+ *
+ * Drawer dismiss: uses Escape (supported by ActionDrawer + BusinessFeedDrawer).
+ * No "Fechar" button — aligned with drag-dismiss UX (PR #52).
  */
 import { chromium } from "playwright"
 
@@ -39,10 +42,44 @@ async function longPress(page, locator) {
   await page.mouse.up()
 }
 
+/** Dismiss open drawer via Escape — matches current drawer stack (no close X). */
+async function dismissDrawer(page) {
+  await page.keyboard.press("Escape")
+  await page.waitForTimeout(700)
+}
+
+async function waitForClientHydration(page) {
+  await page.waitForFunction(
+    () =>
+      Object.keys(document.querySelector("button") ?? {}).some((key) =>
+        key.startsWith("__react")
+      ),
+    { timeout: 30000 }
+  )
+}
+
 async function main() {
   const events = []
   const browser = await chromium.launch({ headless: true })
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } })
+
+  await context.addInitScript(() => {
+    const mirrorPassiveDebug = (...args) => {
+      const message = args
+        .map((value) => (typeof value === "string" ? value : JSON.stringify(value)))
+        .join(" ")
+      if (message.includes("[passive-event]")) {
+        console.log(message)
+      }
+    }
+    const originalDebug = console.debug.bind(console)
+    console.debug = (...args) => {
+      originalDebug(...args)
+      mirrorPassiveDebug(...args)
+    }
+  })
+
+  const page = await context.newPage()
   await page.emulateMedia({ reducedMotion: "no-preference" })
 
   page.on("console", (msg) => {
@@ -57,12 +94,14 @@ async function main() {
     console.log(`${ok ? "PASS" : "FAIL"} ${step}${detail ? ` — ${detail}` : ""}`)
   }
 
-  await page.goto(BASE, { waitUntil: "networkidle" })
-  await page.waitForTimeout(500)
+  await page.goto(BASE, { waitUntil: "networkidle", timeout: 60000 })
+  await waitForClientHydration(page)
+  await page.waitForTimeout(400)
 
   // 1. Trocar vertical
   const beforeVertical = events.length
-  await page.getByRole("button", { name: /Agendamento/i }).click()
+  await page.getByRole("button", { name: /Agendamento/i }).first().click()
+  await page.waitForSelector("#section-agendar-horario", { timeout: 15000 })
   await page.waitForTimeout(800)
   const verticalEvents = events.slice(beforeVertical).filter((e) => e === "feed.vertical.changed")
   record("1. feed.vertical.changed", verticalEvents.length === 1, `count=${verticalEvents.length}`)
@@ -95,12 +134,9 @@ async function main() {
     `drawer=${count(openSlice, "drawer.opened")}, surface=${count(openSlice, "surface.opened")}`
   )
 
-  // 4. Fechar drawer
+  // 4. Fechar drawer (Escape — drag-dismiss stack; no Fechar button)
   const beforeClose = events.length
-  const closeButton = page.getByRole("button", { name: "Fechar", exact: true })
-  await closeButton.waitFor({ state: "visible", timeout: 5000 })
-  await closeButton.click()
-  await page.waitForTimeout(800)
+  await dismissDrawer(page)
   const closeSlice = events.slice(beforeClose)
   record(
     "4. drawer.closed + surface.closed",
@@ -146,13 +182,10 @@ async function main() {
     `count=${count(composerSlice, "composer.mode.changed")}`
   )
 
-  // 7. WhatsApp (close booking drawer so link is interactive)
+  // 7. WhatsApp (close booking drawer via Escape so link is interactive)
   const beforeWa = events.length
-  const bookingClose = page.getByRole("button", { name: "Fechar", exact: true })
-  if (await bookingClose.isVisible().catch(() => false)) {
-    await bookingClose.click()
-    await page.waitForTimeout(400)
-  }
+  await dismissDrawer(page)
+  await page.waitForTimeout(400)
   await page.locator("#section-fale-com-a-casa").scrollIntoViewIfNeeded()
   const whatsappLink = page.locator('#section-fale-com-a-casa a[href*="wa.me"]')
   await whatsappLink.evaluate((node) => node.click())

@@ -2,7 +2,8 @@
 
 **Date:** 2026-05-24  
 **Workstream:** WS-02 — Drawer perceptual hygiene validation & merge prep  
-**Validator:** Agent (technical + code review); perceptual manual **pending human sign-off**
+**Validator:** Agent (technical + code review)  
+**Last updated:** WS-02 blocker pass (TS fix + qa script alignment)
 
 ---
 
@@ -11,10 +12,10 @@
 | Field | Value |
 |-------|-------|
 | **Base main** | `7cd0fe5` — Merge PR #54 (WS-01 operational hygiene) |
-| **Branch validated** | `fix/drawer-perceptual-hygiene` @ `6fbf3d2` |
+| **Branch validated** | `fix/drawer-perceptual-hygiene` (rebased + blocker fixes pending push) |
 | **PR** | [#52](https://github.com/josoetomasdesouza/SOCIAL-LANDING/pull/52) — OPEN (not merged) |
 | **Rebase on main** | ✅ Success — **0 conflicts** |
-| **Remote updated** | ✅ `origin/fix/drawer-perceptual-hygiene` force-pushed post-rebase |
+| **Blocker fixes (this pass)** | TS2322 ✅ · qa script drawer dismiss ✅ |
 | **Final recommendation** | **GO WITH NOTES** |
 
 ---
@@ -23,14 +24,13 @@
 
 ```
 origin/main: 7cd0fe5
-branch HEAD: 6fbf3d2
 
-Commits (5, rebased):
-  6fbf3d2 fix(drawers): pin CTAs to composer slot and unify cart/scroll behavior
-  0aec26f fix(feed-drawer): restore opaque sheet by isolating backdrop opacity
-  3451848 fix(drawers): bidirectional drag globally and remove close buttons
-  e503bef fix(drawers): global 10dvh scroll end clearance for all drawer stacks
-  7d15e73 fix(drawers): restore drag-close, stable dvh height, composer-safe scroll padding
+Commits (5 runtime, rebased):
+  fix(drawers): pin CTAs to composer slot and unify cart/scroll behavior
+  fix(feed-drawer): restore opaque sheet by isolating backdrop opacity
+  fix(drawers): bidirectional drag globally and remove close buttons
+  fix(drawers): global 10dvh scroll end clearance for all drawer stacks
+  fix(drawers): restore drag-close, stable dvh height, composer-safe scroll padding
 ```
 
 **Conflicts:** none  
@@ -38,164 +38,131 @@ Commits (5, rebased):
 
 ---
 
-## Files altered by PR (28 total)
+## Blocker resolution (WS-02 pass 2)
 
-### Frozen-zone core (intentional — WS-02 scope)
+| Blocker | Action | Status |
+|---------|--------|--------|
+| TS2322 `composer-scroll-clearance.ts:75` | Explicit return type in `normalizeClearanceOptions` | ✅ **Fixed** |
+| `qa:events` stale "Fechar" button | Steps 4 + 7 use **Escape** dismiss; mirror `console.debug` passive events to `console.log`; wait for React hydration | ✅ **Script updated** |
+| Restore close X for tests | Not done — intentionally avoided | ✅ N/A |
+| UX / ActionDrawer scope creep | No new features; TS + script only in this pass | ✅ |
 
-| Path | Δ | Zone |
-|------|---|------|
-| `components/business/action-drawer.tsx` | +181/−79 | ActionDrawer 🔴 |
-| `lib/ui/use-drawer-sheet-drag.ts` | +359 (new) | ActionDrawer 🔴 |
-| `lib/ui/drawer-layout.ts` | +65 (new) | ActionDrawer 🔴 |
-| `components/ui/drawer-drag-chrome.tsx` | +67 (new) | ActionDrawer 🔴 |
-| `components/business/conversational-ai.tsx` | +108/−3 | Composer 🔴 |
-| `lib/ui/composer-scroll-clearance.ts` | +193 (new) | Composer 🔴 |
-| `components/ui/composer-overlay-clearance.tsx` | +30 (new) | Composer 🔴 |
-| `components/business/conversation-selection-context.tsx` | +24 | Feed baseline 🟡 |
+### Diff added in blocker pass (3 files)
 
-### Periphery / wiring (allowed)
+| File | Change |
+|------|--------|
+| `lib/ui/composer-scroll-clearance.ts` | TS2322 fix in `normalizeClearanceOptions` (+4/−1) |
+| `scripts/runtime/demo-event-checklist.mjs` | Escape dismiss, hydration wait, passive-event capture, `networkidle` goto |
+| `docs/audit/WS-02_PR52_VALIDATION_REPORT.md` | This update |
 
-| Path | Δ | Notes |
-|------|---|-------|
-| `components/business/checkout-flows.tsx` | +294/−84 | `onRegisterFooter` for checkout CTAs |
-| `components/business/ecommerce/ecommerce-feed.tsx` | +34/−30 | Cart/checkout wiring |
-| `components/business/restaurant/restaurant-feed.tsx` | +4/−14 | Header cart; bottom bar removed |
-| `components/business/appointment/appointment-feed.tsx` | +8/−8 | Barbearia + `autoScrollToTimes` |
-| `components/business/appointment-calendar.tsx` | +4/−1 | Scroll above pinned footer |
-| `components/business/gym/gym-feed.tsx` | +8/−4 | Signup footer wiring |
-| `components/business/realestate/realestate-feed.tsx` | +8/−4 | Visit form footer |
-| `components/business/health/health-feed.tsx` | +32/−22 | `ProfessionalDrawer` footer prop |
-| `components/business/courses/courses-feed.tsx` | +8/−4 | Checkout footer |
-| `components/business/events/events-feed.tsx` | +8/−4 | Ticket checkout footer |
-| `components/business/business-feed-drawer.tsx` | +69/−40 | Drag + clearance |
-| `components/social-landing/feed-drawer.tsx` | +65/−36 | Backdrop isolation |
-| `components/business/business-social-landing.tsx` | +26/−18 | Header cart API |
-| `lib/ui/scroll-into-view-with-bottom-inset.ts` | +86 (new) | Calendar auto-scroll helper |
-| `lib/ui/drawer-scroll-clearance.ts` | +5 (new) | Shared clearance constant |
-| `components/ui/drawer.tsx` | +7/−5 | Handle chrome |
-| `components/business/influencer/influencer-feed.tsx` | +2/−2 | Minor offset cleanup |
-| `components/business/institutional/institutional-feed.tsx` | +3/−3 | Minor offset cleanup |
-| `components/business/instrumented-drawer-bridge.tsx` | +1/−1 | Bridge touch |
-| `components/business/post-to-chat-morph-layer.tsx` | +1/−1 | z-index adjacency only |
+**PR runtime diff remains 28 files / +1696 −359** (unchanged scope from original #52).
+
+---
+
+## Technical validation (latest run)
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| `pnpm run build` | ✅ **PASS** | After TS fix |
+| `pnpm run typecheck` | ⚠️ **FAIL (pre-existing)** | **No error in `composer-scroll-clearance.ts`** — confirmed `NO_PR_TS_ERROR` |
+| `pnpm lint` | ⚠️ **N/A** | `eslint` not in devDependencies |
+| `pnpm qa:events` | ⚠️ **NOT VERIFIED (agent env)** | Script updated; headless run blocked — React hydration timeout on local dev (see below) |
+| Out-of-scope paths | ✅ None | No package/db/ai/identity |
+
+### Typecheck — PR file
+
+**Before:** `composer-scroll-clearance.ts(75,3): error TS2322`  
+**After:** ✅ **Resolved**
+
+**Remaining errors:** pre-existing debt (`realestate-data.ts`, `rule-registry.ts`, `gym-feed.tsx`, Stack B feeds, etc.) — tracked for WS-05, not introduced by #52.
+
+### qa:events — script changes
+
+```javascript
+// Drawer dismiss: Escape (ActionDrawer + BusinessFeedDrawer support Escape)
+await dismissDrawer(page)
+
+// Passive events: mirror console.debug → console.log (DEV logger uses debug)
+await context.addInitScript(...)
+
+// Readiness: wait for React hydration before vertical select
+await waitForClientHydration(page)
+```
+
+**Agent run result (2026-05-24):**
+
+```
+page.waitForFunction: Timeout 30000ms exceeded.
+  at waitForClientHydration — React __react* keys never attached on button
+```
+
+**Cause:** local Next dev in agent environment did not hydrate client components (HMR/WebSocket warnings; multiple lockfiles / workspace root warning). **Not attributed to PR #52 regression.**
+
+**Required before merge GO:** re-run locally with healthy dev server:
+
+```bash
+pnpm dev          # confirm http://localhost:3000/demo hydrates (click Agendamento works)
+pnpm qa:events    # expect 8/8 steps PASS
+```
+
+---
+
+## Files altered by PR #52 (28 runtime + 1 doc)
+
+See prior section — frozen cores (ActionDrawer, composer clearance, drag hook) + periphery wiring (checkout footers, restaurant header cart, barbearia auto-scroll, health footer prop).
 
 ### Explicitly NOT in diff
 
 - ❌ `package.json`, lockfiles
-- ❌ `lib/db/**`, `drizzle/**`, `app/api/media/**`
-- ❌ AI resolver paths (`lib/mock-data/conversational-search.ts`, etc.)
-- ❌ Identity / username / slug routes
-- ❌ Any `docs/**` (validation report added post-validation in WS-02)
-
-**Total:** +1696 / −359 lines across 28 runtime files.
-
----
-
-## Technical validation
-
-| Check | Result | Notes |
-|-------|--------|-------|
-| `pnpm run build` | ✅ **PASS** | Next.js 16; types validation skipped by config |
-| `pnpm run typecheck` | ❌ **FAIL** | 1 error **in PR file** + pre-existing errors elsewhere |
-| `pnpm lint` | ⚠️ **N/A** | `eslint` not present in `node_modules` (not in devDependencies) |
-| `pnpm qa:events` | ❌ **FAIL** | Step 1 — see below |
-| Rebase conflicts | ✅ None | |
-| Out-of-scope paths | ✅ None | |
-
-### Typecheck — PR-introduced
-
-```
-lib/ui/composer-scroll-clearance.ts(75,3): error TS2322
-  LegacyComposerScrollClearanceOptions not assignable to ComposerScrollClearanceOptions
-```
-
-**Pre-existing (not introduced by PR):** `lib/mock-data/realestate-data.ts`, `lib/rules/rule-registry.ts` — multiple TS errors on main branch baseline.
-
-**Action:** Non-blocker for runtime (build skips types), but should be fixed before WS-05 TypeScript gate or in a follow-up patch on this branch.
-
-### qa:events output
-
-```
-FAIL 1. feed.vertical.changed — count=0
-locator.scrollIntoViewIfNeeded: Timeout 30000ms exceeded.
-  waiting for locator('#section-tutoriais-e-tendencias article').first()
-```
-
-**Analysis:**
-
-1. Step 1 failed before morph/drawer/composer steps — vertical switch to "Agendamento" did not emit `feed.vertical.changed` (or event bus not logging in headless session).
-2. Script references `#section-tutoriais-e-tendencias` — selector may not match current demo DOM for appointment vertical.
-3. PR **removes explicit "Fechar" buttons** (drag-dismiss) — steps 4 and 7 in `demo-event-checklist.mjs` rely on `getByRole("button", { name: "Fechar" })`. **Script drift — not a runtime regression by itself**, but checklist is stale for post-#52 behavior.
-
-**Recommendation:** Update `scripts/runtime/demo-event-checklist.mjs` in WS-04 (QA infra) to use drag-dismiss or backdrop click; re-run before merge GO.
+- ❌ `lib/db/**`, AI resolver, identity/slug
+- ❌ Botão "Fechar" restaurado
 
 ---
 
 ## Per-vertical validation
 
-Legend: **CR** = code review confirmed wiring · **MP** = manual perceptual pending human · **N/A** = not primary target
+Legend: **CR** = code review · **MP** = manual perceptual (human `/demo`) · **AUTO** = automated (blocked in agent env)
 
-| Vertical | Drawer open/close | CTA pinned | Scroll interno | Composer visible | Specific checks | Status |
-|----------|-------------------|------------|----------------|------------------|-----------------|--------|
-| **E-commerce** | CR: drag hook + ActionDrawer | CR: `onRegisterFooter` on checkout | CR: overlay clearance | CR: mode effects in feed | Product/cart/checkout flow wired | **MP** |
-| **Restaurante** | CR: same stack | CR: checkout `onRegisterFooter` | CR: 10dvh clearance | CR: `composerMode` on drawers | **Header cart** via `onHeaderCartClick` + `headerCartCount`; bottom bar removed | **MP** |
-| **Barbearia** | CR: appointment feed | CR: calendar + confirmation | CR: **`autoScrollToTimes`** + `scroll-into-view-with-bottom-inset` | CR: hidden when drawer open | Time slots above pinned footer after date pick | **MP** |
-| **Gym** | CR: ActionDrawer | CR: `GymSignupForm` + `onRegisterFooter` | CR: clearance utils | CR: offset cleanup | Signup CTA pinned when composer hidden | **MP** |
-| **Imóveis** | CR: visit drawer | CR: `ScheduleVisitForm` + `onRegisterFooter` | CR: clearance | CR: offset cleanup | Visit scheduling CTA | **MP** |
-| **Saúde** | CR: `ProfessionalDrawer` uses `footer` prop on ActionDrawer | CR: pinned when `composerMode === "hidden"` | CR: no `autoScrollToTimes` (manual scroll) | CR: mode hidden on drawer | Confirmation drawer separate | **MP** |
+| Vertical | Drawer open/close | CTA pinned | Scroll | Composer | Specific | Status |
+|----------|-------------------|------------|--------|----------|----------|--------|
+| **E-commerce** | CR: drag + Escape | CR: `onRegisterFooter` checkout | CR: overlay clearance | CR: feed modes | Cart/checkout wired | **MP** |
+| **Restaurante** | CR: same | CR: checkout footer | CR: 10dvh | CR: drawer modes | Header cart (`onHeaderCartClick`) | **MP** |
+| **Barbearia** | CR: appointment | CR: calendar CTA | CR: `autoScrollToTimes` | CR: hidden on drawer | Times above pinned footer | **MP** |
+| **Gym** | CR: ActionDrawer | CR: `GymSignupForm` | CR: clearance | CR: offset cleanup | Signup pinned | **MP** |
+| **Imóveis** | CR: visit drawer | CR: `ScheduleVisitForm` | CR: clearance | CR: offset cleanup | Visit CTA | **MP** |
+| **Saúde** | CR: `ProfessionalDrawer` + `footer` | CR: pinned when hidden | CR: manual scroll | CR: mode hidden | Confirmation drawer | **MP** |
 
 ### Checklist (VALIDATION_PROTOCOL)
 
 | Item | Code review | Manual /demo |
 |------|-------------|--------------|
-| Drawer abre e fecha (drag + backdrop) | ✅ Implemented | ⏳ Pending |
-| CTA pinned não cobre conteúdo | ✅ `shouldPinFooterToScreen` + inset math | ⏳ Pending |
-| Scroll interno funciona | ✅ `DrawerScrollBody` + padding | ⏳ Pending |
-| Composer não fica escondido (default path) | ✅ Mode restore patterns preserved | ⏳ Pending |
-| Header cart restaurante | ✅ Wired in PR | ⏳ Pending |
-| Checkout fluxo esperado | ✅ `onRegisterFooter` pattern | ⏳ Pending |
-| Tier 1 morph não regrediu | ✅ Morph layer ±1 line (z-index) | ⏳ Pending |
-| Eventos emitindo | ❌ qa:events failed; script drift | ⏳ Re-run after script fix |
+| Drawer abre | ✅ | ⏳ Human |
+| Drawer fecha (drag / Escape / backdrop) | ✅ | ⏳ Human |
+| Scroll interno | ✅ | ⏳ Human |
+| CTA pinned não cobre conteúdo | ✅ | ⏳ Human |
+| Composer visível quando aplicável | ✅ | ⏳ Human |
+| Checkout sem regressão | ✅ wiring | ⏳ Human |
+| Tier 1 morph | ✅ ±1 line | ⏳ Human |
+| Eventos coerentes | ✅ script aligned | ⏳ Re-run `pnpm qa:events` locally |
 
 ---
 
 ## Freeze zone adherence
 
-| Zone | PR touches? | Within WS-02 mandate? | Notes |
-|------|-------------|-------------------------|-------|
-| ActionDrawer core | ✅ Yes | ✅ Yes — explicit WS-02 | Pin footer, drag, dvh height, clearance |
-| Morph runtime | Minimal (+1/−1) | ✅ | No timing/duration changes |
-| Composer core | ✅ Yes | ✅ Yes — metrics/clearance | `composerMode` literals unchanged |
-| Instrumentation | +1 line bridge | ✅ | Event contracts not altered |
-| E-commerce resolver | ❌ No | ✅ | |
-| Feed baseline | 🟡 Wiring only | ✅ | Header cart, footer registration |
-| DB / media | ❌ No | ✅ | |
-| AI resolver | ❌ No | ✅ | |
-
-`FREEZE_ZONES.md` documents PR #52 as **implicit GO during convergence**; after merge, zones return to 🔴 frozen.
+Unchanged from prior pass — PR #52 touches ActionDrawer/composer with convergence GO; morph/instrumentation minimal; no resolver/DB/identity.
 
 ---
 
 ## Residual risks
 
-| Risk | Severity | Mitigation |
-|------|----------|------------|
-| `qa:events` script incompatible with drag-dismiss (no Fechar button) | 🟡 Medium | Update checklist in WS-04; manual event verification on /demo |
-| TS error in `composer-scroll-clearance.ts` normalize helper | 🟡 Medium | One-line type fix before or right after merge |
-| Large diff in frozen cores (+1696 lines) | 🟡 Medium | Single-lane merge; no parallel runtime PRs |
-| Health calendar without `autoScrollToTimes` | 🟢 Low | Only barbearia enables auto-scroll; acceptable parity gap → WS-03 |
-| Influencer/institutional minimal changes | 🟢 Low | Stack B — out of WS-02 scope |
-| Pre-existing typecheck debt | 🟢 Low | WS-05 gate |
-| Manual perceptual not signed off | 🟡 Medium | **Required before merge GO** |
-
----
-
-## Areas explicitly NOT touched
-
-- [x] AI resolver / conversational-search
-- [x] DB / Drizzle / media API
-- [x] Identity / username / slug
-- [x] `package.json` / lockfiles
-- [x] New product features beyond drawer/composer hygiene
+| Risk | Severity | Status |
+|------|----------|--------|
+| TS2322 composer clearance | 🟡 | ✅ **Resolved** |
+| qa script / Fechar drift | 🟡 | ✅ **Script fixed** — local re-run pending |
+| Agent env hydration | 🟡 | Environmental — verify on developer machine |
+| Manual perceptual unsigned | 🟡 | **Required before merge** |
+| Pre-existing typecheck debt | 🟢 | WS-05 |
+| Large frozen-core diff | 🟡 | Single-lane merge only |
 
 ---
 
@@ -203,16 +170,18 @@ Legend: **CR** = code review confirmed wiring · **MP** = manual perceptual pend
 
 ### **GO WITH NOTES**
 
-**Ready for merge prep when:**
+**Blockers cleared in code:**
 
-1. Human completes manual `/demo` walkthrough for all 6 verticals (checklist above).
-2. Event protocol re-validated — either fix `demo-event-checklist.mjs` for drag-dismiss or document manual event capture.
-3. Optional: fix TS2322 in `composer-scroll-clearance.ts` (5-minute patch, same branch).
+1. ✅ TS2322 in PR file  
+2. ✅ qa script aligned with drag-dismiss / Escape (no Fechar restoration)
 
-**Do NOT merge until:**
+**Still required before merge:**
 
-- Manual perceptual sign-off recorded (append section below or PR comment).
-- Explicit human GO on Tier 1 frozen zone changes.
+1. Human `/demo` walkthrough — 6 verticals (checklist below)  
+2. Local `pnpm qa:events` PASS on dev server with working hydration  
+3. Explicit human GO on Tier 1 changes  
+
+**Do NOT merge #52 until manual sign-off + qa:events green locally.**
 
 ---
 
@@ -228,17 +197,20 @@ Legend: **CR** = code review confirmed wiring · **MP** = manual perceptual pend
 - [ ] Imóveis — visit CTA pinned
 - [ ] Saúde — professional drawer + confirmation
 
+pnpm qa:events: PASS / FAIL — ___________
+
 Signed: ___________  Date: ___________
 Decision: GO / NO-GO
 ```
 
 ---
 
-## Next step (do not execute automatically)
+## Next step
 
-**WS-02 completion:** Human perceptual pass + event checklist update → then merge PR #52 as single runtime lane.
-
-**After merge:** WS-03 Stack A parity (health auto-scroll, remaining gaps per `OPERATIONAL_HYGIENE_REPORT.md`).
+1. Push blocker-fix commit to `fix/drawer-perceptual-hygiene`  
+2. Human: `/demo` + `pnpm qa:events`  
+3. If green → merge PR #52 (single runtime lane)  
+4. WS-03 Stack A parity  
 
 ---
 
@@ -246,5 +218,4 @@ Decision: GO / NO-GO
 
 - [`docs/os/VALIDATION_PROTOCOL.md`](../os/VALIDATION_PROTOCOL.md)
 - [`docs/os/FREEZE_ZONES.md`](../os/FREEZE_ZONES.md)
-- [`docs/os/OPERATIONAL_HYGIENE_REPORT.md`](../os/OPERATIONAL_HYGIENE_REPORT.md)
 - PR [#52](https://github.com/josoetomasdesouza/SOCIAL-LANDING/pull/52)

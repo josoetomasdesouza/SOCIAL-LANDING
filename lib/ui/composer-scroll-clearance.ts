@@ -72,7 +72,10 @@ function normalizeClearanceOptions(
     return { reserveComposerClearance: !options.surfaceCoversComposer }
   }
 
-  return options
+  return {
+    reserveComposerClearance:
+      (options as ComposerScrollClearanceOptions).reserveComposerClearance ?? true,
+  }
 }
 
 export function formatComposerScrollPaddingBottom(clearancePx: number): string {
