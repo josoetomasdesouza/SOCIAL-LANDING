@@ -65,6 +65,7 @@ O agente entende **primeiro a filosofia**, depois **as regras**, depois **a exec
 | 11 | **Frozen zones** | [`FROZEN_ZONES.md`](FROZEN_ZONES.md) | Refactor amplo — revisão estratégica |
 | 12 | **Product drift checklist** | [`PRODUCT_DRIFT_CHECKLIST.md`](PRODUCT_DRIFT_CHECKLIST.md) | Lint filosófico por feature |
 | 13 | Workstreams | [`WORKSTREAMS.md`](WORKSTREAMS.md) | Branches, isolamento, peel |
+| 13b | **Operational hygiene** | [`OPERATIONAL_HYGIENE_REPORT.md`](OPERATIONAL_HYGIENE_REPORT.md) | WS-01 — trilhas, merge order, classificação |
 | 14 | Handoffs | [`HANDOFFS.md`](HANDOFFS.md) | Protocolos, logs, PRs |
 | 15 | Prioridades | [`PRIORITIES.md`](PRIORITIES.md) | O que fazer agora vs depois |
 | 16 | Claude operating system | [`CLAUDE_OPERATING_SYSTEM.md`](CLAUDE_OPERATING_SYSTEM.md) | Bootstrap de agentes |
@@ -96,7 +97,8 @@ O agente entende **primeiro a filosofia**, depois **as regras**, depois **a exec
 | Feature nova de produto | `PRODUCT_DRIFT_CHECKLIST.md`, `NORTH_STAR.md` |
 | Arquitetura / lib / API | `ARCHITECTURE_RULES.md`, `BOUNDARIES.md` |
 | Integração externa | `BOUNDARIES.md`, `PRODUCT_PHILOSOPHY.md` |
-| Docs / PR / handoff | `HANDOFFS.md`, `WORKSTREAMS.md` |
+| Docs / PR / handoff | `HANDOFFS.md`, `WORKSTREAMS.md`, `OPERATIONAL_HYGIENE_REPORT.md` |
+| Hygiene / convergência segura | `OPERATIONAL_HYGIENE_REPORT.md`, `docs/archive/README.md` |
 | Runtime / estado / eventos | `GOVERNANCE.md`, `ARCHITECTURE_RULES.md` |
 
 ---
