@@ -1,55 +1,173 @@
 # Workstreams — Social Landing
 
 **Autoridade:** Este documento  
-**Extensão:** [`docs/audit/WORKSTREAM_CLASSIFICATION.md`](../audit/WORKSTREAM_CLASSIFICATION.md), [`docs/audit/WORKSTREAM_ISOLATION_PLAN.md`](../audit/WORKSTREAM_ISOLATION_PLAN.md)
+**Versão:** 2.0  
+**Data:** 2026-05-24  
+**Extensão:** [`docs/audit/WORKSTREAM_ISOLATION_PLAN.md`](../audit/WORKSTREAM_ISOLATION_PLAN.md), [`MASTER_ROADMAP.md`](MASTER_ROADMAP.md)
 
 ---
 
-## Princípio
+## Princípios invioláveis
 
-**Um workstream por branch.** Nunca misturar vertical + infra + docs + runtime na mesma PR.
+1. **Um workstream por branch.** Nunca misturar vertical + infra + docs + runtime na mesma PR.
+2. Branches nascem de **`origin/main` limpo** — nunca de árvore suja local.
+3. **Nomenclatura:** `workstream/<nome>`, `docs/<pacote>`, `chore/<infra>`, `fix/<escopo>`.
+4. Cada WS encerra com registro em [`VALIDATION_PROTOCOL.md`](VALIDATION_PROTOCOL.md).
 
 ---
 
-## Nomenclatura de branches
+## Trilhas ativas (WS-01 → WS-09)
 
+### WS-01 — Operational Hygiene
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 1 — Operational Hygiene |
+| **Status** | 🟢 GO — pode iniciar agora |
+| **Objetivo** | Árvore limpa; WIPs isolados; docs deduplicados |
+| **Escopo** | Peel dirty tree, dedupe `docs/audit/* 2.md`, inventário WIP |
+| **Fora de escopo** | Runtime, componentes, lib |
+| **Branch sugerida** | `chore/operational-hygiene` |
+| **Gate de saída** | Cada WIP tem branch ou decisão de discard documentada |
+| **Refs** | `docs/audit/DIRTY_TREE_TRIAGE.md`, `WORKSTREAM_ISOLATION_PLAN.md` |
+
+---
+
+### WS-02 — PR52 Merge Validation
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 2 — Stack Convergence |
+| **Status** | 🟡 Aguardando validação manual |
+| **Objetivo** | Merge PR #52 na `main` com evidência perceptual |
+| **Escopo** | Test plan PR #52, merge, `pnpm qa:events` pós-merge |
+| **Fora de escopo** | Novas features; outras verticais |
+| **Branch** | `fix/drawer-perceptual-hygiene` (existente) |
+| **Gate de saída** | PR mergeado; re-run documentado |
+| **Refs** | GitHub PR #52, `REAL_USAGE_RE_RUN_RESULTS.md` |
+
+---
+
+### WS-03 — Stack A Parity
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 2 — Stack Convergence |
+| **Status** | 🔴 Blocked até WS-02 |
+| **Objetivo** | Paridade checkout/composer nas verticais Stack A restantes |
+| **Escopo** | Restaurant `onRegisterFooter`; `AppointmentConfirmation` pinned; appointment hero morph; realestate WhatsApp instrumentado; duplicate React keys |
+| **Fora de escopo** | Influencer/institutional (WS-06/07); AI resolver (WS-08) |
+| **Branch sugerida** | `workstream/stack-a-parity` (1 PR por sub-tema se possível) |
+| **Gate de saída** | Matriz vertical atualizada; smoke manual 5 verticais |
+| **Refs** | `SYSTEM_STATE.md` Semi-stable |
+
+---
+
+### WS-04 — CI Minimum
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 3 — QA/CI Minimum |
+| **Status** | 🔴 Blocked até WS-02 |
+| **Objetivo** | CI GitHub com gate mínimo |
+| **Escopo** | `.github/workflows/qa-minimum.yml`, template PR, `pnpm qa:events` |
+| **Fora de escopo** | Matrix 12 verticais; Playwright nightly (fase 2) |
+| **Branch sugerida** | `chore/qa-minimum-ci` |
+| **Gate de saída** | Workflow verde em PR teste |
+| **Refs** | `docs/audit/CI_MINIMUM_STRATEGY.md`, `QA_INFRASTRUCTURE_PLAN.md` |
+
+---
+
+### WS-05 — TypeScript Gate
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 4 — TypeScript Gate |
+| **Status** | 🔴 Blocked até WS-04 |
+| **Objetivo** | `tsc --noEmit` no CI; remover `ignoreBuildErrors` |
+| **Escopo** | `next.config.mjs`, workflow CI, fixes TS incrementais |
+| **Fora de escopo** | Refactor amplo; mudanças Tier 1 frozen |
+| **Branch sugerida** | `chore/typescript-gate` |
+| **Gate de saída** | Build falha em erro TS real |
+| **Refs** | `TECH_DEBT_REPORT.md` TD-001 |
+
+---
+
+### WS-06 — Influencer ActionDrawer Migration
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 2 — Stack Convergence |
+| **Status** | 🔴 Blocked até WS-02 + estabilização window |
+| **Objetivo** | Migrar influencer de Stack B → `ActionDrawer` |
+| **Escopo** | `influencer-feed.tsx`, `composerMode`, morph wiring, media kit trigger |
+| **Fora de escopo** | Institutional; AI resolver |
+| **Branch sugerida** | `workstream/influencer-actiondrawer` |
+| **Gate de saída** | `qa:influencer` script + re-run perceptual |
+| **Refs** | `PRIORITIES.md` — próxima vertical GO |
+
+---
+
+### WS-07 — Institutional ActionDrawer Migration
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 2 — Stack Convergence |
+| **Status** | 🔴 Blocked até WS-06 |
+| **Objetivo** | Migrar institutional de Stack B → `ActionDrawer` |
+| **Escopo** | `institutional-feed.tsx`, image alt fixes, morph wiring |
+| **Fora de escopo** | Influencer (já migrado); AI resolver |
+| **Branch sugerida** | `workstream/institutional-actiondrawer` |
+| **Gate de saída** | QA converge + matriz 12/12 Stack A |
+| **Refs** | `CONTROLLED_MIGRATION_PATTERN.md` |
+
+---
+
+### WS-08 — AI Resolver Expansion
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 5 — Multi-Vertical AI |
+| **Status** | 🔴 Blocked até Era 2 concluída |
+| **Objetivo** | Resolver + visual block por vertical (1 vertical/PR) |
+| **Escopo** | Novos módulos em `lib/mock-data/`; wire por feed |
+| **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
+| **Branch sugerida** | `workstream/ai-resolver-<vertical>` |
+| **Gate de saída** | Resolver dedicado + smoke conversacional |
+| **Ordem sugerida** | restaurant → health → appointment |
+
+---
+
+### WS-09 — DB/Storage Isolation
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 6 — DB/Storage Integration |
+| **Status** | 🔴 Blocked — GO humano explícito |
+| **Objetivo** | PR isolado db-media sem tocar runtime Tier 1 |
+| **Escopo** | `lib/db/`, drizzle, API media, schema alignment doc |
+| **Fora de escopo** | Runtime business feeds; composer/drawer |
+| **Branch sugerida** | `workstream/db-storage` |
+| **Gate de saída** | Smokes SQL verdes; doc alignment preenchido |
+| **Refs** | `docs/architecture/social-landing-storage-schema-alignment.md` |
+
+---
+
+## Sequência recomendada
+
+```txt
+WS-01 ──► WS-02 ──► WS-03 ──┬──► WS-04 ──► WS-05
+                             ├──► WS-06 ──► WS-07
+                             └──► WS-08 (após stack estável)
+WS-01 ──► WS-09 (paralelo, GO humano)
 ```
-workstream/<nome-descritivo>
-docs/<pacote-descritivo>
-chore/<infra-descritivo>
-```
-
-Exemplos existentes:
-
-- `workstream/personal-phase3-actiondrawer`
-- `workstream/ecommerce-product-card`
-- `docs/strategic-operational-baseline`
-- `chore/qa-infrastructure`
-
----
-
-## Baseline de partida
-
-Branches nascem de **`origin/main` limpo** — nunca de árvore suja local.
-
----
-
-## Classificação típica
-
-| Tipo | Exemplos | Isolamento |
-|------|----------|------------|
-| Vertical feature | ecommerce card, influencer drawer | Branch dedicada |
-| Convergência | Personal Phase 3 | Protocolo controlado |
-| Docs/governance | audit pack, OS baseline | PR docs-only |
-| Infra/QA | scripts, CI | `chore/*` |
-| Runtime observation | shadow, instrumentation | Sem mutação Tier 1 |
 
 ---
 
 ## Peel protocol (árvore suja)
 
 1. Inventariar paths (`DIRTY_TREE_TRIAGE`)
-2. Classificar por workstream
+2. Classificar por workstream (tabela acima)
 3. Criar branch limpa por workstream
 4. Cherry-pick ou reapply seletivo
 5. Dedupe docs vs main
@@ -61,3 +179,4 @@ Branches nascem de **`origin/main` limpo** — nunca de árvore suja local.
 - Merge de dirty tree inteira
 - WIP de vertical A contaminando vertical B
 - Docs exploratórios (~40 audit files) em PR único
+- Dois workstreams numa branch

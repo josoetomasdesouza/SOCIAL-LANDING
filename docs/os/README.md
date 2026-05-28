@@ -48,6 +48,10 @@ O agente entende **primeiro a filosofia**, depois **as regras**, depois **a exec
 
 | # | Pilar | Documento | Quando ler |
 |---|-------|-----------|------------|
+| 0 | **Master roadmap** | [`MASTER_ROADMAP.md`](MASTER_ROADMAP.md) | Eras, sequência, gates de convergência |
+| 0b | **System state** | [`SYSTEM_STATE.md`](SYSTEM_STATE.md) | Stable / experimental / blocked / riscos |
+| 0c | **Validation protocol** | [`VALIDATION_PROTOCOL.md`](VALIDATION_PROTOCOL.md) | Antes de fechar qualquer WS ou PR |
+| 0d | **Freeze zones (runtime)** | [`FREEZE_ZONES.md`](FREEZE_ZONES.md) | Paths congelados na convergência |
 | 1 | North Star | [`NORTH_STAR.md`](NORTH_STAR.md) | Sempre — primeira leitura |
 | 2 | **Evolução obrigatória** | [`EVOLUTION_MANDATE.md`](EVOLUTION_MANDATE.md) | Sempre — evitar paralisia por governança |
 | 3 | Filosofia do produto | [`PRODUCT_PHILOSOPHY.md`](PRODUCT_PHILOSOPHY.md) | Features, escopo, integrações |
@@ -72,12 +76,17 @@ O agente entende **primeiro a filosofia**, depois **as regras**, depois **a exec
 ### Bootstrap mínimo (qualquer tarefa)
 
 1. `NORTH_STAR.md`
-2. `EVOLUTION_MANDATE.md`
-3. `PRIORITIES.md`
-4. `ANTI_DRIFT.md`
-5. `FROZEN_ZONES.md`
-6. `OPERATIONAL_RULES.md`
-7. `CLAUDE_OPERATING_SYSTEM.md`
+2. `MASTER_ROADMAP.md`
+3. `SYSTEM_STATE.md`
+4. `WORKSTREAMS.md`
+5. `FREEZE_ZONES.md`
+6. `EVOLUTION_MANDATE.md`
+7. `PRIORITIES.md`
+8. `ANTI_DRIFT.md`
+9. `FROZEN_ZONES.md`
+10. `OPERATIONAL_RULES.md`
+11. `VALIDATION_PROTOCOL.md`
+12. `CLAUDE_OPERATING_SYSTEM.md`
 
 ### Por tipo de tarefa
 
