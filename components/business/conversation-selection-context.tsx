@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react"
 import { observeComposerModeChanged } from "@/lib/events/instrumentation"
+import type { ComposerScrollMetrics } from "@/lib/ui/composer-scroll-clearance"
 import type { ConversationContextItem } from "./conversational-ai"
 
 export type ConversationComposerMode = "default" | "overlay" | "hidden"
@@ -16,6 +17,13 @@ interface ConversationSelectionController {
   isConversationSelected: (id: string) => boolean
   composerMode: ConversationComposerMode
   setComposerMode: (mode: ConversationComposerMode) => void
+  /** Viewport-bottom → composer-top, in px. */
+  composerCompactFootprintPx: number
+  /** Composer-bottom → viewport-bottom, in px (pb-4 / safe-area gap). */
+  composerBottomInsetPx: number
+  /** footprint + bottomInset — symmetric clearance for overlaid content. */
+  composerScrollClearancePx: number
+  setComposerScrollMetrics: (metrics: ComposerScrollMetrics) => void
   composerOffsetClassName?: string
   setComposerOffsetClassName: (className?: string) => void
 }
@@ -25,8 +33,20 @@ const ConversationSelectionContext = createContext<ConversationSelectionControll
 export function useConversationSelectionState(): ConversationSelectionController {
   const [conversationContext, setConversationContext] = useState<ConversationContextItem[]>([])
   const [composerMode, setComposerModeState] = useState<ConversationComposerMode>("default")
+  const [composerCompactFootprintPx, setComposerCompactFootprintPxState] = useState(0)
+  const [composerBottomInsetPx, setComposerBottomInsetPxState] = useState(0)
+  const [composerScrollClearancePx, setComposerScrollClearancePxState] = useState(0)
   const [composerOffsetClassName, setComposerOffsetClassName] = useState<string | undefined>(undefined)
   const composerModeRef = useRef<ConversationComposerMode>("default")
+
+  const setComposerScrollMetrics = useCallback(
+    ({ footprintPx, bottomInsetPx, clearancePx }: ComposerScrollMetrics) => {
+      setComposerCompactFootprintPxState((previous) => (previous === footprintPx ? previous : footprintPx))
+      setComposerBottomInsetPxState((previous) => (previous === bottomInsetPx ? previous : bottomInsetPx))
+      setComposerScrollClearancePxState((previous) => (previous === clearancePx ? previous : clearancePx))
+    },
+    []
+  )
 
   const setComposerMode = useCallback((mode: ConversationComposerMode) => {
     const from = composerModeRef.current
@@ -85,6 +105,10 @@ export function useConversationSelectionState(): ConversationSelectionController
     isConversationSelected,
     composerMode,
     setComposerMode,
+    composerCompactFootprintPx,
+    composerBottomInsetPx,
+    composerScrollClearancePx,
+    setComposerScrollMetrics,
     composerOffsetClassName,
     setComposerOffsetClassName,
   }

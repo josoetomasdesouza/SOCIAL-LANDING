@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import Image from "next/image"
 import { ShoppingBag, Star, Truck, Plus, Minus, X, Play, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -183,7 +183,6 @@ function ProductDetailDrawer({
   onToggleFavorite,
   onToggleConversationContext,
   isInConversation,
-  hasVisibleCartBar = false,
 }: { 
   product: Product | null
   isOpen: boolean
@@ -193,21 +192,15 @@ function ProductDetailDrawer({
   onToggleFavorite: () => void
   onToggleConversationContext?: (item: ConversationContextItem) => void
   isInConversation?: (id: string) => boolean
-  hasVisibleCartBar?: boolean
 }) {
   if (!product) return null
 
-  const composerInsetPx = 104
-  const cartBarInsetPx = hasVisibleCartBar ? 88 : 0
-  
   return (
     <ActionDrawer
       isOpen={isOpen}
       onClose={onClose}
       title={product.name}
       size="lg"
-      visibleBottomInsetPx={composerInsetPx + cartBarInsetPx}
-      fillVisibleBottomInset
     >
       <EcommerceProductDetailPanel
         product={product}
@@ -244,10 +237,34 @@ function CartDrawerComponent({
   const remaining = Math.max(0, freeShippingThreshold - total)
   
   return (
-    <ActionDrawer isOpen={isOpen} onClose={onClose} title={`Carrinho (${cart.length})`} size="lg">
-      <div className="flex flex-col h-full">
+    <ActionDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Carrinho (${cart.length})`}
+      size="lg"
+      footer={
+        cart.length > 0 ? (
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span className="font-medium">R$ {total.toFixed(2).replace(".", ",")}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Frete</span>
+              <span className={remaining <= 0 ? "text-green-600 font-medium" : ""}>
+                {remaining <= 0 ? "Gratis" : "Calculado no checkout"}
+              </span>
+            </div>
+            <Button className="w-full h-12" onClick={onCheckout}>
+              Finalizar compra
+            </Button>
+          </div>
+        ) : undefined
+      }
+    >
+      <div className="space-y-4">
         {cart.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
+          <div className="flex flex-col items-center justify-center text-center py-12">
             <ShoppingBag className="w-16 h-16 text-muted-foreground/50 mb-4" />
             <h3 className="font-semibold text-lg mb-2">Seu carrinho esta vazio</h3>
             <p className="text-muted-foreground">Adicione produtos para continuar</p>
@@ -255,14 +272,14 @@ function CartDrawerComponent({
         ) : (
           <>
             {remaining > 0 && (
-              <div className="bg-accent/10 rounded-xl p-3 mb-4">
+              <div className="bg-accent/10 rounded-xl p-3">
                 <p className="text-sm text-accent text-center">
                   Faltam <strong>R$ {remaining.toFixed(2).replace(".", ",")}</strong> para frete gratis!
                 </p>
               </div>
             )}
-            
-            <div className="flex-1 space-y-3 overflow-auto">
+
+            <div className="space-y-3">
               {cart.map((item) => (
                 <div key={item.cartKey} className="flex gap-3 p-3 bg-secondary/50 rounded-xl">
                   <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
@@ -298,22 +315,6 @@ function CartDrawerComponent({
                 </div>
               ))}
             </div>
-            
-            <div className="border-t pt-4 mt-4 space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium">R$ {total.toFixed(2).replace(".", ",")}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Frete</span>
-                <span className={remaining <= 0 ? "text-green-600 font-medium" : ""}>
-                  {remaining <= 0 ? "Gratis" : "Calculado no checkout"}
-                </span>
-              </div>
-              <Button className="w-full h-12" onClick={onCheckout}>
-                Finalizar compra
-              </Button>
-            </div>
           </>
         )}
       </div>
@@ -331,6 +332,7 @@ export function EcommerceFeed() {
   const [productDrawerOpen, setProductDrawerOpen] = useState(false)
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
   const [checkoutDrawerOpen, setCheckoutDrawerOpen] = useState(false)
+  const [checkoutDrawerFooter, setCheckoutDrawerFooter] = useState<ReactNode | null>(null)
   const [cart, setCart] = useState<CartItem[]>([])
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const [explorationMemory, setExplorationMemory] = useState<ProductExplorationMemory>({})
@@ -557,6 +559,7 @@ export function EcommerceFeed() {
         onClose={() => setCheckoutDrawerOpen(false)}
         title="Finalizar Compra"
         size="lg"
+        footer={checkoutDrawerFooter ?? undefined}
       >
         <EcommerceCheckout
           items={cart.map((item) => ({
@@ -574,6 +577,7 @@ export function EcommerceFeed() {
             setCheckoutDrawerOpen(false)
             setCartDrawerOpen(true)
           }}
+          onRegisterFooter={setCheckoutDrawerFooter}
         />
       </ActionDrawer>
       </>

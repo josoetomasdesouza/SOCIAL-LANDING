@@ -5,6 +5,7 @@ import Image from "next/image"
 import { ChevronLeft, ChevronRight, Clock, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { DayAvailability, Professional } from "@/lib/business-types"
+import { scrollIntoViewAboveBottomInset } from "@/lib/ui/scroll-into-view-with-bottom-inset"
 
 type AvailabilityInput = DayAvailability[] | Record<string, string[]> | unknown
 type NormalizedAvailability = Record<string, Array<{ time: string; available: boolean }>>
@@ -164,7 +165,9 @@ export function AppointmentCalendar({
     if (!autoScrollToTimes || !selectedDate) return
 
     const scrollTimer = window.setTimeout(() => {
-      timeSlotsRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+      const timeSlotsElement = timeSlotsRef.current
+      if (!timeSlotsElement) return
+      scrollIntoViewAboveBottomInset(timeSlotsElement, { behavior: "smooth", marginPx: 12 })
     }, 50)
 
     return () => window.clearTimeout(scrollTimer)

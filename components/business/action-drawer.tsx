@@ -1,9 +1,19 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { observeDrawerClosed, observeDrawerOpened } from "@/lib/events/instrumentation"
-import { X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DrawerDragZone, DrawerScrollBody } from "@/components/ui/drawer-drag-chrome"
+import { cn } from "@/lib/utils"
+import { useConversationSelectionContext } from "./conversation-selection-context"
+import {
+  useComposerOverlayClearance,
+  resolveComposerScrollClearancePx,
+  resolveComposerPinnedFooterBottomInsetPx,
+  resolveComposerPinnedFooterScrollPaddingPx,
+} from "@/lib/ui/composer-scroll-clearance"
+import { resolveDrawerSheetStyle } from "@/lib/ui/drawer-layout"
+import { useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
 
 interface ActionDrawerProps {
   isOpen: boolean
@@ -16,9 +26,6 @@ interface ActionDrawerProps {
   footer?: React.ReactNode
   size?: "sm" | "md" | "lg" | "full"
   matchFeedWidth?: boolean
-  reserveComposerSpace?: boolean
-  visibleBottomInsetPx?: number
-  fillVisibleBottomInset?: boolean
 }
 
 export function ActionDrawer({
@@ -31,23 +38,81 @@ export function ActionDrawer({
   footer,
   size = "md",
   matchFeedWidth = false,
-  visibleBottomInsetPx = 0,
-  fillVisibleBottomInset = false,
 }: ActionDrawerProps) {
   const wasOpenRef = useRef(false)
   const eventDrawerId = drawerId ?? title
+  const conversationSelection = useConversationSelectionContext()
+  const { paddingBottom: composerClearance, isActive: composerOverlaysDrawer } =
+    useComposerOverlayClearance({
+      // Composer z-[70] sits on top of the drawer — reserve symmetric clearance.
+      reserveComposerClearance: conversationSelection?.composerMode === "overlay",
+    })
 
-  // Bloqueia scroll do body quando aberto
+  useEffect(() => {
+    if (!isOpen || conversationSelection?.composerMode !== "overlay") {
+      return
+    }
+
+    const publishLiveComposerMetrics = () => {
+      if (typeof window === "undefined") {
+        return
+      }
+
+      const composerSection = document.querySelector<HTMLElement>('[data-conversation-composer="true"]')
+      if (!composerSection) {
+        return
+      }
+
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+      const rect = composerSection.getBoundingClientRect()
+      const footprintPx = Math.round(Math.max(0, viewportHeight - rect.top))
+      const bottomInsetPx = Math.round(Math.max(0, viewportHeight - rect.bottom))
+      const clearancePx = resolveComposerScrollClearancePx(footprintPx, bottomInsetPx)
+
+      if (clearancePx <= 0) {
+        return
+      }
+
+      conversationSelection?.setComposerScrollMetrics({
+        footprintPx,
+        bottomInsetPx,
+        clearancePx,
+      })
+    }
+
+    publishLiveComposerMetrics()
+    const frame = window.requestAnimationFrame(publishLiveComposerMetrics)
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [conversationSelection, isOpen])
+  const { sheetRef, setScrollRef, rawDragOffsetPx, resetDrag, isDragging, isPulling, dragHandleProps, getBackdropOpacity } =
+    useDrawerSheetDrag(onClose, isOpen)
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
+      resetDrag()
     }
+
     return () => {
       document.body.style.overflow = ""
     }
-  }, [isOpen])
+  }, [isOpen, resetDrag])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [isOpen, onClose])
 
   useEffect(() => {
     if (isOpen && !wasOpenRef.current) {
@@ -67,95 +132,137 @@ export function ActionDrawer({
     wasOpenRef.current = isOpen
   }, [isOpen, title, eventDrawerId])
 
+  const composerHidden = conversationSelection?.composerMode === "hidden"
+  const shouldPinFooterToScreen = Boolean(footer && composerHidden)
+  const pinnedFooterRef = useRef<HTMLDivElement>(null)
+  const [pinnedFooterHeightPx, setPinnedFooterHeightPx] = useState(0)
+
+  useLayoutEffect(() => {
+    if (!isOpen || !shouldPinFooterToScreen) {
+      setPinnedFooterHeightPx(0)
+      return
+    }
+
+    const measurePinnedFooter = () => {
+      setPinnedFooterHeightPx(pinnedFooterRef.current?.offsetHeight ?? 0)
+    }
+
+    measurePinnedFooter()
+    const frame = window.requestAnimationFrame(measurePinnedFooter)
+
+    const footerElement = pinnedFooterRef.current
+    const resizeObserver =
+      footerElement && typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(measurePinnedFooter)
+        : null
+    if (footerElement && resizeObserver) {
+      resizeObserver.observe(footerElement)
+    }
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      resizeObserver?.disconnect()
+    }
+  }, [footer, isOpen, shouldPinFooterToScreen])
+
   if (!isOpen) return null
 
-  const sizeMaxHeights = {
-    sm: "40vh",
-    md: "60vh",
-    lg: "80vh",
-    full: "95vh",
-  }
   const widthClasses = matchFeedWidth
     ? "left-1/2 right-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
     : "inset-x-0"
-  const drawerTransform = matchFeedWidth
-    ? `translate(-50%, ${isOpen ? "0" : "100%"})`
-    : `translateY(${isOpen ? "0" : "100%"})`
   const innerWidthClasses = "w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
-  const reservedBottomSpace = Math.max(0, visibleBottomInsetPx)
-  const shouldBlendBottomInset = fillVisibleBottomInset && reservedBottomSpace > 0
-  const drawerBottom = shouldBlendBottomInset ? 0 : reservedBottomSpace
-  const drawerMaxHeight = shouldBlendBottomInset
-    ? `calc(${sizeMaxHeights[size]} + ${reservedBottomSpace}px)`
-    : sizeMaxHeights[size]
+  const pinnedFooterWidthClasses = matchFeedWidth
+    ? "left-1/2 right-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] -translate-x-1/2"
+    : "inset-x-0"
+  const composerPinnedBottomInsetPx = resolveComposerPinnedFooterBottomInsetPx(
+    conversationSelection?.composerBottomInsetPx
+  )
+  const sheetLayout = resolveDrawerSheetStyle(rawDragOffsetPx, {
+    translateX: matchFeedWidth ? "translateX(-50%)" : undefined,
+  })
+  const scrollPaddingBottom = composerOverlaysDrawer
+    ? composerClearance
+    : shouldPinFooterToScreen && pinnedFooterHeightPx > 0
+      ? `${resolveComposerPinnedFooterScrollPaddingPx(
+          pinnedFooterHeightPx,
+          conversationSelection?.composerBottomInsetPx
+        )}px`
+      : undefined
+
+  const footerContent = footer ? (
+    <div
+      className={`${innerWidthClasses} px-4 pt-4 ${shouldPinFooterToScreen ? "pb-0" : composerOverlaysDrawer ? "pb-0" : "pb-5"}`}
+    >
+      {footer}
+    </div>
+  ) : null
 
   return (
     <>
-      {/* Backdrop */}
       <div
-        className="fixed inset-x-0 top-0 bg-black/50 z-50 transition-opacity"
-        style={{ bottom: drawerBottom }}
+        className="fixed inset-x-0 top-0 z-50 bg-black/50 transition-opacity"
+        style={{
+          bottom: 0,
+          opacity: getBackdropOpacity(0.5),
+        }}
         onClick={onClose}
       />
 
-      {/* Drawer */}
       <div
-        className={`fixed ${widthClasses} bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl transform transition-transform duration-300 ease-out`}
+        ref={sheetRef}
+        className={cn(
+          "fixed bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl",
+          widthClasses,
+          isDragging ? "transition-none" : "transition-[height,transform] duration-300 ease-out"
+        )}
         style={{
-          transform: drawerTransform,
-          bottom: drawerBottom,
-          maxHeight: drawerMaxHeight,
+          bottom: 0,
+          height: sheetLayout.height,
+          transform: sheetLayout.transform,
         }}
       >
-        {/* Handle */}
-        <div className="flex flex-shrink-0 justify-center pt-3 pb-2">
-          <div className="w-10 h-1 bg-border rounded-full" />
-        </div>
-
-        {/* Header */}
-        <div className="flex-shrink-0 border-b border-border/50">
-          <div className={`${innerWidthClasses} flex items-center justify-between px-5 pb-4`}>
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-              {subtitle && (
-                <p className="text-sm text-muted-foreground">{subtitle}</p>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-9 w-9 p-0 rounded-full"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className={`${innerWidthClasses} p-5`}>
-            {children}
-          </div>
-        </div>
-
-        {/* Footer */}
-        {footer && (
-          <div className="flex-shrink-0 border-t border-border/50 bg-card">
-            <div className={`${innerWidthClasses} p-5`}>
-              {footer}
+        <DrawerDragZone dragHandleProps={dragHandleProps}>
+          <div className="border-b border-border/50">
+            <div className={`${innerWidthClasses} px-5 pb-4`}>
+              <div className="min-w-0">
+                <h3 className="truncate text-lg font-semibold text-foreground">{title}</h3>
+                {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
+              </div>
             </div>
           </div>
-        )}
+        </DrawerDragZone>
 
-        {shouldBlendBottomInset ? (
+        <DrawerScrollBody
+          scrollRef={setScrollRef}
+          isPulling={isPulling}
+          style={scrollPaddingBottom ? { paddingBottom: scrollPaddingBottom } : undefined}
+        >
+          <div className={`${innerWidthClasses} p-5`}>{children}</div>
+        </DrawerScrollBody>
+
+        {footer && !shouldPinFooterToScreen ? (
           <div
-            aria-hidden="true"
-            className="shrink-0 bg-card"
-            style={{ height: reservedBottomSpace }}
-          />
+            className="shrink-0 border-t border-border/50 bg-card"
+            style={composerOverlaysDrawer ? { paddingBottom: composerClearance } : undefined}
+          >
+            {footerContent}
+          </div>
         ) : null}
       </div>
+
+      {footer && shouldPinFooterToScreen ? (
+        <div
+          ref={pinnedFooterRef}
+          data-action-drawer-pinned-footer="true"
+          className={cn(
+            "fixed z-[55] border-t border-border/50 bg-card/98 backdrop-blur-sm shadow-[0_-8px_30px_rgba(15,23,42,0.08)]",
+            pinnedFooterWidthClasses
+          )}
+          style={{ bottom: composerPinnedBottomInsetPx }}
+        >
+          {footerContent}
+        </div>
+      ) : null}
     </>
   )
 }
@@ -318,7 +425,6 @@ export function ProductDetailDrawer({
       }
     >
       <div className="space-y-6">
-        {/* Imagens */}
         <div className="relative aspect-square rounded-2xl overflow-hidden">
           <img
             src={product.images[0]}
@@ -332,7 +438,6 @@ export function ProductDetailDrawer({
           )}
         </div>
 
-        {/* Preco */}
         <div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold text-foreground">
@@ -349,7 +454,6 @@ export function ProductDetailDrawer({
           </p>
         </div>
 
-        {/* Avaliacao */}
         <div className="flex items-center gap-2">
           <div className="flex">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -368,7 +472,6 @@ export function ProductDetailDrawer({
           </span>
         </div>
 
-        {/* Descricao */}
         <div>
           <h4 className="font-semibold text-foreground mb-2">Descricao</h4>
           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -376,7 +479,6 @@ export function ProductDetailDrawer({
           </p>
         </div>
 
-        {/* Especificacoes */}
         {product.specifications && product.specifications.length > 0 && (
           <div>
             <h4 className="font-semibold text-foreground mb-3">Especificacoes</h4>

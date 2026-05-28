@@ -501,7 +501,7 @@ export function InstitutionalFeed() {
         open={contactDrawerOpen}
         onOpenChange={setContactDrawerOpen}
       >
-        <DrawerContent className="max-h-[90vh]">
+        <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Fale Conosco</DrawerTitle>
           </DrawerHeader>
@@ -539,7 +539,7 @@ export function InstitutionalFeed() {
         open={teamDrawerOpen}
         onOpenChange={setTeamDrawerOpen}
       >
-        <DrawerContent className="max-h-[90vh]">
+        <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Nossa Equipe</DrawerTitle>
           </DrawerHeader>
@@ -571,7 +571,7 @@ export function InstitutionalFeed() {
         open={projectDrawerOpen}
         onOpenChange={setProjectDrawerOpen}
       >
-        <DrawerContent className="max-h-[90vh]">
+        <DrawerContent>
           {selectedProject && (
             <>
               <DrawerHeader>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import Image from "next/image"
 import { MapPin, Bed, Bath, Car, Maximize, Heart, Phone, Home, Building, Star, Play, Newspaper, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -216,7 +216,6 @@ function PropertyDetailDrawer({
       onClose={onClose}
       title={property.title}
       size="lg"
-      reserveComposerSpace
     >
       <div className="space-y-6">
         {/* Galeria */}
@@ -318,20 +317,23 @@ function PropertyDetailDrawer({
 // ========================================
 export function RealEstateFeed() {
   const conversationSelection = useConversationSelectionState()
-  const { setComposerMode } = conversationSelection
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
   const [propertyDrawerOpen, setPropertyDrawerOpen] = useState(false)
   const [visitDrawerOpen, setVisitDrawerOpen] = useState(false)
+  const [visitDrawerFooter, setVisitDrawerFooter] = useState<ReactNode | null>(null)
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const nextMode = visitDrawerOpen ? "hidden" : propertyDrawerOpen ? "overlay" : "default"
     setComposerMode(nextMode)
+    setComposerOffsetClassName(undefined)
 
     return () => {
       setComposerMode("default")
+      setComposerOffsetClassName(undefined)
     }
-  }, [propertyDrawerOpen, setComposerMode, visitDrawerOpen])
+  }, [propertyDrawerOpen, setComposerMode, setComposerOffsetClassName, visitDrawerOpen])
   
   const handleToggleFavorite = (id: string) => {
     setFavorites(prev => {
@@ -434,6 +436,7 @@ export function RealEstateFeed() {
         onClose={() => setVisitDrawerOpen(false)}
         title="Agendar Visita"
         size="lg"
+        footer={visitDrawerFooter ?? undefined}
       >
         {selectedProperty && (
           <ScheduleVisitForm
@@ -447,6 +450,7 @@ export function RealEstateFeed() {
               setVisitDrawerOpen(false)
               setPropertyDrawerOpen(true)
             }}
+            onRegisterFooter={setVisitDrawerFooter}
           />
         )}
       </ActionDrawer>

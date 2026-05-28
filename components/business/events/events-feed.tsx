@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import Image from "next/image"
 import { Calendar, Clock, MapPin, Users, Ticket, Heart, Star, Play, Newspaper, Music } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -237,7 +237,6 @@ function EventDetailDrawer({
       onClose={onClose}
       title={eventTitle}
       size="lg"
-      reserveComposerSpace
     >
       <div className="space-y-6">
         <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary">
@@ -309,20 +308,23 @@ function EventDetailDrawer({
 // ========================================
 export function EventsFeed() {
   const conversationSelection = useConversationSelectionState()
-  const { setComposerMode } = conversationSelection
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [eventDrawerOpen, setEventDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [checkoutDrawerFooter, setCheckoutDrawerFooter] = useState<ReactNode | null>(null)
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const nextMode = checkoutOpen ? "hidden" : eventDrawerOpen ? "overlay" : "default"
     setComposerMode(nextMode)
+    setComposerOffsetClassName(undefined)
 
     return () => {
       setComposerMode("default")
+      setComposerOffsetClassName(undefined)
     }
-  }, [checkoutOpen, eventDrawerOpen, setComposerMode])
+  }, [checkoutOpen, eventDrawerOpen, setComposerMode, setComposerOffsetClassName])
   
   const handleToggleFavorite = (id: string) => {
     setFavorites(prev => {
@@ -420,6 +422,7 @@ export function EventsFeed() {
         onClose={() => setCheckoutOpen(false)}
         title="Comprar Ingresso"
         size="lg"
+        footer={checkoutDrawerFooter ?? undefined}
       >
         {selectedEvent && (
           <TicketCheckout
@@ -436,6 +439,7 @@ export function EventsFeed() {
               setCheckoutOpen(false)
               setEventDrawerOpen(true)
             }}
+            onRegisterFooter={setCheckoutDrawerFooter}
           />
         )}
       </ActionDrawer>

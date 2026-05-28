@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import Image from "next/image"
 import { Clock, Dumbbell, Users, Calendar, Star, Zap, Check, Play, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -148,7 +148,6 @@ function PlanDetailDrawer({
       onClose={onClose}
       title={plan.name}
       size="lg"
-      reserveComposerSpace
     >
       <div className="space-y-6">
         <ContextSelectable
@@ -198,19 +197,22 @@ function PlanDetailDrawer({
 // ========================================
 export function GymFeed() {
   const conversationSelection = useConversationSelectionState()
-  const { setComposerMode } = conversationSelection
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [selectedPlan, setSelectedPlan] = useState<GymPlan | null>(null)
   const [planDrawerOpen, setPlanDrawerOpen] = useState(false)
   const [signupOpen, setSignupOpen] = useState(false)
+  const [signupDrawerFooter, setSignupDrawerFooter] = useState<ReactNode | null>(null)
 
   useEffect(() => {
     const nextMode = signupOpen ? "hidden" : planDrawerOpen ? "overlay" : "default"
     setComposerMode(nextMode)
+    setComposerOffsetClassName(undefined)
 
     return () => {
       setComposerMode("default")
+      setComposerOffsetClassName(undefined)
     }
-  }, [planDrawerOpen, setComposerMode, signupOpen])
+  }, [planDrawerOpen, setComposerMode, setComposerOffsetClassName, signupOpen])
   
   const sections: BusinessSection[] = [
     {
@@ -298,6 +300,7 @@ export function GymFeed() {
         onClose={() => setSignupOpen(false)}
         title="Matricula"
         size="lg"
+        footer={signupDrawerFooter ?? undefined}
       >
         {selectedPlan && (
           <GymSignupForm
@@ -311,6 +314,7 @@ export function GymFeed() {
               setSignupOpen(false)
               setPlanDrawerOpen(true)
             }}
+            onRegisterFooter={setSignupDrawerFooter}
           />
         )}
       </ActionDrawer>

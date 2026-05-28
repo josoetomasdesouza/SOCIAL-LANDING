@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import Image from "next/image"
 import { Play, Clock, Users, Star, Award, ChevronRight, BookOpen, GraduationCap, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -176,7 +176,6 @@ function CourseDetailDrawer({
       onClose={onClose}
       title={course.title}
       size="lg"
-      reserveComposerSpace
     >
       <div className="space-y-6">
         {/* Video Preview */}
@@ -287,19 +286,22 @@ function CourseDetailDrawer({
 // ========================================
 export function CoursesFeed() {
   const conversationSelection = useConversationSelectionState()
-  const { setComposerMode } = conversationSelection
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [courseDrawerOpen, setCourseDrawerOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [checkoutDrawerFooter, setCheckoutDrawerFooter] = useState<ReactNode | null>(null)
 
   useEffect(() => {
     const nextMode = checkoutOpen ? "hidden" : courseDrawerOpen ? "overlay" : "default"
     setComposerMode(nextMode)
+    setComposerOffsetClassName(undefined)
 
     return () => {
       setComposerMode("default")
+      setComposerOffsetClassName(undefined)
     }
-  }, [checkoutOpen, courseDrawerOpen, setComposerMode])
+  }, [checkoutOpen, courseDrawerOpen, setComposerMode, setComposerOffsetClassName])
   
   const handleSelectCourse = (course: Course) => {
     setSelectedCourse(course)
@@ -397,6 +399,7 @@ export function CoursesFeed() {
         onClose={() => setCheckoutOpen(false)}
         title="Finalizar Matricula"
         size="lg"
+        footer={checkoutDrawerFooter ?? undefined}
       >
         {selectedCourse && (
           <CourseCheckout
@@ -412,6 +415,7 @@ export function CoursesFeed() {
               setCheckoutOpen(false)
               setCourseDrawerOpen(true)
             }}
+            onRegisterFooter={setCheckoutDrawerFooter}
           />
         )}
       </ActionDrawer>

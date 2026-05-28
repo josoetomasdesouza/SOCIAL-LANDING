@@ -22,6 +22,7 @@ import {
   type PostToChatMorphRect,
 } from "./post-to-chat-morph-layer"
 import { observeMorphCompleted, observeMorphStarted } from "@/lib/events/instrumentation"
+import { useComposerScrollPaddingBottom } from "@/lib/ui/composer-scroll-clearance"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
@@ -903,6 +904,9 @@ export function BusinessSocialLanding({
     composerOffsetClassName,
     setComposerMode,
   } = conversationSelection
+  const pageScrollPaddingBottom = useComposerScrollPaddingBottom()
+  const shouldTrackComposerFootprint =
+    composerMode !== "hidden" && !(drawerOpen && !feedDrawerOpen)
   const composerModeBeforeFeedDrawerRef = useRef<ConversationComposerMode>("default")
 
   const syncFeedDrawerComposerOpen = useCallback(() => {
@@ -1095,7 +1099,10 @@ export function BusinessSocialLanding({
   }, [clearConversationContext])
   
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div
+      className="min-h-screen bg-background"
+      style={{ paddingBottom: pageScrollPaddingBottom }}
+    >
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
         {/* Feed intro */}
@@ -1128,23 +1135,6 @@ export function BusinessSocialLanding({
       {/* Footer */}
       <BusinessFooter config={config} links={footerLinks} />
 
-      {activeMorph ? (
-        <PostToChatMorphLayer
-          key={activeMorph.key}
-          animationKey={activeMorph.key}
-          preview={activeMorph.preview}
-          fromRect={activeMorph.fromRect}
-          toRect={activeMorph.toRect}
-          resolveToRect={() => resolveMorphTargetRect(activeMorph.contextId)}
-          durationMs={MORPH_DURATION_MS}
-          onComplete={() => {
-            observeMorphCompleted({ itemId: activeMorph.contextId, vertical: config.model })
-            setHiddenContextIds((currentIds) => currentIds.filter((contextId) => contextId !== activeMorph.contextId))
-            setActiveMorph((currentMorph) => (currentMorph?.key === activeMorph.key ? null : currentMorph))
-          }}
-        />
-      ) : null}
-
       {/* Conversational AI (fixed or inline) */}
       {conversationalAI || (
         <ConversationalAI
@@ -1162,8 +1152,26 @@ export function BusinessSocialLanding({
           onCloseConversation={handleCloseConversation}
           responseResolver={conversationResponseResolver}
           renderVisualBlock={renderConversationVisualBlock}
+          trackCompactFootprint={shouldTrackComposerFootprint}
         />
       )}
+
+      {activeMorph ? (
+        <PostToChatMorphLayer
+          key={activeMorph.key}
+          animationKey={activeMorph.key}
+          preview={activeMorph.preview}
+          fromRect={activeMorph.fromRect}
+          toRect={activeMorph.toRect}
+          resolveToRect={() => resolveMorphTargetRect(activeMorph.contextId)}
+          durationMs={MORPH_DURATION_MS}
+          onComplete={() => {
+            observeMorphCompleted({ itemId: activeMorph.contextId, vertical: config.model })
+            setHiddenContextIds((currentIds) => currentIds.filter((contextId) => contextId !== activeMorph.contextId))
+            setActiveMorph((currentMorph) => (currentMorph?.key === activeMorph.key ? null : currentMorph))
+          }}
+        />
+      ) : null}
       
       {/* Story Viewer Modal */}
       <StoryViewer

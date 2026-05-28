@@ -2,12 +2,16 @@
 
 import { useEffect, useMemo, useRef, useCallback, useState } from "react"
 import Image from "next/image"
-import { X, Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Newspaper } from "lucide-react"
+import { Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Newspaper } from "lucide-react"
 import { observeDrawerClosed, observeDrawerOpened } from "@/lib/events/instrumentation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { DrawerDragZone, DrawerScrollBody } from "@/components/ui/drawer-drag-chrome"
 import type { BusinessPost } from "./business-social-landing"
 import { ContextSelectable } from "./context-selectable"
+import { useComposerOverlayClearance } from "@/lib/ui/composer-scroll-clearance"
+import { resolveDrawerSheetStyle } from "@/lib/ui/drawer-layout"
+import { useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
 
 interface BusinessFeedDrawerProps {
   isOpen: boolean
@@ -217,9 +221,11 @@ export function BusinessFeedDrawer({
   selectedContextIds,
   onPostLongPress,
 }: BusinessFeedDrawerProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
   const initialPostRef = useRef<HTMLDivElement>(null)
   const wasOpenRef = useRef(false)
+  const { paddingBottom: composerClearance, isActive: composerOverlaysFeed } = useComposerOverlayClearance()
+  const { sheetRef, scrollRef, setScrollRef, rawDragOffsetPx, resetDrag, isDragging, isPulling, dragHandleProps, getBackdropOpacity } =
+    useDrawerSheetDrag(onClose, isOpen)
   const selectedContextIdSet = useMemo(() => new Set(selectedContextIds), [selectedContextIds])
 
   const filteredPosts = useMemo(() => {
@@ -235,23 +241,41 @@ export function BusinessFeedDrawer({
   }, [filteredPosts, initialPost])
 
   useEffect(() => {
-    if (isOpen && initialPostRef.current) {
-      setTimeout(() => {
-        initialPostRef.current?.scrollIntoView({ behavior: "auto", block: "start" })
-      }, 100)
-    }
-  }, [isOpen, initialPost])
+    if (!isOpen) return
+
+    const timer = window.setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = 0
+      }
+    }, 100)
+
+    return () => window.clearTimeout(timer)
+  }, [isOpen, initialPost, scrollRef])
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
+      resetDrag()
     }
     return () => {
       document.body.style.overflow = ""
     }
-  }, [isOpen])
+  }, [isOpen, resetDrag])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [isOpen, onClose])
 
   useEffect(() => {
     const drawerId = `feed:${category}:${initialPost?.id ?? "none"}`
@@ -281,39 +305,44 @@ export function BusinessFeedDrawer({
   if (!isOpen) return null
 
   return (
-    <div 
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
-      onClick={handleBackdropClick}
-    >
-      <div 
-        ref={containerRef}
-        className="absolute inset-x-0 bottom-0 top-0 md:top-auto md:max-h-[92vh] bg-background rounded-t-3xl overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300 shadow-2xl"
+    <>
+      <div
+        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm transition-opacity"
+        style={{ opacity: getBackdropOpacity(0.7) }}
+        onClick={handleBackdropClick}
+        aria-hidden="true"
+      />
+
+      <div
+        ref={sheetRef}
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-50 bg-background rounded-t-3xl overflow-hidden flex flex-col shadow-2xl",
+          isDragging ? "transition-none" : "animate-in slide-in-from-bottom duration-300 transition-[height,transform]"
+        )}
+        style={{
+          bottom: 0,
+          ...resolveDrawerSheetStyle(rawDragOffsetPx),
+        }}
       >
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/98 backdrop-blur-xl border-b border-border/50">
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-2.5">
-              <ChevronUp className="w-5 h-5 text-muted-foreground" />
-              <span className="font-semibold text-foreground tracking-tight">
-                {categoryLabels[category] || "Conteudos"}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                • {filteredPosts.length} {filteredPosts.length === 1 ? "item" : "itens"}
-              </span>
-            </div>
-            <button 
-              onClick={onClose}
-              className="p-2.5 rounded-full hover:bg-secondary transition-all duration-200 active:scale-95"
-              aria-label="Fechar"
-            >
-              <X className="w-5 h-5 text-foreground" />
-            </button>
+        <DrawerDragZone dragHandleProps={dragHandleProps} className="sticky top-0 z-10 bg-background/98 backdrop-blur-xl border-b border-border/50">
+          <div className="flex items-center gap-2.5 px-5 pb-4">
+            <ChevronUp className="w-5 h-5 text-muted-foreground" />
+            <span className="font-semibold text-foreground tracking-tight">
+              {categoryLabels[category] || "Conteudos"}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              • {filteredPosts.length} {filteredPosts.length === 1 ? "item" : "itens"}
+            </span>
           </div>
-        </div>
+        </DrawerDragZone>
 
         {/* Feed Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6 pb-36">
+        <DrawerScrollBody
+          scrollRef={setScrollRef}
+          isPulling={isPulling}
+          style={composerOverlaysFeed ? { paddingBottom: composerClearance } : undefined}
+        >
+          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6">
             <div className="space-y-8">
               {orderedPosts.map((post, index) => {
                 const isInitial = initialPost?.id === post.id
@@ -478,8 +507,8 @@ export function BusinessFeedDrawer({
               </p>
             </div>
           </div>
-        </div>
+        </DrawerScrollBody>
       </div>
-    </div>
+    </>
   )
 }
