@@ -23,7 +23,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 1 — Operational Hygiene |
-| **Status** | 🟢 GO — pode iniciar agora |
+| **Status** | ✅ Concluído (PR #54 merged) |
 | **Objetivo** | Árvore limpa; WIPs isolados; docs deduplicados |
 | **Escopo** | Peel dirty tree, dedupe `docs/audit/* 2.md`, inventário WIP |
 | **Fora de escopo** | Runtime, componentes, lib |
@@ -38,13 +38,26 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence |
-| **Status** | 🟡 Aguardando validação manual |
+| **Status** | ✅ Concluído — PR #52 merged @ `673395d` |
 | **Objetivo** | Merge PR #52 na `main` com evidência perceptual |
-| **Escopo** | Test plan PR #52, merge, `pnpm qa:events` pós-merge |
-| **Fora de escopo** | Novas features; outras verticais |
-| **Branch** | `fix/drawer-perceptual-hygiene` (existente) |
-| **Gate de saída** | PR mergeado; re-run documentado |
-| **Refs** | GitHub PR #52, `REAL_USAGE_RE_RUN_RESULTS.md` |
+| **Escopo** | Test plan PR #52, merge, sign-off manual |
+| **Gate de saída** | PR mergeado — ver `WS-02_PR52_VALIDATION_REPORT.md` |
+| **Refs** | GitHub PR #52, `docs/audit/WS-02_PR52_VALIDATION_REPORT.md` |
+
+---
+
+### WS-02.5 — Runtime Stabilization Snapshot
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 2 — Stack Convergence (baseline) |
+| **Status** | ✅ Concluído — `docs/runtime/*` @ `673395d` |
+| **Objetivo** | Baseline oficial Tier 1 pós-convergência |
+| **Escopo** | `TIER1_BASELINE`, specs, invariants, constitution |
+| **Fora de escopo** | Runtime, features, AI, DB |
+| **Branch** | `docs/ws-02-5-runtime-baseline` |
+| **Gate de saída** | 7 docs runtime preenchidos; convergência congelada |
+| **Refs** | [`docs/runtime/README.md`](../runtime/README.md) |
 
 ---
 
@@ -53,7 +66,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence |
-| **Status** | 🔴 Blocked até WS-02 |
+| **Status** | 🔴 Blocked até WS-04/05 recomendados; gaps menores only |
 | **Objetivo** | Paridade checkout/composer nas verticais Stack A restantes |
 | **Escopo** | Restaurant `onRegisterFooter`; `AppointmentConfirmation` pinned; appointment hero morph; realestate WhatsApp instrumentado; duplicate React keys |
 | **Fora de escopo** | Influencer/institutional (WS-06/07); AI resolver (WS-08) |
@@ -68,7 +81,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 3 — QA/CI Minimum |
-| **Status** | 🔴 Blocked até WS-02 |
+| **Status** | 🟢 **GO — próximo workstream** |
 | **Objetivo** | CI GitHub com gate mínimo |
 | **Escopo** | `.github/workflows/qa-minimum.yml`, template PR, `pnpm qa:events` |
 | **Fora de escopo** | Matrix 12 verticais; Playwright nightly (fase 2) |
@@ -156,11 +169,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ──► WS-02 ──► WS-03 ──┬──► WS-04 ──► WS-05
-                             ├──► WS-06 ──► WS-07
-                             └──► WS-08 (após stack estável)
-WS-01 ──► WS-09 (paralelo, GO humano)
+WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 (CI) → WS-05 (TS) ──┬──► WS-06 → WS-07
+                                                              ├──► WS-03 (parity gaps)
+                                                              └──► WS-08 (AI — last)
+WS-09 (DB) — paralelo, GO humano
 ```
+
+**Atual:** iniciar **WS-04 CI Minimum**.
 
 ---
 
