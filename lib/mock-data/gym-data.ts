@@ -2,7 +2,7 @@ import type { GymPlan, GymClass, GymBrand, BusinessConfig } from "@/lib/business
 
 // Config no formato BusinessConfig para os feeds
 export const gymConfig: BusinessConfig = {
-  model: "fitness",
+  model: "gym",
   name: "Power Fitness",
   logo: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=100&h=100&fit=crop",
   coverImage: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&h=400&fit=crop",

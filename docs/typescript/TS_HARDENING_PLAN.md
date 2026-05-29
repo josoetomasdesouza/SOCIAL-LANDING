@@ -22,7 +22,7 @@
 |------|-------|
 | `strict: true` | ✅ `tsconfig.json` |
 | `ignoreBuildErrors` | ⚠️ `true` em `next.config.mjs` — **mantido neste WS** |
-| Erros baseline | 30 (was 91 → 71 @ WS-05.5A) |
+| Erros baseline | 16 (was 91 → 71 → 30) |
 | Erros Tier 1 | 0 |
 | Erros runtime critical | **0** |
 | CI gate | `pnpm ts:budget` (novos erros bloqueados) |
@@ -52,12 +52,12 @@
 | 2 | `lib/rules/rule-registry.ts` | ✅ 3 → 0 (WS-05.5A) |
 | 3 | `lib/mock-data/realestate-data.ts` | ✅ 20 → 0 (WS-05.5b) |
 | 4 | `lib/mock-data/events-data.ts` | ✅ 12 → 0 (WS-05.5b) |
-| 5 | Mock data auxiliar | 🔴 Próximo PR |
+| 5 | Mock data auxiliar | ✅ 13 → 0 (WS-05.5c) |
 | 6 | Stack B feeds | 🔴 WS-06/07 |
 
-**Baseline:** 91 → 71 (WS-05.5A) → **30** (WS-05.5b, −41). Runtime critical: **0**.
+**Baseline:** 91 → 71 → 30 → **16** (WS-05.5c, −14). Runtime critical: **0**. Safe legacy mock: **0**.
 
-**`ignoreBuildErrors`:** mantido `true` — build falha com 30 erros restantes se desligado.
+**`ignoreBuildErrors`:** mantido `true` — build strict falha com 16 erros (Stack B + appointment-calendar).
 
 ---
 
