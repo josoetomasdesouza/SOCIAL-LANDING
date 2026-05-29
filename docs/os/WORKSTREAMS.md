@@ -94,13 +94,27 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 4 — TypeScript Gate |
-| **Status** | 🟡 Próximo — desbloqueado após WS-04 |
-| **Objetivo** | `tsc --noEmit` no CI; remover `ignoreBuildErrors` |
-| **Escopo** | `next.config.mjs`, workflow CI, fixes TS incrementais |
-| **Fora de escopo** | Refactor amplo; mudanças Tier 1 frozen |
+| **Status** | 🟡 Em PR — `chore/ws-05-typescript-gate` |
+| **Objetivo** | Gate incremental TS — error budget, **não** zero-errors |
+| **Escopo** | `scripts/typescript/*`, `docs/typescript/*`, CI `ts:budget`, baseline 91 erros |
+| **Fora de escopo** | Remover `ignoreBuildErrors`; refactors; runtime Tier 1; zerar TS |
 | **Branch sugerida** | `chore/typescript-gate` |
-| **Gate de saída** | Build falha em erro TS real |
-| **Refs** | `TECH_DEBT_REPORT.md` TD-001 |
+| **Gate de saída** | `pnpm ts:budget` no CI; baseline documentado; 0 erros Tier 1 |
+| **Refs** | [`docs/typescript/TS_HARDENING_PLAN.md`](../typescript/TS_HARDENING_PLAN.md), TD-001 |
+
+---
+
+### WS-05.5 — TypeScript Stabilization
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 4 — TypeScript Gate |
+| **Status** | 🔴 Blocked até WS-05 merge |
+| **Objetivo** | Redução cirúrgica do baseline; preparar remoção de `ignoreBuildErrors` |
+| **Escopo** | Fixes localizados em `lib/business-types.ts`, mock data, Stack B feeds |
+| **Fora de escopo** | Refactor amplo; runtime Tier 1; migrations verticais |
+| **Gate de saída** | Baseline ≤ 50 erros OU `ignoreBuildErrors: false` com build verde |
+| **Refs** | [`docs/typescript/TS_HARDENING_PLAN.md`](../typescript/TS_HARDENING_PLAN.md) |
 
 ---
 
@@ -167,13 +181,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 (TS) ──┬──► WS-06 → WS-07
+WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 (TS gate) → WS-05.5 (TS stab) ──┬──► WS-06 → WS-07
                                                               ├──► WS-03 (parity gaps)
                                                               └──► WS-08 (AI — last)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** iniciar **WS-05 TypeScript Gate** (PR isolado — sem misturar com CI mínimo).
+**Atual:** WS-05 TypeScript Gate incremental em PR — error budget, **sem** zerar TS neste PR.
 
 ---
 

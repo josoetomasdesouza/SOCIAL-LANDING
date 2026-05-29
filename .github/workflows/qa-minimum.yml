@@ -1,7 +1,7 @@
 name: QA Minimum
 
-# WS-04 — Minimum merge gates: build + global event protocol.
-# TypeScript gate is WS-05 — not included here.
+# WS-04 — Minimum merge gates: build + qa:events + TS error budget.
+# Full typecheck zero-errors is NOT required — see docs/typescript/TS_GATES.md
 
 on:
   pull_request:
@@ -36,6 +36,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: TypeScript error budget (WS-05)
+        run: pnpm ts:budget
 
       - name: Install Playwright Chromium
         run: pnpm exec playwright install chromium --with-deps

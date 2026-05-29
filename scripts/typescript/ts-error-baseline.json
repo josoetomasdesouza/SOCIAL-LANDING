@@ -1,0 +1,738 @@
+{
+  "version": 1,
+  "capturedAt": "2026-05-29",
+  "workstream": "WS-05",
+  "total": 91,
+  "fingerprints": [
+    "components/business/appointment-calendar.tsx:48:18:TS7006",
+    "components/business/appointment-calendar.tsx:49:15:TS7006",
+    "components/business/gym/gym-feed.tsx:158:45:TS2551",
+    "components/business/gym/gym-feed.tsx:48:89:TS2551",
+    "components/business/gym/gym-feed.tsx:55:19:TS2551",
+    "components/business/influencer/influencer-feed.tsx:183:18:TS2339",
+    "components/business/influencer/influencer-feed.tsx:185:55:TS18048",
+    "components/business/influencer/influencer-feed.tsx:194:22:TS2339",
+    "components/business/influencer/influencer-feed.tsx:194:38:TS7006",
+    "components/business/influencer/influencer-feed.tsx:210:9:TS2739",
+    "components/business/influencer/influencer-feed.tsx:212:9:TS2322",
+    "components/business/institutional/institutional-feed.tsx:490:9:TS2739",
+    "components/business/institutional/institutional-feed.tsx:492:9:TS2322",
+    "components/business/personal/personal-feed.tsx:261:9:TS2739",
+    "components/business/personal/personal-feed.tsx:263:9:TS2322",
+    "components/business/professionals/professionals-feed.tsx:159:65:TS2339",
+    "components/business/professionals/professionals-feed.tsx:62:62:TS2339",
+    "components/business/realestate/realestate-feed.tsx:106:29:TS2339",
+    "components/business/realestate/realestate-feed.tsx:110:29:TS2339",
+    "components/business/realestate/realestate-feed.tsx:112:27:TS2339",
+    "components/business/realestate/realestate-feed.tsx:115:31:TS2339",
+    "components/business/realestate/realestate-feed.tsx:120:29:TS2339",
+    "components/business/realestate/realestate-feed.tsx:262:53:TS2339",
+    "components/business/realestate/realestate-feed.tsx:267:53:TS2339",
+    "components/business/realestate/realestate-feed.tsx:272:53:TS2339",
+    "components/business/realestate/realestate-feed.tsx:277:53:TS2339",
+    "lib/business-types.ts:109:3:TS2687",
+    "lib/business-types.ts:130:3:TS2687",
+    "lib/business-types.ts:589:3:TS2687",
+    "lib/business-types.ts:589:3:TS2717",
+    "lib/business-types.ts:598:3:TS2717",
+    "lib/business-types.ts:605:3:TS2717",
+    "lib/business-types.ts:614:3:TS2687",
+    "lib/business-types.ts:614:3:TS2717",
+    "lib/business-types.ts:728:3:TS2561",
+    "lib/mock-data/business-content.ts:338:132:TS2352",
+    "lib/mock-data/business-content.ts:342:120:TS2352",
+    "lib/mock-data/business-content.ts:385:145:TS2352",
+    "lib/mock-data/business-content.ts:390:115:TS2352",
+    "lib/mock-data/business-content.ts:412:5:TS2741",
+    "lib/mock-data/business-content.ts:413:5:TS2741",
+    "lib/mock-data/business-content.ts:414:5:TS2741",
+    "lib/mock-data/events-data.ts:106:50:TS2322",
+    "lib/mock-data/events-data.ts:48:46:TS2322",
+    "lib/mock-data/events-data.ts:49:49:TS2322",
+    "lib/mock-data/events-data.ts:50:50:TS2322",
+    "lib/mock-data/events-data.ts:52:14:TS2322",
+    "lib/mock-data/events-data.ts:52:31:TS2322",
+    "lib/mock-data/events-data.ts:52:47:TS2322",
+    "lib/mock-data/events-data.ts:52:55:TS2322",
+    "lib/mock-data/events-data.ts:69:48:TS2322",
+    "lib/mock-data/events-data.ts:70:49:TS2322",
+    "lib/mock-data/events-data.ts:88:47:TS2322",
+    "lib/mock-data/events-data.ts:89:46:TS2322",
+    "lib/mock-data/gym-data.ts:5:3:TS2322",
+    "lib/mock-data/health-data.ts:104:3:TS2741",
+    "lib/mock-data/health-data.ts:112:3:TS2741",
+    "lib/mock-data/health-data.ts:119:3:TS2741",
+    "lib/mock-data/health-data.ts:40:3:TS2740",
+    "lib/mock-data/health-data.ts:55:3:TS2740",
+    "lib/mock-data/health-data.ts:70:3:TS2740",
+    "lib/mock-data/health-data.ts:88:3:TS2741",
+    "lib/mock-data/health-data.ts:96:3:TS2741",
+    "lib/mock-data/professionals-data.ts:50:5:TS2353",
+    "lib/mock-data/professionals-data.ts:58:5:TS2353",
+    "lib/mock-data/professionals-data.ts:5:3:TS2820",
+    "lib/mock-data/professionals-data.ts:66:5:TS2353",
+    "lib/mock-data/professionals-data.ts:74:5:TS2353",
+    "lib/mock-data/realestate-data.ts:100:5:TS2741",
+    "lib/mock-data/realestate-data.ts:109:5:TS2739",
+    "lib/mock-data/realestate-data.ts:113:5:TS2739",
+    "lib/mock-data/realestate-data.ts:123:5:TS2322",
+    "lib/mock-data/realestate-data.ts:126:5:TS2741",
+    "lib/mock-data/realestate-data.ts:136:5:TS2739",
+    "lib/mock-data/realestate-data.ts:140:5:TS2739",
+    "lib/mock-data/realestate-data.ts:151:5:TS2322",
+    "lib/mock-data/realestate-data.ts:154:5:TS2741",
+    "lib/mock-data/realestate-data.ts:164:5:TS2739",
+    "lib/mock-data/realestate-data.ts:168:5:TS2739",
+    "lib/mock-data/realestate-data.ts:39:5:TS2322",
+    "lib/mock-data/realestate-data.ts:42:5:TS2741",
+    "lib/mock-data/realestate-data.ts:52:5:TS2739",
+    "lib/mock-data/realestate-data.ts:57:5:TS2739",
+    "lib/mock-data/realestate-data.ts:68:5:TS2322",
+    "lib/mock-data/realestate-data.ts:71:5:TS2741",
+    "lib/mock-data/realestate-data.ts:81:5:TS2739",
+    "lib/mock-data/realestate-data.ts:86:5:TS2739",
+    "lib/mock-data/realestate-data.ts:97:5:TS2322",
+    "lib/rules/rule-registry.ts:117:3:TS2322",
+    "lib/rules/rule-registry.ts:121:11:TS2322",
+    "lib/rules/rule-registry.ts:121:38:TS2322"
+  ],
+  "errors": [
+    {
+      "file": "components/business/appointment-calendar.tsx",
+      "line": 48,
+      "col": 18,
+      "code": "TS7006",
+      "message": "Parameter 'slot' implicitly has an 'any' type."
+    },
+    {
+      "file": "components/business/appointment-calendar.tsx",
+      "line": 49,
+      "col": 15,
+      "code": "TS7006",
+      "message": "Parameter 'slot' implicitly has an 'any' type."
+    },
+    {
+      "file": "components/business/gym/gym-feed.tsx",
+      "line": 158,
+      "col": 45,
+      "code": "TS2551",
+      "message": "Property 'popular' does not exist on type 'GymPlan'. Did you mean 'isPopular'?"
+    },
+    {
+      "file": "components/business/gym/gym-feed.tsx",
+      "line": 48,
+      "col": 89,
+      "code": "TS2551",
+      "message": "Property 'popular' does not exist on type 'GymPlan'. Did you mean 'isPopular'?"
+    },
+    {
+      "file": "components/business/gym/gym-feed.tsx",
+      "line": 55,
+      "col": 19,
+      "code": "TS2551",
+      "message": "Property 'popular' does not exist on type 'GymPlan'. Did you mean 'isPopular'?"
+    },
+    {
+      "file": "components/business/influencer/influencer-feed.tsx",
+      "line": 183,
+      "col": 18,
+      "code": "TS2339",
+      "message": "Property 'thumbnail' does not exist on type 'BusinessPost'."
+    },
+    {
+      "file": "components/business/influencer/influencer-feed.tsx",
+      "line": 185,
+      "col": 55,
+      "code": "TS18048",
+      "message": "'v.views' is possibly 'undefined'."
+    },
+    {
+      "file": "components/business/influencer/influencer-feed.tsx",
+      "line": 194,
+      "col": 22,
+      "code": "TS2339",
+      "message": "Property 'socialPosts' does not exist on type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; social: BusinessPost[]; }'."
+    },
+    {
+      "file": "components/business/influencer/influencer-feed.tsx",
+      "line": 194,
+      "col": 38,
+      "code": "TS7006",
+      "message": "Parameter 'p' implicitly has an 'any' type."
+    },
+    {
+      "file": "components/business/influencer/influencer-feed.tsx",
+      "line": 210,
+      "col": 9,
+      "code": "TS2739",
+      "message": "Type '{ id: string; name: string; logo: string; coverImage: string; description: string; brandColor: string; instagram: string; youtube: string; twitter: string; tiktok: string; }' is missing the following properties from type 'BusinessConfig': model, primaryColor"
+    },
+    {
+      "file": "components/business/influencer/influencer-feed.tsx",
+      "line": 212,
+      "col": 9,
+      "code": "TS2322",
+      "message": "Type '({ id: string; title: string; type: \"custom\"; posts: never[]; customContent: Element; } | { id: string; title: string; type: \"content\"; posts: any; customContent?: undefined; })[]' is not assignable to type 'BusinessSection[]'."
+    },
+    {
+      "file": "components/business/institutional/institutional-feed.tsx",
+      "line": 490,
+      "col": 9,
+      "code": "TS2739",
+      "message": "Type '{ id: string; name: string; logo: string; coverImage: string; description: string; brandColor: string; phone: string; email: string; address: string; }' is missing the following properties from type 'BusinessConfig': model, primaryColor"
+    },
+    {
+      "file": "components/business/institutional/institutional-feed.tsx",
+      "line": 492,
+      "col": 9,
+      "code": "TS2322",
+      "message": "Type '({ id: string; title: string; type: \"custom\"; posts: never[]; customContent: Element; } | { id: string; title: string; type: \"content\"; posts: { id: string; type: \"video\"; content: string; description: string; ... 7 more ...; timestamp: string; }[]; customContent?: undefined; } | { ...; } | { ...; })[]' is not assignable to type 'BusinessSection[]'."
+    },
+    {
+      "file": "components/business/personal/personal-feed.tsx",
+      "line": 261,
+      "col": 9,
+      "code": "TS2739",
+      "message": "Type '{ id: string; name: string; logo: string; coverImage: string; description: string; brandColor: string; location: string; occupation: string; }' is missing the following properties from type 'BusinessConfig': model, primaryColor"
+    },
+    {
+      "file": "components/business/personal/personal-feed.tsx",
+      "line": 263,
+      "col": 9,
+      "code": "TS2322",
+      "message": "Type '{ id: string; title: string; type: \"custom\"; posts: never[]; customContent: Element; }[]' is not assignable to type 'BusinessSection[]'."
+    },
+    {
+      "file": "components/business/professionals/professionals-feed.tsx",
+      "line": 159,
+      "col": 65,
+      "code": "TS2339",
+      "message": "Property 'price' does not exist on type 'ProfessionalService'."
+    },
+    {
+      "file": "components/business/professionals/professionals-feed.tsx",
+      "line": 62,
+      "col": 62,
+      "code": "TS2339",
+      "message": "Property 'price' does not exist on type 'ProfessionalService'."
+    },
+    {
+      "file": "components/business/realestate/realestate-feed.tsx",
+      "line": 106,
+      "col": 29,
+      "code": "TS2339",
+      "message": "Property 'bedrooms' does not exist on type 'Property'."
+    },
+    {
+      "file": "components/business/realestate/realestate-feed.tsx",
+      "line": 110,
+      "col": 29,
+      "code": "TS2339",
+      "message": "Property 'bathrooms' does not exist on type 'Property'."
+    },
+    {
+      "file": "components/business/realestate/realestate-feed.tsx",
+      "line": 112,
+      "col": 27,
+      "code": "TS2339",
+      "message": "Property 'parkingSpaces' does not exist on type 'Property'."
+    },
+    {
+      "file": "components/business/realestate/realestate-feed.tsx",
+      "line": 115,
+      "col": 31,
+      "code": "TS2339",
+      "message": "Property 'parkingSpaces' does not exist on type 'Property'."
+    },
+    {
+      "file": "components/business/realestate/realestate-feed.tsx",
+      "line": 120,
+      "col": 29,
+      "code": "TS2339",
+      "message": "Property 'area' does not exist on type 'Property'."
+    },
+    {
+      "file": "components/business/realestate/realestate-feed.tsx",
+      "line": 262,
+      "col": 53,
+      "code": "TS2339",
+      "message": "Property 'bedrooms' does not exist on type 'Property'."
+    },
+    {
+      "file": "components/business/realestate/realestate-feed.tsx",
+      "line": 267,
+      "col": 53,
+      "code": "TS2339",
+      "message": "Property 'bathrooms' does not exist on type 'Property'."
+    },
+    {
+      "file": "components/business/realestate/realestate-feed.tsx",
+      "line": 272,
+      "col": 53,
+      "code": "TS2339",
+      "message": "Property 'parkingSpaces' does not exist on type 'Property'."
+    },
+    {
+      "file": "components/business/realestate/realestate-feed.tsx",
+      "line": 277,
+      "col": 53,
+      "code": "TS2339",
+      "message": "Property 'area' does not exist on type 'Property'."
+    },
+    {
+      "file": "lib/business-types.ts",
+      "line": 109,
+      "col": 3,
+      "code": "TS2687",
+      "message": "All declarations of 'crm' must have identical modifiers."
+    },
+    {
+      "file": "lib/business-types.ts",
+      "line": 130,
+      "col": 3,
+      "code": "TS2687",
+      "message": "All declarations of 'logo' must have identical modifiers."
+    },
+    {
+      "file": "lib/business-types.ts",
+      "line": 589,
+      "col": 3,
+      "code": "TS2687",
+      "message": "All declarations of 'crm' must have identical modifiers."
+    },
+    {
+      "file": "lib/business-types.ts",
+      "line": 589,
+      "col": 3,
+      "code": "TS2717",
+      "message": "Subsequent property declarations must have the same type.  Property 'crm' must be of type 'string', but here has type 'string | undefined'."
+    },
+    {
+      "file": "lib/business-types.ts",
+      "line": 598,
+      "col": 3,
+      "code": "TS2717",
+      "message": "Subsequent property declarations must have the same type.  Property 'availability' must be of type 'Record<string, string[]>', but here has type 'DayAvailability[]'."
+    },
+    {
+      "file": "lib/business-types.ts",
+      "line": 605,
+      "col": 3,
+      "code": "TS2717",
+      "message": "Subsequent property declarations must have the same type.  Property 'duration' must be of type 'string', but here has type 'number'."
+    },
+    {
+      "file": "lib/business-types.ts",
+      "line": 614,
+      "col": 3,
+      "code": "TS2687",
+      "message": "All declarations of 'logo' must have identical modifiers."
+    },
+    {
+      "file": "lib/business-types.ts",
+      "line": 614,
+      "col": 3,
+      "code": "TS2717",
+      "message": "Subsequent property declarations must have the same type.  Property 'logo' must be of type 'string | undefined', but here has type 'string'."
+    },
+    {
+      "file": "lib/business-types.ts",
+      "line": 728,
+      "col": 3,
+      "code": "TS2561",
+      "message": "Object literal may only specify known properties, but 'professional' does not exist in type 'Record<BusinessModel, { name: string; description: string; icon: string; primaryAction: string; secondaryActions: string[]; contentTypes: string[]; }>'. Did you mean to write 'professionals'?"
+    },
+    {
+      "file": "lib/mock-data/business-content.ts",
+      "line": 338,
+      "col": 132,
+      "code": "TS2352",
+      "message": "Conversion of type '({ id: string; type: \"video\"; title: string; description: string; thumbnail: string; duration: string; views: number; } | { id: string; type: \"video-vertical\"; title: string; description: string; thumbnail: string; duration: string; views: number; })[]' to type 'BusinessPost[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "lib/mock-data/business-content.ts",
+      "line": 342,
+      "col": 120,
+      "code": "TS2352",
+      "message": "Conversion of type '{ id: string; type: \"news\"; title: string; summary: string; image: string; source: string; date: string; }[]' to type 'BusinessPost[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "lib/mock-data/business-content.ts",
+      "line": 385,
+      "col": 145,
+      "code": "TS2352",
+      "message": "Conversion of type '{ id: string; type: \"video\"; title: string; description: string; thumbnail: string; duration: string; views: number; }[]' to type 'BusinessPost[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "lib/mock-data/business-content.ts",
+      "line": 390,
+      "col": 115,
+      "code": "TS2352",
+      "message": "Conversion of type '{ id: string; type: \"news\"; title: string; summary: string; image: string; source: string; date: string; }[]' to type 'BusinessPost[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "lib/mock-data/business-content.ts",
+      "line": 412,
+      "col": 5,
+      "code": "TS2741",
+      "message": "Property 'social' is missing in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; socialPosts: { id: string; content: string; image: string; likes: number; comments: number; }[]; }' but required in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; social: BusinessPost[]; }'."
+    },
+    {
+      "file": "lib/mock-data/business-content.ts",
+      "line": 413,
+      "col": 5,
+      "code": "TS2741",
+      "message": "Property 'social' is missing in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; socialPosts: never[]; }' but required in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; social: BusinessPost[]; }'."
+    },
+    {
+      "file": "lib/mock-data/business-content.ts",
+      "line": 414,
+      "col": 5,
+      "code": "TS2741",
+      "message": "Property 'social' is missing in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; socialPosts: never[]; }' but required in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; social: BusinessPost[]; }'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 106,
+      "col": 50,
+      "code": "TS2322",
+      "message": "Type 'boolean' is not assignable to type 'number'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 48,
+      "col": 46,
+      "code": "TS2322",
+      "message": "Type 'boolean' is not assignable to type 'number'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 49,
+      "col": 49,
+      "code": "TS2322",
+      "message": "Type 'boolean' is not assignable to type 'number'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 50,
+      "col": 50,
+      "code": "TS2322",
+      "message": "Type 'boolean' is not assignable to type 'number'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 52,
+      "col": 14,
+      "code": "TS2322",
+      "message": "Type 'string' is not assignable to type 'Artist'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 52,
+      "col": 31,
+      "code": "TS2322",
+      "message": "Type 'string' is not assignable to type 'Artist'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 52,
+      "col": 47,
+      "code": "TS2322",
+      "message": "Type 'string' is not assignable to type 'Artist'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 52,
+      "col": 55,
+      "code": "TS2322",
+      "message": "Type 'string' is not assignable to type 'Artist'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 69,
+      "col": 48,
+      "code": "TS2322",
+      "message": "Type 'boolean' is not assignable to type 'number'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 70,
+      "col": 49,
+      "code": "TS2322",
+      "message": "Type 'boolean' is not assignable to type 'number'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 88,
+      "col": 47,
+      "code": "TS2322",
+      "message": "Type 'boolean' is not assignable to type 'number'."
+    },
+    {
+      "file": "lib/mock-data/events-data.ts",
+      "line": 89,
+      "col": 46,
+      "code": "TS2322",
+      "message": "Type 'boolean' is not assignable to type 'number'."
+    },
+    {
+      "file": "lib/mock-data/gym-data.ts",
+      "line": 5,
+      "col": 3,
+      "code": "TS2322",
+      "message": "Type '\"fitness\"' is not assignable to type 'BusinessModel'."
+    },
+    {
+      "file": "lib/mock-data/health-data.ts",
+      "line": 104,
+      "col": 3,
+      "code": "TS2741",
+      "message": "Property 'category' is missing in type '{ id: string; name: string; description: string; duration: string; price: number; professional: string; }' but required in type 'HealthService'."
+    },
+    {
+      "file": "lib/mock-data/health-data.ts",
+      "line": 112,
+      "col": 3,
+      "code": "TS2741",
+      "message": "Property 'category' is missing in type '{ id: string; name: string; description: string; duration: string; price: number; }' but required in type 'HealthService'."
+    },
+    {
+      "file": "lib/mock-data/health-data.ts",
+      "line": 119,
+      "col": 3,
+      "code": "TS2741",
+      "message": "Property 'category' is missing in type '{ id: string; name: string; description: string; duration: string; price: number; isOnline: true; }' but required in type 'HealthService'."
+    },
+    {
+      "file": "lib/mock-data/health-data.ts",
+      "line": 40,
+      "col": 3,
+      "code": "TS2740",
+      "message": "Type '{ id: string; name: string; specialty: string; crm: string; avatar: string; bio: string; rating: number; totalConsults: number; availability: { \"2024-01-22\": string[]; \"2024-01-23\": string[]; \"2024-01-24\": string[]; }; }' is missing the following properties from type 'HealthProfessional': title, specialties, education, experience, and 4 more."
+    },
+    {
+      "file": "lib/mock-data/health-data.ts",
+      "line": 55,
+      "col": 3,
+      "code": "TS2740",
+      "message": "Type '{ id: string; name: string; specialty: string; crm: string; avatar: string; bio: string; rating: number; totalConsults: number; availability: { \"2024-01-22\": string[]; \"2024-01-23\": string[]; \"2024-01-24\": string[]; }; }' is missing the following properties from type 'HealthProfessional': title, specialties, education, experience, and 4 more."
+    },
+    {
+      "file": "lib/mock-data/health-data.ts",
+      "line": 70,
+      "col": 3,
+      "code": "TS2740",
+      "message": "Type '{ id: string; name: string; specialty: string; crm: string; avatar: string; bio: string; rating: number; totalConsults: number; availability: { \"2024-01-22\": string[]; \"2024-01-24\": string[]; \"2024-01-25\": string[]; }; }' is missing the following properties from type 'HealthProfessional': title, specialties, education, experience, and 4 more."
+    },
+    {
+      "file": "lib/mock-data/health-data.ts",
+      "line": 88,
+      "col": 3,
+      "code": "TS2741",
+      "message": "Property 'category' is missing in type '{ id: string; name: string; description: string; duration: string; price: number; professional: string; }' but required in type 'HealthService'."
+    },
+    {
+      "file": "lib/mock-data/health-data.ts",
+      "line": 96,
+      "col": 3,
+      "code": "TS2741",
+      "message": "Property 'category' is missing in type '{ id: string; name: string; description: string; duration: string; price: number; professional: string; }' but required in type 'HealthService'."
+    },
+    {
+      "file": "lib/mock-data/professionals-data.ts",
+      "line": 5,
+      "col": 3,
+      "code": "TS2820",
+      "message": "Type '\"professional\"' is not assignable to type 'BusinessModel'. Did you mean '\"professionals\"'?"
+    },
+    {
+      "file": "lib/mock-data/professionals-data.ts",
+      "line": 50,
+      "col": 5,
+      "code": "TS2353",
+      "message": "Object literal may only specify known properties, and 'price' does not exist in type 'ProfessionalService'."
+    },
+    {
+      "file": "lib/mock-data/professionals-data.ts",
+      "line": 58,
+      "col": 5,
+      "code": "TS2353",
+      "message": "Object literal may only specify known properties, and 'price' does not exist in type 'ProfessionalService'."
+    },
+    {
+      "file": "lib/mock-data/professionals-data.ts",
+      "line": 66,
+      "col": 5,
+      "code": "TS2353",
+      "message": "Object literal may only specify known properties, and 'price' does not exist in type 'ProfessionalService'."
+    },
+    {
+      "file": "lib/mock-data/professionals-data.ts",
+      "line": 74,
+      "col": 5,
+      "code": "TS2353",
+      "message": "Object literal may only specify known properties, and 'price' does not exist in type 'ProfessionalService'."
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 100,
+      "col": 5,
+      "code": "TS2741",
+      "message": "Property 'zipCode' is missing in type '{ street: string; neighborhood: string; city: string; state: string; }' but required in type 'PropertyAddress'."
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 109,
+      "col": 5,
+      "code": "TS2739",
+      "message": "Type 'string[]' is missing the following properties from type 'PropertyFeatures': bedrooms, bathrooms, parkingSpaces, area"
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 113,
+      "col": 5,
+      "code": "TS2739",
+      "message": "Type '{ name: string; phone: string; avatar: string; }' is missing the following properties from type 'RealEstateAgent': id, email, creci"
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 123,
+      "col": 5,
+      "code": "TS2322",
+      "message": "Type '\"cobertura\"' is not assignable to type '\"sale\" | \"rent\"'."
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 126,
+      "col": 5,
+      "code": "TS2741",
+      "message": "Property 'zipCode' is missing in type '{ street: string; neighborhood: string; city: string; state: string; }' but required in type 'PropertyAddress'."
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 136,
+      "col": 5,
+      "code": "TS2739",
+      "message": "Type 'string[]' is missing the following properties from type 'PropertyFeatures': bedrooms, bathrooms, parkingSpaces, area"
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 140,
+      "col": 5,
+      "code": "TS2739",
+      "message": "Type '{ name: string; phone: string; avatar: string; }' is missing the following properties from type 'RealEstateAgent': id, email, creci"
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 151,
+      "col": 5,
+      "code": "TS2322",
+      "message": "Type '\"apartamento\"' is not assignable to type '\"sale\" | \"rent\"'."
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 154,
+      "col": 5,
+      "code": "TS2741",
+      "message": "Property 'zipCode' is missing in type '{ street: string; neighborhood: string; city: string; state: string; }' but required in type 'PropertyAddress'."
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 164,
+      "col": 5,
+      "code": "TS2739",
+      "message": "Type 'string[]' is missing the following properties from type 'PropertyFeatures': bedrooms, bathrooms, parkingSpaces, area"
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 168,
+      "col": 5,
+      "code": "TS2739",
+      "message": "Type '{ name: string; phone: string; avatar: string; }' is missing the following properties from type 'RealEstateAgent': id, email, creci"
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 39,
+      "col": 5,
+      "code": "TS2322",
+      "message": "Type '\"apartamento\"' is not assignable to type '\"sale\" | \"rent\"'."
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 42,
+      "col": 5,
+      "code": "TS2741",
+      "message": "Property 'zipCode' is missing in type '{ street: string; neighborhood: string; city: string; state: string; }' but required in type 'PropertyAddress'."
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 52,
+      "col": 5,
+      "code": "TS2739",
+      "message": "Type 'string[]' is missing the following properties from type 'PropertyFeatures': bedrooms, bathrooms, parkingSpaces, area"
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 57,
+      "col": 5,
+      "code": "TS2739",
+      "message": "Type '{ name: string; phone: string; avatar: string; }' is missing the following properties from type 'RealEstateAgent': id, email, creci"
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 68,
+      "col": 5,
+      "code": "TS2322",
+      "message": "Type '\"casa\"' is not assignable to type '\"sale\" | \"rent\"'."
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 71,
+      "col": 5,
+      "code": "TS2741",
+      "message": "Property 'zipCode' is missing in type '{ street: string; neighborhood: string; city: string; state: string; }' but required in type 'PropertyAddress'."
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 81,
+      "col": 5,
+      "code": "TS2739",
+      "message": "Type 'string[]' is missing the following properties from type 'PropertyFeatures': bedrooms, bathrooms, parkingSpaces, area"
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 86,
+      "col": 5,
+      "code": "TS2739",
+      "message": "Type '{ name: string; phone: string; avatar: string; }' is missing the following properties from type 'RealEstateAgent': id, email, creci"
+    },
+    {
+      "file": "lib/mock-data/realestate-data.ts",
+      "line": 97,
+      "col": 5,
+      "code": "TS2322",
+      "message": "Type '\"comercial\"' is not assignable to type '\"sale\" | \"rent\"'."
+    },
+    {
+      "file": "lib/rules/rule-registry.ts",
+      "line": 117,
+      "col": 3,
+      "code": "TS2322",
+      "message": "Type '(RuleDefinition<BrandDNAChangeProposal> | RuleDefinition<BrandDNA> | RuleDefinition<AiProposalSubject>)[]' is not assignable to type 'RuleDefinition<unknown>[]'."
+    },
+    {
+      "file": "lib/rules/rule-registry.ts",
+      "line": 121,
+      "col": 11,
+      "code": "TS2322",
+      "message": "Type 'RuleDefinition<BrandDNAChangeProposal> | RuleDefinition<BrandDNA>' is not assignable to type 'RuleDefinition<unknown>'."
+    },
+    {
+      "file": "lib/rules/rule-registry.ts",
+      "line": 121,
+      "col": 38,
+      "code": "TS2322",
+      "message": "Type 'RuleDefinition<AiProposalSubject>' is not assignable to type 'RuleDefinition<unknown>'."
+    }
+  ]
+}
