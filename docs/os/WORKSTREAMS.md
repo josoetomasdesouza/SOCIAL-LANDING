@@ -109,15 +109,13 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 4 — TypeScript Gate |
-| **Status** | 🟡 Fase A ✅ (#58) · Fase B ✅ (#59) · Fase C em PR — `chore/ws-05-5c-mock-legacy` |
+| **Status** | ✅ Concluído — PRs #58, #59, #60 merged @ `9d467f1` |
 | **Objetivo** | Redução cirúrgica do baseline; preparar remoção de `ignoreBuildErrors` |
 | **Escopo A** | `lib/business-types.ts`, `lib/rules/rule-registry.ts` |
 | **Escopo B** | `lib/mock-data/realestate-data.ts`, `lib/mock-data/events-data.ts` |
 | **Escopo C** | `business-content.ts`, `professionals-data.ts`, `gym-data.ts` |
 | **Fora de escopo** | Refactor amplo; runtime Tier 1; Stack B feeds; migrations verticais |
-| **Gate de saída parcial A** | Runtime critical 0; baseline 71; PR #58 merged |
-| **Gate de saída parcial B** | Mock realestate/events 0; baseline 30 |
-| **Gate de saída parcial C** | Safe legacy mock 0; baseline 16 |
+| **Gate de saída** | Runtime critical 0; safe legacy mock 0; baseline **16**; Tier 1 **0**; `ignoreBuildErrors` mantido |
 | **Refs** | [`docs/typescript/TS_HARDENING_PLAN.md`](../typescript/TS_HARDENING_PLAN.md) |
 
 ---
@@ -127,7 +125,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence |
-| **Status** | 🔴 Blocked até WS-02 + estabilização window |
+| **Status** | 🟢 Próximo — GO para branch `workstream/influencer-actiondrawer` |
 | **Objetivo** | Migrar influencer de Stack B → `ActionDrawer` |
 | **Escopo** | `influencer-feed.tsx`, `composerMode`, morph wiring, media kit trigger |
 | **Fora de escopo** | Institutional; AI resolver |
@@ -185,13 +183,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 (TS stab) ──┬──► WS-06 → WS-07
+WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 ✅ ──┬──► **WS-06** (influencer) → WS-07
                                                               ├──► WS-03 (parity gaps)
                                                               └──► WS-08 (AI — last)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-05.5c concluído em PR** — safe legacy mock zerado; baseline 16 (Stack B only).
+**Atual:** iniciar **WS-06 — Influencer ActionDrawer Migration** (baseline TS 16; dívida restante = Stack B feeds).
 
 ---
 
