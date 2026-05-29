@@ -56,7 +56,7 @@ Baseline machine-readable: [`scripts/typescript/ts-error-baseline.json`](../../s
 | Item | Status | Notas |
 |------|--------|-------|
 | `ignoreBuildErrors: true` | ⚠️ Ativo | Build passa com erros TS; remoção incremental WS-05.5+ |
-| 91 erros baseline | ⚠️ Documentado | Não bloqueia enquanto no budget |
+| 91 erros baseline | ⚠️ Documentado | Atualizado: **71** após WS-05.5 |
 | `pnpm run typecheck` exit 2 | ℹ️ Esperado | Informativo local/audit |
 
 ---

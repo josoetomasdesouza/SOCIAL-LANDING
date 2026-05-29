@@ -2,7 +2,7 @@
   "version": 1,
   "capturedAt": "2026-05-29",
   "workstream": "WS-05",
-  "total": 91,
+  "total": 71,
   "fingerprints": [
     "components/business/appointment-calendar.tsx:48:18:TS7006",
     "components/business/appointment-calendar.tsx:49:15:TS7006",
@@ -30,15 +30,6 @@
     "components/business/realestate/realestate-feed.tsx:267:53:TS2339",
     "components/business/realestate/realestate-feed.tsx:272:53:TS2339",
     "components/business/realestate/realestate-feed.tsx:277:53:TS2339",
-    "lib/business-types.ts:109:3:TS2687",
-    "lib/business-types.ts:130:3:TS2687",
-    "lib/business-types.ts:589:3:TS2687",
-    "lib/business-types.ts:589:3:TS2717",
-    "lib/business-types.ts:598:3:TS2717",
-    "lib/business-types.ts:605:3:TS2717",
-    "lib/business-types.ts:614:3:TS2687",
-    "lib/business-types.ts:614:3:TS2717",
-    "lib/business-types.ts:728:3:TS2561",
     "lib/mock-data/business-content.ts:338:132:TS2352",
     "lib/mock-data/business-content.ts:342:120:TS2352",
     "lib/mock-data/business-content.ts:385:145:TS2352",
@@ -59,14 +50,6 @@
     "lib/mock-data/events-data.ts:88:47:TS2322",
     "lib/mock-data/events-data.ts:89:46:TS2322",
     "lib/mock-data/gym-data.ts:5:3:TS2322",
-    "lib/mock-data/health-data.ts:104:3:TS2741",
-    "lib/mock-data/health-data.ts:112:3:TS2741",
-    "lib/mock-data/health-data.ts:119:3:TS2741",
-    "lib/mock-data/health-data.ts:40:3:TS2740",
-    "lib/mock-data/health-data.ts:55:3:TS2740",
-    "lib/mock-data/health-data.ts:70:3:TS2740",
-    "lib/mock-data/health-data.ts:88:3:TS2741",
-    "lib/mock-data/health-data.ts:96:3:TS2741",
     "lib/mock-data/professionals-data.ts:50:5:TS2353",
     "lib/mock-data/professionals-data.ts:58:5:TS2353",
     "lib/mock-data/professionals-data.ts:5:3:TS2820",
@@ -91,10 +74,7 @@
     "lib/mock-data/realestate-data.ts:71:5:TS2741",
     "lib/mock-data/realestate-data.ts:81:5:TS2739",
     "lib/mock-data/realestate-data.ts:86:5:TS2739",
-    "lib/mock-data/realestate-data.ts:97:5:TS2322",
-    "lib/rules/rule-registry.ts:117:3:TS2322",
-    "lib/rules/rule-registry.ts:121:11:TS2322",
-    "lib/rules/rule-registry.ts:121:38:TS2322"
+    "lib/mock-data/realestate-data.ts:97:5:TS2322"
   ],
   "errors": [
     {
@@ -280,69 +260,6 @@
       "message": "Property 'area' does not exist on type 'Property'."
     },
     {
-      "file": "lib/business-types.ts",
-      "line": 109,
-      "col": 3,
-      "code": "TS2687",
-      "message": "All declarations of 'crm' must have identical modifiers."
-    },
-    {
-      "file": "lib/business-types.ts",
-      "line": 130,
-      "col": 3,
-      "code": "TS2687",
-      "message": "All declarations of 'logo' must have identical modifiers."
-    },
-    {
-      "file": "lib/business-types.ts",
-      "line": 589,
-      "col": 3,
-      "code": "TS2687",
-      "message": "All declarations of 'crm' must have identical modifiers."
-    },
-    {
-      "file": "lib/business-types.ts",
-      "line": 589,
-      "col": 3,
-      "code": "TS2717",
-      "message": "Subsequent property declarations must have the same type.  Property 'crm' must be of type 'string', but here has type 'string | undefined'."
-    },
-    {
-      "file": "lib/business-types.ts",
-      "line": 598,
-      "col": 3,
-      "code": "TS2717",
-      "message": "Subsequent property declarations must have the same type.  Property 'availability' must be of type 'Record<string, string[]>', but here has type 'DayAvailability[]'."
-    },
-    {
-      "file": "lib/business-types.ts",
-      "line": 605,
-      "col": 3,
-      "code": "TS2717",
-      "message": "Subsequent property declarations must have the same type.  Property 'duration' must be of type 'string', but here has type 'number'."
-    },
-    {
-      "file": "lib/business-types.ts",
-      "line": 614,
-      "col": 3,
-      "code": "TS2687",
-      "message": "All declarations of 'logo' must have identical modifiers."
-    },
-    {
-      "file": "lib/business-types.ts",
-      "line": 614,
-      "col": 3,
-      "code": "TS2717",
-      "message": "Subsequent property declarations must have the same type.  Property 'logo' must be of type 'string | undefined', but here has type 'string'."
-    },
-    {
-      "file": "lib/business-types.ts",
-      "line": 728,
-      "col": 3,
-      "code": "TS2561",
-      "message": "Object literal may only specify known properties, but 'professional' does not exist in type 'Record<BusinessModel, { name: string; description: string; icon: string; primaryAction: string; secondaryActions: string[]; contentTypes: string[]; }>'. Did you mean to write 'professionals'?"
-    },
-    {
       "file": "lib/mock-data/business-content.ts",
       "line": 338,
       "col": 132,
@@ -481,62 +398,6 @@
       "col": 3,
       "code": "TS2322",
       "message": "Type '\"fitness\"' is not assignable to type 'BusinessModel'."
-    },
-    {
-      "file": "lib/mock-data/health-data.ts",
-      "line": 104,
-      "col": 3,
-      "code": "TS2741",
-      "message": "Property 'category' is missing in type '{ id: string; name: string; description: string; duration: string; price: number; professional: string; }' but required in type 'HealthService'."
-    },
-    {
-      "file": "lib/mock-data/health-data.ts",
-      "line": 112,
-      "col": 3,
-      "code": "TS2741",
-      "message": "Property 'category' is missing in type '{ id: string; name: string; description: string; duration: string; price: number; }' but required in type 'HealthService'."
-    },
-    {
-      "file": "lib/mock-data/health-data.ts",
-      "line": 119,
-      "col": 3,
-      "code": "TS2741",
-      "message": "Property 'category' is missing in type '{ id: string; name: string; description: string; duration: string; price: number; isOnline: true; }' but required in type 'HealthService'."
-    },
-    {
-      "file": "lib/mock-data/health-data.ts",
-      "line": 40,
-      "col": 3,
-      "code": "TS2740",
-      "message": "Type '{ id: string; name: string; specialty: string; crm: string; avatar: string; bio: string; rating: number; totalConsults: number; availability: { \"2024-01-22\": string[]; \"2024-01-23\": string[]; \"2024-01-24\": string[]; }; }' is missing the following properties from type 'HealthProfessional': title, specialties, education, experience, and 4 more."
-    },
-    {
-      "file": "lib/mock-data/health-data.ts",
-      "line": 55,
-      "col": 3,
-      "code": "TS2740",
-      "message": "Type '{ id: string; name: string; specialty: string; crm: string; avatar: string; bio: string; rating: number; totalConsults: number; availability: { \"2024-01-22\": string[]; \"2024-01-23\": string[]; \"2024-01-24\": string[]; }; }' is missing the following properties from type 'HealthProfessional': title, specialties, education, experience, and 4 more."
-    },
-    {
-      "file": "lib/mock-data/health-data.ts",
-      "line": 70,
-      "col": 3,
-      "code": "TS2740",
-      "message": "Type '{ id: string; name: string; specialty: string; crm: string; avatar: string; bio: string; rating: number; totalConsults: number; availability: { \"2024-01-22\": string[]; \"2024-01-24\": string[]; \"2024-01-25\": string[]; }; }' is missing the following properties from type 'HealthProfessional': title, specialties, education, experience, and 4 more."
-    },
-    {
-      "file": "lib/mock-data/health-data.ts",
-      "line": 88,
-      "col": 3,
-      "code": "TS2741",
-      "message": "Property 'category' is missing in type '{ id: string; name: string; description: string; duration: string; price: number; professional: string; }' but required in type 'HealthService'."
-    },
-    {
-      "file": "lib/mock-data/health-data.ts",
-      "line": 96,
-      "col": 3,
-      "code": "TS2741",
-      "message": "Property 'category' is missing in type '{ id: string; name: string; description: string; duration: string; price: number; professional: string; }' but required in type 'HealthService'."
     },
     {
       "file": "lib/mock-data/professionals-data.ts",
@@ -712,27 +573,6 @@
       "col": 5,
       "code": "TS2322",
       "message": "Type '\"comercial\"' is not assignable to type '\"sale\" | \"rent\"'."
-    },
-    {
-      "file": "lib/rules/rule-registry.ts",
-      "line": 117,
-      "col": 3,
-      "code": "TS2322",
-      "message": "Type '(RuleDefinition<BrandDNAChangeProposal> | RuleDefinition<BrandDNA> | RuleDefinition<AiProposalSubject>)[]' is not assignable to type 'RuleDefinition<unknown>[]'."
-    },
-    {
-      "file": "lib/rules/rule-registry.ts",
-      "line": 121,
-      "col": 11,
-      "code": "TS2322",
-      "message": "Type 'RuleDefinition<BrandDNAChangeProposal> | RuleDefinition<BrandDNA>' is not assignable to type 'RuleDefinition<unknown>'."
-    },
-    {
-      "file": "lib/rules/rule-registry.ts",
-      "line": 121,
-      "col": 38,
-      "code": "TS2322",
-      "message": "Type 'RuleDefinition<AiProposalSubject>' is not assignable to type 'RuleDefinition<unknown>'."
     }
   ]
 }

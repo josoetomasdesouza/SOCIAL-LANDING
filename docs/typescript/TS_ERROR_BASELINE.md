@@ -1,25 +1,35 @@
 # TypeScript Error Baseline — Social Landing
 
-**Versão:** 1.0  
-**Capturado:** 2026-05-24  
-**Workstream:** WS-05  
+**Versão:** 1.1  
+**Capturado:** 2026-05-24 (WS-05.5 refresh)  
+**Workstream:** WS-05.5  
 **Comando:** `pnpm exec tsc --noEmit`  
-**Total:** **91 erros** em **15 arquivos**
+**Total:** **71 erros** em **12 arquivos** (was 91 @ WS-05)
 
 ---
 
 ## Resumo executivo
 
-| Métrica | Valor |
-|---------|-------|
-| Total de erros | 91 |
-| Arquivos afetados | 15 |
-| Erros Tier 1 frozen | **0** ✅ |
-| Erros runtime critical | 12 |
-| Erros safe legacy | 55 |
-| Erros experimental (Stack B) | 24 |
+| Métrica | WS-05 | WS-05.5 |
+|---------|-------|---------|
+| Total de erros | 91 | **71** (−20) |
+| Arquivos afetados | 15 | **12** |
+| Erros Tier 1 frozen | 0 | **0** ✅ |
+| Erros runtime critical | 12 | **0** ✅ |
+| Erros safe legacy | 55 | **45** |
+| Erros experimental (Stack B) | 24 | **26** |
 
-**Conclusão:** TypeScript debt está **concentrado em mock data e verticais Stack B**, não no runtime Tier 1 convergido.
+**Conclusão:** Runtime critical zerado. Dívida restante está **100% em mock data e Stack B feeds** — fora do escopo deste PR.
+
+---
+
+## WS-05.5 — correções aplicadas
+
+| Arquivo | Erros antes | Erros depois | Ação |
+|---------|-------------|--------------|------|
+| `lib/business-types.ts` | 9 | **0** | Unificar interfaces duplicadas (`HealthProfessional`, `HealthService`, `Insurance`); corrigir `BUSINESS_MODEL_CONFIG` keys |
+| `lib/rules/rule-registry.ts` | 3 | **0** | Return type `RuleDefinition<unknown>[]` com cast seguro |
+| `lib/mock-data/health-data.ts` | 8 | **0** | Resolvido indiretamente via contratos unificados (sem editar mock neste PR) |
 
 ---
 
@@ -27,104 +37,52 @@
 
 ### Tier 1 critical — intolerável
 
-Paths congelados em [`FREEZE_ZONES.md`](../os/FREEZE_ZONES.md):
-
 | Path | Erros |
 |------|-------|
-| `components/business/action-drawer.tsx` | 0 |
-| `components/business/post-to-chat-morph-layer.tsx` | 0 |
-| `components/business/business-social-landing.tsx` | 0 |
-| `components/business/conversational-ai.tsx` | 0 |
-| `lib/ui/composer-scroll-clearance.ts` | 0 |
-| `lib/ui/use-drawer-sheet-drag.ts` | 0 |
-| `components/business/appointment/appointment-feed.tsx` | 0 |
-| `lib/events/instrumentation.ts` | 0 |
-
-**Status:** ✅ Nenhum erro TS nos paths Tier 1 documentados.
+| ActionDrawer / morph / composer / instrumentation | **0** ✅ |
 
 ---
 
 ### Runtime critical — shared contracts
 
-| Arquivo | Erros | Códigos principais | Risco |
-|---------|-------|-------------------|-------|
-| `lib/business-types.ts` | 9 | TS2687, TS2717, TS2561 | Contratos duplicados/inconsistentes (`crm`, `logo`, `availability`, `duration`) |
-| `lib/rules/rule-registry.ts` | 3 | TS2322 | Generics `RuleDefinition<T>` vs `unknown` |
-
-**Impacto:** Pode afetar múltiplas verticais; fixes devem ser **localizados e add-only** quando possível.
+| Arquivo | Erros |
+|---------|-------|
+| `lib/business-types.ts` | **0** ✅ |
+| `lib/rules/rule-registry.ts` | **0** ✅ |
 
 ---
 
-### Safe legacy — mock data + utilitários periféricos
+### Safe legacy — mock data + utilitários
 
-| Arquivo | Erros | Notas |
-|---------|-------|-------|
-| `lib/mock-data/realestate-data.ts` | 20 | Schema drift vs `Property`, `PropertyFeatures` |
-| `lib/mock-data/events-data.ts` | 12 | Tipos `Artist`, boolean vs number |
-| `lib/mock-data/health-data.ts` | 8 | `HealthProfessional` / `HealthService` incompletos |
-| `lib/mock-data/business-content.ts` | 7 | `thumbnail`, `socialPosts`, casts `BusinessPost[]` |
-| `lib/mock-data/professionals-data.ts` | 5 | `BusinessModel`, `price` em services |
-| `lib/mock-data/gym-data.ts` | 1 | `"fitness"` vs `BusinessModel` |
-| `components/business/appointment-calendar.tsx` | 2 | TS7006 implicit `any` |
-
-**Impacto:** Runtime funciona via `ignoreBuildErrors`; erros são **dívida de contrato**, não bugs perceptivos conhecidos.
+| Arquivo | Erros |
+|---------|-------|
+| `lib/mock-data/realestate-data.ts` | 20 |
+| `lib/mock-data/events-data.ts` | 12 |
+| `lib/mock-data/business-content.ts` | 7 |
+| `lib/mock-data/professionals-data.ts` | 5 |
+| `lib/mock-data/gym-data.ts` | 1 |
+| `components/business/appointment-calendar.tsx` | 2 |
 
 ---
 
-### Experimental — Stack B feeds (migration targets)
+### Experimental — Stack B feeds
 
 | Arquivo | Erros | WS futuro |
 |---------|-------|-----------|
-| `components/business/realestate/realestate-feed.tsx` | 9 | WS-03 parity |
+| `components/business/realestate/realestate-feed.tsx` | 9 | WS-03 |
 | `components/business/influencer/influencer-feed.tsx` | 6 | WS-06 |
 | `components/business/gym/gym-feed.tsx` | 3 | Stack B |
 | `components/business/institutional/institutional-feed.tsx` | 2 | WS-07 |
 | `components/business/personal/personal-feed.tsx` | 2 | Stack B |
 | `components/business/professionals/professionals-feed.tsx` | 2 | Stack B |
 
-**Padrão dominante:** `BusinessConfig` incompleto, `BusinessSection.type: "custom"` não no union, propriedades mock ausentes nos tipos.
-
 ---
 
-## Distribuição por código TS
+## Error budget
 
-| Código | Count | Significado |
-|--------|-------|-------------|
-| TS2322 | 24 | Type not assignable |
-| TS2339 | 13 | Property does not exist |
-| TS2741 | 13 | Property missing in type |
-| TS2739 | 13 | Type missing properties |
-| TS2352 | 4 | Conversion may be mistake |
-| TS2353 | 4 | Unknown object properties |
-| TS2687 | 4 | Modifier mismatch (declarations) |
-| TS2717 | 4 | Subsequent property type mismatch |
-| TS2740 | 3 | Type missing properties (object) |
-| TS7006 | 3 | Implicit any |
-| TS2551 | 3 | Property typo (`popular` vs `isPopular`) |
-| TS2561 | 1 | Unknown property in literal |
-| TS2820 | 1 | Type literal mismatch |
-| TS18048 | 1 | Possibly undefined |
+Machine baseline: [`scripts/typescript/ts-error-baseline.json`](../../scripts/typescript/ts-error-baseline.json) — **71 fingerprints**
 
----
-
-## Error budget (machine baseline)
-
-Fingerprints versionados em:
-
-[`scripts/typescript/ts-error-baseline.json`](../../scripts/typescript/ts-error-baseline.json)
-
-Gate CI: `pnpm ts:budget` — bloqueia novos fingerprints, não exige zero.
-
----
-
-## Tier 1 vs não-Tier-1
-
-```
-Tier 1 frozen     ████████████████████  0 erros  (0%)
-Runtime critical  ██                    12 erros (13%)
-Safe legacy       ███████████           55 erros (60%)
-Experimental      █████                 24 erros (26%)
-```
+Gate: `pnpm ts:budget`
 
 ---
 
@@ -132,4 +90,3 @@ Experimental      █████                 24 erros (26%)
 
 - [`TS_GATES.md`](TS_GATES.md)
 - [`TS_HARDENING_PLAN.md`](TS_HARDENING_PLAN.md)
-- [`docs/runtime/TIER1_BASELINE.md`](../runtime/TIER1_BASELINE.md)

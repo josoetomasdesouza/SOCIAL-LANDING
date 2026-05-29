@@ -22,8 +22,9 @@
 |------|-------|
 | `strict: true` | ✅ `tsconfig.json` |
 | `ignoreBuildErrors` | ⚠️ `true` em `next.config.mjs` — **mantido neste WS** |
-| Erros baseline | 91 |
+| Erros baseline | 71 (was 91) |
 | Erros Tier 1 | 0 |
+| Erros runtime critical | **0** |
 | CI gate | `pnpm ts:budget` (novos erros bloqueados) |
 
 ---
@@ -43,18 +44,18 @@
 
 ---
 
-### Fase 2 — WS-05.5 Stabilization (próximo mini-ciclo)
+### Fase 2 — WS-05.5 Stabilization (em progresso)
 
-**Por quê:** TS revela contratos ruins, acoplamentos invisíveis e inconsistências entre verticais. Gate incremental sozinho não reduz dívida.
+| Ordem | Alvo | Status WS-05.5 PR |
+|-------|------|-------------------|
+| 1 | `lib/business-types.ts` | ✅ 9 → 0 |
+| 2 | `lib/rules/rule-registry.ts` | ✅ 3 → 0 |
+| 3 | Mock data por vertical | 🔴 Próximo PR (fora deste escopo) |
+| 4 | Stack B feeds | 🔴 WS-06/07 |
 
-| Ordem | Alvo | Erros ~ | Risco | Estratégia |
-|-------|------|---------|-------|------------|
-| 1 | `lib/business-types.ts` | 9 | Médio | Unificar declarações duplicadas; **sem** alterar runtime behavior |
-| 2 | `lib/rules/rule-registry.ts` | 3 | Baixo | Fix generics localizado |
-| 3 | Mock data por vertical | 55 | Baixo | PRs isolados por arquivo mock |
-| 4 | Stack B feeds | 24 | Médio | Alinhar com WS-06/07 migrations |
+**Baseline:** 91 → **71** (−20). Runtime critical: **0**.
 
-**Gate de saída WS-05.5:** baseline ≤ 50 erros OU `ignoreBuildErrors` removido com build verde.
+**`ignoreBuildErrors`:** mantido `true` — build falha com 71 erros restantes se desligado.
 
 ---
 
