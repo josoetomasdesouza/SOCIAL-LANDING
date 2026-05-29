@@ -64,7 +64,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence |
-| **Status** | 🔴 Blocked até WS-04/05 recomendados; gaps menores only |
+| **Status** | 🔴 Blocked até WS-05 recomendado; gaps menores only |
 | **Objetivo** | Paridade checkout/composer nas verticais Stack A restantes |
 | **Escopo** | Restaurant `onRegisterFooter`; `AppointmentConfirmation` pinned; appointment hero morph; realestate WhatsApp instrumentado; duplicate React keys |
 | **Fora de escopo** | Influencer/institutional (WS-06/07); AI resolver (WS-08) |
@@ -79,12 +79,12 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 3 — QA/CI Minimum |
-| **Status** | 🟡 Em PR — `chore/qa-minimum-ci` |
+| **Status** | ✅ Concluído — PR #56 merged @ `a30d0c5` |
 | **Objetivo** | CI GitHub com gate mínimo |
 | **Escopo** | `.github/workflows/qa-minimum.yml`; ajustes em `scripts/runtime/demo-event-checklist.mjs` (harness) — **build + qa:events only** |
 | **Fora de escopo** | `tsc --noEmit` (WS-05); matrix 12 verticais; lint; nightly |
 | **Branch sugerida** | `chore/qa-minimum-ci` |
-| **Gate de saída** | Workflow verde em PR teste |
+| **Gate de saída** | Workflow verde na `main` (build + qa:events 8/8) |
 | **Refs** | `docs/audit/CI_MINIMUM_STRATEGY.md`, `QA_INFRASTRUCTURE_PLAN.md` |
 
 ---
@@ -94,7 +94,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 4 — TypeScript Gate |
-| **Status** | 🔴 Blocked até WS-04 |
+| **Status** | 🟡 Próximo — desbloqueado após WS-04 |
 | **Objetivo** | `tsc --noEmit` no CI; remover `ignoreBuildErrors` |
 | **Escopo** | `next.config.mjs`, workflow CI, fixes TS incrementais |
 | **Fora de escopo** | Refactor amplo; mudanças Tier 1 frozen |
@@ -167,13 +167,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 (CI) → WS-05 (TS) ──┬──► WS-06 → WS-07
+WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 (TS) ──┬──► WS-06 → WS-07
                                                               ├──► WS-03 (parity gaps)
                                                               └──► WS-08 (AI — last)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** iniciar **WS-04 CI Minimum**.
+**Atual:** iniciar **WS-05 TypeScript Gate** (PR isolado — sem misturar com CI mínimo).
 
 ---
 
