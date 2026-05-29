@@ -15,7 +15,7 @@
 import { chromium } from "playwright"
 
 const BASE = process.env.DEMO_URL ?? "http://localhost:3000/demo"
-const LONG_PRESS_MS = 550
+const LONG_PRESS_MS = 600
 const TUTORIALS_POST = "#section-tutoriais-e-tendencias article"
 
 function parsePassiveEvent(text) {
@@ -42,8 +42,33 @@ async function dismissOverlays(page, times = 2) {
 async function longPress(page, locator) {
   await locator.scrollIntoViewIfNeeded()
   await page.waitForTimeout(200)
-  // React ContextSelectable listens to pointer events; delay-click also satisfies 420ms timer.
-  await locator.click({ delay: LONG_PRESS_MS, position: { x: 20, y: 20 } })
+  await locator.evaluate(
+    (el, holdMs) =>
+      new Promise((resolve) => {
+        el.dispatchEvent(
+          new PointerEvent("pointerdown", {
+            bubbles: true,
+            cancelable: true,
+            pointerId: 1,
+            pointerType: "touch",
+            isPrimary: true,
+          })
+        )
+        window.setTimeout(() => {
+          el.dispatchEvent(
+            new PointerEvent("pointerup", {
+              bubbles: true,
+              cancelable: true,
+              pointerId: 1,
+              pointerType: "touch",
+              isPrimary: true,
+            })
+          )
+          resolve(undefined)
+        }, holdMs)
+      }),
+    LONG_PRESS_MS
+  )
 }
 
 /** Dismiss open drawer via Escape — matches current drawer stack (no close X). */

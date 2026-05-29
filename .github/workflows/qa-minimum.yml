@@ -58,7 +58,7 @@ jobs:
           for i in $(seq 1 90); do
             if curl -sf http://localhost:3000/demo > /dev/null; then
               echo "Dev server ready after ${i} attempts"
-              sleep 15
+              sleep 20
               exit 0
             fi
             sleep 2
