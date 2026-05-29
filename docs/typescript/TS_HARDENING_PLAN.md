@@ -22,7 +22,7 @@
 |------|-------|
 | `strict: true` | ✅ `tsconfig.json` |
 | `ignoreBuildErrors` | ⚠️ `true` em `next.config.mjs` — **mantido neste WS** |
-| Erros baseline | 71 (was 91) |
+| Erros baseline | 30 (was 91 → 71 @ WS-05.5A) |
 | Erros Tier 1 | 0 |
 | Erros runtime critical | **0** |
 | CI gate | `pnpm ts:budget` (novos erros bloqueados) |
@@ -44,18 +44,20 @@
 
 ---
 
-### Fase 2 — WS-05.5 Stabilization (em progresso)
+### Fase 2 — WS-05.5 Stabilization
 
-| Ordem | Alvo | Status WS-05.5 PR |
-|-------|------|-------------------|
-| 1 | `lib/business-types.ts` | ✅ 9 → 0 |
-| 2 | `lib/rules/rule-registry.ts` | ✅ 3 → 0 |
-| 3 | Mock data por vertical | 🔴 Próximo PR (fora deste escopo) |
-| 4 | Stack B feeds | 🔴 WS-06/07 |
+| Ordem | Alvo | Status |
+|-------|------|--------|
+| 1 | `lib/business-types.ts` | ✅ 9 → 0 (WS-05.5A) |
+| 2 | `lib/rules/rule-registry.ts` | ✅ 3 → 0 (WS-05.5A) |
+| 3 | `lib/mock-data/realestate-data.ts` | ✅ 20 → 0 (WS-05.5b) |
+| 4 | `lib/mock-data/events-data.ts` | ✅ 12 → 0 (WS-05.5b) |
+| 5 | Mock data auxiliar | 🔴 Próximo PR |
+| 6 | Stack B feeds | 🔴 WS-06/07 |
 
-**Baseline:** 91 → **71** (−20). Runtime critical: **0**.
+**Baseline:** 91 → 71 (WS-05.5A) → **30** (WS-05.5b, −41). Runtime critical: **0**.
 
-**`ignoreBuildErrors`:** mantido `true` — build falha com 71 erros restantes se desligado.
+**`ignoreBuildErrors`:** mantido `true` — build falha com 30 erros restantes se desligado.
 
 ---
 
