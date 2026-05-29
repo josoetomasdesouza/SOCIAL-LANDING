@@ -2,7 +2,7 @@
 
 **Status:** ✅ Official — WS-02.5 Runtime Stabilization Snapshot  
 **Version:** 1.0  
-**Baseline merge commit:** `673395d` — Merge PR #52 (`fix/drawer-perceptual-hygiene`)  
+**Baseline merge commit:** `ffcb548` — Merge PR #55 (WS-02.5) on top of `673395d` (PR #52)  
 **Prior governance:** `7cd0fe5` (WS-01 hygiene) · `a84c616` (governance layer)  
 **Date:** 2026-05-24  
 **Workstream:** WS-02.5
@@ -62,7 +62,7 @@ Future work (influencer, institutional, AI resolvers, DB) must **consume** this 
 | PR #52 merge | `673395d` | ✅ |
 | WS-02 validation record | `docs/audit/WS-02_PR52_VALIDATION_REPORT.md` | ✅ GO WITH NOTES |
 | Manual sign-off checklist | Human perceptual (6 verticals) | ✅ Authorized merge |
-| `pnpm qa:events` | 8-step protocol — re-run on main post-merge | ⏳ Required after deploy |
+| `pnpm qa:events` | 8-step protocol | ⏳ Gate via WS-04 CI on `main` |
 | `pnpm run build` | Production build | ✅ Pass (types skipped in build) |
 
 **Post-merge gate:** run `pnpm qa:events` on `main` @ `673395d` and record 8/8 in this doc when executed.

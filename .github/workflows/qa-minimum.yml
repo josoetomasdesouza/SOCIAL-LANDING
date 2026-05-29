@@ -1,0 +1,80 @@
+name: QA Minimum
+
+# WS-04 — Minimum merge gates: build + global event protocol.
+# TypeScript gate is WS-05 — not included here.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: qa-minimum-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa-minimum:
+    name: build + qa:events
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Production build
+        run: pnpm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Reset .next for dev server
+        run: rm -rf .next
+
+      - name: Start dev server (required for passive events)
+        run: |
+          pnpm exec next dev --webpack -p 3000 > /tmp/next-dev.log 2>&1 &
+          echo $! > /tmp/next-dev.pid
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:3000/demo > /dev/null; then
+              echo "Dev server ready after ${i} attempts"
+              sleep 15
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Dev server failed to start"
+          cat /tmp/next-dev.log || true
+          exit 1
+        env:
+          NODE_ENV: development
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Global event protocol (8/8)
+        run: pnpm qa:events
+        env:
+          NODE_ENV: development
+
+      - name: Stop dev server
+        if: always()
+        run: |
+          if [ -f /tmp/next-dev.pid ]; then
+            kill "$(cat /tmp/next-dev.pid)" 2>/dev/null || true
+          fi
