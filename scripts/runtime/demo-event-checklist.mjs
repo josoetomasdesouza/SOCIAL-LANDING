@@ -31,15 +31,19 @@ function count(events, type) {
   return events.filter((event) => event === type).length
 }
 
+/** Dismiss open drawer/sheet overlays — repeat for nested surfaces. */
+async function dismissOverlays(page, times = 2) {
+  for (let i = 0; i < times; i++) {
+    await page.keyboard.press("Escape")
+    await page.waitForTimeout(500)
+  }
+}
+
 async function longPress(page, locator) {
-  const box = await locator.boundingBox()
-  if (!box) throw new Error("long-press target has no bounding box")
-  const x = box.x + box.width / 2
-  const y = box.y + box.height / 2
-  await page.mouse.move(x, y)
-  await page.mouse.down()
-  await page.waitForTimeout(LONG_PRESS_MS)
-  await page.mouse.up()
+  await locator.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(200)
+  // React ContextSelectable listens to pointer events; delay-click also satisfies 420ms timer.
+  await locator.click({ delay: LONG_PRESS_MS, position: { x: 20, y: 20 } })
 }
 
 /** Dismiss open drawer via Escape — matches current drawer stack (no close X). */
@@ -112,21 +116,29 @@ async function main() {
 
   // 2. Long-press morph (video post — PostCard path)
   const morphPost = page.locator(TUTORIALS_POST).first()
-  await morphPost.scrollIntoViewIfNeeded()
-  await page.waitForTimeout(500)
-  const beforeMorph = events.length
-  await longPress(page, morphPost)
-  await page.waitForTimeout(300)
-  // Headless Chromium may not advance morph RAF to completion; scroll cancel emits morph.completed.
-  await page.evaluate(() => window.dispatchEvent(new Event("scroll")))
-  for (let i = 0; i < 40; i++) {
-    const slice = events.slice(beforeMorph)
-    if (count(slice, "morph.started") >= 1 && count(slice, "morph.completed") >= 1) {
+  let morphSlice = []
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await dismissOverlays(page)
+    await morphPost.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(500)
+    const beforeMorph = events.length
+    await longPress(page, morphPost)
+    await page.waitForTimeout(300)
+    // Headless Chromium may not advance morph RAF to completion; scroll cancel emits morph.completed.
+    await page.evaluate(() => window.dispatchEvent(new Event("scroll")))
+    for (let i = 0; i < 40; i++) {
+      const slice = events.slice(beforeMorph)
+      if (count(slice, "morph.started") >= 1 && count(slice, "morph.completed") >= 1) {
+        break
+      }
+      await page.waitForTimeout(200)
+    }
+    morphSlice = events.slice(beforeMorph)
+    if (count(morphSlice, "morph.started") >= 1 && count(morphSlice, "morph.completed") >= 1) {
       break
     }
-    await page.waitForTimeout(200)
+    await dismissOverlays(page)
   }
-  const morphSlice = events.slice(beforeMorph)
   const morphStartedIdx = morphSlice.indexOf("morph.started")
   const morphCompletedIdx = morphSlice.indexOf("morph.completed")
   record(
@@ -140,10 +152,11 @@ async function main() {
   )
 
   // 3. Abrir drawer (tap — not long-press)
+  await dismissOverlays(page)
   const beforeOpen = events.length
   const drawerPost = page.locator(TUTORIALS_POST).nth(1)
   await drawerPost.scrollIntoViewIfNeeded()
-  await drawerPost.click()
+  await drawerPost.click({ force: true })
   await page.waitForTimeout(800)
   const openSlice = events.slice(beforeOpen)
   record(
