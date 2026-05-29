@@ -112,11 +112,11 @@ export const RULE_REGISTRY = {
   ai: [blockAiTier1MutationRule, blockAiAutoPublishRule],
 } as const
 
-export function getRulesForScope(scope: RuleDefinition["scope"]): RuleDefinition[] {
-  const all = [...RULE_REGISTRY.brandDna, ...RULE_REGISTRY.ai]
+export function getRulesForScope(scope: RuleDefinition["scope"]): RuleDefinition<unknown>[] {
+  const all = [...RULE_REGISTRY.brandDna, ...RULE_REGISTRY.ai] as RuleDefinition<unknown>[]
   return all.filter((rule) => rule.scope === scope)
 }
 
-export function getAllRegisteredRules(): RuleDefinition[] {
-  return [...RULE_REGISTRY.brandDna, ...RULE_REGISTRY.ai]
+export function getAllRegisteredRules(): RuleDefinition<unknown>[] {
+  return [...RULE_REGISTRY.brandDna, ...RULE_REGISTRY.ai] as RuleDefinition<unknown>[]
 }

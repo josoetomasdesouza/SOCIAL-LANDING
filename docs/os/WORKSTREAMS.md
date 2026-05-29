@@ -109,11 +109,11 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 4 — TypeScript Gate |
-| **Status** | 🟡 Próximo — desbloqueado após WS-05 |
+| **Status** | 🟡 Em PR — `chore/ws-05-5-ts-stabilization` |
 | **Objetivo** | Redução cirúrgica do baseline; preparar remoção de `ignoreBuildErrors` |
-| **Escopo** | Fixes localizados em `lib/business-types.ts`, mock data, Stack B feeds |
-| **Fora de escopo** | Refactor amplo; runtime Tier 1; migrations verticais |
-| **Gate de saída** | Baseline ≤ 50 erros OU `ignoreBuildErrors: false` com build verde |
+| **Escopo** | Fixes localizados em `lib/business-types.ts`, `lib/rules/rule-registry.ts` |
+| **Fora de escopo** | Refactor amplo; runtime Tier 1; migrations verticais; mock/Stack B neste PR |
+| **Gate de saída parcial** | Runtime critical 0; baseline 71; `ignoreBuildErrors` mantido `true` |
 | **Refs** | [`docs/typescript/TS_HARDENING_PLAN.md`](../typescript/TS_HARDENING_PLAN.md) |
 
 ---

@@ -102,34 +102,6 @@ export interface HealthBrand {
   acceptedInsurance: string[]
 }
 
-export interface HealthProfessional {
-  id: string
-  name: string
-  specialty: string
-  crm: string
-  avatar: string
-  bio: string
-  rating: number
-  totalConsults: number
-  availability: Record<string, string[]>
-}
-
-export interface HealthService {
-  id: string
-  name: string
-  description: string
-  duration: string
-  price: number
-  professional?: string
-  isOnline?: boolean
-}
-
-export interface Insurance {
-  id: string
-  name: string
-  logo?: string
-}
-
 export interface BusinessConfig {
   model: BusinessModel
   name: string
@@ -585,33 +557,38 @@ export interface HealthProfessional {
   id: string
   name: string
   avatar: string
-  title: string // "Cardiologista", "Dentista"
-  crm?: string // ou CRO
-  specialties: string[]
-  education: Education[]
-  experience: number
+  specialty: string
+  title?: string
+  crm?: string
+  specialties?: string[]
+  education?: Education[]
+  experience?: number
   rating: number
-  reviewCount: number
-  consultationPrice: number
-  telemedicine: boolean
-  insurances: string[] // Convenios aceitos
-  availability: DayAvailability[]
+  totalConsults?: number
+  reviewCount?: number
+  consultationPrice?: number
+  telemedicine?: boolean
+  insurances?: string[]
+  bio: string
+  availability: Record<string, string[]> | DayAvailability[]
 }
 
 export interface HealthService {
   id: string
   name: string
   description: string
-  duration: number
+  duration: string | number
   price: number
-  category: string // Consulta, Exame, Procedimento
-  preparation?: string // Instrucoes pre-exame
+  category?: string
+  professional?: string
+  isOnline?: boolean
+  preparation?: string
 }
 
 export interface Insurance {
   id: string
   name: string
-  logo: string
+  logo?: string
 }
 
 export interface Clinic {
@@ -725,7 +702,7 @@ export const BUSINESS_MODEL_CONFIG: Record<BusinessModel, {
     secondaryActions: ['Ver fotos', 'Simular financiamento', 'Falar com corretor'],
     contentTypes: ['properties', 'neighborhoods', 'agents', 'tours']
   },
-  professional: {
+  professionals: {
     name: 'Profissionais',
     description: 'Advogado, Contador, Consultor',
     icon: 'Briefcase',
@@ -741,7 +718,7 @@ export const BUSINESS_MODEL_CONFIG: Record<BusinessModel, {
     secondaryActions: ['Ver lineup', 'Escolher setor', 'Ver mapa'],
     contentTypes: ['events', 'tickets', 'artists', 'venue']
   },
-  fitness: {
+  gym: {
     name: 'Fitness',
     description: 'Academia, Personal, Studio',
     icon: 'Dumbbell',
@@ -756,5 +733,29 @@ export const BUSINESS_MODEL_CONFIG: Record<BusinessModel, {
     primaryAction: 'Agendar consulta',
     secondaryActions: ['Ver convenios', 'Telemedicina', 'Ver especialidades'],
     contentTypes: ['professionals', 'services', 'insurances', 'units']
+  },
+  influencer: {
+    name: 'Influencer',
+    description: 'Creator, Personalidade, Media Kit',
+    icon: 'Sparkles',
+    primaryAction: 'Ver parcerias',
+    secondaryActions: ['Ver portfolio', 'Contato comercial', 'Redes sociais'],
+    contentTypes: ['posts', 'videos', 'partnerships', 'press']
+  },
+  personal: {
+    name: 'Pessoal',
+    description: 'Portfolio, Pagina pessoal',
+    icon: 'User',
+    primaryAction: 'Entrar em contato',
+    secondaryActions: ['Ver projetos', 'Sobre mim', 'Curriculo'],
+    contentTypes: ['projects', 'about', 'skills', 'contact']
+  },
+  institutional: {
+    name: 'Institucional',
+    description: 'Marca, ONG, Governo',
+    icon: 'Building',
+    primaryAction: 'Fale conosco',
+    secondaryActions: ['Sobre a organizacao', 'Transparencia', 'Noticias'],
+    contentTypes: ['about', 'programs', 'news', 'contact']
   }
 }
