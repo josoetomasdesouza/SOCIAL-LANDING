@@ -45,14 +45,17 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
+      - name: Reset .next for dev server
+        run: rm -rf .next
+
       - name: Start dev server (required for passive events)
         run: |
           pnpm exec next dev --webpack -p 3000 > /tmp/next-dev.log 2>&1 &
           echo $! > /tmp/next-dev.pid
-          for i in $(seq 1 60); do
-            if curl -sf http://127.0.0.1:3000/demo > /dev/null; then
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:3000/demo > /dev/null; then
               echo "Dev server ready after ${i} attempts"
-              sleep 5
+              sleep 15
               exit 0
             fi
             sleep 2
@@ -65,7 +68,7 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
 
       - name: Global event protocol (8/8)
-        run: DEMO_URL=http://127.0.0.1:3000/demo pnpm qa:events
+        run: pnpm qa:events
         env:
           NODE_ENV: development
 

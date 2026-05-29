@@ -81,7 +81,7 @@
 | **Era** | 3 — QA/CI Minimum |
 | **Status** | 🟡 Em PR — `chore/qa-minimum-ci` |
 | **Objetivo** | CI GitHub com gate mínimo |
-| **Escopo** | `.github/workflows/qa-minimum.yml` — **build + qa:events only** |
+| **Escopo** | `.github/workflows/qa-minimum.yml`; ajustes em `scripts/runtime/demo-event-checklist.mjs` (harness) — **build + qa:events only** |
 | **Fora de escopo** | `tsc --noEmit` (WS-05); matrix 12 verticais; lint; nightly |
 | **Branch sugerida** | `chore/qa-minimum-ci` |
 | **Gate de saída** | Workflow verde em PR teste |

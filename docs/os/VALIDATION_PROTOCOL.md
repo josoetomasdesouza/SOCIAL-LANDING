@@ -112,7 +112,7 @@ Checklist extra:
 ### CI/infra (WS-04)
 
 - [ ] Workflow `.github/workflows/qa-minimum.yml` verde
-- [ ] Diff restrito a `.github/` e `docs/` (sem runtime)
+- [ ] Diff restrito a `.github/`, `docs/` e `scripts/runtime/` (harness QA — sem componentes runtime)
 - [ ] **Não** incluir `tsc --noEmit` neste WS (reservado WS-05)
 
 ---
@@ -132,6 +132,7 @@ A partir de WS-04, PRs que tocam runtime **devem** passar no workflow `QA Minimu
 **Notas:**
 
 - `qa:events` exige dev server (`next dev`) — passive events só em `NODE_ENV=development`
+- URL do demo: **`http://localhost:3000/demo`** — `127.0.0.1` bloqueia HMR do Next 16 e impede hidratação em headless
 - Build roda **antes** do dev server; typecheck no build continua skipped (`ignoreBuildErrors`) até WS-05
 - Docs-only PRs: CI roda mas falha de runtime gate não aplica se paths não tocarem app (workflow roda em todo PR — aceitável na fase mínima)
 
