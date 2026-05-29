@@ -125,7 +125,8 @@ A partir de WS-04, PRs que tocam runtime **devem** passar no workflow `QA Minimu
 |------|---------|-----------------|------------|
 | Production build | `pnpm run build` | ✅ Sim | WS-04 |
 | Global event protocol | `pnpm qa:events` (8/8) | ✅ Sim | WS-04 |
-| TypeScript | `pnpm run typecheck` | ❌ **Não ainda** | WS-05 |
+| TypeScript error budget | `pnpm ts:budget` | ✅ Sim | WS-05 |
+| TypeScript zero-errors | `pnpm run typecheck` | ❌ **Não ainda** | WS-05.5+ |
 | ESLint | `pnpm lint` | ❌ Não neste WS | Futuro |
 | Matrix 12 verticais | — | ❌ Proibido | — |
 

@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "typecheck": "tsc --noEmit",
+    "ts:budget": "node scripts/typescript/ts-error-budget.mjs",
+    "ts:baseline:refresh": "node scripts/typescript/collect-ts-errors.mjs --write",
     "start": "next start",
     "lint": "eslint .",
     "qa:events": "node scripts/runtime/demo-event-checklist.mjs",
