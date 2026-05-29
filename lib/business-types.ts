@@ -371,6 +371,11 @@ export interface Property {
   amenities: string[]
   agent: RealEstateAgent
   status: 'available' | 'reserved' | 'sold' | 'rented'
+  /** Legacy flat fields — Stack B feeds read these until feed migration (WS-Stack-B). */
+  bedrooms?: number
+  bathrooms?: number
+  parkingSpaces?: number
+  area?: number
 }
 
 export interface PropertyAddress {

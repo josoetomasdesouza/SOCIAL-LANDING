@@ -109,11 +109,13 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 4 — TypeScript Gate |
-| **Status** | 🟡 Em PR — `chore/ws-05-5-ts-stabilization` |
+| **Status** | 🟡 Fase A ✅ (PR #58) · Fase B em PR — `chore/ws-05-5b-mock-data` |
 | **Objetivo** | Redução cirúrgica do baseline; preparar remoção de `ignoreBuildErrors` |
-| **Escopo** | Fixes localizados em `lib/business-types.ts`, `lib/rules/rule-registry.ts` |
-| **Fora de escopo** | Refactor amplo; runtime Tier 1; migrations verticais; mock/Stack B neste PR |
-| **Gate de saída parcial** | Runtime critical 0; baseline 71; `ignoreBuildErrors` mantido `true` |
+| **Escopo A** | `lib/business-types.ts`, `lib/rules/rule-registry.ts` |
+| **Escopo B** | `lib/mock-data/realestate-data.ts`, `lib/mock-data/events-data.ts` |
+| **Fora de escopo** | Refactor amplo; runtime Tier 1; Stack B feeds; migrations verticais |
+| **Gate de saída parcial A** | Runtime critical 0; baseline 71; PR #58 merged |
+| **Gate de saída parcial B** | Mock realestate/events 0 erros; baseline ≤ 39 (atingido: 30) |
 | **Refs** | [`docs/typescript/TS_HARDENING_PLAN.md`](../typescript/TS_HARDENING_PLAN.md) |
 
 ---
@@ -187,7 +189,7 @@ WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** iniciar **WS-05.5 TypeScript Stabilization** — redução cirúrgica, não cleanup geral.
+**Atual:** **WS-05.5b Mock Data Stabilization** — realestate + events mock; baseline 30.
 
 ---
 

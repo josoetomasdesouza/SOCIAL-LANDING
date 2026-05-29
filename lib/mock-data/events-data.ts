@@ -1,4 +1,4 @@
-import type { Event, EventBrand, BusinessConfig } from "@/lib/business-types"
+import type { Event, EventBrand, BusinessConfig, Organizer, TicketType, Artist } from "@/lib/business-types"
 
 // Config no formato BusinessConfig para os feeds
 export const eventsConfig: BusinessConfig = {
@@ -29,82 +29,138 @@ export const eventBrand: EventBrand = {
   category: "Festival",
 }
 
+const organizer: Organizer = {
+  name: "Festival Sunset",
+  logo: eventsConfig.logo,
+  verified: true,
+}
+
+const artistImage = "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop"
+
+function ticket(
+  id: string,
+  name: string,
+  price: number,
+  available: number,
+  description?: string,
+): TicketType {
+  return {
+    id,
+    name,
+    description: description ?? name,
+    price,
+    serviceFee: Math.round(price * 0.1),
+    available,
+    maxPerPurchase: 4,
+  }
+}
+
+function lineup(names: string[]): Artist[] {
+  return names.map((name) => ({ name, image: artistImage }))
+}
+
 export const events: Event[] = [
   {
     id: "evt-1",
-    name: "Festival Sunset 2024",
+    title: "Festival Sunset 2024",
     description: "3 dias de muita musica com os melhores DJs do mundo. Open bar incluso no ingresso VIP.",
     date: "2024-03-15",
-    endDate: "2024-03-17",
     time: "16:00",
-    location: {
-      name: "Parque Villa-Lobos",
+    endTime: "23:59",
+    venue: {
+      name: "Parque Villa-Lobos, Sao Paulo",
       address: "Av. Prof. Fonseca Rodrigues, 2001",
       city: "Sao Paulo",
-      state: "SP",
+      capacity: 15000,
     },
     image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=600&fit=crop",
-    tickets: [
-      { id: "t1", name: "Pista", price: 350, available: true },
-      { id: "t2", name: "Area VIP", price: 750, available: true },
-      { id: "t3", name: "Camarote", price: 1500, available: false },
+    images: [
+      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=600&fit=crop",
     ],
-    lineup: ["Calvin Harris", "David Guetta", "Alok", "Vintage Culture"],
-    isHighlighted: true,
+    category: "Festival",
+    ageRating: "18+",
+    tickets: [
+      ticket("t1", "Pista", 350, 1),
+      ticket("t2", "Area VIP", 750, 1),
+      ticket("t3", "Camarote", 1500, 0),
+    ],
+    lineup: lineup(["Calvin Harris", "David Guetta", "Alok", "Vintage Culture"]),
+    organizer,
+    status: "upcoming",
   },
   {
     id: "evt-2",
-    name: "Pool Party Verao",
+    title: "Pool Party Verao",
     description: "Festa na piscina com drinks, musica boa e muito sol. Dress code: branco.",
     date: "2024-02-10",
     time: "14:00",
-    location: {
-      name: "Club Med",
+    venue: {
+      name: "Club Med, Bahia",
       address: "Praia do Forte",
       city: "Bahia",
-      state: "BA",
+      capacity: 800,
     },
     image: "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=800&h=600&fit=crop",
-    tickets: [
-      { id: "t4", name: "Entrada", price: 180, available: true },
-      { id: "t5", name: "Open Bar", price: 380, available: true },
+    images: [
+      "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=800&h=600&fit=crop",
     ],
-    isHighlighted: true,
+    category: "Festa",
+    ageRating: "18+",
+    tickets: [
+      ticket("t4", "Entrada", 180, 1),
+      ticket("t5", "Open Bar", 380, 1),
+    ],
+    organizer,
+    status: "upcoming",
   },
   {
     id: "evt-3",
-    name: "Stand Up Comedy Night",
+    title: "Stand Up Comedy Night",
     description: "Noite de risadas com os melhores comediantes do Brasil. Classificacao: 18+",
     date: "2024-02-03",
     time: "21:00",
-    location: {
-      name: "Teatro Gazeta",
+    venue: {
+      name: "Teatro Gazeta, Sao Paulo",
       address: "Av. Paulista, 900",
       city: "Sao Paulo",
-      state: "SP",
+      capacity: 450,
     },
     image: "https://images.unsplash.com/photo-1527224538127-2104bb71c51b?w=800&h=600&fit=crop",
-    tickets: [
-      { id: "t6", name: "Plateia", price: 80, available: true },
-      { id: "t7", name: "Frisa", price: 120, available: true },
+    images: [
+      "https://images.unsplash.com/photo-1527224538127-2104bb71c51b?w=800&h=600&fit=crop",
     ],
+    category: "Teatro",
+    ageRating: "18+",
+    tickets: [
+      ticket("t6", "Plateia", 80, 1),
+      ticket("t7", "Frisa", 120, 1),
+    ],
+    organizer,
+    status: "upcoming",
   },
   {
     id: "evt-4",
-    name: "Workshop de Fotografia",
+    title: "Workshop de Fotografia",
     description: "Aprenda tecnicas avancadas de fotografia com profissionais renomados. Equipamento incluso.",
     date: "2024-02-17",
     time: "09:00",
-    location: {
-      name: "Espaco Cultural",
+    venue: {
+      name: "Espaco Cultural, Sao Paulo",
       address: "Rua Augusta, 1200",
       city: "Sao Paulo",
-      state: "SP",
+      capacity: 40,
     },
     image: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=800&h=600&fit=crop",
-    tickets: [
-      { id: "t8", name: "Inscricao", price: 450, available: true },
+    images: [
+      "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=800&h=600&fit=crop",
     ],
+    category: "Workshop",
+    ageRating: "Livre",
+    tickets: [
+      ticket("t8", "Inscricao", 450, 1),
+    ],
+    organizer,
+    status: "upcoming",
   },
 ]
 
