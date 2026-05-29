@@ -333,18 +333,23 @@ export const influencerContent = {
   ] as BusinessStory[],
   
   videos: [
-    { id: "inf-vid-1", type: "video" as const, title: "Um dia na minha rotina de criadora de conteudo", description: "Mostro como e o meu dia a dia criando para voces", thumbnail: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&h=450&fit=crop", duration: "15:23", views: 450000 },
-    { id: "inf-vid-2", type: "video" as const, title: "Tour pelo meu escritorio/estudio", description: "Finalmente mostrando onde a magia acontece", thumbnail: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&h=450&fit=crop", duration: "12:45", views: 320000 },
-    { id: "inf-vid-3", type: "video-vertical" as const, title: "Get ready with me para evento", description: "Me arrumem comigo!", thumbnail: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=700&fit=crop", duration: "0:58", views: 890000 },
-  ] as BusinessPost[],
-  
+    { id: "inf-vid-1", type: "video" as const, title: "Um dia na minha rotina de criadora de conteudo", description: "Mostro como e o meu dia a dia criando para voces", image: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&h=450&fit=crop", thumbnail: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&h=450&fit=crop", duration: "15:23", views: 450000 },
+    { id: "inf-vid-2", type: "video" as const, title: "Tour pelo meu escritorio/estudio", description: "Finalmente mostrando onde a magia acontece", image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&h=450&fit=crop", thumbnail: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&h=450&fit=crop", duration: "12:45", views: 320000 },
+    { id: "inf-vid-3", type: "video-vertical" as const, title: "Get ready with me para evento", description: "Me arrumem comigo!", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=700&fit=crop", thumbnail: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=700&fit=crop", duration: "0:58", views: 890000 },
+  ],
+
   news: [
-    { id: "inf-news-1", type: "news" as const, title: "Influenciadora brasileira e destaque em revista internacional", summary: "Criadora de conteudo e reconhecida por seu trabalho inovador", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&h=450&fit=crop", source: "Revista Vogue", date: "2024-02-10" },
-    { id: "inf-news-2", type: "news" as const, title: "Top 10 influencers mais engajados do Brasil em 2024", summary: "Lista anual traz novos nomes e veteranos do mercado", image: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&h=450&fit=crop", source: "Forbes Brasil", date: "2024-02-05" },
-  ] as BusinessPost[],
-  
+    { id: "inf-news-1", type: "news" as const, title: "Influenciadora brasileira e destaque em revista internacional", description: "Criadora de conteudo e reconhecida por seu trabalho inovador", summary: "Criadora de conteudo e reconhecida por seu trabalho inovador", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&h=450&fit=crop", source: "Revista Vogue", date: "2024-02-10" },
+    { id: "inf-news-2", type: "news" as const, title: "Top 10 influencers mais engajados do Brasil em 2024", description: "Lista anual traz novos nomes e veteranos do mercado", summary: "Lista anual traz novos nomes e veteranos do mercado", image: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&h=450&fit=crop", source: "Forbes Brasil", date: "2024-02-05" },
+  ],
+
   reviews: [] as BusinessPost[],
   
+  social: [
+    { id: "inf-soc-1", type: "social" as const, title: "Gratidao por cada um de voces! 500k de seguidores, isso e surreal!", image: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&h=800&fit=crop" },
+    { id: "inf-soc-2", type: "social" as const, title: "Novo projeto vindo ai... quem esta ansioso?", image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&h=800&fit=crop" },
+  ] as BusinessPost[],
+
   socialPosts: [
     { id: "inf-soc-1", content: "Gratidao por cada um de voces! 500k de seguidores, isso e surreal!", image: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=800&h=800&fit=crop", likes: 45000, comments: 2300 },
     { id: "inf-soc-2", content: "Novo projeto vindo ai... quem esta ansioso?", image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&h=800&fit=crop", likes: 38000, comments: 1800 },
@@ -366,6 +371,7 @@ export const personalContent = {
   videos: [] as BusinessPost[],
   news: [] as BusinessPost[],
   reviews: [] as BusinessPost[],
+  social: [] as BusinessPost[],
   socialPosts: [],
 }
 
@@ -382,16 +388,17 @@ export const institutionalContent = {
   ] as BusinessStory[],
   
   videos: [
-    { id: "inst-vid-1", type: "video" as const, title: "Conheca o Instituto Futuro Verde", description: "Nossa historia e missao em 5 minutos", thumbnail: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=800&h=450&fit=crop", duration: "5:30", views: 25000 },
-    { id: "inst-vid-2", type: "video" as const, title: "Impacto 2023: O que conquistamos juntos", description: "Retrospectiva dos projetos do ano", thumbnail: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&h=450&fit=crop", duration: "8:15", views: 18000 },
-  ] as BusinessPost[],
+    { id: "inst-vid-1", type: "video" as const, title: "Conheca o Instituto Futuro Verde", description: "Nossa historia e missao em 5 minutos", image: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=800&h=450&fit=crop", thumbnail: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=800&h=450&fit=crop", duration: "5:30", views: 25000 },
+    { id: "inst-vid-2", type: "video" as const, title: "Impacto 2023: O que conquistamos juntos", description: "Retrospectiva dos projetos do ano", image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&h=450&fit=crop", thumbnail: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&h=450&fit=crop", duration: "8:15", views: 18000 },
+  ],
   
   news: [
-    { id: "inst-news-1", type: "news" as const, title: "Instituto recebe premio de melhor ONG ambiental do pais", summary: "Reconhecimento veio apos 14 anos de trabalho continuo", image: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=800&h=450&fit=crop", source: "G1", date: "2024-02-15" },
-    { id: "inst-news-2", type: "news" as const, title: "Projeto Escola Verde atinge 100 escolas beneficiadas", summary: "Marco historico para o programa de educacao ambiental", image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=450&fit=crop", source: "Folha", date: "2024-02-08" },
-  ] as BusinessPost[],
+    { id: "inst-news-1", type: "news" as const, title: "Instituto recebe premio de melhor ONG ambiental do pais", description: "Reconhecimento veio apos 14 anos de trabalho continuo", summary: "Reconhecimento veio apos 14 anos de trabalho continuo", image: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=800&h=450&fit=crop", source: "G1", date: "2024-02-15" },
+    { id: "inst-news-2", type: "news" as const, title: "Projeto Escola Verde atinge 100 escolas beneficiadas", description: "Marco historico para o programa de educacao ambiental", summary: "Marco historico para o programa de educacao ambiental", image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=450&fit=crop", source: "Folha", date: "2024-02-08" },
+  ],
   
   reviews: [] as BusinessPost[],
+  social: [] as BusinessPost[],
   socialPosts: [],
 }
 

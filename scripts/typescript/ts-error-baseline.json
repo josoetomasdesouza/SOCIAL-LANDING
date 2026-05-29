@@ -2,7 +2,7 @@
   "version": 1,
   "capturedAt": "2026-05-29",
   "workstream": "WS-05",
-  "total": 30,
+  "total": 16,
   "fingerprints": [
     "components/business/appointment-calendar.tsx:48:18:TS7006",
     "components/business/appointment-calendar.tsx:49:15:TS7006",
@@ -19,21 +19,7 @@
     "components/business/institutional/institutional-feed.tsx:492:9:TS2322",
     "components/business/personal/personal-feed.tsx:261:9:TS2739",
     "components/business/personal/personal-feed.tsx:263:9:TS2322",
-    "components/business/professionals/professionals-feed.tsx:159:65:TS2339",
-    "components/business/professionals/professionals-feed.tsx:62:62:TS2339",
-    "lib/mock-data/business-content.ts:338:132:TS2352",
-    "lib/mock-data/business-content.ts:342:120:TS2352",
-    "lib/mock-data/business-content.ts:385:145:TS2352",
-    "lib/mock-data/business-content.ts:390:115:TS2352",
-    "lib/mock-data/business-content.ts:412:5:TS2741",
-    "lib/mock-data/business-content.ts:413:5:TS2741",
-    "lib/mock-data/business-content.ts:414:5:TS2741",
-    "lib/mock-data/gym-data.ts:5:3:TS2322",
-    "lib/mock-data/professionals-data.ts:50:5:TS2353",
-    "lib/mock-data/professionals-data.ts:58:5:TS2353",
-    "lib/mock-data/professionals-data.ts:5:3:TS2820",
-    "lib/mock-data/professionals-data.ts:66:5:TS2353",
-    "lib/mock-data/professionals-data.ts:74:5:TS2353"
+    "components/business/professionals/professionals-feed.tsx:159:65:TS2339"
   ],
   "errors": [
     {
@@ -147,104 +133,6 @@
       "col": 65,
       "code": "TS2339",
       "message": "Property 'price' does not exist on type 'ProfessionalService'."
-    },
-    {
-      "file": "components/business/professionals/professionals-feed.tsx",
-      "line": 62,
-      "col": 62,
-      "code": "TS2339",
-      "message": "Property 'price' does not exist on type 'ProfessionalService'."
-    },
-    {
-      "file": "lib/mock-data/business-content.ts",
-      "line": 338,
-      "col": 132,
-      "code": "TS2352",
-      "message": "Conversion of type '({ id: string; type: \"video\"; title: string; description: string; thumbnail: string; duration: string; views: number; } | { id: string; type: \"video-vertical\"; title: string; description: string; thumbnail: string; duration: string; views: number; })[]' to type 'BusinessPost[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
-    },
-    {
-      "file": "lib/mock-data/business-content.ts",
-      "line": 342,
-      "col": 120,
-      "code": "TS2352",
-      "message": "Conversion of type '{ id: string; type: \"news\"; title: string; summary: string; image: string; source: string; date: string; }[]' to type 'BusinessPost[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
-    },
-    {
-      "file": "lib/mock-data/business-content.ts",
-      "line": 385,
-      "col": 145,
-      "code": "TS2352",
-      "message": "Conversion of type '{ id: string; type: \"video\"; title: string; description: string; thumbnail: string; duration: string; views: number; }[]' to type 'BusinessPost[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
-    },
-    {
-      "file": "lib/mock-data/business-content.ts",
-      "line": 390,
-      "col": 115,
-      "code": "TS2352",
-      "message": "Conversion of type '{ id: string; type: \"news\"; title: string; summary: string; image: string; source: string; date: string; }[]' to type 'BusinessPost[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
-    },
-    {
-      "file": "lib/mock-data/business-content.ts",
-      "line": 412,
-      "col": 5,
-      "code": "TS2741",
-      "message": "Property 'social' is missing in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; socialPosts: { id: string; content: string; image: string; likes: number; comments: number; }[]; }' but required in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; social: BusinessPost[]; }'."
-    },
-    {
-      "file": "lib/mock-data/business-content.ts",
-      "line": 413,
-      "col": 5,
-      "code": "TS2741",
-      "message": "Property 'social' is missing in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; socialPosts: never[]; }' but required in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; social: BusinessPost[]; }'."
-    },
-    {
-      "file": "lib/mock-data/business-content.ts",
-      "line": 414,
-      "col": 5,
-      "code": "TS2741",
-      "message": "Property 'social' is missing in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; socialPosts: never[]; }' but required in type '{ stories: BusinessStory[]; videos: BusinessPost[]; news: BusinessPost[]; reviews: BusinessPost[]; social: BusinessPost[]; }'."
-    },
-    {
-      "file": "lib/mock-data/gym-data.ts",
-      "line": 5,
-      "col": 3,
-      "code": "TS2322",
-      "message": "Type '\"fitness\"' is not assignable to type 'BusinessModel'."
-    },
-    {
-      "file": "lib/mock-data/professionals-data.ts",
-      "line": 5,
-      "col": 3,
-      "code": "TS2820",
-      "message": "Type '\"professional\"' is not assignable to type 'BusinessModel'. Did you mean '\"professionals\"'?"
-    },
-    {
-      "file": "lib/mock-data/professionals-data.ts",
-      "line": 50,
-      "col": 5,
-      "code": "TS2353",
-      "message": "Object literal may only specify known properties, and 'price' does not exist in type 'ProfessionalService'."
-    },
-    {
-      "file": "lib/mock-data/professionals-data.ts",
-      "line": 58,
-      "col": 5,
-      "code": "TS2353",
-      "message": "Object literal may only specify known properties, and 'price' does not exist in type 'ProfessionalService'."
-    },
-    {
-      "file": "lib/mock-data/professionals-data.ts",
-      "line": 66,
-      "col": 5,
-      "code": "TS2353",
-      "message": "Object literal may only specify known properties, and 'price' does not exist in type 'ProfessionalService'."
-    },
-    {
-      "file": "lib/mock-data/professionals-data.ts",
-      "line": 74,
-      "col": 5,
-      "code": "TS2353",
-      "message": "Object literal may only specify known properties, and 'price' does not exist in type 'ProfessionalService'."
     }
   ]
 }

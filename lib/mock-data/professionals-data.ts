@@ -1,8 +1,11 @@
 import type { ProfessionalService, AppointmentBrand, BusinessConfig } from "@/lib/business-types"
 
+/** Mock shape includes legacy `price` read by Stack B feed until migration. */
+type ProfessionalServiceMock = ProfessionalService & { price: number }
+
 // Config no formato BusinessConfig para os feeds
 export const professionalsConfig: BusinessConfig = {
-  model: "professional",
+  model: "professionals",
   name: "Dr. Ricardo Almeida",
   logo: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&crop=face",
   coverImage: "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1200&h=400&fit=crop",
@@ -41,38 +44,46 @@ export const professionalBrand: AppointmentBrand = {
   totalReviews: 156,
 }
 
-export const professionalServices: ProfessionalService[] = [
+export const professionalServices: ProfessionalServiceMock[] = [
   {
     id: "serv-1",
     name: "Consulta Inicial",
     description: "Avaliacao do seu caso com orientacao juridica personalizada",
     duration: "1 hora",
+    priceRange: "R$ 350,00",
     price: 350,
     category: "Consulta",
+    includes: ["Orientacao juridica personalizada"],
   },
   {
     id: "serv-2",
     name: "Analise de Contrato",
     description: "Revisao completa de contratos empresariais com parecer tecnico",
     duration: "2-3 dias",
+    priceRange: "R$ 800,00",
     price: 800,
     category: "Contratos",
+    includes: ["Revisao completa", "Parecer tecnico"],
   },
   {
     id: "serv-3",
     name: "Abertura de Empresa",
     description: "Assessoria completa para abertura de LTDA, MEI ou SA",
     duration: "15-30 dias",
+    priceRange: "R$ 2.500,00",
     price: 2500,
     category: "Empresarial",
+    includes: ["Assessoria completa", "LTDA, MEI ou SA"],
   },
   {
     id: "serv-4",
     name: "Defesa Trabalhista",
     description: "Representacao em processos trabalhistas",
     duration: "Variavel",
-    price: 0, // Sob consulta
+    priceRange: "Sob consulta",
+    price: 0,
     category: "Trabalhista",
+    includes: ["Representacao em processos trabalhistas"],
   },
 ]
 
