@@ -51,12 +51,10 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence (baseline) |
-| **Status** | ✅ Concluído — `docs/runtime/*` @ `673395d` |
+| **Status** | ✅ Concluído — PR #55 merged @ `ffcb548` |
 | **Objetivo** | Baseline oficial Tier 1 pós-convergência |
-| **Escopo** | `TIER1_BASELINE`, specs, invariants, constitution |
-| **Fora de escopo** | Runtime, features, AI, DB |
-| **Branch** | `docs/ws-02-5-runtime-baseline` |
-| **Gate de saída** | 7 docs runtime preenchidos; convergência congelada |
+| **Escopo** | `docs/runtime/*` completo (8 docs) |
+| **Gate de saída** | Baseline publicado; `qa:events` 8/8 via CI WS-04 ou local |
 | **Refs** | [`docs/runtime/README.md`](../runtime/README.md) |
 
 ---
@@ -81,10 +79,10 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 3 — QA/CI Minimum |
-| **Status** | 🟢 **GO — próximo workstream** |
+| **Status** | 🟡 Em PR — `chore/qa-minimum-ci` |
 | **Objetivo** | CI GitHub com gate mínimo |
-| **Escopo** | `.github/workflows/qa-minimum.yml`, template PR, `pnpm qa:events` |
-| **Fora de escopo** | Matrix 12 verticais; Playwright nightly (fase 2) |
+| **Escopo** | `.github/workflows/qa-minimum.yml` — **build + qa:events only** |
+| **Fora de escopo** | `tsc --noEmit` (WS-05); matrix 12 verticais; lint; nightly |
 | **Branch sugerida** | `chore/qa-minimum-ci` |
 | **Gate de saída** | Workflow verde em PR teste |
 | **Refs** | `docs/audit/CI_MINIMUM_STRATEGY.md`, `QA_INFRASTRUCTURE_PLAN.md` |

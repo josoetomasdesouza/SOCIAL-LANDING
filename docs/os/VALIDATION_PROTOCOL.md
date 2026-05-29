@@ -1,8 +1,9 @@
 # Validation Protocol — Social Landing
 
 **Autoridade:** Este documento  
-**Versão:** 1.0  
-**Data:** 2026-05-24
+**Versão:** 1.1  
+**Data:** 2026-05-24  
+**Atualização WS-04:** gates mínimos de CI documentados abaixo
 
 ---
 
@@ -107,6 +108,34 @@ Checklist extra:
 - [ ] Nenhum arquivo fora de `docs/` no diff
 - [ ] Links internos válidos
 - [ ] Precedência OS respeitada (não contradizer `PRIORITIES.md`)
+
+### CI/infra (WS-04)
+
+- [ ] Workflow `.github/workflows/qa-minimum.yml` verde
+- [ ] Diff restrito a `.github/` e `docs/` (sem runtime)
+- [ ] **Não** incluir `tsc --noEmit` neste WS (reservado WS-05)
+
+---
+
+## Gates mínimos de merge (WS-04 — CI)
+
+A partir de WS-04, PRs que tocam runtime **devem** passar no workflow `QA Minimum`:
+
+| Gate | Comando | Bloqueia merge? | Workstream |
+|------|---------|-----------------|------------|
+| Production build | `pnpm run build` | ✅ Sim | WS-04 |
+| Global event protocol | `pnpm qa:events` (8/8) | ✅ Sim | WS-04 |
+| TypeScript | `pnpm run typecheck` | ❌ **Não ainda** | WS-05 |
+| ESLint | `pnpm lint` | ❌ Não neste WS | Futuro |
+| Matrix 12 verticais | — | ❌ Proibido | — |
+
+**Notas:**
+
+- `qa:events` exige dev server (`next dev`) — passive events só em `NODE_ENV=development`
+- Build roda **antes** do dev server; typecheck no build continua skipped (`ignoreBuildErrors`) até WS-05
+- Docs-only PRs: CI roda mas falha de runtime gate não aplica se paths não tocarem app (workflow roda em todo PR — aceitável na fase mínima)
+
+**Referência:** [`.github/workflows/qa-minimum.yml`](../../.github/workflows/qa-minimum.yml)
 
 ---
 
