@@ -94,6 +94,36 @@ These are **non-negotiable perceptual truths** of Social Landing Tier 1. Violati
 
 ---
 
+## Social vertical invariants (post–WS-06.5)
+
+Apply to **Influencer** and future converged social-style verticals (personal, institutional post–WS-07). See [`INFLUENCER_BEHAVIOR_SPEC.md`](./INFLUENCER_BEHAVIOR_SPEC.md).
+
+### I-S1 — Social drawers stay editorial
+
+- Link lists, media kit, and partnership surfaces read as **feed extensions**, not admin panels  
+- No centered dialog chrome; bottom sheet only  
+- Content tone: creator-native (metrics, CTAs, soft cards) — not enterprise CRM  
+
+**Test:** open media kit — user still feels on a creator landing page.
+
+### I-S2 — Media kit is not a corporate modal
+
+- Single sheet with profile, metrics grid, one contact CTA  
+- No multi-step wizard, no form-heavy onboarding inside drawer  
+- External contact (`mailto:`) is acceptable; inline forms are not required for influencer  
+
+**Test:** media kit passes "creator portfolio" smell test, not "SaaS settings panel".
+
+### I-S3 — Collab flows preserve contextual continuity
+
+- Parcerias cards open **related** commercial surface (media kit) without route change  
+- Dismiss returns to same feed scroll and composer state  
+- Collab intent never dead-ends (no orphan state without drawer)  
+
+**Test:** tap parcerias card → media kit → Escape → still on Influencer feed with composer restored.
+
+---
+
 ## Verification
 
 | Method | Coverage |
@@ -120,4 +150,5 @@ If an invariant must change, require:
 
 - [`RUNTIME_CONSTITUTION.md`](./RUNTIME_CONSTITUTION.md)  
 - [`DRAWER_BEHAVIOR_SPEC.md`](./DRAWER_BEHAVIOR_SPEC.md)  
+- [`INFLUENCER_BEHAVIOR_SPEC.md`](./INFLUENCER_BEHAVIOR_SPEC.md)  
 - [`docs/os/EXPERIENCE_PHILOSOPHY.md`](../os/EXPERIENCE_PHILOSOPHY.md)  
