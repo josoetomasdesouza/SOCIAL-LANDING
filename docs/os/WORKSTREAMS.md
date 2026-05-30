@@ -125,7 +125,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence |
-| **Status** | 🟢 Próximo — GO para branch `workstream/influencer-actiondrawer` |
+| **Status** | 🟡 Em PR — `workstream/influencer-actiondrawer` |
 | **Objetivo** | Migrar influencer de Stack B → `ActionDrawer` |
 | **Escopo** | `influencer-feed.tsx`, `composerMode`, morph wiring, media kit trigger |
 | **Fora de escopo** | Institutional; AI resolver |
@@ -189,7 +189,7 @@ WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** iniciar **WS-06 — Influencer ActionDrawer Migration** (baseline TS 16; dívida restante = Stack B feeds).
+**Atual:** **WS-06 Influencer ActionDrawer Migration** — PR em review; baseline TS 10.
 
 ---
 

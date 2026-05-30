@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "qa:events": "node scripts/runtime/demo-event-checklist.mjs",
     "qa:personal": "node scripts/convergence/personal-phase3-validation.mjs",
+    "qa:influencer": "node scripts/convergence/influencer-actiondrawer-validation.mjs",
     "qa:visual": "node scripts/visual/personal-phase3-visual-smoke.mjs"
   },
   "dependencies": {
