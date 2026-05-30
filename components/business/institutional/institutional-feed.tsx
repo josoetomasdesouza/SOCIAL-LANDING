@@ -1,34 +1,42 @@
 "use client"
 
-import { useState } from "react"
-import { BusinessSocialLanding } from "../business-social-landing"
+import { useEffect, useState } from "react"
+import {
+  BusinessSocialLanding,
+  type BusinessPost,
+  type BusinessSection,
+} from "../business-social-landing"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
-import { InstrumentedDrawerBridge } from "../instrumented-drawer-bridge"
-import { DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
+import { ActionDrawer } from "../action-drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { SocialCompactHero } from "../social-compact-hero"
 import { SocialContactCTA } from "../social-contact-cta"
 import { 
-  Target, Heart, Users, Award, Mail, Phone, MapPin,
-  Building2, Linkedin, ChevronRight, Send, Check,
+  Target, Heart, Award, Mail,
+  Linkedin, ChevronRight, Send, Check,
   FileText, Download
 } from "lucide-react"
 import Image from "next/image"
+import type { BusinessConfig } from "@/lib/business-types"
+
+const institutionalContact = {
+  phone: "(11) 3456-7890",
+  email: "contato@futuroverde.org.br",
+  address: "Av. Paulista, 1000 - Sao Paulo, SP",
+}
 
 // Configuracao Institucional
-const institutionalConfig = {
-  id: "institutional-demo",
+const institutionalConfig: BusinessConfig = {
+  model: "institutional",
   name: "Instituto Futuro Verde",
   logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=150&h=150&fit=crop",
   coverImage: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=1200&h=400&fit=crop",
   description: "Transformando vidas atraves da educacao ambiental. Desde 2010 impactando comunidades em todo o Brasil.",
-  brandColor: "#22C55E",
-  phone: "(11) 3456-7890",
-  email: "contato@futuroverde.org.br",
-  address: "Av. Paulista, 1000 - Sao Paulo, SP"
+  primaryColor: "#22C55E",
+  address: institutionalContact.address,
 }
 
 // Stories Institucionais
@@ -196,16 +204,36 @@ const institutionalNews = [
   }
 ]
 
+function parseViewCount(value: string): number {
+  if (value.endsWith("K")) {
+    return Math.round(parseFloat(value) * 1000)
+  }
+  return Number.parseInt(value, 10) || 0
+}
+
 export function InstitutionalFeed() {
   const conversationSelection = useConversationSelectionState()
+  const { setComposerMode, setComposerOffsetClassName } = conversationSelection
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false)
   const [teamDrawerOpen, setTeamDrawerOpen] = useState(false)
   const [projectDrawerOpen, setProjectDrawerOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<typeof institutionalProjects[0] | null>(null)
   const [faqOpen, setFaqOpen] = useState<string | null>(null)
   const [contactSent, setContactSent] = useState(false)
-  
+
   const content = getBusinessContent("institutional")
+
+  useEffect(() => {
+    const anyDrawerOpen = contactDrawerOpen || teamDrawerOpen || projectDrawerOpen
+    const nextMode = anyDrawerOpen ? "overlay" : "default"
+    setComposerMode(nextMode)
+    setComposerOffsetClassName(undefined)
+
+    return () => {
+      setComposerMode("default")
+      setComposerOffsetClassName(undefined)
+    }
+  }, [contactDrawerOpen, teamDrawerOpen, projectDrawerOpen, setComposerMode, setComposerOffsetClassName])
   
   const handleSendContact = () => {
     setContactSent(true)
@@ -216,12 +244,12 @@ export function InstitutionalFeed() {
   }
   
   // Secoes do feed
-  const sections = [
+  const sections: BusinessSection[] = [
     // Sobre (objetivo principal - apresentacao institucional)
     {
       id: "about",
       title: "Quem Somos",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div className="space-y-4">
@@ -255,7 +283,7 @@ export function InstitutionalFeed() {
     {
       id: "pillars",
       title: "Proposito",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div className="space-y-3">
@@ -283,7 +311,7 @@ export function InstitutionalFeed() {
     {
       id: "impact",
       title: "Nosso Impacto",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div className="grid grid-cols-2 gap-3">
@@ -300,7 +328,7 @@ export function InstitutionalFeed() {
     {
       id: "team",
       title: "Nossa Equipe",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div>
@@ -328,7 +356,7 @@ export function InstitutionalFeed() {
     {
       id: "projects",
       title: "Projetos",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div className="space-y-3">
@@ -371,17 +399,12 @@ export function InstitutionalFeed() {
       posts: institutionalVideos.map((video) => ({
         id: `video-${video.id}`,
         type: "video" as const,
-        content: video.title,
+        title: video.title,
         description: video.description,
-        media: video.thumbnail,
-        videoUrl: `https://youtube.com/watch?v=${video.id}`,
+        image: video.thumbnail,
         duration: video.duration,
-        views: video.views,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timestamp: "Agora"
-      }))
+        views: parseViewCount(video.views),
+      } satisfies BusinessPost)),
     },
     // Produtos em destaque - convertido para posts
     {
@@ -391,15 +414,12 @@ export function InstitutionalFeed() {
       posts: institutionalProducts.map((product) => ({
         id: `product-${product.id}`,
         type: "product" as const,
-        content: product.name,
-        description: `R$ ${product.price.toFixed(2).replace(".", ",")} - ${product.socialProof}`,
-        media: product.image,
+        title: product.name,
+        description: product.socialProof,
+        image: product.image,
         price: product.price,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timestamp: "Agora"
-      }))
+        originalPrice: product.oldPrice,
+      } satisfies BusinessPost)),
     },
     // Noticias na midia - convertido para posts
     {
@@ -409,21 +429,17 @@ export function InstitutionalFeed() {
       posts: institutionalNews.map((news) => ({
         id: `news-${news.id}`,
         type: "news" as const,
-        content: news.title,
+        title: news.title,
         description: news.summary,
-        media: news.image,
+        image: news.image,
         source: news.source,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        timestamp: "Agora"
-      }))
+      } satisfies BusinessPost)),
     },
     // FAQ
     {
       id: "faq",
       title: "Perguntas Frequentes",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div className="space-y-2">
@@ -451,7 +467,7 @@ export function InstitutionalFeed() {
     {
       id: "contact",
       title: "Contato",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <SocialContactCTA
@@ -460,14 +476,14 @@ export function InstitutionalFeed() {
           subheadline="Fale com a equipe, acompanhe nossos canais e encontre o melhor jeito de participar."
           primaryContact={{
             label: "Email",
-            value: institutionalConfig.email,
-            href: `mailto:${institutionalConfig.email}`,
+            value: institutionalContact.email,
+            href: `mailto:${institutionalContact.email}`,
             icon: "mail",
           }}
           secondaryItems={[
             {
               label: "Telefone",
-              value: institutionalConfig.phone,
+              value: institutionalContact.phone,
               icon: "phone",
             },
             {
@@ -493,119 +509,97 @@ export function InstitutionalFeed() {
       />
       
       {/* Contact Drawer */}
-      <InstrumentedDrawerBridge
+      <ActionDrawer
+        isOpen={contactDrawerOpen}
+        onClose={() => setContactDrawerOpen(false)}
         drawerId="institutional:contact"
-        drawerKind="other"
         title="Fale Conosco"
-        vertical="institutional"
-        open={contactDrawerOpen}
-        onOpenChange={setContactDrawerOpen}
+        size="lg"
       >
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Fale Conosco</DrawerTitle>
-          </DrawerHeader>
-          <div className="p-6 space-y-4">
-            {contactSent ? (
-              <div className="flex flex-col items-center py-8">
-                <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-                  <Check className="w-8 h-8 text-green-500" />
-                </div>
-                <h3 className="text-lg font-semibold">Mensagem enviada!</h3>
-                <p className="text-muted-foreground">Entraremos em contato em breve.</p>
-              </div>
-            ) : (
-              <>
-                <Input placeholder="Nome completo" />
-                <Input placeholder="Email" type="email" />
-                <Input placeholder="Telefone" type="tel" />
-                <Textarea placeholder="Como podemos ajudar?" rows={4} />
-                <Button className="w-full" onClick={handleSendContact}>
-                  <Send className="w-4 h-4 mr-2" />
-                  Enviar mensagem
-                </Button>
-              </>
-            )}
+        {contactSent ? (
+          <div className="flex flex-col items-center py-8">
+            <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
+              <Check className="w-8 h-8 text-green-500" />
+            </div>
+            <h3 className="text-lg font-semibold">Mensagem enviada!</h3>
+            <p className="text-muted-foreground">Entraremos em contato em breve.</p>
           </div>
-        </DrawerContent>
-      </InstrumentedDrawerBridge>
-      
+        ) : (
+          <div className="space-y-4">
+            <Input placeholder="Nome completo" />
+            <Input placeholder="Email" type="email" />
+            <Input placeholder="Telefone" type="tel" />
+            <Textarea placeholder="Como podemos ajudar?" rows={4} />
+            <Button className="w-full" onClick={handleSendContact}>
+              <Send className="w-4 h-4 mr-2" />
+              Enviar mensagem
+            </Button>
+          </div>
+        )}
+      </ActionDrawer>
+
       {/* Team Drawer */}
-      <InstrumentedDrawerBridge
+      <ActionDrawer
+        isOpen={teamDrawerOpen}
+        onClose={() => setTeamDrawerOpen(false)}
         drawerId="institutional:team"
-        drawerKind="other"
         title="Nossa Equipe"
-        vertical="institutional"
-        open={teamDrawerOpen}
-        onOpenChange={setTeamDrawerOpen}
+        size="lg"
       >
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Nossa Equipe</DrawerTitle>
-          </DrawerHeader>
-          <div className="p-6 space-y-4">
-            {institutionalTeam.map((member) => (
-              <div key={member.id} className="flex items-center gap-4 p-3 rounded-xl border border-border bg-card">
-                <div className="w-14 h-14 rounded-full overflow-hidden">
-                  <Image src={member.image} alt={member.name} width={56} height={56} className="object-cover" />
-                </div>
-                <div>
-                  <p className="font-medium">{member.name}</p>
-                  <p className="text-sm text-muted-foreground">{member.role}</p>
-                </div>
-                <Button size="icon" variant="ghost" className="ml-auto">
-                  <Linkedin className="w-4 h-4" />
-                </Button>
+        <div className="space-y-4">
+          {institutionalTeam.map((member) => (
+            <div key={member.id} className="flex items-center gap-4 p-3 rounded-xl border border-border bg-card">
+              <div className="w-14 h-14 rounded-full overflow-hidden">
+                <Image src={member.image} alt={member.name} width={56} height={56} className="object-cover" />
               </div>
-            ))}
-          </div>
-        </DrawerContent>
-      </InstrumentedDrawerBridge>
-      
+              <div>
+                <p className="font-medium">{member.name}</p>
+                <p className="text-sm text-muted-foreground">{member.role}</p>
+              </div>
+              <Button size="icon" variant="ghost" className="ml-auto">
+                <Linkedin className="w-4 h-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </ActionDrawer>
+
       {/* Project Drawer */}
-      <InstrumentedDrawerBridge
+      <ActionDrawer
+        isOpen={projectDrawerOpen}
+        onClose={() => setProjectDrawerOpen(false)}
         drawerId="institutional:project"
-        drawerKind="other"
         title={selectedProject?.title ?? "Projeto"}
-        vertical="institutional"
-        open={projectDrawerOpen}
-        onOpenChange={setProjectDrawerOpen}
+        size="lg"
       >
-        <DrawerContent>
-          {selectedProject && (
-            <>
-              <DrawerHeader>
-                <DrawerTitle>{selectedProject.title}</DrawerTitle>
-              </DrawerHeader>
-              <div className="p-6 space-y-4">
-                <div className="aspect-video rounded-xl overflow-hidden">
-                  <Image 
-                    src={selectedProject.image} 
-                    alt={selectedProject.title} 
-                    width={400} 
-                    height={225} 
-                    className="object-cover w-full h-full" 
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    selectedProject.status === "Em andamento" 
-                      ? "bg-blue-500/10 text-blue-500" 
-                      : "bg-green-500/10 text-green-500"
-                  }`}>
-                    {selectedProject.status}
-                  </span>
-                </div>
-                <p className="text-muted-foreground">{selectedProject.description}</p>
-                <Button className="w-full">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Ver relatorio completo
-                </Button>
-              </div>
-            </>
-          )}
-        </DrawerContent>
-      </InstrumentedDrawerBridge>
+        {selectedProject && (
+          <div className="space-y-4">
+            <div className="aspect-video rounded-xl overflow-hidden">
+              <Image
+                src={selectedProject.image}
+                alt={selectedProject.title}
+                width={400}
+                height={225}
+                className="object-cover w-full h-full"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs px-2 py-1 rounded-full ${
+                selectedProject.status === "Em andamento"
+                  ? "bg-blue-500/10 text-blue-500"
+                  : "bg-green-500/10 text-green-500"
+              }`}>
+                {selectedProject.status}
+              </span>
+            </div>
+            <p className="text-muted-foreground">{selectedProject.description}</p>
+            <Button className="w-full">
+              <FileText className="w-4 h-4 mr-2" />
+              Ver relatorio completo
+            </Button>
+          </div>
+        )}
+      </ActionDrawer>
       </>
     </ConversationSelectionProvider>
   )

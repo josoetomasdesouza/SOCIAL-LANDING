@@ -1,24 +1,33 @@
 # TypeScript Error Baseline — Social Landing
 
-**Versão:** 1.4  
-**Capturado:** 2026-05-24 (WS-06 refresh)  
-**Workstream:** WS-06  
+**Versão:** 1.5  
+**Capturado:** 2026-05-30 (WS-07 refresh)  
+**Workstream:** WS-07  
 **Comando:** `pnpm exec tsc --noEmit`  
-**Total:** **10 erros** em **5 arquivos** (was 16 @ WS-05.5c)
+**Total:** **8 erros** em **4 arquivos** (was 10 @ WS-06)
 
 ---
 
 ## Resumo executivo
 
-| Métrica | WS-05.5c | WS-06 |
-|---------|----------|-------|
-| Total de erros | 16 | **10** (−6) |
-| Arquivos afetados | 6 | **5** |
+| Métrica | WS-06 | WS-07 |
+|---------|-------|-------|
+| Total de erros | 10 | **8** (−2) |
+| Arquivos afetados | 5 | **4** |
 | Erros Tier 1 frozen | **0** ✅ | **0** ✅ |
-| Erros Stack B feeds | 14 | **8** |
-| `influencer-feed.tsx` | 6 | **0** ✅ |
+| Erros Stack B feeds | 8 | **6** |
+| `institutional-feed.tsx` | 2 | **0** ✅ |
+| `influencer-feed.tsx` | 0 | **0** ✅ |
 
-**Conclusão:** Influencer migrado para ActionDrawer; erros TS da vertical zerados. Institutional intacto.
+**Conclusão:** Institutional migrado para ActionDrawer; erros TS da vertical zerados. Influencer intacto.
+
+---
+
+## WS-07 — correções aplicadas
+
+| Arquivo | Erros antes | Erros depois | Ação |
+|---------|-------------|--------------|------|
+| `components/business/institutional/institutional-feed.tsx` | 2 | **0** | ActionDrawer migration; `BusinessConfig`; `BusinessPost` mapping |
 
 ---
 

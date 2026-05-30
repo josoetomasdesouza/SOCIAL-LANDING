@@ -153,13 +153,13 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence |
-| **Status** | 🟢 Desbloqueado — GO para `workstream/institutional-actiondrawer` |
+| **Status** | 🟡 Em PR — `workstream/institutional-actiondrawer` |
 | **Objetivo** | Migrar institutional de Stack B → `ActionDrawer` |
-| **Escopo** | `institutional-feed.tsx`, image alt fixes, morph wiring |
-| **Fora de escopo** | Influencer (já migrado); AI resolver |
-| **Branch sugerida** | `workstream/institutional-actiondrawer` |
-| **Gate de saída** | QA converge + matriz 12/12 Stack A |
-| **Refs** | `CONTROLLED_MIGRATION_PATTERN.md` |
+| **Escopo** | `institutional-feed.tsx`, composerMode local, QA institutional |
+| **Fora de escopo** | Influencer (já migrado); AI resolver; cores Tier 1 |
+| **Branch** | `workstream/institutional-actiondrawer` |
+| **Gate de saída** | QA converge + baseline 8/8 + relatório WS-07 |
+| **Refs** | [`WS-07_INSTITUTIONAL_VALIDATION_REPORT.md`](../audit/WS-07_INSTITUTIONAL_VALIDATION_REPORT.md) |
 
 ---
 
@@ -196,13 +196,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 ✅ → WS-06 ✅ → WS-06.5 ──► **WS-07** (institutional)
+WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 ✅ → WS-06 ✅ → WS-06.5 ✅ ──► **WS-07** (institutional, em PR)
                                                               ├──► WS-03 (parity gaps)
                                                               └──► WS-08 (AI — last)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-06.5 Influencer Snapshot** (docs) → próximo **WS-07 Institutional Migration**.
+**Atual:** **WS-07 Institutional Migration** (em PR) → próximo gym/personal Stack B peel.
 
 ---
 
