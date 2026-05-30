@@ -139,7 +139,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence (baseline) |
-| **Status** | 🟡 Em PR — `docs/ws-06-5-influencer-baseline` |
+| **Status** | ✅ Complete — PR #62 merged |
 | **Objetivo** | Cristalizar comportamento oficial influencer pós-convergência |
 | **Escopo** | `docs/runtime/*`, `docs/audit/*`, `docs/os/*` — **docs only** |
 | **Fora de escopo** | Runtime, componentes, Tier 1 |
@@ -153,13 +153,26 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence |
-| **Status** | 🟡 Em PR — `workstream/institutional-actiondrawer` |
+| **Status** | ✅ Complete — PR #63 merged @ `1b64b8f` |
 | **Objetivo** | Migrar institutional de Stack B → `ActionDrawer` |
 | **Escopo** | `institutional-feed.tsx`, composerMode local, QA institutional |
 | **Fora de escopo** | Influencer (já migrado); AI resolver; cores Tier 1 |
-| **Branch** | `workstream/institutional-actiondrawer` |
 | **Gate de saída** | QA converge + baseline 8/8 + relatório WS-07 |
 | **Refs** | [`WS-07_INSTITUTIONAL_VALIDATION_REPORT.md`](../audit/WS-07_INSTITUTIONAL_VALIDATION_REPORT.md) |
+
+---
+
+### WS-07.5 — Institutional Stabilization Snapshot
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 2 — Stack Convergence (baseline) |
+| **Status** | 🟡 Em PR — `docs/ws-07-5-institutional-baseline` |
+| **Objetivo** | Cristalizar comportamento oficial institutional pós-convergência |
+| **Escopo** | `docs/runtime/*`, `docs/os/*` — **docs only** |
+| **Fora de escopo** | Runtime, componentes, Tier 1 |
+| **Gate de saída** | [`INSTITUTIONAL_BEHAVIOR_SPEC.md`](../runtime/INSTITUTIONAL_BEHAVIOR_SPEC.md) + invariants I-I1…I-I3 |
+| **Refs** | [`INSTITUTIONAL_BEHAVIOR_SPEC.md`](../runtime/INSTITUTIONAL_BEHAVIOR_SPEC.md) |
 
 ---
 
@@ -196,13 +209,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 ✅ → WS-06 ✅ → WS-06.5 ✅ ──► **WS-07** (institutional, em PR)
+WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 ✅ → WS-06 ✅ → WS-06.5 ✅ → WS-07 ✅ ──► **WS-07.5** (institutional snapshot, em PR)
                                                               ├──► WS-03 (parity gaps)
                                                               └──► WS-08 (AI — last)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-07 Institutional Migration** (em PR) → próximo gym/personal Stack B peel.
+**Atual:** **WS-07.5 Institutional Snapshot** (docs) → próximo Stack B peel (gym / personal / professionals).
 
 ---
 
