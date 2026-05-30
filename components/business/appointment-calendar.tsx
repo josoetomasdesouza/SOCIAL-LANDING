@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, Clock, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { DayAvailability, Professional } from "@/lib/business-types"
+import type { DayAvailability, Professional, TimeSlot } from "@/lib/business-types"
 import { scrollIntoViewAboveBottomInset } from "@/lib/ui/scroll-into-view-with-bottom-inset"
 
 type AvailabilityInput = DayAvailability[] | Record<string, string[]> | unknown
@@ -33,7 +33,7 @@ function normalizeAvailability(availability: AvailabilityInput): NormalizedAvail
   if (!availability) return {}
 
   if (Array.isArray(availability)) {
-    return availability.reduce<NormalizedAvailability>((acc, dayAvailability) => {
+    return (availability as DayAvailability[]).reduce<NormalizedAvailability>((acc, dayAvailability) => {
       if (
         !dayAvailability ||
         typeof dayAvailability !== "object" ||
@@ -43,7 +43,7 @@ function normalizeAvailability(availability: AvailabilityInput): NormalizedAvail
         return acc
       }
 
-      const slots = Array.isArray(dayAvailability.slots) ? dayAvailability.slots : []
+      const slots: TimeSlot[] = Array.isArray(dayAvailability.slots) ? dayAvailability.slots : []
       acc[dayAvailability.date] = slots
         .filter((slot) => slot && typeof slot.time === "string")
         .map((slot) => ({ time: slot.time, available: slot.available !== false }))

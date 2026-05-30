@@ -167,7 +167,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence (baseline) |
-| **Status** | 🟡 Em PR — `docs/ws-07-5-institutional-baseline` |
+| **Status** | ✅ Complete — PR #64 merged @ `e426ff1` |
 | **Objetivo** | Cristalizar comportamento oficial institutional pós-convergência |
 | **Escopo** | `docs/runtime/*`, `docs/os/*` — **docs only** |
 | **Fora de escopo** | Runtime, componentes, Tier 1 |
@@ -176,12 +176,26 @@
 
 ---
 
+### WS-07.6 — TS Final Peel
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 2 — Stack Convergence (type safety) |
+| **Status** | 🟡 Em PR — `chore/ws-07-6-ts-final-peel` |
+| **Objetivo** | Zerar baseline TS (8→0); remover `ignoreBuildErrors` se build strict passar |
+| **Escopo** | `gym-feed`, `personal-feed`, `professionals-feed`, `appointment-calendar`, baseline, `next.config.mjs` |
+| **Fora de escopo** | Tier 1 cores; `instrumented-drawer-bridge.tsx` cleanup; AI resolver |
+| **Gate de saída** | baseline **0/0**; build strict PASS; QA regressions green |
+| **Refs** | [`TS_ERROR_BASELINE.md`](../typescript/TS_ERROR_BASELINE.md) |
+
+---
+
 ### WS-08 — AI Resolver Expansion
 
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI |
-| **Status** | 🔴 Blocked até Era 2 concluída |
+| **Status** | 🔴 Blocked até WS-07.6 merged |
 | **Objetivo** | Resolver + visual block por vertical (1 vertical/PR) |
 | **Escopo** | Novos módulos em `lib/mock-data/`; wire por feed |
 | **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
@@ -209,13 +223,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 ✅ → WS-06 ✅ → WS-06.5 ✅ → WS-07 ✅ ──► **WS-07.5** (institutional snapshot, em PR)
+WS-01 ✅ → … → WS-07 ✅ → WS-07.5 ✅ ──► **WS-07.6** (TS final peel, em PR)
                                                               ├──► WS-03 (parity gaps)
                                                               └──► WS-08 (AI — last)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-07.5 Institutional Snapshot** (docs) → próximo Stack B peel (gym / personal / professionals).
+**Atual:** **WS-07.6 TS Final Peel** (em PR) → Era 2 close; próximo dead-code cleanup ou WS-08 AI.
 
 ---
 

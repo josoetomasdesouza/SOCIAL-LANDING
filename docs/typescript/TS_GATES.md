@@ -19,7 +19,7 @@ Definir o que **bloqueia merge**, o que é **warning**, e o que é **tolerado te
 | Production build | `pnpm run build` | ✅ Sim | WS-04 |
 | Global event protocol | `pnpm qa:events` | ✅ Sim | WS-04 |
 | **TypeScript error budget** | `pnpm ts:budget` | ✅ Sim | **WS-05** |
-| TypeScript zero-errors | `pnpm run typecheck` | ❌ **Não** | WS-05.5+ |
+| TypeScript zero-errors | `pnpm run typecheck` | ✅ Sim (baseline 0) | **WS-07.6** |
 | ESLint | `pnpm lint` | ❌ Não | Futuro |
 
 Workflow: [`.github/workflows/qa-minimum.yml`](../../.github/workflows/qa-minimum.yml)
@@ -55,18 +55,17 @@ Baseline machine-readable: [`scripts/typescript/ts-error-baseline.json`](../../s
 
 | Item | Status | Notas |
 |------|--------|-------|
-| `ignoreBuildErrors: true` | ⚠️ Ativo | Build passa com erros TS; remoção incremental WS-05.5+ |
-| 91 erros baseline | ⚠️ Documentado | Atualizado: **71** após WS-05.5 |
-| `pnpm run typecheck` exit 2 | ℹ️ Esperado | Informativo local/audit |
+| `ignoreBuildErrors` | ✅ **Off** @ WS-07.6 | Build enforces TypeScript |
+| Baseline total | ✅ **0** @ WS-07.6 | Ver [`TS_ERROR_BASELINE.md`](./TS_ERROR_BASELINE.md) |
+| `pnpm run typecheck` exit 2 | ✅ **0 erros** | Informativo + CI-ready |
 
 ---
 
 ## O que este PR **não** faz
 
-- ❌ Não remove `ignoreBuildErrors`
-- ❌ Não exige `tsc` zero-errors
-- ❌ Não refatora runtime Tier 1
-- ❌ Não altera UX perceptiva
+- ❌ Não refatora runtime Tier 1 além dos 4 feeds listados
+- ❌ Não altera UX perceptiva (exceto correções de campo morto documentadas)
+- ❌ Não remove `instrumented-drawer-bridge.tsx` órfão (PR futuro)
 
 ---
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { BusinessSocialLanding } from "../business-social-landing"
+import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { getBusinessContent } from "@/lib/mock-data/business-content"
 import { ActionDrawer } from "../action-drawer"
@@ -14,17 +14,21 @@ import {
   Camera, Book, Plane, Coffee, Send, Check
 } from "lucide-react"
 import Image from "next/image"
+import type { BusinessConfig } from "@/lib/business-types"
+
+const personalMeta = {
+  location: "Sao Paulo, SP",
+  occupation: "Software Engineer @ Tech Company",
+}
 
 // Configuracao do Usuario
-const personalConfig = {
-  id: "personal-demo",
+const personalConfig: BusinessConfig = {
+  model: "personal",
   name: "Lucas Mendes",
   logo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
   coverImage: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=400&fit=crop",
   description: "Desenvolvedor | Entusiasta de tecnologia | Amante de cafe e viagens | Sao Paulo, Brasil",
-  brandColor: "#6366F1",
-  location: "Sao Paulo, SP",
-  occupation: "Software Engineer @ Tech Company"
+  primaryColor: "#6366F1",
 }
 
 // Stories do Usuario
@@ -121,23 +125,23 @@ export function PersonalFeed() {
   }
   
   // Secoes do feed
-  const sections = [
+  const sections: BusinessSection[] = [
     // Sobre (objetivo principal - apresentacao)
     {
       id: "about",
       title: "Sobre mim",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div className="space-y-4">
           <div className="p-4 rounded-xl bg-card border border-border">
             <div className="flex items-center gap-3 mb-3">
               <MapPin className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{personalConfig.location}</span>
+              <span className="text-sm">{personalMeta.location}</span>
             </div>
             <div className="flex items-center gap-3 mb-4">
               <Briefcase className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{personalConfig.occupation}</span>
+              <span className="text-sm">{personalMeta.occupation}</span>
             </div>
             <p className="text-muted-foreground">
               Ola! Sou um desenvolvedor apaixonado por criar solucoes que fazem diferenca. 
@@ -159,7 +163,7 @@ export function PersonalFeed() {
     {
       id: "links",
       title: "Redes Sociais",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div className="flex justify-center gap-4">
@@ -183,7 +187,7 @@ export function PersonalFeed() {
     {
       id: "interests",
       title: "Interesses",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div className="flex flex-wrap gap-2">
@@ -206,7 +210,7 @@ export function PersonalFeed() {
     {
       id: "projects",
       title: "Projetos",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div className="space-y-3">
@@ -240,7 +244,7 @@ export function PersonalFeed() {
     {
       id: "photos",
       title: "Momentos",
-      type: "custom" as const,
+      type: "specific" as const,
       posts: [],
       customContent: (
         <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden">

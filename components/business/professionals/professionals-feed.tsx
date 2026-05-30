@@ -59,7 +59,7 @@ function ServicesModule({
             </div>
           </div>
           <div className="text-right ml-4">
-            <p className="font-bold text-accent">R$ {service.price.toFixed(2).replace(".", ",")}</p>
+            <p className="font-bold text-accent">{service.priceRange}</p>
           </div>
         </ContextSelectable>
       )})}
@@ -156,7 +156,7 @@ function ServiceDrawer({
               <Clock className="w-3 h-3" />
               {service.duration}
             </Badge>
-            <span className="font-bold text-accent">R$ {service.price.toFixed(2).replace(".", ",")}</span>
+            <span className="font-bold text-accent">{service.priceRange}</span>
           </div>
         </ContextSelectable>
         
