@@ -1,16 +1,14 @@
 {
   "version": 1,
-  "capturedAt": "2026-05-29",
+  "capturedAt": "2026-05-30",
   "workstream": "WS-05",
-  "total": 10,
+  "total": 8,
   "fingerprints": [
     "components/business/appointment-calendar.tsx:48:18:TS7006",
     "components/business/appointment-calendar.tsx:49:15:TS7006",
     "components/business/gym/gym-feed.tsx:158:45:TS2551",
     "components/business/gym/gym-feed.tsx:48:89:TS2551",
     "components/business/gym/gym-feed.tsx:55:19:TS2551",
-    "components/business/institutional/institutional-feed.tsx:490:9:TS2739",
-    "components/business/institutional/institutional-feed.tsx:492:9:TS2322",
     "components/business/personal/personal-feed.tsx:261:9:TS2739",
     "components/business/personal/personal-feed.tsx:263:9:TS2322",
     "components/business/professionals/professionals-feed.tsx:159:65:TS2339"
@@ -50,20 +48,6 @@
       "col": 19,
       "code": "TS2551",
       "message": "Property 'popular' does not exist on type 'GymPlan'. Did you mean 'isPopular'?"
-    },
-    {
-      "file": "components/business/institutional/institutional-feed.tsx",
-      "line": 490,
-      "col": 9,
-      "code": "TS2739",
-      "message": "Type '{ id: string; name: string; logo: string; coverImage: string; description: string; brandColor: string; phone: string; email: string; address: string; }' is missing the following properties from type 'BusinessConfig': model, primaryColor"
-    },
-    {
-      "file": "components/business/institutional/institutional-feed.tsx",
-      "line": 492,
-      "col": 9,
-      "code": "TS2322",
-      "message": "Type '({ id: string; title: string; type: \"custom\"; posts: never[]; customContent: Element; } | { id: string; title: string; type: \"content\"; posts: { id: string; type: \"video\"; content: string; description: string; ... 7 more ...; timestamp: string; }[]; customContent?: undefined; } | { ...; } | { ...; })[]' is not assignable to type 'BusinessSection[]'."
     },
     {
       "file": "components/business/personal/personal-feed.tsx",
