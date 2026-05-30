@@ -1,25 +1,32 @@
 # TypeScript Error Baseline — Social Landing
 
-**Versão:** 1.3  
-**Capturado:** 2026-05-24 (WS-05.5c refresh)  
-**Workstream:** WS-05.5c  
+**Versão:** 1.4  
+**Capturado:** 2026-05-24 (WS-06 refresh)  
+**Workstream:** WS-06  
 **Comando:** `pnpm exec tsc --noEmit`  
-**Total:** **16 erros** em **6 arquivos** (was 30 @ WS-05.5b)
+**Total:** **10 erros** em **5 arquivos** (was 16 @ WS-05.5c)
 
 ---
 
 ## Resumo executivo
 
-| Métrica | WS-05 | WS-05.5A | WS-05.5b | WS-05.5c |
-|---------|-------|----------|----------|----------|
-| Total de erros | 91 | 71 | 30 | **16** (−14) |
-| Arquivos afetados | 15 | 12 | 10 | **6** |
-| Erros Tier 1 frozen | 0 | **0** ✅ | **0** ✅ | **0** ✅ |
-| Erros runtime critical | 12 | **0** ✅ | **0** ✅ | **0** ✅ |
-| Erros safe legacy | 55 | 45 | 14 | **2** |
-| Erros experimental (Stack B) | 24 | 26 | 16 | **14** |
+| Métrica | WS-05.5c | WS-06 |
+|---------|----------|-------|
+| Total de erros | 16 | **10** (−6) |
+| Arquivos afetados | 6 | **5** |
+| Erros Tier 1 frozen | **0** ✅ | **0** ✅ |
+| Erros Stack B feeds | 14 | **8** |
+| `influencer-feed.tsx` | 6 | **0** ✅ |
 
-**Conclusão:** Safe legacy mock cleanup concluído. Dívida restante = Stack B feeds (14) + `appointment-calendar` (2).
+**Conclusão:** Influencer migrado para ActionDrawer; erros TS da vertical zerados. Institutional intacto.
+
+---
+
+## WS-06 — correções aplicadas
+
+| Arquivo | Erros antes | Erros depois | Ação |
+|---------|-------------|--------------|------|
+| `components/business/influencer/influencer-feed.tsx` | 6 | **0** | ActionDrawer migration; `BusinessConfig`; `BusinessPost` mapping |
 
 ---
 
@@ -55,7 +62,7 @@
 
 | Arquivo | Erros | WS futuro |
 |---------|-------|-----------|
-| `components/business/influencer/influencer-feed.tsx` | 6 | WS-06 |
+| `components/business/influencer/influencer-feed.tsx` | 0 | WS-06 ✅ |
 | `components/business/gym/gym-feed.tsx` | 3 | Stack B |
 | `components/business/institutional/institutional-feed.tsx` | 2 | WS-07 |
 | `components/business/personal/personal-feed.tsx` | 2 | Stack B |
@@ -65,7 +72,7 @@
 
 ## Error budget
 
-Machine baseline: [`scripts/typescript/ts-error-baseline.json`](../../scripts/typescript/ts-error-baseline.json) — **16 fingerprints**
+Machine baseline: [`scripts/typescript/ts-error-baseline.json`](../../scripts/typescript/ts-error-baseline.json) — **10 fingerprints**
 
 Gate: `pnpm ts:budget`
 
