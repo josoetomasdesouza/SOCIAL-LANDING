@@ -94,9 +94,9 @@ These are **non-negotiable perceptual truths** of Social Landing Tier 1. Violati
 
 ---
 
-## Social vertical invariants (post–WS-06.5)
+## Social vertical invariants (post–WS-06.5 / WS-07.5)
 
-Apply to **Influencer** and future converged social-style verticals (personal, institutional post–WS-07). See [`INFLUENCER_BEHAVIOR_SPEC.md`](./INFLUENCER_BEHAVIOR_SPEC.md).
+Apply to **Influencer** (WS-06.5) and **Institutional** (WS-07.5) converged social-style verticals. Personal remains Stack A but uses a portfolio pattern — see personal precedent. See [`INFLUENCER_BEHAVIOR_SPEC.md`](./INFLUENCER_BEHAVIOR_SPEC.md) and [`INSTITUTIONAL_BEHAVIOR_SPEC.md`](./INSTITUTIONAL_BEHAVIOR_SPEC.md).
 
 ### I-S1 — Social drawers stay editorial
 
@@ -121,6 +121,36 @@ Apply to **Influencer** and future converged social-style verticals (personal, i
 - Collab intent never dead-ends (no orphan state without drawer)  
 
 **Test:** tap parcerias card → media kit → Escape → still on Influencer feed with composer restored.
+
+---
+
+## Institutional vertical invariants (post–WS-07.5)
+
+Apply to **Institutional** after WS-07 ActionDrawer convergence. See [`INSTITUTIONAL_BEHAVIOR_SPEC.md`](./INSTITUTIONAL_BEHAVIOR_SPEC.md).
+
+### I-I1 — Institutional drawers stay mission-forward
+
+- Contact, team, and project surfaces read as **NGO landing extensions**, not admin dashboards  
+- No centered dialog chrome; bottom sheet only  
+- Content tone: impact, outreach, transparency — not enterprise CRM or ticketing UI  
+
+**Test:** open contact drawer — user still feels on an institutional landing page, not a support portal.
+
+### I-I2 — Contact outreach is a single-sheet flow
+
+- One form with name, email, phone, message — no multi-step wizard  
+- Submit shows success state; auto-close after brief confirmation is acceptable  
+- Mock submission (no backend) is accepted — behavior must not regress to broken or silent failure  
+
+**Test:** submit contact → success icon → drawer closes → reopen shows fresh form.
+
+### I-I3 — Project and team flows preserve feed continuity
+
+- Project cards open detail drawer with status, image, and description — no route change  
+- Team expansion drawer lists full roster; feed preview cards remain inline  
+- Dismiss returns to same scroll context and composer `default` mode  
+
+**Test:** tap Escola Verde → project drawer → Escape → still on Institucional feed with composer restored.
 
 ---
 
@@ -151,4 +181,5 @@ If an invariant must change, require:
 - [`RUNTIME_CONSTITUTION.md`](./RUNTIME_CONSTITUTION.md)  
 - [`DRAWER_BEHAVIOR_SPEC.md`](./DRAWER_BEHAVIOR_SPEC.md)  
 - [`INFLUENCER_BEHAVIOR_SPEC.md`](./INFLUENCER_BEHAVIOR_SPEC.md)  
+- [`INSTITUTIONAL_BEHAVIOR_SPEC.md`](./INSTITUTIONAL_BEHAVIOR_SPEC.md)  
 - [`docs/os/EXPERIENCE_PHILOSOPHY.md`](../os/EXPERIENCE_PHILOSOPHY.md)  
