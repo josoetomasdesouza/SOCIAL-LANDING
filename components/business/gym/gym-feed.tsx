@@ -45,14 +45,14 @@ function PlansModule({
           onClick={() => onSelectPlan(plan)}
           onLongPress={() => onToggleConversationContext?.(contextItem)}
           selected={isInConversation?.(contextItem.id) ?? false}
-          className={`w-full text-left p-4 rounded-xl border-2 transition-colors ${plan.popular ? "border-accent bg-accent/5" : "border-border/50 hover:border-accent/50"}`}
+          className={`w-full text-left p-4 rounded-xl border-2 transition-colors ${plan.isPopular ? "border-accent bg-accent/5" : "border-border/50 hover:border-accent/50"}`}
         >
           <div className="flex items-start justify-between mb-3">
             <div>
               <h3 className="font-bold text-lg">{plan.name}</h3>
               <p className="text-sm text-muted-foreground">{plan.description}</p>
             </div>
-            {plan.popular && <Badge className="bg-accent text-accent-foreground">Popular</Badge>}
+            {plan.isPopular && <Badge className="bg-accent text-accent-foreground">Popular</Badge>}
           </div>
           <div className="flex items-baseline gap-1 mb-3">
             <span className="text-3xl font-bold text-accent">R$ {plan.price.toFixed(2).replace(".", ",")}</span>
@@ -155,7 +155,7 @@ function PlanDetailDrawer({
           dataMorphSourceId={planContextItem.id}
           onLongPress={() => onToggleConversationContext?.(planContextItem)}
           selected={isInConversation?.(planContextItem.id) ?? false}
-          className={`p-4 rounded-xl ${plan.popular ? "bg-accent/10" : "bg-secondary/50"}`}
+          className={`p-4 rounded-xl ${plan.isPopular ? "bg-accent/10" : "bg-secondary/50"}`}
         >
           <div className="flex items-baseline gap-1 mb-2">
             <span className="text-3xl font-bold text-accent">R$ {plan.price.toFixed(2).replace(".", ",")}</span>

@@ -1,74 +1,8 @@
 {
   "version": 1,
   "capturedAt": "2026-05-30",
-  "workstream": "WS-05",
-  "total": 8,
-  "fingerprints": [
-    "components/business/appointment-calendar.tsx:48:18:TS7006",
-    "components/business/appointment-calendar.tsx:49:15:TS7006",
-    "components/business/gym/gym-feed.tsx:158:45:TS2551",
-    "components/business/gym/gym-feed.tsx:48:89:TS2551",
-    "components/business/gym/gym-feed.tsx:55:19:TS2551",
-    "components/business/personal/personal-feed.tsx:261:9:TS2739",
-    "components/business/personal/personal-feed.tsx:263:9:TS2322",
-    "components/business/professionals/professionals-feed.tsx:159:65:TS2339"
-  ],
-  "errors": [
-    {
-      "file": "components/business/appointment-calendar.tsx",
-      "line": 48,
-      "col": 18,
-      "code": "TS7006",
-      "message": "Parameter 'slot' implicitly has an 'any' type."
-    },
-    {
-      "file": "components/business/appointment-calendar.tsx",
-      "line": 49,
-      "col": 15,
-      "code": "TS7006",
-      "message": "Parameter 'slot' implicitly has an 'any' type."
-    },
-    {
-      "file": "components/business/gym/gym-feed.tsx",
-      "line": 158,
-      "col": 45,
-      "code": "TS2551",
-      "message": "Property 'popular' does not exist on type 'GymPlan'. Did you mean 'isPopular'?"
-    },
-    {
-      "file": "components/business/gym/gym-feed.tsx",
-      "line": 48,
-      "col": 89,
-      "code": "TS2551",
-      "message": "Property 'popular' does not exist on type 'GymPlan'. Did you mean 'isPopular'?"
-    },
-    {
-      "file": "components/business/gym/gym-feed.tsx",
-      "line": 55,
-      "col": 19,
-      "code": "TS2551",
-      "message": "Property 'popular' does not exist on type 'GymPlan'. Did you mean 'isPopular'?"
-    },
-    {
-      "file": "components/business/personal/personal-feed.tsx",
-      "line": 261,
-      "col": 9,
-      "code": "TS2739",
-      "message": "Type '{ id: string; name: string; logo: string; coverImage: string; description: string; brandColor: string; location: string; occupation: string; }' is missing the following properties from type 'BusinessConfig': model, primaryColor"
-    },
-    {
-      "file": "components/business/personal/personal-feed.tsx",
-      "line": 263,
-      "col": 9,
-      "code": "TS2322",
-      "message": "Type '{ id: string; title: string; type: \"custom\"; posts: never[]; customContent: Element; }[]' is not assignable to type 'BusinessSection[]'."
-    },
-    {
-      "file": "components/business/professionals/professionals-feed.tsx",
-      "line": 159,
-      "col": 65,
-      "code": "TS2339",
-      "message": "Property 'price' does not exist on type 'ProfessionalService'."
-    }
-  ]
+  "workstream": "WS-07.6",
+  "total": 0,
+  "fingerprints": [],
+  "errors": []
 }
