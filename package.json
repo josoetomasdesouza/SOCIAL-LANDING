@@ -15,6 +15,7 @@
     "qa:influencer": "node scripts/convergence/influencer-actiondrawer-validation.mjs",
     "qa:institutional": "node scripts/convergence/institutional-actiondrawer-validation.mjs",
     "qa:restaurant": "node scripts/convergence/restaurant-ai-resolver-validation.mjs",
+    "qa:health": "node scripts/convergence/health-ai-resolver-validation.mjs",
     "qa:visual": "node scripts/visual/personal-phase3-visual-smoke.mjs"
   },
   "dependencies": {

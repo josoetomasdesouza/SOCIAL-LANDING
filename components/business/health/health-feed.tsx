@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { Clock, Star, Calendar, Stethoscope, Video, Play, Shield, Newspaper, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,8 @@ import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { healthConfig, healthProfessionals, healthServices } from "@/lib/mock-data/health-data"
+import { createHealthMockConversationResolver } from "@/lib/mock-data/health-conversational-search"
+import { createHealthConversationalVisualBlockRenderer } from "./health-conversational-visual-block"
 import { healthContent } from "@/lib/mock-data/business-content"
 import type { HealthProfessional } from "@/lib/business-types"
 
@@ -251,6 +253,45 @@ export function HealthFeed() {
       setComposerOffsetClassName(undefined)
     }
   }, [confirmationOpen, professionalDrawerOpen, setComposerMode, setComposerOffsetClassName])
+
+  const openProfessionalDrawer = (professional: HealthProfessional) => {
+    setSelectedProfessional(professional)
+    setProfessionalDrawerOpen(true)
+  }
+
+  const openProfessionalById = (professionalId: string) => {
+    const professional = healthProfessionals.find((prof) => prof.id === professionalId)
+    if (professional) {
+      openProfessionalDrawer(professional)
+    }
+  }
+
+  const openServiceDrawer = (service: (typeof healthServices)[number]) => {
+    const professional = service.professional
+      ? healthProfessionals.find((prof) => prof.name === service.professional)
+      : null
+
+    if (professional) {
+      openProfessionalDrawer(professional)
+    }
+  }
+
+  const conversationResponseResolver = useMemo(
+    () => createHealthMockConversationResolver(),
+    []
+  )
+
+  const renderConversationVisualBlock = useMemo(
+    () =>
+      createHealthConversationalVisualBlockRenderer({
+        professionals: healthProfessionals,
+        services: healthServices,
+        onSelectProfessional: openProfessionalDrawer,
+        onSelectService: openServiceDrawer,
+        onScheduleProfessional: openProfessionalById,
+      }),
+    []
+  )
   
   const handleSchedule = (date: string, time: string) => {
     setBookedDate(date)
@@ -320,6 +361,8 @@ export function HealthFeed() {
         config={healthConfig}
         stories={healthContent.stories}
         sections={sections}
+        conversationResponseResolver={conversationResponseResolver}
+        renderConversationVisualBlock={renderConversationVisualBlock}
         footerLinks={[
           { label: "Sobre", href: "#" },
           { label: "Especialidades", href: "#" },
