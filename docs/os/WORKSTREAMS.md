@@ -224,12 +224,26 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI |
-| **Status** | 🟡 Em PR — `workstream/ai-resolver-health` |
+| **Status** | ✅ Concluído — PR #68 merged @ `41b4ff7` |
 | **Objetivo** | Resolver + visual blocks isolados para saúde |
 | **Escopo** | `health-feed.tsx`, `health-conversational-search.ts`, mock-data health, QA health |
 | **Fora de escopo** | `ecommerceMockConversationResolver`; restaurant resolver; Tier 1 cores |
-| **Gate de saída** | `qa:health` + relatório WS-08B |
+| **Gate de saída** | `qa:health` 7/7 + relatório WS-08B |
 | **Refs** | [`WS-08B_HEALTH_AI_RESOLVER_REPORT.md`](../audit/WS-08B_HEALTH_AI_RESOLVER_REPORT.md) |
+
+---
+
+### WS-08.5 — AI Resolver Governance
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 5 — Multi-Vertical AI |
+| **Status** | 🟡 Em PR — `workstream/ai-resolver-governance` |
+| **Objetivo** | Constituição oficial e contratos para resolvers multi-vertical |
+| **Escopo** | `docs/ai/*` — constitution, contract, patterns, invariants, evolution |
+| **Fora de escopo** | Runtime; resolver implementations; Tier 1 cores |
+| **Gate de saída** | Docs-only PR; CI green |
+| **Refs** | [`docs/ai/`](../ai/AI_RESOLVER_CONSTITUTION.md) |
 
 ---
 
@@ -244,7 +258,7 @@
 | **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
 | **Branch sugerida** | `workstream/ai-resolver-<vertical>` |
 | **Gate de saída** | Resolver dedicado + smoke conversacional |
-| **Ordem sugerida** | ~~restaurant~~ ✅ WS-08A → ~~health~~ 🟡 WS-08B → appointment |
+| **Ordem sugerida** | ~~restaurant~~ ✅ WS-08A → ~~health~~ ✅ WS-08B → ~~governance~~ 🟡 WS-08.5 → appointment |
 
 ---
 
@@ -267,13 +281,14 @@
 
 ```txt
 WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada** ──► **WS-08A** ✅ restaurant AI
-                                                              ├──► **WS-08B** (health AI, em PR)
+                                                              ├──► **WS-08B** ✅ health AI
+                                                              ├──► **WS-08.5** (governance, em PR)
                                                               ├──► WS-03 (parity gaps)
-                                                              └──► WS-08 (AI — appointment)
+                                                              └──► WS-08C (AI — appointment)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-08B Health AI Resolver** (em PR) → próximo appointment.
+**Atual:** **WS-08.5 AI Resolver Governance** (docs-only PR) → próximo **WS-08C Appointment**.
 
 ---
 
