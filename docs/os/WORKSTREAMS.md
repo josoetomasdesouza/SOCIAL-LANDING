@@ -125,13 +125,26 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence |
-| **Status** | 🟡 Em PR — `workstream/influencer-actiondrawer` |
+| **Status** | ✅ Concluído — PR #61 merged @ `6fe2b88` |
 | **Objetivo** | Migrar influencer de Stack B → `ActionDrawer` |
 | **Escopo** | `influencer-feed.tsx`, `composerMode`, morph wiring, media kit trigger |
 | **Fora de escopo** | Institutional; AI resolver |
-| **Branch sugerida** | `workstream/influencer-actiondrawer` |
-| **Gate de saída** | `qa:influencer` script + re-run perceptual |
-| **Refs** | `PRIORITIES.md` — próxima vertical GO |
+| **Gate de saída** | `qa:influencer` 8/8; TS 16→10; Tier 1 = 0 |
+| **Refs** | [`WS-06_INFLUENCER_VALIDATION_REPORT.md`](../audit/WS-06_INFLUENCER_VALIDATION_REPORT.md) |
+
+---
+
+### WS-06.5 — Influencer Stabilization Snapshot
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 2 — Stack Convergence (baseline) |
+| **Status** | 🟡 Em PR — `docs/ws-06-5-influencer-baseline` |
+| **Objetivo** | Cristalizar comportamento oficial influencer pós-convergência |
+| **Escopo** | `docs/runtime/*`, `docs/audit/*`, `docs/os/*` — **docs only** |
+| **Fora de escopo** | Runtime, componentes, Tier 1 |
+| **Gate de saída** | [`INFLUENCER_BEHAVIOR_SPEC.md`](../runtime/INFLUENCER_BEHAVIOR_SPEC.md) + [`WS-06_5_INFLUENCER_BASELINE.md`](../audit/WS-06_5_INFLUENCER_BASELINE.md) |
+| **Refs** | [`INFLUENCER_BEHAVIOR_SPEC.md`](../runtime/INFLUENCER_BEHAVIOR_SPEC.md) |
 
 ---
 
@@ -140,7 +153,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence |
-| **Status** | 🔴 Blocked até WS-06 |
+| **Status** | 🟢 Desbloqueado — GO para `workstream/institutional-actiondrawer` |
 | **Objetivo** | Migrar institutional de Stack B → `ActionDrawer` |
 | **Escopo** | `institutional-feed.tsx`, image alt fixes, morph wiring |
 | **Fora de escopo** | Influencer (já migrado); AI resolver |
@@ -183,13 +196,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 ✅ ──┬──► **WS-06** (influencer) → WS-07
+WS-01 ✅ → WS-02 ✅ → WS-02.5 ✅ → WS-04 ✅ → WS-05 ✅ → WS-05.5 ✅ → WS-06 ✅ → WS-06.5 ──► **WS-07** (institutional)
                                                               ├──► WS-03 (parity gaps)
                                                               └──► WS-08 (AI — last)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-06 Influencer ActionDrawer Migration** — PR em review; baseline TS 10.
+**Atual:** **WS-06.5 Influencer Snapshot** (docs) → próximo **WS-07 Institutional Migration**.
 
 ---
 

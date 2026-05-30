@@ -21,6 +21,7 @@ Post–PR #52, this directory is the **single source of truth** for Tier 1 runti
 | [`COMPOSER_BEHAVIOR_SPEC.md`](./COMPOSER_BEHAVIOR_SPEC.md) | Modes, clearance, morph |
 | [`CHECKOUT_PATTERNS.md`](./CHECKOUT_PATTERNS.md) | Footer registration, cart, vertical matrix |
 | [`PERCEPTUAL_INVARIANTS.md`](./PERCEPTUAL_INVARIANTS.md) | Non-negotiable UX truths |
+| [`INFLUENCER_BEHAVIOR_SPEC.md`](./INFLUENCER_BEHAVIOR_SPEC.md) | Influencer vertical post–WS-06 (Stack A) |
 | [`RUNTIME_CONSTITUTION.md`](./RUNTIME_CONSTITUTION.md) | Philosophy, anti-patterns, evolution rules |
 
 ---
