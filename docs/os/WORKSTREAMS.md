@@ -210,12 +210,26 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI |
-| **Status** | 🟡 Em PR — `workstream/ai-resolver-restaurant` |
+| **Status** | ✅ Concluído — PR #67 merged @ `4f1f57f` |
 | **Objetivo** | Resolver + visual blocks isolados para restaurante |
 | **Escopo** | `restaurant-feed.tsx`, `restaurant-conversational-search.ts`, QA restaurant |
 | **Fora de escopo** | `ecommerceMockConversationResolver`; Tier 1 cores |
-| **Gate de saída** | `qa:restaurant` + relatório WS-08A |
+| **Gate de saída** | `qa:restaurant` 6/6 + relatório WS-08A |
 | **Refs** | [`WS-08A_RESTAURANT_AI_RESOLVER_REPORT.md`](../audit/WS-08A_RESTAURANT_AI_RESOLVER_REPORT.md) |
+
+---
+
+### WS-08B — Health AI Resolver
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 5 — Multi-Vertical AI |
+| **Status** | 🟡 Em PR — `workstream/ai-resolver-health` |
+| **Objetivo** | Resolver + visual blocks isolados para saúde |
+| **Escopo** | `health-feed.tsx`, `health-conversational-search.ts`, mock-data health, QA health |
+| **Fora de escopo** | `ecommerceMockConversationResolver`; restaurant resolver; Tier 1 cores |
+| **Gate de saída** | `qa:health` + relatório WS-08B |
+| **Refs** | [`WS-08B_HEALTH_AI_RESOLVER_REPORT.md`](../audit/WS-08B_HEALTH_AI_RESOLVER_REPORT.md) |
 
 ---
 
@@ -230,7 +244,7 @@
 | **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
 | **Branch sugerida** | `workstream/ai-resolver-<vertical>` |
 | **Gate de saída** | Resolver dedicado + smoke conversacional |
-| **Ordem sugerida** | ~~restaurant~~ ✅ WS-08A → health → appointment |
+| **Ordem sugerida** | ~~restaurant~~ ✅ WS-08A → ~~health~~ 🟡 WS-08B → appointment |
 
 ---
 
@@ -252,13 +266,14 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada** ──► **WS-08A** (restaurant AI, em PR)
+WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada** ──► **WS-08A** ✅ restaurant AI
+                                                              ├──► **WS-08B** (health AI, em PR)
                                                               ├──► WS-03 (parity gaps)
-                                                              └──► WS-08 (AI — last)
+                                                              └──► WS-08 (AI — appointment)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-08A Restaurant AI Resolver** (em PR) → próximo health/appointment.
+**Atual:** **WS-08B Health AI Resolver** (em PR) → próximo appointment.
 
 ---
 
