@@ -65,7 +65,6 @@ Baseline machine-readable: [`scripts/typescript/ts-error-baseline.json`](../../s
 
 - ❌ Não refatora runtime Tier 1 além dos 4 feeds listados
 - ❌ Não altera UX perceptiva (exceto correções de campo morto documentadas)
-- ❌ Não remove `instrumented-drawer-bridge.tsx` órfão (PR futuro)
 
 ---
 

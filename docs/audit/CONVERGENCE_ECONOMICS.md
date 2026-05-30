@@ -56,7 +56,7 @@ The protocol **justifies its cost** for Tier-2 drawer migrations; it would **not
 
 **Still blocking full convergibility:**
 
-- `InstrumentedDrawerBridge` must remain until influencer + institutional migrate  
+- ~~`InstrumentedDrawerBridge` must remain until influencer + institutional migrate~~ ✅ Resolved (Era 2)
 - ComposerMode policy unset for profile-style verticals  
 - Escape behavior unset globally  
 - Title-as-ID debt across legacy ActionDrawer calls  

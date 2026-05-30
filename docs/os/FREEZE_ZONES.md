@@ -100,7 +100,6 @@ Este documento é mais específico que `FROZEN_ZONES.md`: aponta **paths e compo
 - `lib/events/event-bus.ts`
 - `lib/events/instrumentation.ts`
 - `lib/events/event-replay.ts`
-- `components/business/instrumented-drawer-bridge.tsx` (até deprecação WS-06/07)
 
 **Congelado:**
 
@@ -110,7 +109,6 @@ Este documento é mais específico que `FROZEN_ZONES.md`: aponta **paths e compo
 **Permitido:**
 
 - Novos eventos Tier 2/3 add-only
-- Bridge Stack B até migração completa
 
 ---
 
