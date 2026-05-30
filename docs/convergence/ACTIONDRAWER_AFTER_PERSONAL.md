@@ -167,7 +167,7 @@ Personal now behaves like restaurant/health:
 | `drawerKind` configurability | `action` vs `other` is convergence marker, not config soup |
 | Unified drawer size tokens (90vh parity) | Visual refinement phase — separate workstream |
 | Extract shared `useStackBDrawerMigrate` hook | Only 1 vertical migrated |
-| Delete `InstrumentedDrawerBridge` | Still used by influencer + institutional |
+| ~~Delete `InstrumentedDrawerBridge`~~ | ✅ Removed post–Era 2 (zero imports) |
 | Merge ActionDrawer + BusinessFeedDrawer | Tier 1 / feed-drawer semantics differ |
 
 ---

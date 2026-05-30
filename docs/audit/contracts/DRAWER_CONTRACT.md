@@ -10,10 +10,10 @@
 | Aspecto | Estado |
 |---------|--------|
 | Stack A | ActionDrawer + BusinessFeedDrawer — instrumentados |
-| Stack B | shadcn/vaul + InstrumentedDrawerBridge (7 drawers) |
-| Scroll lock | 3 cópias idênticas, **sem ref-count** |
-| Convergência | DD-01 decidido; migração Fase 3 pendente |
-| Dual semantics | **Ativo** — maior blocker estrutural |
+| Stack B | ~~shadcn/vaul + InstrumentedDrawerBridge~~ **Removed** @ Era 2 |
+| Scroll lock | ActionDrawer ref-count (Stack A) |
+| Convergência | ✅ Era 2 complete |
+| Dual semantics | **Resolved** — single stack (ActionDrawer) |
 
 ---
 
@@ -23,8 +23,7 @@
 |--------|-------------|-------|
 | Feed content drawer | `BusinessSocialLanding.feedDrawerOpen` | A |
 | Action drawers | Vertical feed local state | A |
-| Stack B drawers | Vertical feed + shadcn | B (bridge) |
-| Scroll lock | Per-drawer useEffect | A (+ B via vaul) |
+| Scroll lock | Per-drawer useEffect | A |
 
 ---
 
@@ -35,7 +34,7 @@
 | Event Bus | `drawer.opened`, `drawer.closed` |
 | Event Bus | `surface.opened`, `surface.closed` (paired) |
 | Shadow | openDrawers[], activeSurfaceIds[] |
-| Bridge | Stack B emits via InstrumentedDrawerBridge |
+| ~~Bridge~~ | ~~Stack B emits via InstrumentedDrawerBridge~~ — removed |
 
 ---
 

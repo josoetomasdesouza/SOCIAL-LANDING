@@ -29,7 +29,9 @@
 | Conversation selection provider | 12/12 feeds | `conversation-selection-context.tsx` |
 | E-commerce vertical (referência) | Resolver + exploration memory | `ecommerce/ecommerce-feed.tsx` |
 | Personal Phase 3 convergence | 9/9 script | `personal/personal-feed.tsx` |
-| Stack A drawers (10 verticais) | ActionDrawer instrumentado | `action-drawer.tsx` + feeds Stack A |
+| Stack A drawers (all business feeds) | ActionDrawer instrumentado | `action-drawer.tsx` + feeds |
+| Influencer / Institutional convergence | WS-06/07 complete | `influencer-feed.tsx`, `institutional-feed.tsx` |
+| TypeScript strict build | baseline 0; `ignoreBuildErrors: false` | WS-07.6 @ PR #65 |
 
 ---
 
@@ -43,7 +45,6 @@
 | Appointment hero morph | Toggle sem `WithMorph` | WS-03 |
 | Real estate WhatsApp | `window.open` sem instrumentação | WS-03 |
 | QA scripts | Existem localmente; sem CI GitHub | WS-04 |
-| TypeScript build | `ignoreBuildErrors: true` | WS-05 |
 
 ---
 
@@ -51,8 +52,6 @@
 
 | Área | Estado | Notas |
 |------|--------|-------|
-| Influencer feed (Stack B) | `InstrumentedDrawerBridge` | WS-06 — próxima vertical GO |
-| Institutional feed (Stack B) | Idem | WS-07 — após influencer |
 | DB / media stack | Off-main, WIP | WS-09 — PR isolado |
 | Storage schema alignment doc | Arquivo vazio | `docs/architecture/social-landing-storage-schema-alignment.md` |
 | E-commerce product card WIP | Branch `workstream/ecommerce-product-card` | Peel antes de merge |
@@ -66,7 +65,7 @@
 | Área | Substituto | Remoção prevista |
 |------|------------|------------------|
 | Restaurant bottom cart bar | Header cart (`onHeaderCartClick`) | Removido em PR #52 — validar pós-merge |
-| `InstrumentedDrawerBridge` (Stack B) | `ActionDrawer` | Após WS-06 + WS-07 |
+| ~~`InstrumentedDrawerBridge` (Stack B)~~ | `ActionDrawer` | **Removido** post–Era 2 (PR cleanup) |
 | Docs audit duplicados (`* 2.md`) | Versões canônicas em `docs/audit/` | Era 1 hygiene |
 
 ---
@@ -75,9 +74,7 @@
 
 | Item | Bloqueado até | Razão |
 |------|---------------|-------|
-| WS-06 Influencer migration | WS-02 merge PR #52 + WS-01 peel | Baseline drawer unstable on main |
-| WS-07 Institutional migration | WS-06 estabilizado | Sequência 1 vertical/ciclo |
-| WS-08 AI resolver expansion | Era 2 (Stack) concluída | Drawer/composer deve convergir primeiro |
+| WS-08 AI resolver expansion | Era 2 concluída | Drawer/composer convergiu |
 | WS-09 DB/Storage merge | GO humano + PR isolado | Contaminação runtime |
 | Identity layer | Eras 1–4 | `PRIORITIES.md` NO-GO |
 | BookingPort / payment real | Produto futuro | Fora de escopo convergência |
@@ -89,10 +86,10 @@
 | ID | Risco | Severidade | Mitigação |
 |----|-------|------------|-----------|
 | KR-01 | Árvore suja local — WIPs misturados | 🔴 Alta | WS-01 peel protocol |
-| KR-02 | Dual stack drawer (A vs B) | 🔴 Alta | WS-06, WS-07 |
+| KR-02 | ~~Dual stack drawer (A vs B)~~ | ✅ Resolvido | Era 2 complete — Stack B removed |
 | KR-03 | PR #52 não mergeado — drift main vs branch | 🟡 Média | WS-02 merge + re-run |
 | KR-04 | Sem CI GitHub — regressão silenciosa | 🟡 Média | WS-04 |
-| KR-05 | `ignoreBuildErrors` — erros TS ocultos | 🟡 Média | WS-05 |
+| KR-05 | ~~`ignoreBuildErrors`~~ | ✅ Resolvido | WS-07.6 — strict build |
 | KR-06 | AI só e-commerce — expectativa desalinhada | 🟢 Baixa | Comunicar; WS-08 |
 | KR-07 | Docs duplicados (`* 2.md`) — fonte ambígua | 🟡 Média | WS-01 dedupe |
 | KR-08 | Frozen zone touch sem protocolo | 🔴 Alta | `FREEZE_ZONES.md` + revisão humana |

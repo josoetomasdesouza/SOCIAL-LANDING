@@ -31,7 +31,7 @@ Toda alteração proposta deve ser classificada **antes** de implementação:
 | Classe | Descrição | Exemplos | Gate |
 |--------|-----------|----------|------|
 | **OBSERVATION_ONLY** | Documentação, shadow compare, REAL_USAGE, timeline | Audit docs, divergence logs | Nenhum |
-| **SAFE_INSTRUMENTATION** | Wiring passivo `observe*` sem alterar UX | InstrumentedDrawerBridge, event helpers | Event validation checklist |
+| **SAFE_INSTRUMENTATION** | Wiring passivo `observe*` sem alterar UX | Event helpers (`lib/events/`) | Event validation checklist |
 | **CONTRACT_CHANGE** | Altera comportamento observável documentado | composerMode policy, drawer close semantics | Contract doc + REAL_USAGE |
 | **RUNTIME_MIGRATION** | Troca ownership/lifecycle de superfície | shadcn → ActionDrawer, scroll lock ref-count | DD-01 + migration strategy + rollback |
 | **TIER1_RISK** | Toca morph, composer measurement, z-index, RAF | `post-to-chat-morph-layer.tsx`, `conversational-ai.tsx` | FROZEN_SYSTEMS protocol + perceptual QA |

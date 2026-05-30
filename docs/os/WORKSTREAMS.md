@@ -181,7 +181,7 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence (type safety) |
-| **Status** | 🟡 Em PR — `chore/ws-07-6-ts-final-peel` |
+| **Status** | ✅ Complete — PR #65 merged @ `47af7ff` |
 | **Objetivo** | Zerar baseline TS (8→0); remover `ignoreBuildErrors` se build strict passar |
 | **Escopo** | `gym-feed`, `personal-feed`, `professionals-feed`, `appointment-calendar`, baseline, `next.config.mjs` |
 | **Fora de escopo** | Tier 1 cores; `instrumented-drawer-bridge.tsx` cleanup; AI resolver |
@@ -190,12 +190,25 @@
 
 ---
 
+### WS-07.7 — Stack B Cleanup
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 2 — Stack Convergence (closure) |
+| **Status** | 🟡 Em PR — `chore/stack-b-cleanup` |
+| **Objetivo** | Remover `instrumented-drawer-bridge.tsx` órfão; atualizar refs operacionais |
+| **Escopo** | Delete bridge file; `docs/os/*`, `docs/typescript/*`, refs diretas obsoletas |
+| **Fora de escopo** | Runtime behavior; Tier 1 cores; AI; DB |
+| **Gate de saída** | Zero imports; QA green; CI green |
+
+---
+
 ### WS-08 — AI Resolver Expansion
 
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI |
-| **Status** | 🔴 Blocked até WS-07.6 merged |
+| **Status** | 🟢 Desbloqueado — GO após WS-07.7 cleanup |
 | **Objetivo** | Resolver + visual block por vertical (1 vertical/PR) |
 | **Escopo** | Novos módulos em `lib/mock-data/`; wire por feed |
 | **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
@@ -223,13 +236,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → … → WS-07 ✅ → WS-07.5 ✅ ──► **WS-07.6** (TS final peel, em PR)
+WS-01 ✅ → … → WS-07.6 ✅ ──► **WS-07.7** (Stack B cleanup, em PR)
                                                               ├──► WS-03 (parity gaps)
                                                               └──► WS-08 (AI — last)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-07.6 TS Final Peel** (em PR) → Era 2 close; próximo dead-code cleanup ou WS-08 AI.
+**Atual:** **WS-07.7 Stack B Cleanup** (em PR) → Era 2 closed; próximo WS-08 AI.
 
 ---
 
