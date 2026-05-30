@@ -238,12 +238,26 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI |
-| **Status** | 🟡 Em PR — `workstream/ai-resolver-governance` |
+| **Status** | ✅ Concluído — PR #69 merged @ `9bc2a6c` |
 | **Objetivo** | Constituição oficial e contratos para resolvers multi-vertical |
 | **Escopo** | `docs/ai/*` — constitution, contract, patterns, invariants, evolution |
 | **Fora de escopo** | Runtime; resolver implementations; Tier 1 cores |
 | **Gate de saída** | Docs-only PR; CI green |
 | **Refs** | [`docs/ai/`](../ai/AI_RESOLVER_CONSTITUTION.md) |
+
+---
+
+### WS-08.6 — AI Runtime Snapshot
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 5 — Multi-Vertical AI |
+| **Status** | 🟡 Em PR — `workstream/ai-runtime-snapshot` |
+| **Objetivo** | Baseline oficial da camada AI resolver antes de novas expansões |
+| **Escopo** | `docs/ai/` — baseline, hydration, fallback, visual runtime, vertical comparison |
+| **Fora de escopo** | Runtime; Tier 1 cores |
+| **Gate de saída** | Docs-only PR; CI green |
+| **Refs** | [`AI_RUNTIME_BASELINE.md`](../ai/AI_RUNTIME_BASELINE.md) |
 
 ---
 
@@ -258,7 +272,7 @@
 | **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
 | **Branch sugerida** | `workstream/ai-resolver-<vertical>` |
 | **Gate de saída** | Resolver dedicado + smoke conversacional |
-| **Ordem sugerida** | ~~restaurant~~ ✅ WS-08A → ~~health~~ ✅ WS-08B → ~~governance~~ 🟡 WS-08.5 → appointment |
+| **Ordem sugerida** | ~~restaurant~~ ✅ WS-08A → ~~health~~ ✅ WS-08B → ~~governance~~ ✅ WS-08.5 → ~~snapshot~~ 🟡 WS-08.6 → appointment |
 
 ---
 
@@ -282,13 +296,14 @@
 ```txt
 WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada** ──► **WS-08A** ✅ restaurant AI
                                                               ├──► **WS-08B** ✅ health AI
-                                                              ├──► **WS-08.5** (governance, em PR)
+                                                              ├──► **WS-08.5** ✅ governance
+                                                              ├──► **WS-08.6** (runtime snapshot, em PR)
                                                               ├──► WS-03 (parity gaps)
                                                               └──► WS-08C (AI — appointment)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-08.5 AI Resolver Governance** (docs-only PR) → próximo **WS-08C Appointment**.
+**Atual:** **WS-08.6 AI Runtime Snapshot** (docs-only PR) → próximo **WS-08C Appointment**.
 
 ---
 
