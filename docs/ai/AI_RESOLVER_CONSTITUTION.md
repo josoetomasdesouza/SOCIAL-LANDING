@@ -104,6 +104,8 @@ Must adopt this constitution before implementation. See [`AI_ALLOWED_EVOLUTION.m
 
 **Amendment protocol:** Docs-only PR. Runtime changes require vertical workstream + QA gate. Constitution changes require explicit review — no drive-by edits in feature PRs.
 
+**Runtime snapshot:** [`AI_RUNTIME_BASELINE.md`](./AI_RUNTIME_BASELINE.md) — update after each vertical resolver lands.
+
 ---
 
 ## 5. Success criteria
