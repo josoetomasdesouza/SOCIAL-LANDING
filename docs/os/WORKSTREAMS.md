@@ -195,11 +195,27 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 2 — Stack Convergence (closure) |
-| **Status** | 🟡 Em PR — `chore/stack-b-cleanup` |
+| **Status** | ✅ Complete — PR #66 merged @ `cd00647` |
 | **Objetivo** | Remover `instrumented-drawer-bridge.tsx` órfão; atualizar refs operacionais |
 | **Escopo** | Delete bridge file; `docs/os/*`, `docs/typescript/*`, refs diretas obsoletas |
 | **Fora de escopo** | Runtime behavior; Tier 1 cores; AI; DB |
 | **Gate de saída** | Zero imports; QA green; CI green |
+
+---
+
+---
+
+### WS-08A — Restaurant AI Resolver
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 5 — Multi-Vertical AI |
+| **Status** | 🟡 Em PR — `workstream/ai-resolver-restaurant` |
+| **Objetivo** | Resolver + visual blocks isolados para restaurante |
+| **Escopo** | `restaurant-feed.tsx`, `restaurant-conversational-search.ts`, QA restaurant |
+| **Fora de escopo** | `ecommerceMockConversationResolver`; Tier 1 cores |
+| **Gate de saída** | `qa:restaurant` + relatório WS-08A |
+| **Refs** | [`WS-08A_RESTAURANT_AI_RESOLVER_REPORT.md`](../audit/WS-08A_RESTAURANT_AI_RESOLVER_REPORT.md) |
 
 ---
 
@@ -214,7 +230,7 @@
 | **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
 | **Branch sugerida** | `workstream/ai-resolver-<vertical>` |
 | **Gate de saída** | Resolver dedicado + smoke conversacional |
-| **Ordem sugerida** | restaurant → health → appointment |
+| **Ordem sugerida** | ~~restaurant~~ ✅ WS-08A → health → appointment |
 
 ---
 
@@ -236,13 +252,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → … → WS-07.6 ✅ ──► **WS-07.7** (Stack B cleanup, em PR)
+WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada** ──► **WS-08A** (restaurant AI, em PR)
                                                               ├──► WS-03 (parity gaps)
                                                               └──► WS-08 (AI — last)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-07.7 Stack B Cleanup** (em PR) → Era 2 closed; próximo WS-08 AI.
+**Atual:** **WS-08A Restaurant AI Resolver** (em PR) → próximo health/appointment.
 
 ---
 

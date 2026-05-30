@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { Check, Star, Flame, Leaf, ShoppingBag, Plus, Minus, Play, Truck, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { restaurantConfig, menuItems, deliveryInfo } from "@/lib/mock-data/restaurant-data"
+import { createRestaurantMockConversationResolver } from "@/lib/mock-data/restaurant-conversational-search"
+import { createRestaurantConversationalVisualBlockRenderer } from "./restaurant-conversational-visual-block"
 import { restaurantContent } from "@/lib/mock-data/business-content"
 import type { CustomizationOption, MenuItem } from "@/lib/business-types"
 
@@ -560,6 +562,35 @@ export function RestaurantFeed() {
   ]
 
   const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0)
+
+  const conversationResponseResolver = useMemo(
+    () => createRestaurantMockConversationResolver({ cartItemCount: cartCount }),
+    [cartCount]
+  )
+
+  const renderConversationVisualBlock = useMemo(
+    () =>
+      createRestaurantConversationalVisualBlockRenderer({
+        menuItems,
+        onSelectItem: (item) => {
+          setSelectedItem(item)
+          setItemDrawerOpen(true)
+        },
+        onAddToCart: (item) => {
+          handleAddToCart(item, 1, [])
+          setCartDrawerOpen(true)
+        },
+        onOpenCart: () => setCartDrawerOpen(true),
+        onOpenCheckout: () => {
+          setCartDrawerOpen(false)
+          setCheckoutStep("address")
+          setPaymentMethod("")
+          setCheckoutOpen(true)
+        },
+      }),
+    []
+  )
+
   const subtotal = cart.reduce((sum, item) => sum + getCartItemUnitPrice(item) * item.quantity, 0)
   const freeDeliveryMinimum = deliveryInfo.freeDeliveryMinimum ?? 0
   const isFreeDelivery = freeDeliveryMinimum > 0 && subtotal >= freeDeliveryMinimum
@@ -623,6 +654,8 @@ export function RestaurantFeed() {
         config={restaurantConfig}
         stories={restaurantContent.stories}
         sections={sections}
+        conversationResponseResolver={conversationResponseResolver}
+        renderConversationVisualBlock={renderConversationVisualBlock}
         onPostClick={() => {}}
         onHeaderCartClick={() => setCartDrawerOpen(true)}
         headerCartCount={cartCount}
