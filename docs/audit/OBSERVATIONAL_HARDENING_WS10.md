@@ -171,14 +171,14 @@ Dev server: `pnpm dev` → `http://localhost:3000/demo` (ou porta ativa).
 
 | Hipótese | Origem | Validar? |
 |----------|--------|----------|
-| Chegada contextual lê como continuidade, não feature | WS-09D.1 | ☐ |
-| Maps CTA ainda pesado vs copy editorial | Review pós-polish | ☐ |
-| Stories competem levemente com hero em primeiro gesto | WS-09B.1 | ☐ |
-| Assimetria Appointment vs outras verticais é perceptível no demo | Strategic audit | ☐ |
-| Drawer chegada compacto elimina sensação de folha em branco | WS-09D.1 polish | ☐ |
-| Linha operacional legível em 320px | QA perceptivo pré-commit | ☐ |
+| Chegada contextual lê como continuidade, não feature | WS-09D.1 | ✅ S1,S3 |
+| Maps CTA ainda pesado vs copy editorial | Review pós-polish | ✅ S1,S2,S3 |
+| Stories competem levemente com hero em primeiro gesto | WS-09B.1 | ✅ S1,S3 |
+| Assimetria Appointment vs outras verticais é perceptível no demo | Strategic audit | ✅ S1 |
+| Drawer chegada compacto elimina sensação de folha em branco | WS-09D.1 polish | ✅ S1,S3 |
+| Linha operacional legível em 320px | QA perceptivo pré-commit | ✅ S2,S3 |
 
-**Veredicto:** aguardando sessões reais.
+**Veredicto:** validado nas Sessões 1–3.
 
 ---
 
@@ -249,40 +249,72 @@ Dev server: `pnpm dev` → `http://localhost:3000/demo` (ou porta ativa).
 
 ---
 
-### Sessão 3 — _[a preencher]_
+### Sessão 3 — 2026-05-31 — Variable isolation (320×568, uso lento ~32.7s)
+
+**Ambiente:** 320×568 · contemplativo · isola viewport vs velocidade  
+**Relatório completo:** [`WS-10_SESSION_03_VARIABLE_ISOLATION.md`](WS-10_SESSION_03_VARIABLE_ISOLATION.md)
+
+**Fluxos percorridos:**
+- [x] Hero lento + pausa respiração
+- [x] Scroll suave feed
+- [x] Chegada + dwell copy 3.5s
+- [x] Observação footer stack
+- [x] Booking lento + retorno
+
+**Veredicto:** ✅ **Combinação ritmo + densidade** — presença volta no path lento; peek/base/Maps **estruturais @ 320px**.
+
+**Isolamento variável:**
+
+| Driver | Efeito |
+|--------|--------|
+| **Velocidade** | Hero “nunca existiu” · path collapse |
+| **Viewport 320** | Feed peek ~26px · hero 52% · composer overlap |
+| **Maps footer** | Ruptura silêncio — **independente de pressa** |
+
+**Screenshots:** `ws10-s3-01` … `ws10-s3-11`
 
 ---
 
-## Síntese (preencher após ≥3 sessões)
+## Síntese — Etapa 1 encerrada (3/3 sessões)
 
 ### O que funciona (não tocar)
 
-| Elemento | Evidência (sessões) | Confiança |
-|----------|---------------------|-----------|
-| Linha operacional falada | S1 | Alta |
-| `na Augusta` como linguagem | S1 | Alta |
-| Drawer chegada compacto + copy humano | S1 | Alta |
-| Hero → chegada mesma conversa | S1 | Alta |
-| Feed peek no fold | S1 | Média-alta |
-| Sem mapa embed | S1 + WS-09D.1 | Alta |
+| Elemento | Evidência | Confiança |
+|----------|-----------|-----------|
+| Linha operacional falada | S1,S2,S3 | Alta |
+| `na Augusta` como linguagem | S1,S2,S3 | Alta |
+| Drawer chegada compacto + copy humano | S1,S3 | Alta |
+| Hero → chegada mesma conversa | S1,S3 (path) | Alta |
+| Feed peek no fold | S1 only (~390) | Média — **não @ 320** |
+| Sem mapa embed | S1,S2,S3 | Alta |
 
-### Sinais de risco (monitorar, não corrigir ainda)
+### Mapa estabilidade perceptiva
+
+| Zona | Elementos |
+|------|-----------|
+| **Estável** | Linha falada · `na Augusta` · copy chegada · título contextual |
+| **Frágil** | Maps footer · feed peek 320 · composer overlap · densidade hero inferior |
+| **Colapso (path)** | Scroll rush · booking imediato |
+
+### Sinais de risco (monitorar)
 
 | Sinal | Onde | Severidade |
 |-------|------|------------|
-| Maps footer protagonista | Drawer chegada | Média |
+| Maps footer protagonista | Drawer chegada | **Alta — estrutural** |
+| Composer overlap drawer | Base 320px | Alta |
+| Feed peek @ 320 | Fold | Média — estrutural |
 | Dois registros presença/booking | Mesma vertical | Média |
-| Assimetria demo Appointment vs resto | Troca vertical | Baixa-média |
+| Assimetria demo | Troca vertical | Baixa-média |
 
-### Candidatos Etapa 2 — Perceptual Debt Cleanup
+### Candidatos Etapa 2 — Perceptual Debt (confirmados observacionalmente)
 
-| Item | Tipo | Prioridade |
-|------|------|------------|
-| Maps CTA peso visual (PDC-01) | Utilitarização involuntária | **Crítica under 320px** (S2) |
-| Composer overlap durante drawer (PDC-05) | Claustrofobia | Alta (S2) |
-| Feed peek ausente 320px (PDC-06) | Feed-first enfraquecido | Média (S2) |
-| Densidade hero inferior CTA+pills+stories (PDC-07) | Falta respiro | Média (S2) |
-| Energia drawer booking vs chegada (PDC-02) | Inconsistência | Média |
+| Item | Tipo | Prioridade | Sessões |
+|------|------|------------|---------|
+| PDC-01 Maps peso | Utilitarização | **Alta — estrutural** | S1,S2,S3 |
+| PDC-05 Composer overlap | Claustrofobia | Alta @ 320 | S2,S3 |
+| PDC-06 Feed peek 320 | Feed-first | Média — viewport | S2,S3 |
+| PDC-07 Densidade hero inferior | Respiro | Média @ 320 | S2,S3 |
+| PDC-02 Booking vs chegada | Gramática dual | Média | S1,S2,S3 |
 
 ### O que explicitamente NÃO entra na Etapa 2
 
@@ -298,13 +330,22 @@ Dev server: `pnpm dev` → `http://localhost:3000/demo` (ou porta ativa).
 
 | Critério | Status |
 |----------|--------|
-| ≥3 sessões reais documentadas | ☐ (2/3) |
-| Appointment coberto em mobile + desktop | ☐ (320 S2 · 390 S1) |
+| ≥3 sessões reais documentadas | ✅ **3/3** |
+| Appointment mobile multi-viewport | ✅ 390 S1 · 320 S2,S3 |
 | ≥1 vertical contraste observada | ✅ S1 |
-| Síntese “o que funciona” preenchida | ✅ parcial |
-| Lista priorizada de dívida perceptiva | ✅ hipóteses S1 |
-| Nenhum item de síntese exige feature nova | ✅ |
-| GO humano para Etapa 2 | ☐ |
+| Síntese “o que funciona” preenchida | ✅ |
+| Lista priorizada de dívida perceptiva | ✅ |
+| Isolamento variável (S3) | ✅ |
+| Nenhum item exige feature nova | ✅ |
+| **GO humano para Etapa 2** | ☐ **Aguardar decisão** |
+
+### Conclusão Etapa 1
+
+**Tese preservada:** presença contextual viva sobrevive quando usuário colabora — hero → `na Augusta` → chegada.
+
+**Fragilidade dual:** velocidade decide *experiência*; viewport 320 decide *espaço*; Maps+composer decide *silêncio*.
+
+**Próximo:** decisão humana para Etapa 2 (Perceptual Debt Cleanup) — ver [`WS-10_SESSION_03_VARIABLE_ISOLATION.md`](WS-10_SESSION_03_VARIABLE_ISOLATION.md).
 
 ---
 
