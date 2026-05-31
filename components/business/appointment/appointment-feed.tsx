@@ -775,7 +775,7 @@ export function AppointmentFeed() {
         config={APPOINTMENT_LANDING_CONFIG}
         stories={appointmentContent.stories}
         sections={sections}
-        topContent={operationalHero}
+        leadingContent={operationalHero}
         conversationResponseResolver={conversationResponseResolver}
         renderConversationVisualBlock={renderConversationVisualBlock}
         onStoryAction={(story) => {
