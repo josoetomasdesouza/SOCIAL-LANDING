@@ -12,7 +12,11 @@ import {
   resolveComposerPinnedFooterBottomInsetPx,
   resolveComposerPinnedFooterScrollPaddingPx,
 } from "@/lib/ui/composer-scroll-clearance"
-import { resolveDrawerSheetStyle } from "@/lib/ui/drawer-layout"
+import {
+  DRAWER_SHEET_HEIGHT,
+  DRAWER_SHEET_MAX_HEIGHT,
+  resolveDrawerSheetStyle,
+} from "@/lib/ui/drawer-layout"
 import { useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
 
 interface ActionDrawerProps {
@@ -179,7 +183,15 @@ export function ActionDrawer({
   )
   const sheetLayout = resolveDrawerSheetStyle(rawDragOffsetPx, {
     translateX: matchFeedWidth ? "translateX(-50%)" : undefined,
+    ...(size === "sm"
+      ? { baseHeight: "auto", maxHeight: "82dvh" }
+      : size === "lg"
+        ? { baseHeight: "85dvh" }
+        : size === "full"
+          ? { baseHeight: DRAWER_SHEET_MAX_HEIGHT, maxHeight: DRAWER_SHEET_MAX_HEIGHT }
+          : { baseHeight: DRAWER_SHEET_HEIGHT }),
   })
+  const isCompact = size === "sm"
   const scrollPaddingBottom = composerOverlaysDrawer
     ? composerClearance
     : shouldPinFooterToScreen && pinnedFooterHeightPx > 0
@@ -191,7 +203,7 @@ export function ActionDrawer({
 
   const footerContent = footer ? (
     <div
-      className={`${innerWidthClasses} px-4 pt-4 ${shouldPinFooterToScreen ? "pb-0" : composerOverlaysDrawer ? "pb-0" : "pb-5"}`}
+      className={`${innerWidthClasses} ${isCompact ? "px-4 pt-3 pb-4" : "px-4 pt-4"} ${shouldPinFooterToScreen ? "pb-0" : composerOverlaysDrawer ? "pb-0" : isCompact ? "" : "pb-5"}`}
     >
       {footer}
     </div>
@@ -218,12 +230,13 @@ export function ActionDrawer({
         style={{
           bottom: 0,
           height: sheetLayout.height,
+          maxHeight: sheetLayout.maxHeight,
           transform: sheetLayout.transform,
         }}
       >
         <DrawerDragZone dragHandleProps={dragHandleProps}>
           <div className="border-b border-border/50">
-            <div className={`${innerWidthClasses} px-5 pb-4`}>
+            <div className={`${innerWidthClasses} ${isCompact ? "px-4 pb-3" : "px-5 pb-4"}`}>
               <div className="min-w-0">
                 <h3 className="truncate text-lg font-semibold text-foreground">{title}</h3>
                 {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
@@ -235,9 +248,10 @@ export function ActionDrawer({
         <DrawerScrollBody
           scrollRef={setScrollRef}
           isPulling={isPulling}
+          className={isCompact ? "flex-none" : undefined}
           style={scrollPaddingBottom ? { paddingBottom: scrollPaddingBottom } : undefined}
         >
-          <div className={`${innerWidthClasses} p-5`}>{children}</div>
+          <div className={`${innerWidthClasses} ${isCompact ? "px-4 pb-2 pt-2" : "p-5"}`}>{children}</div>
         </DrawerScrollBody>
 
         {footer && !shouldPinFooterToScreen ? (

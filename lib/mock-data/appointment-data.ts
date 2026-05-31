@@ -14,6 +14,42 @@ export const barberShopConfig: BusinessConfig = {
   openingHours: "Seg-Sab: 9h-20h"
 }
 
+/** WS-09C — contextual operational signals for hero overlay (mock, appointment-only). */
+export interface AppointmentHeroOperationalContext {
+  liveState: string
+  placeHint: string
+  momentHint?: string
+  hoursHint?: string
+}
+
+export const barberShopHeroOperationalContext: AppointmentHeroOperationalContext = {
+  liveState: "Aberto agora",
+  placeHint: "na Augusta",
+  momentHint: "encaixe leve hoje",
+  hoursHint: "até 20h",
+}
+
+/** WS-09D — contextual arrival hints (mock, appointment-only). */
+export interface AppointmentArrivalContext {
+  drawerTitle: string
+  addressLine: string
+  referenceHint: string
+  routeHint?: string
+  parkingHint?: string
+  arrivalMood?: string
+  mapsQuery: string
+}
+
+export const barberShopArrivalContext: AppointmentArrivalContext = {
+  drawerTitle: "Chegar na Augusta",
+  addressLine: "Rua Augusta, 1500 — Jardins",
+  referenceHint: "Na Augusta, perto do cruzamento com a Paulista — portaria discreta na calcada.",
+  routeHint: "Vindo da Paulista, desce a Augusta — fica do lado direito.",
+  parkingHint: "Estacionamento conveniado na rua ao lado.",
+  arrivalMood: "Movimento mais tranquilo depois das 18h.",
+  mapsQuery: "Barba Negra, Rua Augusta 1500, Sao Paulo",
+}
+
 // Profissionais
 export const barbers: Professional[] = [
   {
