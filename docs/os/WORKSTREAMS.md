@@ -370,6 +370,7 @@ WS-01 ✅ → … → WS-08C ✅ — **Era 3 cognitiva consolidada**
 WS-09B → WS-09D.1 ✅ — **Era 4 piloto presença contextual** (Appointment)
 WS-10 ✅ — Etapas 1–3 concluídas · [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](PERCEPTUAL_LANGUAGE_SYSTEM.md)
 WS-11 ✅ — Arrival return scroll continuity (gate §8 · piloto Appointment)
+  └──► Pós-WS-11 Human Continuity Validation — [`WS-11_HUMAN_CONTINUITY_VALIDATION.md`](../audit/WS-11_HUMAN_CONTINUITY_VALIDATION.md) (Proxy A ✅ · Sessão B humana pendente)
 WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB) — paralelo, GO humano
 ```

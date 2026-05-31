@@ -1,0 +1,64 @@
+{
+  "capturedAt": "2026-05-31T21:48:37.470Z",
+  "baseUrl": "http://localhost:3003/demo",
+  "note": "Facilitator proxy — replace with external human session when available",
+  "flows": [
+    {
+      "id": "flow-1-casual-scroll-arrival",
+      "steps": [
+        {
+          "action": "landed",
+          "scrollY": 0
+        },
+        {
+          "action": "after-scroll",
+          "scrollY": 260
+        },
+        {
+          "action": "arrival-open",
+          "scrollY": 260
+        },
+        {
+          "action": "after-return",
+          "scrollY": 260
+        },
+        {
+          "action": "continue-browse",
+          "scrollY": 440
+        }
+      ],
+      "scrollRestored": true
+    },
+    {
+      "id": "flow-2-rush-booking-arrival",
+      "steps": [
+        {
+          "action": "booking-open"
+        },
+        {
+          "action": "arrival-open"
+        },
+        {
+          "action": "back-feed"
+        }
+      ],
+      "startedAt": 1780264105739,
+      "durationMs": 4614
+    },
+    {
+      "id": "flow-3-320-casual",
+      "viewport": "320x568",
+      "steps": [
+        {
+          "action": "dwell-hero"
+        },
+        {
+          "action": "arrival-dwell"
+        },
+        {
+          "action": "return"
+        }
+      ]
+    }
+  ]
+}
