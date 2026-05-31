@@ -30,6 +30,7 @@ export function AppointmentArrivalDrawer({
       title={arrival.drawerTitle}
       subtitle={arrival.addressLine}
       size="sm"
+      preservePageScroll
       footer={
         <div className="flex flex-col gap-1.5" data-testid="appointment-arrival-fallback-actions">
           <Button

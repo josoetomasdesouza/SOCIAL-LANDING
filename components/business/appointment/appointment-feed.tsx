@@ -609,6 +609,10 @@ export function AppointmentFeed() {
     setArrivalDrawerOpen(true)
   }, [])
 
+  const handleCloseArrival = useCallback(() => {
+    setArrivalDrawerOpen(false)
+  }, [])
+
   const operationalHero = useMemo(
     () => (
       <AppointmentOperationalHero
@@ -839,7 +843,7 @@ export function AppointmentFeed() {
 
       <AppointmentArrivalDrawer
         isOpen={arrivalDrawerOpen}
-        onClose={() => setArrivalDrawerOpen(false)}
+        onClose={handleCloseArrival}
         arrival={barberShopArrivalContext}
         whatsapp={barberShopConfig.whatsapp}
       />

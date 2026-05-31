@@ -359,7 +359,7 @@
 | **Gate de saída** | ≥3 sessões observacionais + GO humano por etapa |
 | **Refs** | [`STRATEGIC_PRODUCT_AUDIT_POST_WS09.md`](../audit/STRATEGIC_PRODUCT_AUDIT_POST_WS09.md) |
 
-**Sequência interna:** Etapa 1 ✅ → Etapa 2 (WS-10A/B/C) ✅ → **Etapa 3** [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](PERCEPTUAL_LANGUAGE_SYSTEM.md) ✅ → feature WS (gate §8 obrigatório).
+**Sequência interna:** Etapa 1 ✅ → Etapa 2 (WS-10A/B/C) ✅ → **Etapa 3** [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](PERCEPTUAL_LANGUAGE_SYSTEM.md) ✅ → **WS-11** (primeiro WS funcional pós-gates §8) ✅
 
 ---
 
@@ -368,9 +368,8 @@
 ```txt
 WS-01 ✅ → … → WS-08C ✅ — **Era 3 cognitiva consolidada**
 WS-09B → WS-09D.1 ✅ — **Era 4 piloto presença contextual** (Appointment)
-WS-10 🟡 — **Etapa 1 Observational Hardening** (PAUSA — sem features)
-  └──► Etapa 2 Perceptual Debt Cleanup
-  └──► Etapa 3 Language Consolidation → PERCEPTUAL_LANGUAGE_SYSTEM.md
+WS-10 ✅ — Etapas 1–3 concluídas · [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](PERCEPTUAL_LANGUAGE_SYSTEM.md)
+WS-11 ✅ — Arrival return scroll continuity (gate §8 · piloto Appointment)
 WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB) — paralelo, GO humano
 ```

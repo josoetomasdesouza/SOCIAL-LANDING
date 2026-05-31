@@ -30,6 +30,8 @@ interface ActionDrawerProps {
   footer?: React.ReactNode
   size?: "sm" | "md" | "lg" | "full"
   matchFeedWidth?: boolean
+  /** Keep page scroll position when body lock engages (contextual return continuity). */
+  preservePageScroll?: boolean
 }
 
 export function ActionDrawer({
@@ -42,8 +44,11 @@ export function ActionDrawer({
   footer,
   size = "md",
   matchFeedWidth = false,
+  preservePageScroll = false,
 }: ActionDrawerProps) {
   const wasOpenRef = useRef(false)
+  const lockedPageScrollYRef = useRef(0)
+  const pageScrollLockActiveRef = useRef(false)
   const eventDrawerId = drawerId ?? title
   const conversationSelection = useConversationSelectionContext()
   const { paddingBottom: composerClearance, isActive: composerOverlaysDrawer } =
@@ -93,17 +98,48 @@ export function ActionDrawer({
     useDrawerSheetDrag(onClose, isOpen)
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
+    const releasePageScrollLock = () => {
+      const scrollY = lockedPageScrollYRef.current
+      lockedPageScrollYRef.current = 0
+      pageScrollLockActiveRef.current = false
       document.body.style.overflow = ""
+      document.body.style.position = ""
+      document.body.style.top = ""
+      document.body.style.width = ""
+      window.scrollTo(0, scrollY)
+    }
+
+    if (isOpen) {
+      if (preservePageScroll) {
+        lockedPageScrollYRef.current = window.scrollY
+        pageScrollLockActiveRef.current = true
+        document.body.style.overflow = "hidden"
+        document.body.style.position = "fixed"
+        document.body.style.top = `-${lockedPageScrollYRef.current}px`
+        document.body.style.width = "100%"
+      } else {
+        document.body.style.overflow = "hidden"
+      }
+    } else {
+      if (preservePageScroll && pageScrollLockActiveRef.current) {
+        releasePageScrollLock()
+      } else {
+        document.body.style.overflow = ""
+      }
       resetDrag()
     }
 
     return () => {
-      document.body.style.overflow = ""
+      if (preservePageScroll && pageScrollLockActiveRef.current) {
+        releasePageScrollLock()
+      } else {
+        document.body.style.overflow = ""
+        document.body.style.position = ""
+        document.body.style.top = ""
+        document.body.style.width = ""
+      }
     }
-  }, [isOpen, resetDrag])
+  }, [isOpen, preservePageScroll, resetDrag])
 
   useEffect(() => {
     if (!isOpen) return
