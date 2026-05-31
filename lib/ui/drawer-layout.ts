@@ -42,9 +42,17 @@ export function resolveDrawerSheetStyle(
     maxHeight?: string
     translateX?: string
   }
-): { height: string; transform?: string } {
+): { height: string; maxHeight?: string; transform?: string } {
   const baseHeight = options?.baseHeight ?? DRAWER_SHEET_HEIGHT
   const maxHeight = options?.maxHeight ?? DRAWER_SHEET_MAX_HEIGHT
+
+  if (baseHeight === "auto") {
+    return {
+      height: "auto",
+      maxHeight,
+      transform: getDrawerSheetTransform(dragOffsetPx, options?.translateX),
+    }
+  }
 
   return {
     height: resolveDrawerSheetHeight(dragOffsetPx, baseHeight, maxHeight),

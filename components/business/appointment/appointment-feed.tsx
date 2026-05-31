@@ -12,10 +12,11 @@ import { SocialContactCTA } from "../social-contact-cta"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
-import { barberShopConfig, barbers, barberServices, hairStyles } from "@/lib/mock-data/appointment-data"
+import { barberShopConfig, barberShopHeroOperationalContext, barberShopArrivalContext, barbers, barberServices, hairStyles } from "@/lib/mock-data/appointment-data"
 import { createAppointmentMockConversationResolver } from "@/lib/mock-data/appointment-conversational-search"
 import { createAppointmentConversationalVisualBlockRenderer } from "./appointment-conversational-visual-block"
 import { AppointmentOperationalHero } from "./appointment-operational-hero"
+import { AppointmentArrivalDrawer } from "./appointment-arrival-drawer"
 import { appointmentContent } from "@/lib/mock-data/business-content"
 import type { Professional, Service, StyleExample } from "@/lib/business-types"
 
@@ -578,10 +579,11 @@ export function AppointmentFeed() {
   const [bookedDate, setBookedDate] = useState<string | null>(null)
   const [bookedTime, setBookedTime] = useState<string | null>(null)
   const [bookedService, setBookedService] = useState<Service | null>(null)
+  const [arrivalDrawerOpen, setArrivalDrawerOpen] = useState(false)
 
   useEffect(() => {
     const nextMode =
-      bookingStep === "service" || bookingStep === "professional"
+      bookingStep === "service" || bookingStep === "professional" || arrivalDrawerOpen
         ? "overlay"
         : bookingStep === "datetime" || bookingStep === "confirmation"
           ? "hidden"
@@ -594,7 +596,7 @@ export function AppointmentFeed() {
       setComposerMode("default")
       setComposerOffsetClassName(undefined)
     }
-  }, [bookingStep, setComposerMode, setComposerOffsetClassName])
+  }, [bookingStep, arrivalDrawerOpen, setComposerMode, setComposerOffsetClassName])
   
   // Handlers
   const handleStartBooking = () => {
@@ -603,16 +605,21 @@ export function AppointmentFeed() {
     setBookingStep("service")
   }
 
+  const handleOpenArrival = useCallback(() => {
+    setArrivalDrawerOpen(true)
+  }, [])
+
   const operationalHero = useMemo(
     () => (
       <AppointmentOperationalHero
         brandName={barberShopConfig.name}
         coverImage={barberShopConfig.coverImage || barberShopConfig.logo}
         coverAlt={`Ambiente ${barberShopConfig.name}`}
-        operationalStatus="Aberto agora · atendemos ate 20h"
+        operationalContext={barberShopHeroOperationalContext}
         headline="Corte preciso, barba bem feita e um clima de casa — passe quando quiser."
         primaryActionLabel="Agendar horario"
         onPrimaryAction={handleStartBooking}
+        onPlaceHintSelect={handleOpenArrival}
         highlights={[
           { label: "Cortes", onSelect: () => scrollToAppointmentSection("section-agendar-horario") },
           { label: "Barba", onSelect: handleStartBooking },
@@ -622,7 +629,7 @@ export function AppointmentFeed() {
         ]}
       />
     ),
-    []
+    [handleOpenArrival]
   )
   
   const handleSelectService = (service: Service) => {
@@ -826,6 +833,13 @@ export function AppointmentFeed() {
         service={bookedService}
         date={bookedDate}
         time={bookedTime}
+      />
+
+      <AppointmentArrivalDrawer
+        isOpen={arrivalDrawerOpen}
+        onClose={() => setArrivalDrawerOpen(false)}
+        arrival={barberShopArrivalContext}
+        whatsapp={barberShopConfig.whatsapp}
       />
       </>
     </ConversationSelectionProvider>
