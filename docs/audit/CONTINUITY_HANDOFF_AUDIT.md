@@ -2,9 +2,28 @@
 
 **Tipo:** snapshot estratégico · handoff operacional · memória institucional  
 **Data:** 2026-05-31  
-**Baseline:** `main` @ `d24edd7`  
+**Baseline:** `main` @ `b88172c`  
 **Piloto:** Appointment / Barba Negra  
 **Propósito:** permitir retomada integral em nova conversa sem perda de linguagem, direção ou maturidade perceptiva
+
+---
+
+## Prompt de continuidade (copiar para nova sessão)
+
+```txt
+Baseline: main @ b88172c
+WS-13 Etapa 1 observacional ativo
+M-01 corrigido: morph card → composer unificado entre feed e drawers
+Não houve motion polish
+M-05 permanece observação residual
+Próximo passo: Sessão B humana com foco nos 5 pilares + checar se M-01 realmente desapareceu perceptivamente
+```
+
+**Contrato perceptivo restaurado (M-01):**
+
+```txt
+mesma gesture → mesma viagem física
+```
 
 ---
 
@@ -182,6 +201,7 @@ Não inteligente.
 | **Spatial continuity** | Boa | `preservePageScroll` no arrival; scroll restaurado |
 | **Drawer physics** | Natural | Momentum ~250ms; settle ease-out; GO WS-12.1 |
 | **Composer coexistence** | Resolvida | Hidden chegada; overlay service/pro; retorno silencioso |
+| **Morph card → composer** | Unificado (M-01 ✅) | Feed + drawers + custom modules — mesmo pipeline 480ms @ `b88172c` |
 | **Maps hierarchy** | Correta | Outline fallback WS-10A |
 | **Motion protagonism** | Baixo (ótimo) | Consequência do gesto, não showcase |
 | **Cultural discipline** | Muito alta | Gates G1–G8; observação antes de código |
@@ -194,9 +214,11 @@ Não inteligente.
 - Drawer como sheet físico (não modal)
 - Composer restore cycle
 - Motion invisível pós-WS-12
+- Morph feed ↔ drawer unificado (M-01 — correção de contrato, não polish)
 
 ### Zonas frágeis
 
+- **M-05 (residual)** — composer `hidden` @ chegada → `getComposerFallbackRect()` pode land impreciso; observar, não fixar sem evidência
 - **Booking ↔ chegada** — dois registros emocionais na mesma vertical (presença vs transacional); tensão aceitável, não ruptura
 - **Stories vs highlights** — competição leve monitorada
 - **Assimetria demo** — Appointment maduro vs outras verticais; risco de “copiar Appointment” sem fit
@@ -297,12 +319,14 @@ Gates técnicos piloto: `pnpm typecheck` · `pnpm qa:appointment` · viewports 3
 | Item | Estado |
 |------|--------|
 | **Branch** | `main` |
-| **Sync origin** | ✅ up to date (`d24edd7`) |
-| **Último commit** | `d24edd7` — WS-13 Etapa 1 observacional (baseline oficial) |
-| **Commit anterior relevante** | `b3bc15c` handoff · `6d47b50` WS-12.1 · `60913bd` WS-12 |
-| **WS ativo** | **WS-13 Etapa 1** (observacional · zero feature) |
-| **Motion work** | **Pausado** — ponto ideal; motion suficiente para desaparecer |
-| **Sessão B humana** | ☐ **Pendente** — protocolo em `WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md` |
+| **Sync origin** | ✅ `main` @ `b88172c` |
+| **Último commit** | `b88172c` — fix M-01 morph continuity feed ↔ drawers |
+| **Commit anterior relevante** | `a819db3` handoff sync · `d24edd7` WS-13 Etapa 1 · `6d47b50` WS-12.1 |
+| **WS ativo** | **WS-13 Etapa 1** (observacional · Sessão B pendente) |
+| **M-01** | ✅ **Corrigido** @ `b88172c` — revalidação perceptiva na Sessão B |
+| **M-05** | Observação residual (fallback rect @ chegada) |
+| **Motion work** | **Pausado** — M-01 foi restauração de contrato, não evolução de motion |
+| **Sessão B humana** | ☐ **Pendente** — [`WS-13_SESSION_B_FACILITATOR.md`](WS-13_SESSION_B_FACILITATOR.md) |
 | **Proxy A** | ✅ documentado |
 | **Artefatos recentes** | `ws121-*.png` · `ws121-perceptual-metrics.json` · scripts `ws12-*` |
 
@@ -317,6 +341,8 @@ Gates técnicos piloto: `pnpm typecheck` · `pnpm qa:appointment` · viewports 3
 | Auditoria estratégica pós-09 | `docs/audit/STRATEGIC_PRODUCT_AUDIT_POST_WS09.md` |
 | Human continuity | `docs/audit/WS-11_HUMAN_CONTINUITY_VALIDATION.md` |
 | **Presença contínua (WS-13)** | `docs/audit/WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md` |
+| **M-01 morph audit** | `docs/audit/WS-13_MORPH_ENTRYPOINT_AUDIT.md` |
+| **Sessão B facilitador** | `docs/audit/WS-13_SESSION_B_FACILITATOR.md` |
 | Drawer physics | `docs/audit/WS-12_DRAWER_PHYSICAL_CONTINUITY.md` |
 | Drawer validation | `docs/audit/WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md` |
 
@@ -326,7 +352,7 @@ Gates técnicos piloto: `pnpm typecheck` · `pnpm qa:appointment` · viewports 3
 |------|----------|
 | Hero | `components/business/appointment/appointment-operational-hero.tsx` |
 | Arrival | `components/business/appointment/appointment-arrival-drawer.tsx` |
-| Feed/composer | `components/business/appointment/appointment-feed.tsx` |
+| Feed/composer/morph | `components/business/conversation-context-morph.tsx` · `conversation-selection-context.tsx` · `appointment-feed.tsx` |
 | Drawers shared | `lib/ui/use-drawer-sheet-drag.ts` · `lib/ui/drawer-layout.ts` · `components/business/action-drawer.tsx` |
 | Scroll preserve | `preservePageScroll` prop em `action-drawer.tsx` |
 
@@ -335,14 +361,16 @@ Gates técnicos piloto: `pnpm typecheck` · `pnpm qa:appointment` · viewports 3
 ## 8. Próximo passo recomendado
 
 ```txt
-Sessão B humana real
+Sessão B humana (5 pilares + revalidação perceptiva M-01)
         ↓
-Atualizar WS-11_HUMAN_CONTINUITY_VALIDATION.md
+Preencher WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md §Registro
         ↓
 Pausa curta
         ↓
-Decidir próximo WS apenas com evidência humana
+Decidir Etapa 2 / WS funcional apenas com evidência humana
 ```
+
+**Não abrir novo fix agora.** M-01 está corrigido tecnicamente; falta confirmar que a ruptura **desapareceu perceptivamente** para o participante externo.
 
 ### Por que NÃO abrir novo WS imediatamente
 
@@ -431,6 +459,7 @@ O produto já tem **comportamento próprio**, não só interface própria. Prote
 | `6d47b50` | WS-12.1 | Validação perceptiva GO |
 | `b3bc15c` | Handoff | Mapa cognitivo oficial |
 | `d24edd7` | WS-13 Etapa 1 | Baseline observacional presença contínua |
+| `b88172c` | M-01 fix | Morph feed ↔ drawer unificado — contrato perceptivo restaurado |
 
 ---
 

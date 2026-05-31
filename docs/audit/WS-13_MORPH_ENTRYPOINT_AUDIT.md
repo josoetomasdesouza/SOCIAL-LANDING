@@ -1,9 +1,9 @@
 # WS-13 — Morph Card → Composer: Entry Point Audit
 
 **Data:** 2026-05-31  
-**Baseline:** `main` @ `a819db3`  
-**Status:** ✅ **M-01 corrigido** — ruptura perceptível confirmada operacionalmente  
-**Fix:** `a819db3` → (local) — morph elevado ao `ConversationSelectionProvider` via prop `vertical`
+**Baseline:** `main` @ `b88172c`  
+**Status:** ✅ **M-01 corrigido** — revalidação perceptiva pendente (Sessão B §4B)  
+**Fix:** `b88172c` — morph elevado ao `ConversationSelectionProvider` via prop `vertical`
 
 ---
 

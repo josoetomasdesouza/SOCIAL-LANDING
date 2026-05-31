@@ -1,8 +1,9 @@
 # WS-13 — Presença Contínua (Etapa 1 Observacional)
 
 **Data de abertura:** 2026-05-31  
-**Baseline:** `main` @ `d24edd7`  
-**Tipo:** Observação perceptiva — **zero feature · zero código funcional**  
+**Baseline:** `main` @ `b88172c`  
+**M-01:** ✅ corrigido tecnicamente — revalidação perceptiva na Sessão B  
+**Tipo:** Observação perceptiva — **zero feature · M-01 foi exceção mínima de contrato**  
 **Piloto:** Appointment / Barba Negra  
 **Relação:** sucessor observacional pós WS-10→12.1 · complementa [`CONTINUITY_HANDOFF_AUDIT.md`](CONTINUITY_HANDOFF_AUDIT.md)
 
@@ -249,48 +250,101 @@ sem anunciar que lembra?
 ## Sessão B humana (obrigatória)
 
 **Status:** ☐ Pendente  
+**Guia de execução:** [`WS-13_SESSION_B_FACILITATOR.md`](WS-13_SESSION_B_FACILITATOR.md)  
 **Substitui / estende:** [`WS-11_HUMAN_CONTINUITY_VALIDATION.md`](WS-11_HUMAN_CONTINUITY_VALIDATION.md) §Sessão B — mesma sessão, lente WS-13 nos 5 pilares.
 
-### Perfil
+### Participante
 
 - Não envolvido no projeto
-- Uso normal de app · mobile-first
-- Briefing mínimo: *“navegue como visitante curioso”*
+- Sem contexto prévio da linguagem perceptiva
+- Sem explicação sobre objetivos do sistema
+
+**Evitar:** designers envolvidos · devs do projeto · pessoas contaminadas pela narrativa do produto
+
+### Briefing obrigatório (falar apenas)
+
+```txt
+navegue como alguém curioso conhecendo o lugar
+```
+
+**Não explicar:** presença contínua · continuidade · atmosfera · arrival grammar · intenção do projeto · WS-10/11/12/13
 
 ### Regra da sessão
 
-**Não explicar** ao participante: presença contextual · linguagem perceptiva · WS-10/11/12/13 · pilares · gates.
+A experiência deve funcionar **silenciosamente**. Testar **continuidade · naturalidade · atmosfera · presença · ausência de inteligência perceptível** — não features.
 
-A experiência deve funcionar **silenciosamente**.
+### Fluxos obrigatórios
 
-### Fluxos obrigatórios (5–8 min total ou ~5 min cada — facilitador decide)
+#### Fluxo 1 — Exploração casual
 
-| # | Fluxo | Pilares primários |
-|---|-------|-------------------|
-| 1 | **Exploração casual** — fold, scroll feed, dwell | Feed orgânico · ritmo · ambience |
-| 2 | **Chegada contextual** — tap `na Augusta`, ler drawer | Ritmo · continuidade temporal |
-| 3 | **Retorno ao feed** — fechar, continuar scroll | Continuidade temporal · memória leve |
-| 4 | **Booking rápido** — agendar, voltar | Ritmo · conflito booking↔presença |
-| 5 | **320 ou device real** — repetição casual enxuta | Todos |
+**Objetivo:** descoberta natural.
 
-### Observar (silenciosamente)
+Observar: ritmo · leitura do hero · relação stories/feed · sensação editorial · continuidade do scroll
 
-- Hesitação
-- Naturalidade
-- Continuidade espontânea
-- Atmosfera (vivo vs montado)
-- Sinais de “sistema inteligente”
-- **Não** perguntar “gostou?”
+#### Fluxo 2 — Chegada contextual
+
+Abrir **`na Augusta`**.
+
+Observar: continuidade · naturalidade do drawer · percepção de chegada · copy ↔ maps · atmosfera
+
+#### Fluxo 3 — Retorno ao feed
+
+Fechar drawer.
+
+Observar: retorno ao mesmo lugar · continuidade espacial · quebra emocional · percepção de recomeço
+
+#### Fluxo 4 — Booking rápido
+
+Caminho rápido/transacional (ex. Agendar horário → voltar).
+
+Observar: ruptura presença ↔ operação · excesso utilitário · mudança brusca de atmosfera
+
+#### Fluxo 4B — Revalidação M-01 (feed hold vs drawer hold)
+
+**Status técnico:** ✅ corrigido @ `b88172c` — [`WS-13_MORPH_ENTRYPOINT_AUDIT.md`](WS-13_MORPH_ENTRYPOINT_AUDIT.md)
+
+**Objetivo Sessão B:** confirmar paridade perceptiva — a ruptura **desapareceu** para o participante?
+
+Validar se usuário ainda percebe:
+
+- ausência de viagem física no drawer
+- quebra de continuidade feed ↔ drawer
+- sensação artificial / chip “colocado”
+- diferença entre os dois gestos
+
+**Prioridade:** long-press **espontâneo** nos fluxos 1–4. Probe neutro hold feed → hold serviço no booking **só se** zero gesto espontâneo.
+
+**Pergunta gate M-01:**
+
+```txt
+Os dois gestos parecem a mesma viagem física
+ou ainda há sensação de chip colocado no drawer?
+```
+
+#### Fluxo 5 — Device real / 320
+
+Navegação completa em viewport narrow ou telefone real.
+
+Observar: cadence vertical · respiro · overlap emocional · coexistência de camadas
 
 ### Perguntas indiretas (pós-sessão)
 
-1. Parecia conversa ou app?
-2. Algo parecia “inteligente demais”?
+**Nunca:** “você gostou?”
+
+1. Parecia conversa ou aplicativo?
+2. Algo parecia inteligente demais?
 3. Você sentiu continuidade?
-4. O feed parecia continuação?
-5. Algo parecia artificial?
-6. A experiência recomeçava em algum momento?
-7. O lugar parecia vivo ou montado?
+4. Algo parecia artificial?
+5. O lugar parecia vivo ou montado?
+6. O feed parecia continuação ou outra área?
+7. Algo parecia “querer impressionar”?
+
+### Pergunta gate final (facilitador)
+
+```txt
+A experiência parece inevitável
+ou parece um sistema tentando parecer vivo?
+```
 
 ### Registrar por fluxo
 
@@ -298,7 +352,12 @@ A experiência deve funcionar **silenciosamente**.
 - 1 hesitação (se houver)
 - 1 naturalidade (se houver)
 - 1 quebra espontânea (se houver)
-- Nota por pilar (1 linha)
+- Rupturas reais · sintomas de drift · inteligência perceptível
+- GO / NO-GO por pilar
+
+### Regra crítica pós-Sessão B
+
+**Não abrir** novo WS · motion · IA · personalização · feed/ambience systems **sem evidência observada**.
 
 ---
 
@@ -325,6 +384,18 @@ _Observações:_
 
 _Observações:_
 
+### Fluxo 4B — hipótese M-01 (feed hold vs drawer hold)
+
+| Campo | Feed | Drawer |
+|-------|------|--------|
+| Long-press espontâneo ou probe | | |
+| Viagem / teleport percebido | | |
+| Continuidade quebrada | | |
+| Artificial / colocado | | |
+| Hesitação | | |
+
+_Veredicto M-01 (facilitador):_ ☐ paridade confirmada ☐ ruptura residual ☐ inconclusivo
+
 ### Fluxo 5 — 320 / device real
 
 _Observações:_
@@ -340,6 +411,22 @@ _Observações:_
 | Artificial? | |
 | Recomeçava? | |
 | Vivo ou montado? | |
+| Queria impressionar? | |
+
+### Perguntas M-01 (se fluxo 4B executado)
+
+- Algo apareceu de repente em algum momento?
+- Os dois gestos (feed vs agendamento) pareceram iguais ou diferentes?
+- Algo pareceu “pular” na tela?
+
+### Pergunta gate final
+
+```txt
+A experiência parece inevitável
+ou parece um sistema tentando parecer vivo?
+```
+
+_Veredicto facilitador (1–2 frases):_
 
 ---
 
@@ -356,7 +443,7 @@ Documento **completo** quando Sessão B preenchida:
 | Pontos de inteligência perceptível | Qualquer “sistema consciente de si” |
 | GO / NO-GO por pilar | Tabela abaixo |
 
-### Veredicto por pilar (preencher pós-Sessão B)
+### GO / NO-GO por pilar
 
 | Pilar | Veredicto | Evidência (1 linha) |
 |-------|-----------|---------------------|
@@ -365,6 +452,19 @@ Documento **completo** quando Sessão B preenchida:
 | 3 Feed orgânico | ☐ GO ☐ NO-GO ☐ observar | |
 | 4 Ambience social implícita | ☐ GO ☐ NO-GO ☐ observar | |
 | 5 Memória ambiental leve | ☐ GO ☐ NO-GO ☐ observar | |
+
+### M-01 (morph feed vs drawer hold)
+
+| | |
+|---|---|
+| **Status técnico** | ✅ Corrigido @ `b88172c` |
+| **Status perceptivo** | ☐ Pendente Sessão B ☐ Paridade confirmada ☐ Ruptura residual ☐ Inconclusivo |
+| **Evidência** | |
+| **Abrir novo fix M-01?** | ☐ **NÃO** (default — fix aplicado) ☐ Sim — só com ruptura consciente documentada |
+
+### M-05 (residual — observar, não fixar)
+
+Composer `hidden` @ chegada → fallback rect pode land impreciso. Registrar se participante menciona “pulo” na chegada — fora do escopo M-01.
 
 ### Veredicto global Etapa 1
 
@@ -413,19 +513,22 @@ presença inevitável
 
 | Doc | Papel |
 |-----|-------|
-| [`CONTINUITY_HANDOFF_AUDIT.md`](CONTINUITY_HANDOFF_AUDIT.md) | Mapa cognitivo · baseline `b3bc15c` |
+| [`WS-13_SESSION_B_FACILITATOR.md`](WS-13_SESSION_B_FACILITATOR.md) | Guia execução Sessão B |
+| [`CONTINUITY_HANDOFF_AUDIT.md`](CONTINUITY_HANDOFF_AUDIT.md) | Mapa cognitivo · baseline `b88172c` · prompt de continuidade |
 | [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](../os/PERCEPTUAL_LANGUAGE_SYSTEM.md) | Constituição · gates G1–G8 |
 | [`WS-11_HUMAN_CONTINUITY_VALIDATION.md`](WS-11_HUMAN_CONTINUITY_VALIDATION.md) | Proxy A · protocolo origem Sessão B |
-| [`OBSERVATIONAL_HARDENING_WS10.md`](OBSERVATIONAL_HARDENING_WS10.md) | Precedente Etapa 1 observacional |
+| [`WS-13_MORPH_ENTRYPOINT_AUDIT.md`](WS-13_MORPH_ENTRYPOINT_AUDIT.md) | M-01 corrigido · revalidar §4B na Sessão B |
 
 ---
 
 ## Próximo passo
 
-1. Executar **Sessão B humana** (5 fluxos · perguntas indiretas)
+1. Executar **Sessão B humana** (5 pilares + Fluxo 4B revalidação M-01)
 2. Preencher §Registro e §Veredicto por pilar
 3. **Pausa curta**
-4. Só então decidir se existe evidência para Etapa 2 micro — ou nenhum WS funcional
+4. Só então decidir Etapa 2 micro — ou nenhum WS funcional
+
+**Não abrir novo fix.** M-05 permanece observação residual.
 
 ---
 
