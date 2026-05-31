@@ -332,17 +332,50 @@
 
 ---
 
+### WS-09B → WS-09D.1 — Hero Operacional + Chegada Contextual
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 4 — Presença contextual (piloto) |
+| **Status** | ✅ Concluído @ `24394e9` (PR #76) |
+| **Objetivo** | Hero viva + linha operacional humana + chegada contextual integrada |
+| **Escopo** | Appointment only; `leadingContent`; `AppointmentOperationalHero`; `AppointmentArrivalDrawer`; mock operacional |
+| **Fora de escopo** | Universalização; mapas; ETA; outras verticais |
+| **Gate de saída** | Perceptual GO + `qa:appointment` 8/8 |
+| **Refs** | [`STRATEGIC_PRODUCT_AUDIT_POST_WS09.md`](../audit/STRATEGIC_PRODUCT_AUDIT_POST_WS09.md), audits WS-09B–D.1 |
+
+---
+
+### WS-10 — Perceptual Maturity (sem features)
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 4 — Presença contextual (maturação) |
+| **Status** | 🟡 **Ativo — Etapa 1: Observational Hardening** |
+| **Objetivo** | Refinamento perceptivo sistemático; aprender o que **não** tocar |
+| **Escopo** | Observação → dívida perceptiva → consolidação de linguagem |
+| **Fora de escopo** | Features novas; universalização; mapas/ETA/IA chegada; DB (WS-09) |
+| **Entregáveis** | Etapa 1: [`OBSERVATIONAL_HARDENING_WS10.md`](../audit/OBSERVATIONAL_HARDENING_WS10.md) · Etapa 2: `WS-10B_PERCEPTUAL_DEBT.md` + PRs mínimos · Etapa 3: [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](PERCEPTUAL_LANGUAGE_SYSTEM.md) |
+| **Gate de saída** | ≥3 sessões observacionais + GO humano por etapa |
+| **Refs** | [`STRATEGIC_PRODUCT_AUDIT_POST_WS09.md`](../audit/STRATEGIC_PRODUCT_AUDIT_POST_WS09.md) |
+
+**Sequência interna:** Etapa 1 (observar) → Etapa 2 (limpar ruído) → Etapa 3 (constituição perceptiva) → **só então** novo WS de feature.
+
+---
+
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada**
-WS-08A–08C ✅ — **Era 3 cognitiva consolidada** (4 resolvers + harness)
-  └──► Próximo: auditoria cognitiva Hero Google-like (GO humano)
+WS-01 ✅ → … → WS-08C ✅ — **Era 3 cognitiva consolidada**
+WS-09B → WS-09D.1 ✅ — **Era 4 piloto presença contextual** (Appointment)
+WS-10 🟡 — **Etapa 1 Observational Hardening** (PAUSA — sem features)
+  └──► Etapa 2 Perceptual Debt Cleanup
+  └──► Etapa 3 Language Consolidation → PERCEPTUAL_LANGUAGE_SYSTEM.md
 WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **Era 3 baseline consolidada** @ `ca00dc7` — aguardando auditoria cognitiva profunda.
+**Atual:** **Era 4 emergente** @ `6167cb8` — WS-10 Etapa 1 ativa; aguardando sessões observacionais reais.
 
 ---
 
