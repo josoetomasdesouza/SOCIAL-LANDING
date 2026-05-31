@@ -17,6 +17,7 @@
     "qa:restaurant": "node scripts/convergence/restaurant-ai-resolver-validation.mjs",
     "qa:health": "node scripts/convergence/health-ai-resolver-validation.mjs",
     "qa:ai-observation": "node scripts/qa/ai-resolver-regression.mjs",
+    "qa:ai-regression": "node scripts/qa/ai-regression-harness.mjs",
     "qa:visual": "node scripts/visual/personal-phase3-visual-smoke.mjs"
   },
   "dependencies": {

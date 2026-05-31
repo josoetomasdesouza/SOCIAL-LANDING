@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "baselineCommit": "3eab7c1",
+  "description": "Canonical conversational regression flows — light pattern snapshots (not full text)",
+  "verticals": {
+    "ecommerce": {
+      "heading": "E-commerce",
+      "flows": [
+        {
+          "id": "EC-01",
+          "scenario": "category",
+          "prompt": "quero produtos para pele",
+          "expect": {
+            "visualBlock": true,
+            "contentPattern": "Protetor|Hidratante|Solar|pele",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "EC-02",
+          "scenario": "specific-entity",
+          "prompt": "protetor solar facial",
+          "expect": {
+            "visualBlock": true,
+            "contentPattern": "Protetor Solar",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "EC-03",
+          "scenario": "recommendation",
+          "prompt": "me ajuda com skincare facial",
+          "expect": {
+            "visualBlock": true,
+            "contentPattern": "Protetor|Hidratante|Oleo|Creme",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "EC-04",
+          "scenario": "contextual-follow-up",
+          "skipAutomated": true,
+          "skipReason": "Feed long-press hides composer (drawerOpen); covered in manual checklist B1",
+          "setupPrompt": "protetor solar facial",
+          "contextSourceId": "ecommerce-product-prod-5",
+          "contextScope": "composer",
+          "prompt": "o que combina com isso?",
+          "expect": {
+            "visualBlock": true,
+            "contentPattern": "Protetor|Hidratante|Creme|Oleo",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "EC-05",
+          "scenario": "fallback",
+          "prompt": "qual o horario de funcionamento",
+          "expect": {
+            "visualBlock": false,
+            "contentPattern": "Natura|ajudar|orientar",
+            "forbiddenPattern": "Encontrei alguns produtos"
+          }
+        },
+        {
+          "id": "EC-06",
+          "scenario": "drawer-linkage",
+          "prompt": "protetor solar facial",
+          "drawer": {
+            "clickPattern": "Protetor Solar",
+            "openPattern": "Adicionar|Comprar|Tamanho|Variante"
+          }
+        }
+      ]
+    },
+    "restaurant": {
+      "heading": "Restaurante",
+      "flows": [
+        {
+          "id": "RS-01",
+          "scenario": "category",
+          "prompt": "quero sobremesas",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "restaurant-conversation-menu-block",
+            "contentPattern": "Pudim|Petit Gateau|Sobremesa",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "RS-02",
+          "scenario": "specific-entity",
+          "prompt": "picanha na brasa",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "restaurant-conversation-menu-block",
+            "contentPattern": "Picanha",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "RS-03",
+          "scenario": "recommendation",
+          "prompt": "o que voce recomenda?",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "restaurant-conversation-menu-block",
+            "contentPattern": "R\\$",
+            "minInteractive": 2
+          }
+        },
+        {
+          "id": "RS-04",
+          "scenario": "contextual-follow-up",
+          "contextSourceId": "menu-item-item-4",
+          "contextHeading": "Mais Pedidos",
+          "prompt": "o que combina?",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "restaurant-conversation-menu-block",
+            "contentPattern": "R\\$",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "RS-05",
+          "scenario": "fallback",
+          "prompt": "voces entregam em qual bairro",
+          "expect": {
+            "visualBlock": false,
+            "contentPattern": "Sabor da Casa|ajudar|orientar",
+            "forbiddenPattern": "Picanha"
+          }
+        },
+        {
+          "id": "RS-06",
+          "scenario": "drawer-linkage",
+          "prompt": "picanha na brasa",
+          "drawer": {
+            "blockTestId": "restaurant-conversation-menu-block",
+            "clickPattern": "Picanha",
+            "openPattern": "Ponto da carne|Personalizar|Adicionar"
+          }
+        }
+      ]
+    },
+    "health": {
+      "heading": "Saude",
+      "flows": [
+        {
+          "id": "HL-01",
+          "scenario": "category",
+          "prompt": "dermatologista",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "health-conversation-results-block",
+            "contentPattern": "Ana Oliveira|Dermatologia",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "HL-02",
+          "scenario": "specific-entity",
+          "prompt": "limpeza de pele",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "health-conversation-results-block",
+            "contentPattern": "Limpeza de Pele",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "HL-03",
+          "scenario": "recommendation",
+          "prompt": "quero melhorar minha pele",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "health-conversation-results-block",
+            "contentPattern": "Ana|Dermatolog|Limpeza|Consulta",
+            "minInteractive": 2
+          }
+        },
+        {
+          "id": "HL-04",
+          "scenario": "contextual-follow-up",
+          "contextSourceId": "health-professional-doc-3",
+          "contextHeading": "Profissionais",
+          "prompt": "esse profissional atende o que?",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "health-conversation-results-block",
+            "contentPattern": "Consulta|Limpeza|Estetica|Dermatolog",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "HL-05",
+          "scenario": "fallback",
+          "prompt": "aceita convenio unimed",
+          "expect": {
+            "visualBlock": false,
+            "contentPattern": "Clinica Vida Plena|ajudar|orientar",
+            "forbiddenPattern": "Agendar"
+          }
+        },
+        {
+          "id": "HL-06",
+          "scenario": "drawer-linkage",
+          "prompt": "quero agendar consulta",
+          "contextSourceId": "health-professional-doc-3",
+          "contextHeading": "Profissionais",
+          "drawer": {
+            "blockTestId": "health-schedule-prompt-block",
+            "clickRole": "button",
+            "openPattern": "Escolha data e horario"
+          }
+        }
+      ]
+    }
+  }
+}
