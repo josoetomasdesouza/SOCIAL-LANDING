@@ -783,6 +783,8 @@ export function AppointmentFeed() {
         stories={appointmentContent.stories}
         sections={sections}
         leadingContent={operationalHero}
+        storiesClassName="max-[360px]:py-3.5"
+        sectionsClassName="max-[360px]:pt-4 max-[360px]:pb-6"
         conversationResponseResolver={conversationResponseResolver}
         renderConversationVisualBlock={renderConversationVisualBlock}
         onStoryAction={(story) => {

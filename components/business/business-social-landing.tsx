@@ -83,6 +83,10 @@ interface BusinessSocialLandingProps {
   reserveHeaderSpace?: boolean | "compact"
   onHeaderCartClick?: () => void
   headerCartCount?: number
+  /** Optional class on stories strip — vertical-specific cadence (e.g. appointment @ 320). */
+  storiesClassName?: string
+  /** Optional class on sections wrapper — vertical-specific cadence. */
+  sectionsClassName?: string
 }
 
 const conversationContextLabels: Record<BusinessPost["type"], string> = {
@@ -506,16 +510,17 @@ function StoryViewer({ isOpen, onClose, stories, initialIndex, categoryName, bra
 // ========================================
 // STORIES
 // ========================================
-function BusinessStories({ stories, config, onStoryClick }: { 
+function BusinessStories({ stories, config, onStoryClick, className }: { 
   stories: BusinessStory[]
   config: BusinessConfig
-  onStoryClick?: (story: BusinessStory, index: number) => void 
+  onStoryClick?: (story: BusinessStory, index: number) => void
+  className?: string
 }) {
   // Gera gradiente baseado na cor da marca
   const brandColor = getBusinessAccentColor(config)
   
   return (
-    <section className="border-y border-border/50 bg-background py-5">
+    <section className={cn("border-y border-border/50 bg-background py-5", className)}>
       <div className="px-4 sm:px-5">
         <div className="flex gap-5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4 sm:-mx-5 sm:px-5">
           {stories.map((story, index) => (
@@ -885,6 +890,8 @@ export function BusinessSocialLanding({
   renderConversationVisualBlock,
   onHeaderCartClick,
   headerCartCount = 0,
+  storiesClassName,
+  sectionsClassName,
 }: BusinessSocialLandingProps) {
   const sharedConversationSelection = useConversationSelectionContext()
   const localConversationSelection = useConversationSelectionState()
@@ -1115,13 +1122,13 @@ export function BusinessSocialLanding({
         {leadingContent}
 
         {/* Stories */}
-        <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />
+        <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} className={storiesClassName} />
 
         {/* Top content slot */}
         {topContent}
         
         {/* Sections */}
-        <div className="px-4 sm:px-5 py-6">
+        <div className={cn("px-4 sm:px-5 py-6", sectionsClassName)}>
           {sections.map((section) => (
             <BusinessSectionComponent
               key={section.id}

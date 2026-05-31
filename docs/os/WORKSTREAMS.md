@@ -359,7 +359,7 @@
 | **Gate de saída** | ≥3 sessões observacionais + GO humano por etapa |
 | **Refs** | [`STRATEGIC_PRODUCT_AUDIT_POST_WS09.md`](../audit/STRATEGIC_PRODUCT_AUDIT_POST_WS09.md) |
 
-**Sequência interna:** Etapa 1 (observar) → Etapa 2 **WS-10A** (Maps hierarchy ✅) → **WS-10B** (composer coexistence ✅) → **WS-10B.1** (validação pós-cleanup ✅) → WS-10C (estrutural, GO condicionado) → Etapa 3 Language Consolidation → feature WS.
+**Sequência interna:** Etapa 1 (observar) → Etapa 2 **WS-10A** ✅ → **WS-10B** ✅ → **WS-10B.1** ✅ → **WS-10C** (hero/feed @ 320 ✅) → Etapa 3 Language Consolidation → feature WS.
 
 ---
 

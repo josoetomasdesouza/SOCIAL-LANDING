@@ -1,0 +1,106 @@
+{
+  "capturedAt": "2026-05-31T21:16:05.166Z",
+  "baseUrl": "http://localhost:3003/demo",
+  "beforeReference": {
+    "feedPeek320": 26,
+    "heroPct320": 52.5,
+    "source": "ws10b1-validation-metrics.json"
+  },
+  "flows": [
+    {
+      "flow": "320-slow",
+      "steps": [
+        {
+          "step": "hero-fold",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 45.2,
+            "heroBottom": 333,
+            "storiesHeight": 132,
+            "feedPeekPx": 87,
+            "feedSectionTop": 481,
+            "opLineVisible": true,
+            "placeHintVisible": true
+          }
+        },
+        {
+          "step": "scroll-light",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 45.2,
+            "heroBottom": 213,
+            "storiesHeight": 132,
+            "feedPeekPx": 207,
+            "feedSectionTop": 361,
+            "opLineVisible": true,
+            "placeHintVisible": true
+          }
+        },
+        {
+          "step": "arrival-return",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 45.2,
+            "heroBottom": 333,
+            "storiesHeight": 132,
+            "feedPeekPx": 87,
+            "feedSectionTop": 481,
+            "opLineVisible": true,
+            "placeHintVisible": true
+          }
+        }
+      ]
+    },
+    {
+      "flow": "320-rush",
+      "steps": [
+        {
+          "step": "hero-rush",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 45.2,
+            "heroBottom": 333,
+            "storiesHeight": 132,
+            "feedPeekPx": 87,
+            "feedSectionTop": 481,
+            "opLineVisible": true,
+            "placeHintVisible": true
+          }
+        },
+        {
+          "step": "scroll-rush",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 45.2,
+            "heroBottom": 63,
+            "storiesHeight": 132,
+            "feedPeekPx": 357,
+            "feedSectionTop": 211,
+            "opLineVisible": true,
+            "placeHintVisible": true
+          }
+        }
+      ],
+      "startedAt": 1780262173873,
+      "durationMs": 2878
+    },
+    {
+      "flow": "390-slow",
+      "steps": [
+        {
+          "step": "hero-fold",
+          "metrics": {
+            "vh": 844,
+            "heroPctVh": 42.5,
+            "heroBottom": 435,
+            "storiesHeight": 144,
+            "feedPeekPx": 241,
+            "feedSectionTop": 603,
+            "opLineVisible": true,
+            "placeHintVisible": true
+          }
+        }
+      ]
+    }
+  ]
+}
