@@ -200,7 +200,23 @@ async function main() {
     `drawer=${count(closeSlice, "drawer.closed")}, surface=${count(closeSlice, "surface.closed")}`
   )
 
-  // 5. Primeira mensagem composer
+  // 5. composer.mode.changed via booking drawer (hero primary CTA — before AI pollutes composer state)
+  const beforeComposer = events.length
+  await dismissOverlays(page)
+  await page.getByTestId("appointment-operational-hero").scrollIntoViewIfNeeded()
+  await page.getByTestId("appointment-operational-hero").getByRole("button", { name: /Agendar hor/i }).first().click({ force: true })
+  await page.waitForTimeout(800)
+  const composerSlice = events.slice(beforeComposer)
+  record(
+    "5. composer.mode.changed",
+    has(composerSlice, "composer.mode.changed"),
+    `count=${count(composerSlice, "composer.mode.changed")}`
+  )
+
+  await dismissDrawer(page)
+  await page.waitForTimeout(400)
+
+  // 6. Primeira mensagem composer
   const beforeAi = events.length
   const composerInput = page.locator("form input").last()
   await composerInput.scrollIntoViewIfNeeded()
@@ -210,7 +226,7 @@ async function main() {
   await page.waitForTimeout(1200)
   const aiSlice = events.slice(beforeAi)
   record(
-    "5. ai.surface.opened (once)",
+    "6. ai.surface.opened (once)",
     count(aiSlice, "ai.surface.opened") >= 1,
     `count=${count(aiSlice, "ai.surface.opened")}`
   )
@@ -221,24 +237,12 @@ async function main() {
   await page.waitForTimeout(800)
   const secondSlice = events.slice(beforeSecond)
   record(
-    "5b. ai.surface.opened not repeated",
+    "6b. ai.surface.opened not repeated",
     count(secondSlice, "ai.surface.opened") === 0,
     `count=${count(secondSlice, "ai.surface.opened")}`
   )
 
-  // 6. composer.mode.changed via booking drawer
-  const beforeComposer = events.length
-  await page.locator("#section-agendar-horario").scrollIntoViewIfNeeded()
-  await page.locator("#section-agendar-horario").getByRole("button", { name: /Agendar agora/i }).first().click({ force: true })
-  await page.waitForTimeout(800)
-  const composerSlice = events.slice(beforeComposer)
-  record(
-    "6. composer.mode.changed",
-    has(composerSlice, "composer.mode.changed"),
-    `count=${count(composerSlice, "composer.mode.changed")}`
-  )
-
-  // 7. WhatsApp (close booking drawer via Escape so link is interactive)
+  // 7. WhatsApp (close any overlay so link is interactive)
   const beforeWa = events.length
   await dismissDrawer(page)
   await page.waitForTimeout(400)
