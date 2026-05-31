@@ -1,0 +1,153 @@
+{
+  "capturedAt": "2026-05-31T21:02:00.365Z",
+  "baseUrl": "http://localhost:3003/demo",
+  "flows": [
+    {
+      "flow": "390-slow",
+      "steps": [
+        {
+          "step": "hero",
+          "metrics": {
+            "vh": 844,
+            "heroPctVh": 42.5,
+            "feedPeekPx": 241,
+            "composerHidden": false,
+            "composerPctVh": 9.2,
+            "copyArea": 0,
+            "mapsArea": 0,
+            "mapsFontWeight": null
+          }
+        },
+        {
+          "step": "arrival-dwell",
+          "metrics": {
+            "vh": 844,
+            "heroPctVh": 42.5,
+            "feedPeekPx": 241,
+            "composerHidden": true,
+            "composerPctVh": 0,
+            "copyArea": 55132,
+            "mapsArea": 14320,
+            "mapsFontWeight": "400"
+          }
+        },
+        {
+          "step": "feed-return",
+          "metrics": {
+            "vh": 844,
+            "heroPctVh": 42.5,
+            "feedPeekPx": 241,
+            "composerHidden": false,
+            "composerPctVh": 9.2,
+            "copyArea": 0,
+            "mapsArea": 0,
+            "mapsFontWeight": null
+          }
+        }
+      ]
+    },
+    {
+      "flow": "320-slow",
+      "steps": [
+        {
+          "step": "hero",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 52.5,
+            "feedPeekPx": 26,
+            "composerHidden": false,
+            "composerPctVh": 13.7,
+            "copyArea": 0,
+            "mapsArea": 0,
+            "mapsFontWeight": null
+          }
+        },
+        {
+          "step": "arrival-dwell",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 52.5,
+            "feedPeekPx": 26,
+            "composerHidden": true,
+            "composerPctVh": 0,
+            "copyArea": 44352,
+            "mapsArea": 11520,
+            "mapsFontWeight": "400"
+          }
+        },
+        {
+          "step": "feed-return",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 52.5,
+            "feedPeekPx": 26,
+            "composerHidden": false,
+            "composerPctVh": 13.7,
+            "copyArea": 0,
+            "mapsArea": 0,
+            "mapsFontWeight": null
+          }
+        }
+      ]
+    },
+    {
+      "flow": "320-rush",
+      "steps": [
+        {
+          "step": "hero-rush",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 52.5,
+            "feedPeekPx": 26,
+            "composerHidden": false,
+            "composerPctVh": 13.7,
+            "copyArea": 0,
+            "mapsArea": 0,
+            "mapsFontWeight": null
+          }
+        },
+        {
+          "step": "scroll-rush",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 52.5,
+            "feedPeekPx": 306,
+            "composerHidden": false,
+            "composerPctVh": 13.7,
+            "copyArea": 0,
+            "mapsArea": 0,
+            "mapsFontWeight": null
+          }
+        },
+        {
+          "step": "arrival-rush",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 52.5,
+            "feedPeekPx": 26,
+            "composerHidden": true,
+            "composerPctVh": 0,
+            "copyArea": 44352,
+            "mapsArea": 11520,
+            "mapsFontWeight": "400"
+          }
+        },
+        {
+          "step": "booking-rush",
+          "metrics": {
+            "vh": 568,
+            "heroPctVh": 52.5,
+            "feedPeekPx": 26,
+            "composerHidden": false,
+            "composerPctVh": 13.7,
+            "copyArea": 0,
+            "mapsArea": 0,
+            "mapsFontWeight": null
+          }
+        }
+      ],
+      "startedAt": 1780261343346,
+      "durationMs": 5248
+    }
+  ]
+}
