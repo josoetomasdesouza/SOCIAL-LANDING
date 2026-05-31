@@ -218,7 +218,34 @@ Dev server: `pnpm dev` → `http://localhost:3000/demo` (ou porta ativa).
 
 ---
 
-### Sessão 2 — _[a preencher]_
+### Sessão 2 — 2026-05-31 — Stress (320×568, uso rápido ~12.6s)
+
+**Ambiente:** 320×568 · scroll/taps agressivos · Appointment  
+**Relatório completo:** [`WS-10_SESSION_02_STRESS_OBSERVATION.md`](WS-10_SESSION_02_STRESS_OBSERVATION.md)
+
+**Fluxos percorridos:**
+- [x] Entrada rush + scroll imediato
+- [x] Chegada fast open/close/reopen
+- [x] Booking rush
+- [x] Highlight + deep scroll
+- [x] Retorno feed
+
+**Veredicto:** ⚠️ **Tese sobrevive com margem reduzida** — presença ok no path hero→chegada; fragiliza com scroll/booking imediato e stack inferior claustrofóbico.
+
+**vs Sessão 1:**
+
+| | S1 | S2 |
+|-|----|----|
+| Presença | Forte | Comprimida, viva no topo |
+| Maps rupture | Alta | **Crítica (320px)** |
+| Feed peek | Parcial | **Ausente no fold** |
+| Q10 Contenção | Contenção | **Ambíguo** |
+
+**Momento crítico S2:** drawer aberto + Maps + composer + Events — ou scroll <1.5s → catálogo.
+
+**PDC reforçados/novos:** PDC-01 ↑ · PDC-05 composer overlap · PDC-06 feed peek 320 · PDC-07 densidade hero inferior
+
+**Screenshots:** `ws10-s2-01` … `ws10-s2-09`
 
 ---
 
@@ -251,10 +278,11 @@ Dev server: `pnpm dev` → `http://localhost:3000/demo` (ou porta ativa).
 
 | Item | Tipo | Prioridade |
 |------|------|------------|
-| Maps CTA peso visual (PDC-01) | Utilitarização involuntária | Alta (hipótese S1) |
+| Maps CTA peso visual (PDC-01) | Utilitarização involuntária | **Crítica under 320px** (S2) |
+| Composer overlap durante drawer (PDC-05) | Claustrofobia | Alta (S2) |
+| Feed peek ausente 320px (PDC-06) | Feed-first enfraquecido | Média (S2) |
+| Densidade hero inferior CTA+pills+stories (PDC-07) | Falta respiro | Média (S2) |
 | Energia drawer booking vs chegada (PDC-02) | Inconsistência | Média |
-| Section headers feed uppercase (PDC-03) | Ruído visual | Baixa |
-| Stories + highlights overlap (PDC-04) | Ruído semântico | Baixa |
 
 ### O que explicitamente NÃO entra na Etapa 2
 
@@ -270,8 +298,8 @@ Dev server: `pnpm dev` → `http://localhost:3000/demo` (ou porta ativa).
 
 | Critério | Status |
 |----------|--------|
-| ≥3 sessões reais documentadas | ☐ (1/3) |
-| Appointment coberto em mobile + desktop | ☐ (mobile S1) |
+| ≥3 sessões reais documentadas | ☐ (2/3) |
+| Appointment coberto em mobile + desktop | ☐ (320 S2 · 390 S1) |
 | ≥1 vertical contraste observada | ✅ S1 |
 | Síntese “o que funciona” preenchida | ✅ parcial |
 | Lista priorizada de dívida perceptiva | ✅ hipóteses S1 |
