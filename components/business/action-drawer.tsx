@@ -184,7 +184,10 @@ export function ActionDrawer({
   const sheetLayout = resolveDrawerSheetStyle(rawDragOffsetPx, {
     translateX: matchFeedWidth ? "translateX(-50%)" : undefined,
     ...(size === "sm"
-      ? { baseHeight: "auto", maxHeight: "82dvh" }
+      ? {
+          baseHeight: "auto",
+          maxHeight: composerHidden ? "86dvh" : "82dvh",
+        }
       : size === "lg"
         ? { baseHeight: "85dvh" }
         : size === "full"

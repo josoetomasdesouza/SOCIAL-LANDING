@@ -583,10 +583,10 @@ export function AppointmentFeed() {
 
   useEffect(() => {
     const nextMode =
-      bookingStep === "service" || bookingStep === "professional" || arrivalDrawerOpen
-        ? "overlay"
-        : bookingStep === "datetime" || bookingStep === "confirmation"
-          ? "hidden"
+      arrivalDrawerOpen || bookingStep === "datetime" || bookingStep === "confirmation"
+        ? "hidden"
+        : bookingStep === "service" || bookingStep === "professional"
+          ? "overlay"
           : "default"
 
     setComposerMode(nextMode)
