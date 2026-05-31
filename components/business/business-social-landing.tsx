@@ -69,6 +69,8 @@ interface BusinessSocialLandingProps {
   config: BusinessConfig
   stories: BusinessStory[]
   sections: BusinessSection[]
+  /** Optional slot before stories — vertical-specific presence layer (e.g. operational hero). */
+  leadingContent?: ReactNode
   topContent?: ReactNode
   onPostClick?: (post: BusinessPost) => void
   onStoryClick?: (story: BusinessStory) => void
@@ -871,6 +873,7 @@ export function BusinessSocialLanding({
   config,
   stories,
   sections,
+  leadingContent,
   topContent,
   onPostClick,
   onStoryClick,
@@ -1107,6 +1110,9 @@ export function BusinessSocialLanding({
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
         {/* Feed intro */}
         <BusinessFeedIntro config={config} onCartClick={onHeaderCartClick} cartCount={headerCartCount} />
+
+        {/* Leading content slot — before stories (pilot: appointment operational hero) */}
+        {leadingContent}
 
         {/* Stories */}
         <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} />

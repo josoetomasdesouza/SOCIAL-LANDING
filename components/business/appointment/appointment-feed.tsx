@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
 import { ActionDrawer } from "../action-drawer"
 import { AppointmentCalendar } from "../appointment-calendar"
-import { SocialCompactHero } from "../social-compact-hero"
 import { SocialContactCTA } from "../social-contact-cta"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
@@ -16,10 +15,20 @@ import { ConversationSelectionProvider, useConversationSelectionState } from "..
 import { barberShopConfig, barbers, barberServices, hairStyles } from "@/lib/mock-data/appointment-data"
 import { createAppointmentMockConversationResolver } from "@/lib/mock-data/appointment-conversational-search"
 import { createAppointmentConversationalVisualBlockRenderer } from "./appointment-conversational-visual-block"
+import { AppointmentOperationalHero } from "./appointment-operational-hero"
 import { appointmentContent } from "@/lib/mock-data/business-content"
 import type { Professional, Service, StyleExample } from "@/lib/business-types"
 
 type BookingStep = "service" | "professional" | "datetime" | "confirmation" | null
+
+function scrollToAppointmentSection(sectionId: string) {
+  document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" })
+}
+
+const APPOINTMENT_LANDING_CONFIG = {
+  ...barberShopConfig,
+  description: "",
+}
 
 // ========================================
 // MODULO: AGENDAR HORARIO (OBJETIVO PRINCIPAL)
@@ -39,36 +48,6 @@ function ScheduleModule({
 }) {
   return (
     <div className="space-y-6">
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <Button 
-          type="button"
-          variant="default"
-          className="h-14 flex items-center justify-center gap-2 rounded-2xl"
-          onClick={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-            onStartBooking()
-          }}
-        >
-          <Calendar className="w-5 h-5" />
-          Agendar agora
-        </Button>
-        <Button 
-          type="button"
-          variant="outline"
-          className="h-14 flex items-center justify-center gap-2 rounded-2xl"
-          onClick={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-            onStartBooking()
-          }}
-        >
-          <Scissors className="w-5 h-5" />
-          Ver servicos
-        </Button>
-      </div>
-      
       {/* Servicos Populares */}
       <div>
         <h4 className="font-medium text-foreground mb-3">Servicos populares</h4>
@@ -623,6 +602,28 @@ export function AppointmentFeed() {
     setSelectedBarber(null)
     setBookingStep("service")
   }
+
+  const operationalHero = useMemo(
+    () => (
+      <AppointmentOperationalHero
+        brandName={barberShopConfig.name}
+        coverImage={barberShopConfig.coverImage || barberShopConfig.logo}
+        coverAlt={`Ambiente ${barberShopConfig.name}`}
+        operationalStatus="Aberto agora · atendemos ate 20h"
+        headline="Corte preciso, barba bem feita e um clima de casa — passe quando quiser."
+        primaryActionLabel="Agendar horario"
+        onPrimaryAction={handleStartBooking}
+        highlights={[
+          { label: "Cortes", onSelect: () => scrollToAppointmentSection("section-agendar-horario") },
+          { label: "Barba", onSelect: handleStartBooking },
+          { label: "Visagismo", onSelect: () => scrollToAppointmentSection("section-estilos-em-alta") },
+          { label: "Avaliacoes", onSelect: () => scrollToAppointmentSection("section-o-que-dizem") },
+          { label: "Ambiente", onSelect: () => scrollToAppointmentSection("section-bastidores") },
+        ]}
+      />
+    ),
+    []
+  )
   
   const handleSelectService = (service: Service) => {
     setSelectedService(service)
@@ -699,37 +700,13 @@ export function AppointmentFeed() {
       icon: <Calendar className="w-5 h-5 text-accent" />,
       type: "primary-action",
       customContent: (
-        <>
-          <ScheduleModule 
-            onStartBooking={handleStartBooking}
-            onSelectService={handleSelectService}
-            onSelectBarber={openBarberFlow}
-            onToggleConversationContext={conversationSelection.toggleConversationContextItem}
-            isInConversation={conversationSelection.isConversationSelected}
-          />
-          <ContextSelectable
-            as="div"
-            dataMorphSourceId="appointment-about-house"
-            onLongPress={() => conversationSelection.toggleConversationContextItem({
-              id: "appointment-about-house",
-              title: "Sobre a casa",
-              image: barberShopConfig.logo,
-              subtitle: "Sobre",
-            })}
-            selected={conversationSelection.isConversationSelected("appointment-about-house")}
-            className="rounded-[30px] overflow-hidden"
-            selectionStyle="textual"
-          >
-            <SocialCompactHero
-              variant="editorial"
-              brandLogo={barberShopConfig.logo}
-              brandName={barberShopConfig.name}
-              contextLabel="Sobre a casa"
-              headline="Na Barba Negra, corte preciso e barba bem feita andam juntos."
-              subheadline="Agende rapido e continue explorando o feed."
-            />
-          </ContextSelectable>
-        </>
+        <ScheduleModule 
+          onStartBooking={handleStartBooking}
+          onSelectService={handleSelectService}
+          onSelectBarber={openBarberFlow}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          isInConversation={conversationSelection.isConversationSelected}
+        />
       )
     },
     {
@@ -795,10 +772,10 @@ export function AppointmentFeed() {
     <ConversationSelectionProvider value={conversationSelection}>
       <>
       <BusinessSocialLanding
-        config={barberShopConfig}
+        config={APPOINTMENT_LANDING_CONFIG}
         stories={appointmentContent.stories}
         sections={sections}
-        reserveHeaderSpace="compact"
+        leadingContent={operationalHero}
         conversationResponseResolver={conversationResponseResolver}
         renderConversationVisualBlock={renderConversationVisualBlock}
         onStoryAction={(story) => {
