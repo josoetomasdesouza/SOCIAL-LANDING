@@ -1,7 +1,15 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
-import { getDrawerMaxUpDragPx, getVisualPullOffset } from "@/lib/ui/drawer-layout"
+import {
+  easeOutCubic,
+  getDrawerMaxUpDragPx,
+  getVisualPullOffset,
+  resolveDrawerCloseSettleTargetRaw,
+  shouldCloseDrawerFromRelease,
+  DRAWER_SETTLE_CLOSE_MS,
+  DRAWER_SETTLE_OPEN_MS,
+} from "@/lib/ui/drawer-layout"
 
 export const DRAWER_PULL_CLOSE_MIN_PX = 60
 export const DRAWER_PULL_ACTIVATION_PX = 4
@@ -30,6 +38,12 @@ type SheetGestureState = {
   pullOriginY: number
   lastClientY: number
   bypassScrollTopCheck: boolean
+}
+
+type VelocitySample = {
+  y: number
+  t: number
+  vy: number
 }
 
 function getCloseThresholdPx(sheetHeightPx: number) {
@@ -68,76 +82,186 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
   const sheetGestureRef = useRef<SheetGestureState | null>(null)
   const onCloseRef = useRef(onClose)
   const activeRef = useRef(active)
+  const rawOffsetRef = useRef(0)
+  const velocitySampleRef = useRef<VelocitySample>({ y: 0, t: 0, vy: 0 })
+  const settleFrameRef = useRef<number | null>(null)
   const [rawDragOffsetPx, setRawDragOffsetPx] = useState(0)
   const [isPulling, setIsPulling] = useState(false)
+  const [isSettling, setIsSettling] = useState(false)
   const [scrollReady, setScrollReady] = useState(false)
   const [sheetReady, setSheetReady] = useState(false)
 
   onCloseRef.current = onClose
   activeRef.current = active
 
+  const setDragOffset = useCallback((next: number) => {
+    rawOffsetRef.current = next
+    setRawDragOffsetPx(next)
+  }, [])
+
+  const cancelSettleAnimation = useCallback(() => {
+    if (settleFrameRef.current != null) {
+      window.cancelAnimationFrame(settleFrameRef.current)
+      settleFrameRef.current = null
+    }
+    setIsSettling(false)
+  }, [])
+
   const clearPullVisual = useCallback(() => {
-    setRawDragOffsetPx(0)
+    if (isSettling) return
+    setDragOffset(0)
     setIsPulling(false)
     if (dragStateRef.current?.source === "sheet") {
       dragStateRef.current = null
     }
-  }, [])
+  }, [isSettling, setDragOffset])
 
   const resetDrag = useCallback(() => {
+    cancelSettleAnimation()
     dragStateRef.current = null
     sheetGestureRef.current = null
-    setRawDragOffsetPx(0)
+    velocitySampleRef.current = { y: 0, t: 0, vy: 0 }
+    setDragOffset(0)
     setIsPulling(false)
-  }, [])
+  }, [cancelSettleAnimation, setDragOffset])
 
   const resolveCloseThreshold = useCallback(() => {
     const height = sheetRef.current?.offsetHeight ?? 400
     return getCloseThresholdPx(height)
   }, [])
 
+  const recordVelocity = useCallback((clientY: number) => {
+    const now = performance.now()
+    const sample = velocitySampleRef.current
+    const dt = now - sample.t
+
+    if (dt > 0 && dt < 120) {
+      sample.vy = (clientY - sample.y) / dt
+    }
+
+    sample.y = clientY
+    sample.t = now
+  }, [])
+
+  const resetVelocity = useCallback((clientY: number) => {
+    velocitySampleRef.current = { y: clientY, t: performance.now(), vy: 0 }
+  }, [])
+
+  const runSettleAnimation = useCallback(
+    (mode: "close" | "open", fromOffset: number) => {
+      cancelSettleAnimation()
+      setIsSettling(true)
+
+      const sheetHeight = sheetRef.current?.offsetHeight ?? 400
+      const targetOffset = mode === "close" ? resolveDrawerCloseSettleTargetRaw(sheetHeight) : 0
+      const duration = mode === "close" ? DRAWER_SETTLE_CLOSE_MS : DRAWER_SETTLE_OPEN_MS
+      const startOffset = fromOffset
+      const startTime = performance.now()
+
+      const tick = (now: number) => {
+        const progress = easeOutCubic((now - startTime) / duration)
+        const nextOffset = startOffset + (targetOffset - startOffset) * progress
+        setDragOffset(nextOffset)
+
+        if (progress < 1) {
+          settleFrameRef.current = window.requestAnimationFrame(tick)
+          return
+        }
+
+        settleFrameRef.current = null
+        setIsSettling(false)
+
+        if (mode === "close") {
+          setDragOffset(0)
+          dragStateRef.current = null
+          sheetGestureRef.current = null
+          setIsPulling(false)
+          onCloseRef.current()
+          return
+        }
+
+        resetDrag()
+      }
+
+      settleFrameRef.current = window.requestAnimationFrame(tick)
+    },
+    [cancelSettleAnimation, resetDrag, setDragOffset]
+  )
+
   const finishDrag = useCallback(
     (clientY: number, pointerId: number) => {
+      if (isSettling) return
+
       const dragState = dragStateRef.current
       if (!dragState || dragState.pointerId !== pointerId) {
         sheetGestureRef.current = null
         return
       }
 
+      recordVelocity(clientY)
+
       const deltaY = clientY - dragState.startY
-      const shouldClose = dragState.pulling && deltaY >= resolveCloseThreshold()
-      resetDrag()
+      const currentOffset = rawOffsetRef.current
+      const shouldClose = shouldCloseDrawerFromRelease({
+        deltaY,
+        velocityY: velocitySampleRef.current.vy,
+        closeThresholdPx: resolveCloseThreshold(),
+        pulling: dragState.pulling,
+      })
+
+      dragStateRef.current = null
+      sheetGestureRef.current = null
+      setIsPulling(false)
 
       if (shouldClose) {
-        onCloseRef.current()
+        runSettleAnimation("close", Math.max(currentOffset, deltaY))
+        return
       }
+
+      if (currentOffset !== 0) {
+        runSettleAnimation("open", currentOffset)
+        return
+      }
+
+      resetDrag()
     },
-    [resetDrag, resolveCloseThreshold]
+    [isSettling, recordVelocity, resetDrag, resolveCloseThreshold, runSettleAnimation]
   )
 
-  const applyHandleDragDelta = useCallback((clientY: number, dragState: DragState) => {
-    const maxUpPx = getDrawerMaxUpDragPx()
-    setRawDragOffsetPx(Math.max(-maxUpPx, clientY - dragState.startY))
-  }, [])
+  const applyHandleDragDelta = useCallback(
+    (clientY: number, dragState: DragState) => {
+      recordVelocity(clientY)
+      const maxUpPx = getDrawerMaxUpDragPx()
+      setDragOffset(Math.max(-maxUpPx, clientY - dragState.startY))
+    },
+    [recordVelocity, setDragOffset]
+  )
 
-  const startHandleDrag = useCallback((clientY: number, pointerId: number) => {
-    if (!activeRef.current) return
+  const startHandleDrag = useCallback(
+    (clientY: number, pointerId: number) => {
+      if (!activeRef.current || isSettling) return
 
-    sheetGestureRef.current = null
-    dragStateRef.current = {
-      pointerId,
-      startY: clientY,
-      source: "handle",
-      pulling: true,
-    }
-    setIsPulling(false)
-  }, [])
+      cancelSettleAnimation()
+      sheetGestureRef.current = null
+      resetVelocity(clientY)
+      dragStateRef.current = {
+        pointerId,
+        startY: clientY,
+        source: "handle",
+        pulling: true,
+      }
+      setIsPulling(false)
+    },
+    [cancelSettleAnimation, isSettling, resetVelocity]
+  )
 
   const beginSheetGesture = useCallback(
     (clientY: number, pointerId: number, bypassScrollTopCheck: boolean) => {
-      if (!activeRef.current) return
+      if (!activeRef.current || isSettling) return
 
+      cancelSettleAnimation()
       dragStateRef.current = null
+      resetVelocity(clientY)
       sheetGestureRef.current = {
         pointerId,
         pullOriginY: clientY,
@@ -145,7 +269,7 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
         bypassScrollTopCheck,
       }
     },
-    []
+    [cancelSettleAnimation, isSettling, resetVelocity]
   )
 
   const updateSheetPull = useCallback(
@@ -154,10 +278,10 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
       if (!gesture || gesture.pointerId !== pointerId) return false
 
       gesture.lastClientY = clientY
+      recordVelocity(clientY)
 
       const scrollEl = scrollRef.current
-      const canPull =
-        gesture.bypassScrollTopCheck || isScrollElementAtTop(scrollEl)
+      const canPull = gesture.bypassScrollTopCheck || isScrollElementAtTop(scrollEl)
 
       if (!canPull) {
         clearPullVisual()
@@ -181,10 +305,10 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
         pulling: true,
       }
       setIsPulling(true)
-      setRawDragOffsetPx(deltaY)
+      setDragOffset(deltaY)
       return true
     },
-    [clearPullVisual]
+    [clearPullVisual, recordVelocity, setDragOffset]
   )
 
   const anchorPullOriginAtTop = useCallback(() => {
@@ -203,6 +327,12 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
       setSheetReady(false)
     }
   }, [active, resetDrag])
+
+  useEffect(() => {
+    return () => {
+      cancelSettleAnimation()
+    }
+  }, [cancelSettleAnimation])
 
   useEffect(() => {
     if (!active) return
@@ -246,12 +376,6 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
       const sheetEl = sheetRef.current
       if (sheetEl?.hasPointerCapture(event.pointerId)) {
         sheetEl.releasePointerCapture(event.pointerId)
-      }
-
-      const handleDrag = dragStateRef.current
-      if (handleDrag?.source === "handle" && handleDrag.pointerId === event.pointerId) {
-        finishDrag(event.clientY, event.pointerId)
-        return
       }
 
       finishDrag(event.clientY, event.pointerId)
@@ -331,13 +455,12 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
     setScrollReady(node !== null)
   }, [])
 
-  const setSheetRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      sheetRef.current = node
-      setSheetReady(node !== null)
-    },
-    []
-  )
+  const setSheetRef = useCallback((node: HTMLDivElement | null) => {
+    sheetRef.current = node
+    setSheetReady(node !== null)
+  }, [])
+
+  const isDragging = isPulling || rawDragOffsetPx !== 0 || isSettling
 
   return {
     sheetRef: setSheetRef,
@@ -346,14 +469,13 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
     rawDragOffsetPx,
     dragOffsetPx: rawDragOffsetPx,
     resetDrag,
-    isDragging: isPulling || rawDragOffsetPx !== 0,
+    isDragging,
     isPulling,
+    isSettling,
     dragHandleProps,
     getBackdropOpacity: (baseOpacity = 0.5) => {
       const visualOffset = getVisualPullOffset(rawDragOffsetPx)
-      return visualOffset > 0
-        ? Math.max(0.2, baseOpacity - visualOffset / 320)
-        : baseOpacity
+      return visualOffset > 0 ? Math.max(0.2, baseOpacity - visualOffset / 320) : baseOpacity
     },
   }
 }

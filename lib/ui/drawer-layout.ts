@@ -2,6 +2,38 @@ export const DRAWER_SHEET_HEIGHT = "95dvh"
 export const DRAWER_SHEET_MAX_HEIGHT = "100dvh"
 export const DRAWER_PULL_DRAG_RESISTANCE = 0.55
 
+/** Downward flick velocity (px/ms) that completes close with momentum. */
+export const DRAWER_FLICK_CLOSE_VELOCITY_PX_MS = 0.65
+export const DRAWER_SETTLE_CLOSE_MS = 280
+export const DRAWER_SETTLE_OPEN_MS = 220
+
+export function easeOutCubic(progress: number) {
+  const t = Math.min(1, Math.max(0, progress))
+  return 1 - Math.pow(1 - t, 3)
+}
+
+export function resolveDrawerCloseSettleTargetRaw(sheetHeightPx: number) {
+  return sheetHeightPx / DRAWER_PULL_DRAG_RESISTANCE + 24
+}
+
+export function shouldCloseDrawerFromRelease({
+  deltaY,
+  velocityY,
+  closeThresholdPx,
+  pulling,
+}: {
+  deltaY: number
+  velocityY: number
+  closeThresholdPx: number
+  pulling: boolean
+}) {
+  if (!pulling || deltaY <= 0) {
+    return false
+  }
+
+  return deltaY >= closeThresholdPx || velocityY >= DRAWER_FLICK_CLOSE_VELOCITY_PX_MS
+}
+
 export function getVisualPullOffset(rawOffsetPx: number) {
   if (rawOffsetPx <= 0) return rawOffsetPx
   return rawOffsetPx * DRAWER_PULL_DRAG_RESISTANCE
