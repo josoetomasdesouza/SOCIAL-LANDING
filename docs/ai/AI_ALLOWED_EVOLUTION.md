@@ -146,6 +146,8 @@ More intents ship incrementally in follow-up PRs — never in the same PR as gov
 
 ## 7. Recommended next vertical: **Appointment**
 
+**Gate:** Blocked until WS-08.7 (AI Stability & Observation) merges. Then run `pnpm qa:ai-observation` + human checklist before kickoff.
+
 ### Rationale
 
 1. **Natural third leg** — ecommerce (buy), restaurant (order), health (consult) → appointment (book)

@@ -252,12 +252,41 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI |
-| **Status** | 🟡 Em PR — `workstream/ai-runtime-snapshot` |
+| **Status** | ✅ Concluído — PR #70 merged @ `d229970` |
 | **Objetivo** | Baseline oficial da camada AI resolver antes de novas expansões |
 | **Escopo** | `docs/ai/` — baseline, hydration, fallback, visual runtime, vertical comparison |
 | **Fora de escopo** | Runtime; Tier 1 cores |
 | **Gate de saída** | Docs-only PR; CI green |
 | **Refs** | [`AI_RUNTIME_BASELINE.md`](../ai/AI_RUNTIME_BASELINE.md) |
+
+---
+
+### WS-08.7 — AI Stability & Observation
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 5 — Multi-Vertical AI |
+| **Status** | 🟡 Em PR — `workstream/ai-stability-observation` |
+| **Objetivo** | Observar e estabilizar comportamento emergente dos resolvers |
+| **Escopo** | `docs/ai/` observation/failure/perceptual; `scripts/qa/`; `qa:ai-observation` |
+| **Fora de escopo** | Novas verticais; LLM; Tier 1 cores; mudanças perceptivas grandes |
+| **Gate de saída** | Observation matrix + failure modes + checklist; CI green |
+| **Refs** | [`WS-08.7_AI_STABILITY_OBSERVATION_REPORT.md`](../audit/WS-08.7_AI_STABILITY_OBSERVATION_REPORT.md) |
+
+---
+
+### WS-08C — Appointment AI Resolver
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 5 — Multi-Vertical AI |
+| **Status** | 🔴 Blocked — aguarda WS-08.7 merge |
+| **Objetivo** | Resolver isolado para vertical appointment |
+| **Escopo** | `appointment-conversational-search.ts`, feed wire, QA |
+| **Fora de escopo** | Health resolver; global appointment engine |
+| **Branch sugerida** | `workstream/ai-resolver-appointment` |
+| **Gate de saída** | `qa:appointment` + human checklist + `qa:ai-observation` green |
+| **Desbloqueio** | WS-08.7 merged |
 
 ---
 
@@ -272,7 +301,7 @@
 | **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
 | **Branch sugerida** | `workstream/ai-resolver-<vertical>` |
 | **Gate de saída** | Resolver dedicado + smoke conversacional |
-| **Ordem sugerida** | ~~restaurant~~ ✅ WS-08A → ~~health~~ ✅ WS-08B → ~~governance~~ ✅ WS-08.5 → ~~snapshot~~ 🟡 WS-08.6 → appointment |
+| **Ordem sugerida** | ~~WS-08A~~ ✅ → ~~WS-08B~~ ✅ → ~~WS-08.5~~ ✅ → ~~WS-08.6~~ ✅ → ~~WS-08.7~~ 🟡 → **WS-08C** appointment |
 
 ---
 
@@ -294,16 +323,14 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada** ──► **WS-08A** ✅ restaurant AI
-                                                              ├──► **WS-08B** ✅ health AI
-                                                              ├──► **WS-08.5** ✅ governance
-                                                              ├──► **WS-08.6** (runtime snapshot, em PR)
+WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada** ──► **WS-08A–08.6** ✅ AI baseline completo
+                                                              ├──► **WS-08.7** (observation, em PR)
                                                               ├──► WS-03 (parity gaps)
-                                                              └──► WS-08C (AI — appointment)
+                                                              └──► **WS-08C** 🔴 appointment (blocked)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-08.6 AI Runtime Snapshot** (docs-only PR) → próximo **WS-08C Appointment**.
+**Atual:** **WS-08.7 AI Stability & Observation** (em PR) → desbloqueia **WS-08C Appointment**.
 
 ---
 
