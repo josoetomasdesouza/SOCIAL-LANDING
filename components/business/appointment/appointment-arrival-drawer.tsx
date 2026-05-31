@@ -31,14 +31,29 @@ export function AppointmentArrivalDrawer({
       subtitle={arrival.addressLine}
       size="sm"
       footer={
-        <div className="flex flex-col gap-2">
-          <Button type="button" className={socialPatternClasses.primaryAction + " w-full"} asChild>
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
+        <div className="flex flex-col gap-1.5" data-testid="appointment-arrival-fallback-actions">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10 w-full rounded-2xl border-border/50 bg-background font-normal text-foreground/85 shadow-none hover:bg-secondary/35"
+            asChild
+          >
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="appointment-arrival-maps-fallback"
+            >
               Abrir no Maps
             </a>
           </Button>
           {whatsappUrl ? (
-            <Button type="button" variant="outline" className="h-11 w-full rounded-2xl" asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 w-full rounded-2xl border-border/40 bg-transparent font-normal text-muted-foreground shadow-none hover:bg-secondary/25 hover:text-foreground/90"
+              asChild
+            >
               <a
                 href={whatsappUrl}
                 target="_blank"
@@ -59,7 +74,7 @@ export function AppointmentArrivalDrawer({
         </div>
       }
     >
-      <div className="space-y-2.5" data-testid="appointment-arrival-drawer">
+      <div className="space-y-2.5 pb-1" data-testid="appointment-arrival-drawer">
         <p className={socialPatternClasses.editorialHeadline}>{arrival.referenceHint}</p>
 
         <div className="space-y-1.5">

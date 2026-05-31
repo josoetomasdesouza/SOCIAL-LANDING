@@ -203,7 +203,7 @@ export function ActionDrawer({
 
   const footerContent = footer ? (
     <div
-      className={`${innerWidthClasses} ${isCompact ? "px-4 pt-3 pb-4" : "px-4 pt-4"} ${shouldPinFooterToScreen ? "pb-0" : composerOverlaysDrawer ? "pb-0" : isCompact ? "" : "pb-5"}`}
+      className={`${innerWidthClasses} ${isCompact ? "px-4 pt-2 pb-3" : "px-4 pt-4"} ${shouldPinFooterToScreen ? "pb-0" : composerOverlaysDrawer ? "pb-0" : isCompact ? "" : "pb-5"}`}
     >
       {footer}
     </div>
@@ -256,7 +256,10 @@ export function ActionDrawer({
 
         {footer && !shouldPinFooterToScreen ? (
           <div
-            className="shrink-0 border-t border-border/50 bg-card"
+            className={cn(
+              "shrink-0 border-t bg-card",
+              isCompact ? "border-border/30" : "border-border/50"
+            )}
             style={composerOverlaysDrawer ? { paddingBottom: composerClearance } : undefined}
           >
             {footerContent}

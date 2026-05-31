@@ -359,7 +359,7 @@
 | **Gate de saída** | ≥3 sessões observacionais + GO humano por etapa |
 | **Refs** | [`STRATEGIC_PRODUCT_AUDIT_POST_WS09.md`](../audit/STRATEGIC_PRODUCT_AUDIT_POST_WS09.md) |
 
-**Sequência interna:** Etapa 1 (observar) → Etapa 2 (limpar ruído) → Etapa 3 (constituição perceptiva) → **só então** novo WS de feature.
+**Sequência interna:** Etapa 1 (observar) → **Etapa 2 WS-10A** (Maps hierarchy — em curso/concluído) → demais PDC → Etapa 3 Language Consolidation → feature WS.
 
 ---
 
