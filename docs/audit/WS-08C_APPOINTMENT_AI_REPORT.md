@@ -104,4 +104,8 @@
 
 ## Recommendation
 
-**GO WITH NOTES** — Appointment is the first resolver with light session continuity; automated gates green; perceptual risks documented and bounded.
+**GO** — Era 3 cognitive baseline consolidated on main @ `ca00dc7`.
+
+**GO explícito** para iniciar auditoria cognitiva profunda (Hero Google-like).
+
+See: [`ERA3_COGNITIVE_BASELINE_SNAPSHOT.md`](./ERA3_COGNITIVE_BASELINE_SNAPSHOT.md)

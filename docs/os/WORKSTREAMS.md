@@ -294,14 +294,12 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI |
-| **Status** | 🟡 Em PR — `workstream/ai-resolver-appointment` |
+| **Status** | ✅ Concluído @ `ca00dc7` (PR #73) |
 | **Objetivo** | Primeiro resolver semi-stateful (continuidade leve, sem persistência real) |
 | **Escopo** | `appointment-conversational-search.ts`, visual blocks, feed wire, `qa:appointment`, AP-* harness |
 | **Fora de escopo** | Backend; agenda real; multi-session memory; runtime core; cross-vertical |
-| **Branch sugerida** | `workstream/ai-resolver-appointment` |
 | **Gate de saída** | `qa:appointment` 8/8 + `qa:ai-regression` 26/26 + CI green |
-| **Desbloqueio** | WS-08.8 ✅ |
-| **Refs** | [`WS-08C_APPOINTMENT_AI_REPORT.md`](../audit/WS-08C_APPOINTMENT_AI_REPORT.md) |
+| **Refs** | [`WS-08C_APPOINTMENT_AI_REPORT.md`](../audit/WS-08C_APPOINTMENT_AI_REPORT.md), [`ERA3_COGNITIVE_BASELINE_SNAPSHOT.md`](../audit/ERA3_COGNITIVE_BASELINE_SNAPSHOT.md) |
 
 ---
 
@@ -310,13 +308,12 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI |
-| **Status** | 🟢 Desbloqueado — GO após WS-07.7 cleanup |
+| **Status** | ✅ Baseline 4 verticais — Era 3 cognitiva consolidada |
 | **Objetivo** | Resolver + visual block por vertical (1 vertical/PR) |
 | **Escopo** | Novos módulos em `lib/mock-data/`; wire por feed |
 | **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
-| **Branch sugerida** | `workstream/ai-resolver-<vertical>` |
-| **Gate de saída** | Resolver dedicado + smoke conversacional |
-| **Ordem sugerida** | ~~WS-08A~~ ✅ → ~~WS-08B~~ ✅ → ~~WS-08.5~~ ✅ → ~~WS-08.6~~ ✅ → ~~WS-08.7~~ ✅ → ~~WS-08.8~~ ✅ → **WS-08C** 🟡 appointment |
+| **Gate de saída** | Resolver dedicado + smoke conversacional + harness |
+| **Ordem sugerida** | ~~WS-08A~~ ✅ → ~~WS-08B~~ ✅ → ~~WS-08.5~~ ✅ → ~~WS-08.6~~ ✅ → ~~WS-08.7~~ ✅ → ~~WS-08.8~~ ✅ → ~~WS-08C~~ ✅ |
 
 ---
 
@@ -338,13 +335,14 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada** ──► **WS-08A–08.8** ✅ AI baseline + regression harness
-                                                              ├──► **WS-08C** (appointment resolver, em PR)
-                                                              └──► WS-03 (parity gaps)
+WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada**
+WS-08A–08C ✅ — **Era 3 cognitiva consolidada** (4 resolvers + harness)
+  └──► Próximo: auditoria cognitiva Hero Google-like (GO humano)
+WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-08C Appointment AI Resolver** (em PR) — primeiro resolver semi-stateful.
+**Atual:** **Era 3 baseline consolidada** @ `ca00dc7` — aguardando auditoria cognitiva profunda.
 
 ---
 
