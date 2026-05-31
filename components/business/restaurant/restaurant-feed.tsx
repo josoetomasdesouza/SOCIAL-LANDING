@@ -515,7 +515,7 @@ export function RestaurantFeed() {
         <MenuModule 
           onSelectItem={(item) => { setSelectedItem(item); setItemDrawerOpen(true) }}
           onAddToCart={handleAddToCart}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -527,7 +527,7 @@ export function RestaurantFeed() {
       customContent: (
         <CategoriesModule
           onSelectCategory={() => {}}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -648,7 +648,7 @@ export function RestaurantFeed() {
   }
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={restaurantConfig.model}>
       <>
       <BusinessSocialLanding
         config={restaurantConfig}
@@ -674,7 +674,7 @@ export function RestaurantFeed() {
           handleAddToCart(item, quantity, selectedCustomizations)
           setCartDrawerOpen(true)
         }}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       

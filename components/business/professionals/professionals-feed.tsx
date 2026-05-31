@@ -224,7 +224,7 @@ export function ProfessionalsFeed() {
       customContent: (
         <ServicesModule
           onSelectService={(s) => { setSelectedService(s); setServiceDrawerOpen(true) }}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -236,7 +236,7 @@ export function ProfessionalsFeed() {
       type: "specific",
       customContent: (
         <AreasModule
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -271,7 +271,7 @@ export function ProfessionalsFeed() {
   ]
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={professionalsConfig.model}>
       <>
       <BusinessSocialLanding
         config={professionalsConfig}
@@ -289,7 +289,7 @@ export function ProfessionalsFeed() {
         isOpen={serviceDrawerOpen}
         onClose={() => setServiceDrawerOpen(false)}
         onSchedule={handleSchedule}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       

@@ -317,7 +317,7 @@ export function CoursesFeed() {
       customContent: (
         <CoursesModule
           onSelectCourse={handleSelectCourse}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -329,7 +329,7 @@ export function CoursesFeed() {
       type: "specific",
       customContent: (
         <TracksModule
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -364,7 +364,7 @@ export function CoursesFeed() {
   ]
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={coursesConfig.model}>
       <>
       <BusinessSocialLanding
         config={coursesConfig}
@@ -390,7 +390,7 @@ export function CoursesFeed() {
           setCourseDrawerOpen(false)
           setCheckoutOpen(true)
         }}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       

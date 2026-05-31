@@ -355,7 +355,7 @@ export function RealEstateFeed() {
           onSelectProperty={(p) => { setSelectedProperty(p); setPropertyDrawerOpen(true) }}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -367,7 +367,7 @@ export function RealEstateFeed() {
       type: "specific",
       customContent: (
         <PropertyTypesModule
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -402,7 +402,7 @@ export function RealEstateFeed() {
   ]
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={realestateConfig.model}>
       <>
       <BusinessSocialLanding
         config={realestateConfig}
@@ -427,7 +427,7 @@ export function RealEstateFeed() {
           // Abre WhatsApp
           window.open(`https://wa.me/${realestateConfig.whatsapp}`, "_blank")
         }}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       

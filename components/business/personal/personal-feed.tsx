@@ -259,7 +259,7 @@ export function PersonalFeed() {
   ]
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={personalConfig.model}>
       <>
       <BusinessSocialLanding
         config={personalConfig}

@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState, type
 import { observeComposerModeChanged } from "@/lib/events/instrumentation"
 import type { ComposerScrollMetrics } from "@/lib/ui/composer-scroll-clearance"
 import type { ConversationContextItem } from "./conversational-ai"
+import { useConversationContextMorph } from "./conversation-context-morph"
 
 export type ConversationComposerMode = "default" | "overlay" | "hidden"
 
@@ -12,6 +13,9 @@ interface ConversationSelectionController {
   selectedContextIds: Set<string>
   upsertConversationContextItem: (item: ConversationContextItem) => void
   toggleConversationContextItem: (item: ConversationContextItem) => void
+  /** Shared morph pipeline — same gesture continuity as feed posts. */
+  toggleConversationContextItemWithMorph: (item: ConversationContextItem) => void
+  hiddenContextIds: string[]
   removeConversationContext: (contextId: string) => void
   clearConversationContext: () => void
   isConversationSelected: (id: string) => boolean
@@ -100,6 +104,8 @@ export function useConversationSelectionState(): ConversationSelectionController
     selectedContextIds,
     upsertConversationContextItem,
     toggleConversationContextItem,
+    toggleConversationContextItemWithMorph: toggleConversationContextItem,
+    hiddenContextIds: [],
     removeConversationContext,
     clearConversationContext,
     isConversationSelected,
@@ -121,9 +127,85 @@ export function useConversationSelectionContext() {
 export function ConversationSelectionProvider({
   children,
   value,
+  vertical,
 }: {
   children: ReactNode
-  value: ConversationSelectionController
+  value: Omit<ConversationSelectionController, "toggleConversationContextItemWithMorph" | "hiddenContextIds"> &
+    Partial<Pick<ConversationSelectionController, "toggleConversationContextItemWithMorph" | "hiddenContextIds">>
+  /** When set, wires shared PostToChatMorphLayer for drawer + feed continuity. */
+  vertical?: string
 }) {
-  return <ConversationSelectionContext.Provider value={value}>{children}</ConversationSelectionContext.Provider>
+  if (vertical) {
+    return (
+      <ConversationSelectionProviderWithMorphLayer value={value} vertical={vertical}>
+        {children}
+      </ConversationSelectionProviderWithMorphLayer>
+    )
+  }
+
+  const passthroughValue = useMemo<ConversationSelectionController>(
+    () => ({
+      ...value,
+      toggleConversationContextItemWithMorph:
+        value.toggleConversationContextItemWithMorph ?? value.toggleConversationContextItem,
+      hiddenContextIds: value.hiddenContextIds ?? [],
+    }),
+    [value]
+  )
+
+  return (
+    <ConversationSelectionContext.Provider value={passthroughValue}>{children}</ConversationSelectionContext.Provider>
+  )
+}
+
+function ConversationSelectionProviderWithMorphLayer({
+  children,
+  value,
+  vertical,
+}: {
+  children: ReactNode
+  value: Omit<ConversationSelectionController, "toggleConversationContextItemWithMorph" | "hiddenContextIds">
+  vertical: string
+}) {
+  const morph = useConversationContextMorph(
+    {
+      selectedContextIds: value.selectedContextIds,
+      toggleConversationContextItem: value.toggleConversationContextItem,
+      removeConversationContext: value.removeConversationContext,
+    },
+    vertical
+  )
+
+  const enrichedValue = useMemo<ConversationSelectionController>(
+    () => ({
+      ...value,
+      toggleConversationContextItemWithMorph: morph.toggleConversationContextItemWithMorph,
+      hiddenContextIds: morph.hiddenContextIds,
+    }),
+    [value, morph.toggleConversationContextItemWithMorph, morph.hiddenContextIds]
+  )
+
+  return (
+    <ConversationSelectionContext.Provider value={enrichedValue}>
+      {children}
+      {morph.morphLayer}
+    </ConversationSelectionContext.Provider>
+  )
+}
+
+/** @deprecated Use ConversationSelectionProvider with `vertical` prop. */
+export function ConversationSelectionProviderWithMorph({
+  children,
+  vertical,
+}: {
+  children: ReactNode
+  vertical: string
+}) {
+  const selection = useConversationSelectionState()
+
+  return (
+    <ConversationSelectionProvider value={selection} vertical={vertical}>
+      {children}
+    </ConversationSelectionProvider>
+  )
 }

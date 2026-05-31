@@ -309,7 +309,7 @@ export function HealthFeed() {
       customContent: (
         <ProfessionalsModule
           onSelectProfessional={(p) => { setSelectedProfessional(p); setProfessionalDrawerOpen(true) }}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -320,7 +320,7 @@ export function HealthFeed() {
       type: "specific",
       customContent: (
         <SpecialtiesModule
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -355,7 +355,7 @@ export function HealthFeed() {
   ]
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={healthConfig.model}>
       <>
       <BusinessSocialLanding
         config={healthConfig}
@@ -375,7 +375,7 @@ export function HealthFeed() {
         isOpen={professionalDrawerOpen}
         onClose={() => setProfessionalDrawerOpen(false)}
         onSchedule={handleSchedule}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       

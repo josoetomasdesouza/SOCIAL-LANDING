@@ -229,7 +229,7 @@ export function InfluencerFeed() {
   ]
 
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={influencerConfig.model}>
       <>
         <BusinessSocialLanding
           config={influencerConfig}

@@ -223,7 +223,7 @@ export function GymFeed() {
       customContent: (
         <PlansModule
           onSelectPlan={(p) => { setSelectedPlan(p); setPlanDrawerOpen(true) }}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -235,7 +235,7 @@ export function GymFeed() {
       type: "specific",
       customContent: (
         <ClassesModule
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -270,7 +270,7 @@ export function GymFeed() {
   ]
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={gymConfig.model}>
       <>
       <BusinessSocialLanding
         config={gymConfig}
@@ -291,7 +291,7 @@ export function GymFeed() {
           setPlanDrawerOpen(false)
           setSignupOpen(true)
         }}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       

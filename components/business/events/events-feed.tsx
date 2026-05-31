@@ -346,7 +346,7 @@ export function EventsFeed() {
           onSelectEvent={(e) => { setSelectedEvent(e); setEventDrawerOpen(true) }}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -357,7 +357,7 @@ export function EventsFeed() {
       type: "specific",
       customContent: (
         <CategoriesModule
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -392,7 +392,7 @@ export function EventsFeed() {
   ]
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={eventsConfig.model}>
       <>
       <BusinessSocialLanding
         config={eventsConfig}
@@ -413,7 +413,7 @@ export function EventsFeed() {
           setEventDrawerOpen(false)
           setCheckoutOpen(true)
         }}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       

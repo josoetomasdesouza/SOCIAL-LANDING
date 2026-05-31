@@ -715,7 +715,7 @@ export function AppointmentFeed() {
           onStartBooking={handleStartBooking}
           onSelectService={handleSelectService}
           onSelectBarber={openBarberFlow}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -728,7 +728,7 @@ export function AppointmentFeed() {
       customContent: (
         <StylesModule
           onSelectStyle={handleSelectStyle}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -780,7 +780,7 @@ export function AppointmentFeed() {
   ]
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={barberShopConfig.model}>
       <>
       <BusinessSocialLanding
         config={APPOINTMENT_LANDING_CONFIG}
@@ -811,7 +811,7 @@ export function AppointmentFeed() {
         isOpen={bookingStep === "datetime"}
         onClose={() => setBookingStep(null)}
         onSchedule={handleSchedule}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       
@@ -819,7 +819,7 @@ export function AppointmentFeed() {
         isOpen={bookingStep === "service"}
         onClose={() => setBookingStep(null)}
         onSelectService={handleSelectService}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       
@@ -828,7 +828,7 @@ export function AppointmentFeed() {
         isOpen={bookingStep === "professional"}
         onClose={() => setBookingStep(null)}
         onSelectBarber={handleSelectBarber}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       

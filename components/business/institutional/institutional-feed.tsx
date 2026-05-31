@@ -500,7 +500,7 @@ export function InstitutionalFeed() {
   ]
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={institutionalConfig.model}>
       <>
       <BusinessSocialLanding
         config={institutionalConfig}

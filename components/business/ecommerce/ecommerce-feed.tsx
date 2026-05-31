@@ -399,7 +399,7 @@ export function EcommerceFeed() {
               products={resolvedProducts}
               favorites={favorites}
               onToggleFavorite={handleToggleFavorite}
-              onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+              onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
               isInConversation={conversationSelection.isConversationSelected}
               onAddToCart={handleAddToCart}
             />
@@ -408,7 +408,7 @@ export function EcommerceFeed() {
       }),
     [
       conversationSelection.isConversationSelected,
-      conversationSelection.toggleConversationContextItem,
+      conversationSelection.toggleConversationContextItemWithMorph,
       favorites,
       handleAddToCart,
       handleToggleFavorite,
@@ -435,7 +435,7 @@ export function EcommerceFeed() {
           }}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
           explorationMemory={explorationMemory}
         />
@@ -448,7 +448,7 @@ export function EcommerceFeed() {
       customContent: (
         <CategoriesModule
           onSelectCategory={() => {}}
-          onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+          onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
           isInConversation={conversationSelection.isConversationSelected}
         />
       )
@@ -508,7 +508,7 @@ export function EcommerceFeed() {
   ])
   
   return (
-    <ConversationSelectionProvider value={conversationSelection}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={ecommerceConfig.model}>
       <>
       <BusinessSocialLanding
         config={ecommerceConfig}
@@ -538,7 +538,7 @@ export function EcommerceFeed() {
         onAddToCart={handleAddToCartAndOpenCart}
         isFavorite={selectedProduct ? favorites.has(selectedProduct.id) : false}
         onToggleFavorite={() => selectedProduct && handleToggleFavorite(selectedProduct.id)}
-        onToggleConversationContext={conversationSelection.toggleConversationContextItem}
+        onToggleConversationContext={conversationSelection.toggleConversationContextItemWithMorph}
         isInConversation={conversationSelection.isConversationSelected}
       />
       
