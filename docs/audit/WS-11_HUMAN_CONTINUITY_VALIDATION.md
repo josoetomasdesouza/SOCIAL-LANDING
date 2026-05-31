@@ -3,6 +3,7 @@
 **Data:** 2026-05-31  
 **Baseline:** `main` @ `2d0e56d` (WS-11)  
 **Tipo:** Observação humana leve — **não** auditoria técnica · **não** QA · **não** framework perceptivo explícito  
+**Sessão B:** executar via [`WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md`](WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md) (5 pilares · zero feature)  
 **Pergunta:**
 
 > A continuidade contextual é sentida naturalmente sem precisar ser explicada?
@@ -28,7 +29,7 @@ A experiência deve funcionar **silenciosamente**.
 | Sessão | Participante | Validade |
 |--------|--------------|----------|
 | **Proxy A** | Facilitador + walkthrough instrumentado | Baseline comportamental — **não substitui humano externo** |
-| **Sessão B** | Pessoa não envolvida no projeto | ☐ **Pendente** — usar protocolo §Protocolo abaixo |
+| **Sessão B** | Pessoa não envolvida no projeto | ☐ **Pendente** — protocolo unificado em [`WS-13`](WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md) §Sessão B |
 
 Esta entrega documenta **Proxy A** + protocolo pronto para **Sessão B**.
 

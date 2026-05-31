@@ -300,9 +300,9 @@ Gates técnicos piloto: `pnpm typecheck` · `pnpm qa:appointment` · viewports 3
 | **Sync origin** | ✅ up to date (`6d47b50`) |
 | **Último commit** | `6d47b50` — WS-12.1 perceptual validation (GO) |
 | **Commit anterior relevante** | `60913bd` WS-12 drawer physics · `2d0e56d` WS-11 scroll · `7af5943` linguagem |
-| **WS ativo** | **Nenhum** |
+| **WS ativo** | **WS-13 Etapa 1** (observacional · zero feature) |
 | **Motion work** | **Pausado** — ponto ideal; motion suficiente para desaparecer |
-| **Sessão B humana** | ☐ **Pendente** — protocolo em `WS-11_HUMAN_CONTINUITY_VALIDATION.md` |
+| **Sessão B humana** | ☐ **Pendente** — protocolo em `WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md` |
 | **Proxy A** | ✅ documentado |
 | **Artefatos recentes** | `ws121-*.png` · `ws121-perceptual-metrics.json` · scripts `ws12-*` |
 
