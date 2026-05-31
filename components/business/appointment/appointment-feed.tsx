@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import { Calendar, Clock, Scissors, Star, Play, ChevronRight, Check, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,8 @@ import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
 import { barberShopConfig, barbers, barberServices, hairStyles } from "@/lib/mock-data/appointment-data"
+import { createAppointmentMockConversationResolver } from "@/lib/mock-data/appointment-conversational-search"
+import { createAppointmentConversationalVisualBlockRenderer } from "./appointment-conversational-visual-block"
 import { appointmentContent } from "@/lib/mock-data/business-content"
 import type { Professional, Service, StyleExample } from "@/lib/business-types"
 
@@ -25,11 +27,13 @@ type BookingStep = "service" | "professional" | "datetime" | "confirmation" | nu
 function ScheduleModule({ 
   onStartBooking,
   onSelectService,
+  onSelectBarber,
   onToggleConversationContext,
   isInConversation,
 }: { 
   onStartBooking: () => void
   onSelectService: (service: Service) => void
+  onSelectBarber: (barber: Professional) => void
   onToggleConversationContext?: (item: ConversationContextItem) => void
   isInConversation?: (id: string) => boolean
 }) {
@@ -100,6 +104,40 @@ function ScheduleModule({
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </ContextSelectable>
           )})}
+        </div>
+      </div>
+
+      <div>
+        <h4 className="font-medium text-foreground mb-3">Profissionais</h4>
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
+          {barbers.slice(0, 4).map((barber) => {
+            const contextItem = {
+              id: `appointment-barber-${barber.id}`,
+              title: barber.name,
+              image: barber.avatar,
+              subtitle: "Profissional",
+            }
+
+            return (
+              <ContextSelectable
+                as="div"
+                key={barber.id}
+                dataMorphSourceId={contextItem.id}
+                onClick={() => onSelectBarber(barber)}
+                onLongPress={() => onToggleConversationContext?.(contextItem)}
+                selected={isInConversation?.(contextItem.id) ?? false}
+                className="flex-shrink-0 w-28"
+              >
+                <div className="relative w-28 h-32 rounded-xl overflow-hidden">
+                  <Image src={barber.avatar} alt={barber.name} fill className="object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-2">
+                    <p className="text-xs font-medium text-white line-clamp-2">{barber.name}</p>
+                  </div>
+                </div>
+              </ContextSelectable>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -612,6 +650,46 @@ export function AppointmentFeed() {
     setBookedTime(time)
     setBookingStep("confirmation")
   }
+
+  const openBarberFlow = useCallback((barber: Professional) => {
+    setSelectedBarber(barber)
+    setSelectedService((current) => current ?? barberServices.find((service) => service.popular) ?? barberServices[0])
+    setBookingStep("datetime")
+  }, [])
+
+  const openScheduleBooking = useCallback(({ barberId, serviceId }: { barberId?: string; serviceId?: string }) => {
+    const barber = barberId ? barbers.find((item) => item.id === barberId) ?? null : null
+    const service = serviceId
+      ? barberServices.find((item) => item.id === serviceId) ?? null
+      : selectedService ?? barberServices.find((item) => item.popular) ?? barberServices[0]
+
+    if (barber) {
+      setSelectedBarber(barber)
+      setSelectedService(service)
+      setBookingStep("datetime")
+      return
+    }
+
+    if (service) {
+      handleSelectService(service)
+    } else {
+      handleStartBooking()
+    }
+  }, [selectedService])
+
+  const conversationResponseResolver = useMemo(() => createAppointmentMockConversationResolver(), [])
+
+  const renderConversationVisualBlock = useMemo(
+    () =>
+      createAppointmentConversationalVisualBlockRenderer({
+        barbers,
+        services: barberServices,
+        onSelectBarber: openBarberFlow,
+        onSelectService: handleSelectService,
+        onScheduleBooking: openScheduleBooking,
+      }),
+    [openBarberFlow, openScheduleBooking]
+  )
   
   // Secoes do feed
   const sections: BusinessSection[] = [
@@ -625,6 +703,7 @@ export function AppointmentFeed() {
           <ScheduleModule 
             onStartBooking={handleStartBooking}
             onSelectService={handleSelectService}
+            onSelectBarber={openBarberFlow}
             onToggleConversationContext={conversationSelection.toggleConversationContextItem}
             isInConversation={conversationSelection.isConversationSelected}
           />
@@ -720,6 +799,8 @@ export function AppointmentFeed() {
         stories={appointmentContent.stories}
         sections={sections}
         reserveHeaderSpace="compact"
+        conversationResponseResolver={conversationResponseResolver}
+        renderConversationVisualBlock={renderConversationVisualBlock}
         onStoryAction={(story) => {
           if (story.isMain) {
             handleStartBooking()

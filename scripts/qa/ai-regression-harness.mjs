@@ -46,6 +46,24 @@ async function runExpectFlow(page, flow, verticalKey) {
     return results
   }
 
+  if (flow.warmContext) {
+    const warm = flow.warmContext
+    if (warm.setupPrompt) {
+      await sendComposerMessage(page, warm.setupPrompt)
+    }
+    if (warm.contextSourceId) {
+      await addContextItem(page, {
+        sourceId: warm.contextSourceId,
+        heading: warm.contextHeading,
+        scope: warm.contextScope ?? "feed",
+      })
+    }
+  }
+
+  if (flow.reloadVertical) {
+    await openVertical(page, flows.verticals[verticalKey].heading)
+  }
+
   if (flow.setupPrompt) {
     await sendComposerMessage(page, flow.setupPrompt)
   }
@@ -130,8 +148,21 @@ async function runExpectFlow(page, flow, verticalKey) {
       .getByTestId("health-conversation-results-block")
       .isVisible()
       .catch(() => false)
+    const lastAppointmentResultsVisible = await lastTurn
+      .getByTestId("appointment-conversation-results-block")
+      .isVisible()
+      .catch(() => false)
+    const lastAppointmentScheduleVisible = await lastTurn
+      .getByTestId("appointment-schedule-prompt-block")
+      .isVisible()
+      .catch(() => false)
 
-    const hasForbiddenBlock = namedBlockVisible || lastMenuVisible || lastHealthVisible
+    const hasForbiddenBlock =
+      namedBlockVisible ||
+      lastMenuVisible ||
+      lastHealthVisible ||
+      lastAppointmentResultsVisible ||
+      lastAppointmentScheduleVisible
 
     const textOk = expect.contentPattern ? patternRegex(expect.contentPattern).test(blockText) : true
     const forbiddenOk = expect.forbiddenPattern

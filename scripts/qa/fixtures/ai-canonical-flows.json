@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "baselineCommit": "3eab7c1",
+  "version": 2,
+  "baselineCommit": "ecc93dc",
   "description": "Canonical conversational regression flows — light pattern snapshots (not full text)",
   "verticals": {
     "ecommerce": {
@@ -210,6 +210,97 @@
           "contextHeading": "Profissionais",
           "drawer": {
             "blockTestId": "health-schedule-prompt-block",
+            "clickRole": "button",
+            "openPattern": "Escolha data e horario"
+          }
+        }
+      ]
+    },
+    "appointment": {
+      "heading": "Agendamento",
+      "flows": [
+        {
+          "id": "AP-01",
+          "scenario": "recommendation",
+          "prompt": "preciso cortar o cabelo",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "appointment-conversation-results-block",
+            "contentPattern": "Corte|Degrade|Carlos|Rafael",
+            "minInteractive": 2
+          }
+        },
+        {
+          "id": "AP-02",
+          "scenario": "specific-entity",
+          "prompt": "degrade",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "appointment-conversation-results-block",
+            "contentPattern": "Degrade|Carlos",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "AP-03",
+          "scenario": "contextual-follow-up",
+          "contextSourceId": "appointment-barber-barber-1",
+          "contextHeading": "Agendar Horario",
+          "prompt": "quais servicos?",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "appointment-conversation-results-block",
+            "contentPattern": "Degrade|Barba|Corte",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "AP-04",
+          "scenario": "period-refinement",
+          "contextSourceId": "appointment-barber-barber-1",
+          "contextHeading": "Agendar Horario",
+          "prompt": "tem algo a tarde?",
+          "expect": {
+            "visualBlock": true,
+            "blockTestId": "appointment-schedule-prompt-block",
+            "contentPattern": "Ver horarios|Carlos",
+            "forbiddenPattern": null
+          }
+        },
+        {
+          "id": "AP-05",
+          "scenario": "fallback",
+          "prompt": "voces tem estacionamento",
+          "expect": {
+            "visualBlock": false,
+            "contentPattern": "Barba Negra|ajudar|orientar",
+            "forbiddenPattern": "Ver horarios|Degrade"
+          }
+        },
+        {
+          "id": "AP-06",
+          "scenario": "context-reset",
+          "warmContext": {
+            "contextSourceId": "appointment-barber-barber-1",
+            "contextHeading": "Agendar Horario",
+            "setupPrompt": "quero agendar"
+          },
+          "reloadVertical": true,
+          "prompt": "qual o estacionamento",
+          "expect": {
+            "visualBlock": false,
+            "contentPattern": "Barba Negra|ajudar|orientar",
+            "forbiddenPattern": "Carlos Silva|Ver horarios"
+          }
+        },
+        {
+          "id": "AP-07",
+          "scenario": "drawer-linkage",
+          "contextSourceId": "appointment-barber-barber-1",
+          "contextHeading": "Agendar Horario",
+          "prompt": "quero agendar",
+          "drawer": {
+            "blockTestId": "appointment-schedule-prompt-block",
             "clickRole": "button",
             "openPattern": "Escolha data e horario"
           }
