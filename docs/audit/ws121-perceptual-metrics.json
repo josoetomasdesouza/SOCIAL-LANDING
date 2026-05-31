@@ -1,0 +1,292 @@
+{
+  "capturedAt": "2026-05-31T22:25:59.050Z",
+  "baseUrl": "http://localhost:3003/demo",
+  "note": "Automated proxy perceptual validation — complements human/device-real session",
+  "results": [
+    {
+      "viewport": "390x844",
+      "drawers": [
+        {
+          "drawer": "arrival",
+          "viewport": "390x844",
+          "flick": {
+            "id": "arrival-flick",
+            "visibleMsAfterRelease": 294,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 275.427,
+              "backdropOpacity": 0.245083
+            },
+            "closed": true,
+            "pass": true
+          },
+          "partial": {
+            "id": "arrival-partial",
+            "stillOpenAfterSettle": true,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 2.15235,
+              "backdropOpacity": 0.490668
+            },
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0.00027166,
+              "backdropOpacity": 0.499954
+            },
+            "pass": true
+          },
+          "indecisive": {
+            "id": "arrival-indecisive",
+            "stillOpen": true,
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0.0909806,
+              "backdropOpacity": 0.491146
+            },
+            "pass": true
+          },
+          "scrollTop": null,
+          "pass": true
+        },
+        {
+          "drawer": "booking",
+          "viewport": "390x844",
+          "flick": {
+            "id": "booking-flick",
+            "visibleMsAfterRelease": 262,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 481.057,
+              "backdropOpacity": 0.245421
+            },
+            "closed": true,
+            "pass": true
+          },
+          "partial": {
+            "id": "booking-partial",
+            "stillOpenAfterSettle": true,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 2.08217,
+              "backdropOpacity": 0.490767
+            },
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0.000208266,
+              "backdropOpacity": 0.499795
+            },
+            "pass": true
+          },
+          "indecisive": {
+            "id": "booking-indecisive",
+            "stillOpen": true,
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0.105636,
+              "backdropOpacity": 0.491432
+            },
+            "pass": true
+          },
+          "scrollTop": {
+            "id": "booking-scroll-top-flick",
+            "visibleMsAfterRelease": 274,
+            "closed": true,
+            "pass": true
+          },
+          "pass": true
+        },
+        {
+          "drawer": "feed",
+          "viewport": "390x844",
+          "flick": {
+            "id": "feed-flick",
+            "visibleMsAfterRelease": 196,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 127.578,
+              "backdropOpacity": null
+            },
+            "closed": true,
+            "pass": true
+          },
+          "partial": {
+            "id": "feed-partial",
+            "stillOpenAfterSettle": true,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 6.17902,
+              "backdropOpacity": null
+            },
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0,
+              "backdropOpacity": null
+            },
+            "pass": true
+          },
+          "indecisive": {
+            "id": "feed-indecisive",
+            "stillOpen": true,
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0,
+              "backdropOpacity": null
+            },
+            "pass": true
+          },
+          "scrollTop": {
+            "id": "feed-scroll-top-flick",
+            "visibleMsAfterRelease": 370,
+            "closed": true,
+            "pass": true
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "viewport": "320x568",
+      "drawers": [
+        {
+          "drawer": "arrival",
+          "viewport": "320x568",
+          "flick": {
+            "id": "arrival-flick",
+            "visibleMsAfterRelease": 290,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 258.305,
+              "backdropOpacity": 0.284982
+            },
+            "closed": true,
+            "pass": true
+          },
+          "partial": {
+            "id": "arrival-partial",
+            "stillOpenAfterSettle": true,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 2.09376,
+              "backdropOpacity": 0.490748
+            },
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0.000286768,
+              "backdropOpacity": 0.49948
+            },
+            "pass": true
+          },
+          "indecisive": {
+            "id": "arrival-indecisive",
+            "stillOpen": true,
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0.0948334,
+              "backdropOpacity": 0.491175
+            },
+            "pass": true
+          },
+          "scrollTop": null,
+          "pass": true
+        },
+        {
+          "drawer": "booking",
+          "viewport": "320x568",
+          "flick": {
+            "id": "booking-flick",
+            "visibleMsAfterRelease": 260,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 404.951,
+              "backdropOpacity": 0.208746
+            },
+            "closed": true,
+            "pass": true
+          },
+          "partial": {
+            "id": "booking-partial",
+            "stillOpenAfterSettle": true,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 2.05912,
+              "backdropOpacity": 0.490797
+            },
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0.000228351,
+              "backdropOpacity": 0.499483
+            },
+            "pass": true
+          },
+          "indecisive": {
+            "id": "booking-indecisive",
+            "stillOpen": true,
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0.0788937,
+              "backdropOpacity": 0.491358
+            },
+            "pass": true
+          },
+          "scrollTop": {
+            "id": "booking-scroll-top-flick",
+            "visibleMsAfterRelease": 265,
+            "closed": true,
+            "pass": true
+          },
+          "pass": true
+        },
+        {
+          "drawer": "feed",
+          "viewport": "320x568",
+          "flick": {
+            "id": "feed-flick",
+            "visibleMsAfterRelease": 184,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 126.635,
+              "backdropOpacity": null
+            },
+            "closed": true,
+            "pass": true
+          },
+          "partial": {
+            "id": "feed-partial",
+            "stillOpenAfterSettle": true,
+            "midSettle": {
+              "sheetVisible": true,
+              "translateY": 3.66503,
+              "backdropOpacity": null
+            },
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0,
+              "backdropOpacity": null
+            },
+            "pass": true
+          },
+          "indecisive": {
+            "id": "feed-indecisive",
+            "stillOpen": true,
+            "endSettle": {
+              "sheetVisible": true,
+              "translateY": 0,
+              "backdropOpacity": null
+            },
+            "pass": true
+          },
+          "scrollTop": {
+            "id": "feed-scroll-top-flick",
+            "visibleMsAfterRelease": 324,
+            "closed": true,
+            "pass": true
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    }
+  ],
+  "pass": true
+}

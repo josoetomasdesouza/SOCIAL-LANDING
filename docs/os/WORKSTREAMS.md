@@ -371,6 +371,8 @@ WS-09B → WS-09D.1 ✅ — **Era 4 piloto presença contextual** (Appointment)
 WS-10 ✅ — Etapas 1–3 concluídas · [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](PERCEPTUAL_LANGUAGE_SYSTEM.md)
 WS-11 ✅ — Arrival return scroll continuity (gate §8 · piloto Appointment)
   └──► Pós-WS-11 Human Continuity Validation — [`WS-11_HUMAN_CONTINUITY_VALIDATION.md`](../audit/WS-11_HUMAN_CONTINUITY_VALIDATION.md) (Proxy A ✅ · Sessão B humana pendente)
+WS-12 ✅ — Drawer physical continuity · [`WS-12_DRAWER_PHYSICAL_CONTINUITY.md`](../audit/WS-12_DRAWER_PHYSICAL_CONTINUITY.md)
+  └──► WS-12.1 ✅ — Perceptual validation · [`WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md`](../audit/WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md)
 WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB) — paralelo, GO humano
 ```
