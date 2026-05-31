@@ -1,7 +1,7 @@
 # WS-13 — Presença Contínua (Etapa 1 Observacional)
 
 **Data de abertura:** 2026-05-31  
-**Baseline:** `main` @ `b3bc15c`  
+**Baseline:** `main` @ `d24edd7`  
 **Tipo:** Observação perceptiva — **zero feature · zero código funcional**  
 **Piloto:** Appointment / Barba Negra  
 **Relação:** sucessor observacional pós WS-10→12.1 · complementa [`CONTINUITY_HANDOFF_AUDIT.md`](CONTINUITY_HANDOFF_AUDIT.md)

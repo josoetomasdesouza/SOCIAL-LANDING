@@ -2,7 +2,7 @@
 
 **Tipo:** snapshot estratégico · handoff operacional · memória institucional  
 **Data:** 2026-05-31  
-**Baseline:** `main` @ `6d47b50`  
+**Baseline:** `main` @ `d24edd7`  
 **Piloto:** Appointment / Barba Negra  
 **Propósito:** permitir retomada integral em nova conversa sem perda de linguagem, direção ou maturidade perceptiva
 
@@ -297,9 +297,9 @@ Gates técnicos piloto: `pnpm typecheck` · `pnpm qa:appointment` · viewports 3
 | Item | Estado |
 |------|--------|
 | **Branch** | `main` |
-| **Sync origin** | ✅ up to date (`6d47b50`) |
-| **Último commit** | `6d47b50` — WS-12.1 perceptual validation (GO) |
-| **Commit anterior relevante** | `60913bd` WS-12 drawer physics · `2d0e56d` WS-11 scroll · `7af5943` linguagem |
+| **Sync origin** | ✅ up to date (`d24edd7`) |
+| **Último commit** | `d24edd7` — WS-13 Etapa 1 observacional (baseline oficial) |
+| **Commit anterior relevante** | `b3bc15c` handoff · `6d47b50` WS-12.1 · `60913bd` WS-12 |
 | **WS ativo** | **WS-13 Etapa 1** (observacional · zero feature) |
 | **Motion work** | **Pausado** — ponto ideal; motion suficiente para desaparecer |
 | **Sessão B humana** | ☐ **Pendente** — protocolo em `WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md` |
@@ -316,6 +316,7 @@ Gates técnicos piloto: `pnpm typecheck` · `pnpm qa:appointment` · viewports 3
 | Observação WS-10 | `docs/audit/OBSERVATIONAL_HARDENING_WS10.md` |
 | Auditoria estratégica pós-09 | `docs/audit/STRATEGIC_PRODUCT_AUDIT_POST_WS09.md` |
 | Human continuity | `docs/audit/WS-11_HUMAN_CONTINUITY_VALIDATION.md` |
+| **Presença contínua (WS-13)** | `docs/audit/WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md` |
 | Drawer physics | `docs/audit/WS-12_DRAWER_PHYSICAL_CONTINUITY.md` |
 | Drawer validation | `docs/audit/WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md` |
 
@@ -428,6 +429,8 @@ O produto já tem **comportamento próprio**, não só interface própria. Prote
 | `2d0e56d` | WS-11 | Scroll preserve no arrival |
 | `60913bd` | WS-12 | Drawer momentum/settle |
 | `6d47b50` | WS-12.1 | Validação perceptiva GO |
+| `b3bc15c` | Handoff | Mapa cognitivo oficial |
+| `d24edd7` | WS-13 Etapa 1 | Baseline observacional presença contínua |
 
 ---
 
