@@ -52,9 +52,9 @@ Cada futuro workstream deve provar:
 |-------|------|----------|------------|
 | **1** | Observational Hardening | Descobrir o que funciona sem tocar | **Este documento** (sessões preenchidas) |
 | **2** | Perceptual Debt Cleanup | Remover ruído, fricção, utilitarização involuntária | PRs mínimos + `WS-10B_PERCEPTUAL_DEBT.md` |
-| **3** | Language Consolidation | Consolidar idioma do produto | `docs/os/PERCEPTUAL_LANGUAGE_SYSTEM.md` |
+| **3** | Language Consolidation | Consolidar idioma do produto | [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](../os/PERCEPTUAL_LANGUAGE_SYSTEM.md) ✅ |
 
-**Sequência rígida:** 1 → 2 → 3 → **só então** novo WS de feature.
+**Sequência rígida:** 1 → 2 → 3 → **só então** novo WS de feature. **Etapa 3 concluída 2026-05-31** — ver [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](../os/PERCEPTUAL_LANGUAGE_SYSTEM.md).
 
 ---
 

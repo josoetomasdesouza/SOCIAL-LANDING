@@ -355,11 +355,11 @@
 | **Objetivo** | Refinamento perceptivo sistemático; aprender o que **não** tocar |
 | **Escopo** | Observação → dívida perceptiva → consolidação de linguagem |
 | **Fora de escopo** | Features novas; universalização; mapas/ETA/IA chegada; DB (WS-09) |
-| **Entregáveis** | Etapa 1: [`OBSERVATIONAL_HARDENING_WS10.md`](../audit/OBSERVATIONAL_HARDENING_WS10.md) · Etapa 2: `WS-10B_PERCEPTUAL_DEBT.md` + PRs mínimos · Etapa 3: [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](PERCEPTUAL_LANGUAGE_SYSTEM.md) |
+| **Entregáveis** | Etapa 1: [`OBSERVATIONAL_HARDENING_WS10.md`](../audit/OBSERVATIONAL_HARDENING_WS10.md) · Etapa 2: WS-10A/B/C ✅ · Etapa 3: [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](PERCEPTUAL_LANGUAGE_SYSTEM.md) ✅ |
 | **Gate de saída** | ≥3 sessões observacionais + GO humano por etapa |
 | **Refs** | [`STRATEGIC_PRODUCT_AUDIT_POST_WS09.md`](../audit/STRATEGIC_PRODUCT_AUDIT_POST_WS09.md) |
 
-**Sequência interna:** Etapa 1 (observar) → Etapa 2 **WS-10A** ✅ → **WS-10B** ✅ → **WS-10B.1** ✅ → **WS-10C** (hero/feed @ 320 ✅) → Etapa 3 Language Consolidation → feature WS.
+**Sequência interna:** Etapa 1 ✅ → Etapa 2 (WS-10A/B/C) ✅ → **Etapa 3** [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](PERCEPTUAL_LANGUAGE_SYSTEM.md) ✅ → feature WS (gate §8 obrigatório).
 
 ---
 
