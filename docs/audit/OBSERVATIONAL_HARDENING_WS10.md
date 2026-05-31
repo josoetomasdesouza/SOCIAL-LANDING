@@ -182,7 +182,39 @@ Dev server: `pnpm dev` → `http://localhost:3000/demo` (ou porta ativa).
 
 ---
 
-### Sessão 1 — _[a preencher]_
+### Sessão 1 — 2026-05-31 — Observação assistida (390×844, uso lento)
+
+**Ambiente:** 390×844 · uso lento · Appointment primário · contraste Restaurante/E-commerce  
+**Relatório completo:** [`WS-10_SESSION_01_OBSERVATION_REPORT.md`](WS-10_SESSION_01_OBSERVATION_REPORT.md)
+
+**Fluxos percorridos:**
+- [x] Fold zero
+- [x] Scroll feed lento
+- [x] Hero → chegada (`na Augusta`)
+- [x] Leitura drawer + footer
+- [x] Booking drawer + fechamento
+- [x] Contraste vertical
+
+**Veredicto:** ✅ **Reforça tese** — hero → chegada = mesma conversa. ⚠️ Momento crítico: footer Maps.
+
+**Questionário resumido:**
+
+| Q | Resposta |
+|---|----------|
+| Q1 Ferramenta | Leve |
+| Q2 Vivo | Sim |
+| Q3 Explica demais | Não (chegada) |
+| Q6 Hero→drawer | Sim |
+| Q7 Feed protagonista | Parcial |
+| Q10 Contenção | Contenção |
+
+**Preservar:** linha falada, `na Augusta` integrado, drawer compacto, copy humano, sem mapa, feed peek.
+
+**Fragilidade:** Maps CTA peso visual; dois registros presença vs booking na mesma vertical.
+
+**PDC (hipóteses Etapa 2, não aprovadas):** PDC-01 Maps peso · PDC-02 energia drawers · PDC-03 headers feed · PDC-04 stories/highlights overlap
+
+**Screenshots:** `ws10-s1-01` … `ws10-s1-10` em `docs/audit/`
 
 ---
 
@@ -200,23 +232,29 @@ Dev server: `pnpm dev` → `http://localhost:3000/demo` (ou porta ativa).
 
 | Elemento | Evidência (sessões) | Confiança |
 |----------|---------------------|-----------|
-| | | |
+| Linha operacional falada | S1 | Alta |
+| `na Augusta` como linguagem | S1 | Alta |
+| Drawer chegada compacto + copy humano | S1 | Alta |
+| Hero → chegada mesma conversa | S1 | Alta |
+| Feed peek no fold | S1 | Média-alta |
+| Sem mapa embed | S1 + WS-09D.1 | Alta |
 
 ### Sinais de risco (monitorar, não corrigir ainda)
 
 | Sinal | Onde | Severidade |
 |-------|------|------------|
-| | | |
+| Maps footer protagonista | Drawer chegada | Média |
+| Dois registros presença/booking | Mesma vertical | Média |
+| Assimetria demo Appointment vs resto | Troca vertical | Baixa-média |
 
 ### Candidatos Etapa 2 — Perceptual Debt Cleanup
 
 | Item | Tipo | Prioridade |
 |------|------|------------|
-| Maps CTA peso visual | Utilitarização involuntária | Alta (hipótese) |
-| Paddings “SaaS” | Ruído visual | A validar |
-| Drawers energia diferente | Inconsistência | A validar |
-| Labels excessivos | Explica demais | A validar |
-| Affordances clicáveis demais | UI > presença | A validar |
+| Maps CTA peso visual (PDC-01) | Utilitarização involuntária | Alta (hipótese S1) |
+| Energia drawer booking vs chegada (PDC-02) | Inconsistência | Média |
+| Section headers feed uppercase (PDC-03) | Ruído visual | Baixa |
+| Stories + highlights overlap (PDC-04) | Ruído semântico | Baixa |
 
 ### O que explicitamente NÃO entra na Etapa 2
 
@@ -232,12 +270,12 @@ Dev server: `pnpm dev` → `http://localhost:3000/demo` (ou porta ativa).
 
 | Critério | Status |
 |----------|--------|
-| ≥3 sessões reais documentadas | ☐ |
-| Appointment coberto em mobile + desktop | ☐ |
-| ≥1 vertical contraste observada | ☐ |
-| Síntese “o que funciona” preenchida | ☐ |
-| Lista priorizada de dívida perceptiva | ☐ |
-| Nenhum item de síntese exige feature nova | ☐ |
+| ≥3 sessões reais documentadas | ☐ (1/3) |
+| Appointment coberto em mobile + desktop | ☐ (mobile S1) |
+| ≥1 vertical contraste observada | ✅ S1 |
+| Síntese “o que funciona” preenchida | ✅ parcial |
+| Lista priorizada de dívida perceptiva | ✅ hipóteses S1 |
+| Nenhum item de síntese exige feature nova | ✅ |
 | GO humano para Etapa 2 | ☐ |
 
 ---
