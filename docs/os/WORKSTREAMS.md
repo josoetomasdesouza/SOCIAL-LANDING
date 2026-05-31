@@ -280,11 +280,11 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI |
-| **Status** | 🟡 Em PR — `workstream/ai-regression-harness` |
+| **Status** | ✅ Concluído @ `ecc93dc` (PR #72) |
 | **Objetivo** | Regressão conversacional multi-vertical antes de Appointment |
 | **Escopo** | `scripts/qa/ai-regression-*`, fixtures, `docs/ai/AI_CANONICAL_FLOWS.md`, `docs/ai/AI_REGRESSION_RULES.md` |
 | **Fora de escopo** | Runtime core; novas verticais; resolver logic; ActionDrawer; composer core; backend; DB; LLM |
-| **Gate de saída** | `pnpm qa:ai-regression` 19/19 + CI green |
+| **Gate de saída** | `pnpm qa:ai-regression` green + CI |
 | **Refs** | [`WS-08.8_AI_REGRESSION_HARNESS_REPORT.md`](../audit/WS-08.8_AI_REGRESSION_HARNESS_REPORT.md) |
 
 ---
@@ -294,13 +294,14 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI |
-| **Status** | 🔴 Blocked — aguarda WS-08.8 merge + harness verde |
-| **Objetivo** | Resolver isolado para vertical appointment |
-| **Escopo** | `appointment-conversational-search.ts`, feed wire, QA |
-| **Fora de escopo** | Health resolver; global appointment engine |
+| **Status** | 🟡 Em PR — `workstream/ai-resolver-appointment` |
+| **Objetivo** | Primeiro resolver semi-stateful (continuidade leve, sem persistência real) |
+| **Escopo** | `appointment-conversational-search.ts`, visual blocks, feed wire, `qa:appointment`, AP-* harness |
+| **Fora de escopo** | Backend; agenda real; multi-session memory; runtime core; cross-vertical |
 | **Branch sugerida** | `workstream/ai-resolver-appointment` |
-| **Gate de saída** | `qa:appointment` + human checklist + `qa:ai-observation` + `qa:ai-regression` green |
-| **Desbloqueio** | WS-08.8 merged; `pnpm qa:ai-regression` green |
+| **Gate de saída** | `qa:appointment` 8/8 + `qa:ai-regression` 26/26 + CI green |
+| **Desbloqueio** | WS-08.8 ✅ |
+| **Refs** | [`WS-08C_APPOINTMENT_AI_REPORT.md`](../audit/WS-08C_APPOINTMENT_AI_REPORT.md) |
 
 ---
 
@@ -315,7 +316,7 @@
 | **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
 | **Branch sugerida** | `workstream/ai-resolver-<vertical>` |
 | **Gate de saída** | Resolver dedicado + smoke conversacional |
-| **Ordem sugerida** | ~~WS-08A~~ ✅ → ~~WS-08B~~ ✅ → ~~WS-08.5~~ ✅ → ~~WS-08.6~~ ✅ → ~~WS-08.7~~ ✅ → ~~WS-08.8~~ 🟡 → **WS-08C** appointment |
+| **Ordem sugerida** | ~~WS-08A~~ ✅ → ~~WS-08B~~ ✅ → ~~WS-08.5~~ ✅ → ~~WS-08.6~~ ✅ → ~~WS-08.7~~ ✅ → ~~WS-08.8~~ ✅ → **WS-08C** 🟡 appointment |
 
 ---
 
@@ -337,14 +338,13 @@
 ## Sequência recomendada
 
 ```txt
-WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada** ──► **WS-08A–08.7** ✅ AI baseline + observation
-                                                              ├──► **WS-08.8** (regression harness, em PR)
-                                                              ├──► WS-03 (parity gaps)
-                                                              └──► **WS-08C** 🔴 appointment (blocked até harness)
+WS-01 ✅ → … → WS-07.7 ✅ — **Era 2 fechada** ──► **WS-08A–08.8** ✅ AI baseline + regression harness
+                                                              ├──► **WS-08C** (appointment resolver, em PR)
+                                                              └──► WS-03 (parity gaps)
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **WS-08.8 AI Regression Harness** (em PR) → desbloqueia **WS-08C Appointment**.
+**Atual:** **WS-08C Appointment AI Resolver** (em PR) — primeiro resolver semi-stateful.
 
 ---
 

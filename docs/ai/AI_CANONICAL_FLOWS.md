@@ -3,7 +3,7 @@
 **Status:** Official regression snapshot (light patterns)  
 **Fixture source of truth:** `scripts/qa/fixtures/ai-canonical-flows.json`  
 **Harness:** `pnpm qa:ai-regression`  
-**Baseline commit:** `3eab7c1`
+**Baseline commit:** `ecc93dc`
 
 ---
 
@@ -25,6 +25,8 @@ Each flow runs in **isolation** (fresh page load per scenario).
 | `contextual-follow-up` | Long-press + follow-up prompt → context-aware results |
 | `fallback` | Out-of-scope prompt → mock reply, **no** resolver cards |
 | `drawer-linkage` | Card/CTA → existing feed drawer or composer detail |
+| `period-refinement` | Time-of-day follow-up → soft schedule path |
+| `context-reset` | Reload vertical → no stale context in fallback |
 
 ---
 
@@ -101,7 +103,33 @@ Each flow runs in **isolation** (fresh page load per scenario).
 
 ---
 
-## 6. Pattern matching rules
+## 6. Appointment (WS-08C)
+
+| ID | Scenario | Prompt | Expected pattern |
+|----|----------|--------|------------------|
+| AP-01 | recommendation | `preciso cortar o cabelo` | Corte/Degrade/Carlos; ≥2 CTAs |
+| AP-02 | specific-entity | `degrade` | Degrade service + barber |
+| AP-03 | contextual-follow-up | LP barber-1 + `quais servicos?` | Degrade/Barba/Corte services |
+| AP-04 | period-refinement | LP barber-1 + `tem algo a tarde?` | Schedule prompt "Ver horarios" |
+| AP-05 | fallback | `voces tem estacionamento` | Mock; **no** booking block |
+| AP-06 | context-reset | warm context → reload → fallback | No Carlos Silva / Ver horarios |
+| AP-07 | drawer-linkage | LP barber-1 + `quero agendar` → CTA | "Escolha data e horario" |
+
+### Acceptable deltas
+
+- Barber order in recommendation
+- Service subtitle (duration/price formatting)
+
+### Forbidden regressions
+
+- AI confirms booking without user drawer action
+- Form-like field collection in composer
+- Cross-vertical context bleed after reload
+- Rigid CRM tone ("Seu agendamento foi registrado" in composer)
+
+---
+
+## 7. Pattern matching rules
 
 | Field | Meaning |
 |-------|---------|
@@ -113,7 +141,7 @@ Each flow runs in **isolation** (fresh page load per scenario).
 
 ---
 
-## 7. Updating canonical flows
+## 8. Updating canonical flows
 
 1. Edit `ai-canonical-flows.json`
 2. Mirror changes in this doc
