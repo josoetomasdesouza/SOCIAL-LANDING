@@ -17,10 +17,22 @@ import {
   resolveComposerScrollClearancePx,
   setComposerScrollClearanceCssVar,
 } from "@/lib/ui/composer-scroll-clearance"
+import {
+  COMPOSER_SURFACE_BASELINE,
+  COMPOSER_SURFACE_OVERRIDE_STORAGE_KEY,
+  DEFAULT_COMPOSER_SURFACE_INTENSITY,
+  isComposerSmokeSurfaceActive,
+  resolveComposerExpansionProgress,
+  resolveComposerExpansionSectionStyle,
+  resolveComposerHandleVisuals,
+  resolveComposerPageMaskBackground,
+  resolveComposerSurfaceIntensity,
+  resolveComposerSurfaceMaterial,
+  type ComposerSurfaceIntensity,
+} from "@/lib/ui/composer-surface-material"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
 const COMPOSER_MASK_TOP_OFFSET_PX = 8
-const COMPOSER_SURFACE_COLOR = "rgba(45,50,58,0.95)"
 const SHEET_TOP_SAFE_MARGIN_PX = 16
 const CONVERSATION_DOODLE_PATTERN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180' fill='none'%3E%3Cg stroke='%23242931' stroke-opacity='0.36' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 34c6-8 18-8 24 0 6 8 18 8 24 0'/%3E%3Cpath d='M112 22l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2 5-10Z'/%3E%3Cpath d='M36 96c0-7 6-13 13-13s13 6 13 13-6 13-13 13-13-6-13-13Z'/%3E%3Cpath d='M119 82c10-12 28-12 38 0'/%3E%3Cpath d='M121 92c8 9 20 9 28 0'/%3E%3Cpath d='M22 145c11-10 31-10 42 0'/%3E%3Cpath d='M74 126h20c7 0 12 5 12 12s-5 12-12 12H74c-7 0-12-5-12-12s5-12 12-12Z'/%3E%3Cpath d='M132 132c0-8 7-15 15-15s15 7 15 15-7 15-15 15-15-7-15-15Z'/%3E%3Cpath d='M92 60c0-6 5-11 11-11s11 5 11 11-5 11-11 11-11-5-11-11Z'/%3E%3C/g%3E%3C/svg%3E\")"
@@ -32,6 +44,7 @@ const COMPACT_BODY_MAX_PX = 196
 const CLOSE_THRESHOLD_OFFSET_PX = 72
 const PREVIEW_DRAG_INTENT_THRESHOLD_PX = 4
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
+const HANDLE_IDLE_DELAY_MS = 1200
 const ECOMMERCE_PRODUCT_CONTEXT_PREFIX = "ecommerce-product-"
 
 const SINGLE_PRODUCT_PLACEHOLDERS = [
@@ -199,6 +212,7 @@ export function ConversationalAI({
   const [pendingContextIds, setPendingContextIds] = useState<string[]>([])
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
   const [dragHeight, setDragHeight] = useState<number | null>(null)
+  const [isHandleActive, setIsHandleActive] = useState(false)
   const [sheetMetrics, setSheetMetrics] = useState<SheetMetrics>({
     compact: 0,
     auto: 0,
@@ -206,6 +220,9 @@ export function ConversationalAI({
     expanded: 0,
     closeThreshold: 0,
   })
+  const [surfaceIntensity, setSurfaceIntensity] = useState<ComposerSurfaceIntensity>(
+    DEFAULT_COMPOSER_SURFACE_INTENSITY
+  )
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const initialMessagesRef = useRef(initialMessages)
   const composerShellRef = useRef<HTMLDivElement>(null)
@@ -218,6 +235,7 @@ export function ConversationalAI({
   const composerFormRef = useRef<HTMLFormElement>(null)
   const composerInputRef = useRef<HTMLInputElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
+  const handleIdleTimeoutRef = useRef<number | null>(null)
   const activeContextIdsRef = useRef<string[]>([])
   const pendingContextIdsRef = useRef<string[]>([])
   const dragStateRef = useRef<{
@@ -282,6 +300,19 @@ export function ConversationalAI({
   }, [messages, resumeSessionStartIndex])
 
   useEffect(() => {
+    const fromQuery = new URLSearchParams(window.location.search).get("composer-smoke")
+    if (fromQuery === "off" || fromQuery === "smoke-fume" || fromQuery === "smoke-subtle") {
+      window.localStorage.setItem(COMPOSER_SURFACE_OVERRIDE_STORAGE_KEY, fromQuery)
+    }
+    setSurfaceIntensity(resolveComposerSurfaceIntensity())
+  }, [])
+
+  const composerSurfaceMaterial = resolveComposerSurfaceMaterial(surfaceIntensity)
+  const composerSectionSurfaceClass = composerSurfaceMaterial.sectionClassName
+  const composerInnerSurfaceStyle = composerSurfaceMaterial.innerSurfaceStyle
+  const isSmokeShell = isComposerSmokeSurfaceActive(surfaceIntensity)
+
+  useEffect(() => {
     const restoredMessages = readPersistedConversationMessages(
       conversationHistoryStorageKey,
       initialMessagesRef.current
@@ -329,8 +360,30 @@ export function ConversationalAI({
       if (replyTimeoutRef.current !== null) {
         window.clearTimeout(replyTimeoutRef.current)
       }
+      if (handleIdleTimeoutRef.current !== null) {
+        window.clearTimeout(handleIdleTimeoutRef.current)
+      }
     }
   }, [])
+
+  const clearHandleIdleTimeout = useCallback(() => {
+    if (handleIdleTimeoutRef.current !== null) {
+      window.clearTimeout(handleIdleTimeoutRef.current)
+      handleIdleTimeoutRef.current = null
+    }
+  }, [])
+
+  const primeHandleVisibility = useCallback(
+    (lingerMs: number = HANDLE_IDLE_DELAY_MS) => {
+      clearHandleIdleTimeout()
+      setIsHandleActive(true)
+      handleIdleTimeoutRef.current = window.setTimeout(() => {
+        setIsHandleActive(false)
+        handleIdleTimeoutRef.current = null
+      }, lingerMs)
+    },
+    [clearHandleIdleTimeout]
+  )
 
   const measureSheetLayout = useCallback(() => {
     if (typeof window === "undefined") {
@@ -495,6 +548,27 @@ export function ConversationalAI({
     Math.max(sheetMetrics.compact || 0, Math.max(sheetMetrics.auto, manualSnapHeight ?? 0))
   )
   const resolvedSheetHeight = dragHeight ?? resolvedAutoHeight
+  const forceCompactShell = !shouldShowConversationBody
+  const expansionProgress = resolveComposerExpansionProgress(
+    sheetMetrics.compact,
+    sheetMetrics.expanded,
+    resolvedSheetHeight
+  )
+  const composerSectionStyle = resolveComposerExpansionSectionStyle(
+    surfaceIntensity,
+    expansionProgress,
+    forceCompactShell
+  )
+  const composerPageMaskBackground = resolveComposerPageMaskBackground(
+    surfaceIntensity,
+    forceCompactShell ? 0 : expansionProgress,
+    hasEngagedConversation
+  )
+  const composerHandleVisuals = resolveComposerHandleVisuals(
+    forceCompactShell ? 0 : expansionProgress,
+    hasEngagedConversation,
+    isHandleActive
+  )
 
   const publishComposerScrollMetrics = useCallback(() => {
     if (!trackCompactFootprint || typeof window === "undefined") {
@@ -811,6 +885,8 @@ export function ConversationalAI({
       return
     }
 
+    primeHandleVisibility()
+
     dragStateRef.current = {
       pointerId: event.pointerId,
       startY: event.clientY,
@@ -1042,14 +1118,23 @@ export function ConversationalAI({
     </div>
   )
 
-  const conversationPanelPatternStyle = {
-    backgroundColor: COMPOSER_SURFACE_COLOR,
-    backgroundImage: CONVERSATION_DOODLE_PATTERN,
-    backgroundPosition: "center",
-    backgroundRepeat: "repeat",
-    backgroundSize: "180px 180px",
-  } as const
-  const composerSurfaceStyle = { backgroundColor: COMPOSER_SURFACE_COLOR } as const
+  const conversationPanelPatternStyle = isSmokeShell
+    ? ({
+        backgroundColor: "transparent",
+        backgroundImage: CONVERSATION_DOODLE_PATTERN,
+        backgroundPosition: "center",
+        backgroundRepeat: "repeat",
+        backgroundSize: "180px 180px",
+        opacity: 0.22 + (forceCompactShell ? 0 : expansionProgress) * 0.12,
+      } as const)
+    : ({
+        backgroundColor: COMPOSER_SURFACE_BASELINE,
+        backgroundImage: CONVERSATION_DOODLE_PATTERN,
+        backgroundPosition: "center",
+        backgroundRepeat: "repeat",
+        backgroundSize: "180px 180px",
+        opacity: 0.22 + (forceCompactShell ? 0 : expansionProgress) * 0.12,
+      } as const)
   const messageTextBubbleStyle = {
     width: "fit-content",
     maxWidth: "78%",
@@ -1139,8 +1224,7 @@ export function ConversationalAI({
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
-          background:
-            "linear-gradient(to top, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.5) 24%, rgba(255, 255, 255, 0.18) 56%, rgba(255, 255, 255, 0.035) 82%, rgba(255, 255, 255, 0) 100%)",
+          background: composerPageMaskBackground,
         }}
       />
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
@@ -1150,13 +1234,17 @@ export function ConversationalAI({
         >
           <section
             data-conversation-composer="true"
+            data-composer-surface={
+              isComposerSmokeSurfaceActive(surfaceIntensity) ? surfaceIntensity : undefined
+            }
             onPointerDownCapture={handleCompactComposerPress}
             className={cn(
-              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] border border-white/[0.07] shadow-[0_24px_60px_-36px_rgba(2,6,23,0.62),0_10px_24px_-22px_rgba(15,23,42,0.34)] backdrop-blur-[18px] transition-[height] duration-300 ease-out",
+              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] transition-[height] duration-300 ease-out",
+              composerSectionSurfaceClass,
               dragHeight !== null && "transition-none"
             )}
             style={{
-              ...composerSurfaceStyle,
+              ...composerSectionStyle,
               ...(shouldApplySheetHeight && resolvedSheetHeight > 0 ? { height: `${resolvedSheetHeight}px` } : {}),
             }}
           >
@@ -1167,7 +1255,7 @@ export function ConversationalAI({
                   "shrink-0 border-b px-4",
                   "border-white/[0.07] pt-3 pb-2"
                 )}
-                style={composerSurfaceStyle}
+                style={composerInnerSurfaceStyle}
               >
                 <div
                   role="slider"
@@ -1184,7 +1272,11 @@ export function ConversationalAI({
                   className="relative flex cursor-row-resize select-none touch-none items-center justify-center py-1.5 outline-none"
                 >
                   <div
-                    className="h-1 w-10 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.26] to-white/[0.08]"
+                    className="h-1 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.26] to-white/[0.08] transition-[width,opacity] duration-200 ease-out"
+                    style={{
+                      width: `${composerHandleVisuals.widthPx}px`,
+                      opacity: composerHandleVisuals.opacity,
+                    }}
                   />
                 </div>
               </div>
@@ -1196,7 +1288,7 @@ export function ConversationalAI({
                   "relative min-h-0 flex-1 overflow-hidden",
                   shouldShowConversationBody && "border-t border-white/[0.035]"
                 )}
-                style={composerSurfaceStyle}
+                style={composerInnerSurfaceStyle}
               >
                 {hasEngagedConversation && contextRowItems.length > 0 ? (
                   <div
@@ -1248,7 +1340,7 @@ export function ConversationalAI({
               <div
                 ref={contextRailRef}
                 className="shrink-0 px-4 py-2.5"
-                style={composerSurfaceStyle}
+                style={composerInnerSurfaceStyle}
               >
                 <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
                   {contextRowItems.map((item) => renderContextChip(item))}
@@ -1260,7 +1352,7 @@ export function ConversationalAI({
               ref={composerFormRef}
               onSubmit={handleSubmit}
               className="flex shrink-0 items-center gap-3 px-3 py-2.5"
-              style={composerSurfaceStyle}
+              style={composerInnerSurfaceStyle}
             >
               <button
                 type="button"

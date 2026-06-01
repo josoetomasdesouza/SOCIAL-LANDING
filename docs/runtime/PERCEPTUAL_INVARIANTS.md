@@ -91,6 +91,38 @@ These are **non-negotiable perceptual truths** of Social Landing Tier 1. Violati
 | P-03 | Escape closes drawer without side effects on composer |
 | P-04 | First AI message opens surface once — not on every send |
 | P-05 | Vertical switch on `/demo` emits `feed.vertical.changed` |
+| P-06 | Composer smoke surface: compact flat glass, expanded gradient, inner transparent, open page mask |
+
+---
+
+## Composer surface (post–WS-13)
+
+Production default: **vidro fumê escuro** (`smoke-fume`). Tokens: `lib/ui/composer-surface-material.ts`.
+
+### P-06 — Material lives on the shell only
+
+- Outer `<section>` carries blur + tint; **inner surfaces stay transparent** when smoke is active  
+- No opaque layers inside the composer that kill the glass read  
+- Page mask uses an **open white fade** so feed content remains visible behind the composer  
+
+**Test:** scroll feed behind composer on `/demo` — content should read through the glass, not behind a solid bar.
+
+### P-06a — Compact vs expanded shell
+
+| State | When | Material |
+|-------|------|----------|
+| **Compact** | Pill default, collapsed, chips without chat body (`!shouldShowConversationBody`) | Flat dark glass `rgba(10,14,20,0.82)`, blur 18px — **no gradient** |
+| **Expanded** | Conversation body open, sheet at max height | Smoke gradient `rgba(30,34,40,0.78) → rgba(8,12,18,0.92)`, blur 26px |
+| **During drag / auto-grow** | `expansionProgress` 0→1 between compact and expanded | Blur, máscara e material interpolam continuamente — não saltam |
+
+**Test:** open chat — gradient appears; collapse to pill — flattens to compact glass without layout jump.
+
+### P-06b — Opt-out is explicit, not silent
+
+- Baseline solid bar (`off`) only via `?composer-smoke=off`, `localStorage`, or `NEXT_PUBLIC_COMPOSER_SMOKE_EXPERIMENT=off`  
+- Default absence of override **must not** revert to baseline  
+
+**Test:** fresh session on `/demo` → Agendamento → composer shows smoke-fume without query param.
 
 ---
 
