@@ -1,0 +1,218 @@
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { dirname, join } from "node:path"
+
+import { loadAppointmentRuntimeFromRuntimeStore } from "../load"
+import { APPOINTMENT_PILOT_SLUG } from "../types"
+import {
+  resolveAppointmentExternalPlaceId,
+  resolveGooglePlacesApiKey,
+} from "./google-places-config"
+import { fetchGooglePlacesPlaceDetails } from "./google-places-client"
+import {
+  mapGooglePlacesDetailsToExternalRealitySnapshot,
+  type GooglePlacesPlaceDetailsPayload,
+} from "./google-places-map"
+import { mergeExternalRealityIntoBundle } from "./merge-into-bundle"
+import {
+  resolveExternalRealitySnapshotCachePath,
+  writeExternalRealityFileCache,
+} from "./snapshot-cache"
+import type { ExternalRealitySnapshot } from "./types"
+import { validateExternalRealitySnapshot } from "./validate"
+
+export const EXTERNAL_REALITY_GOOGLE_FIXTURE_RELATIVE_PATH =
+  "lib/runtime/appointment/external-reality/fixtures/google-places-barba-negra.json"
+
+export interface ExternalRealitySyncReport {
+  slug: string
+  placeId: string
+  status: "live" | "fallback"
+  reason?: string
+  detail?: string
+  source?: "api" | "fixture"
+  syncedAt: string
+  snapshotPath?: string
+  previewPath?: string
+}
+
+export interface SyncExternalRealityOptions {
+  slug?: string
+  placeId?: string
+  apiKey?: string
+  rootDir?: string
+  mergePreview?: boolean
+  useFixture?: boolean
+  fixturePath?: string
+  fetchImpl?: typeof fetch
+}
+
+function resolveExternalRealitySyncReportPath(slug: string, rootDir: string = process.cwd()) {
+  return join(rootDir, "data/runtime/appointment/external", `${slug}.sync-report.json`)
+}
+
+export function resolveExternalRealityMergedPreviewPath(
+  slug: string,
+  rootDir: string = process.cwd()
+) {
+  return join(rootDir, "data/runtime/appointment/external", `${slug}.merged-preview.json`)
+}
+
+function writeSyncReport(report: ExternalRealitySyncReport, rootDir: string) {
+  const reportPath = resolveExternalRealitySyncReportPath(report.slug, rootDir)
+  mkdirSync(dirname(reportPath), { recursive: true })
+  writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8")
+  return reportPath
+}
+
+function loadFixtureSnapshot(
+  placeId: string,
+  fixturePath: string,
+  syncedAt: string
+): ExternalRealitySnapshot | null {
+  const payload = JSON.parse(readFileSync(fixturePath, "utf8")) as GooglePlacesPlaceDetailsPayload
+  const snapshot = mapGooglePlacesDetailsToExternalRealitySnapshot(placeId, payload, syncedAt)
+  const validation = validateExternalRealitySnapshot(snapshot)
+
+  if (!validation.ok) {
+    return null
+  }
+
+  return snapshot
+}
+
+function writeMergedPreview(
+  slug: string,
+  snapshot: ExternalRealitySnapshot,
+  rootDir: string
+) {
+  const base = loadAppointmentRuntimeFromRuntimeStore(slug)
+  const merged = mergeExternalRealityIntoBundle(base, snapshot, {
+    status: "live",
+    syncedAt: snapshot.fetchedAt,
+  })
+  const previewPath = resolveExternalRealityMergedPreviewPath(slug, rootDir)
+  mkdirSync(dirname(previewPath), { recursive: true })
+  writeFileSync(previewPath, `${JSON.stringify(merged, null, 2)}\n`, "utf8")
+  return previewPath
+}
+
+export async function syncExternalReality(
+  options: SyncExternalRealityOptions = {}
+): Promise<ExternalRealitySyncReport> {
+  const slug = options.slug ?? APPOINTMENT_PILOT_SLUG
+  const rootDir = options.rootDir ?? process.cwd()
+  let placeId = resolveAppointmentExternalPlaceId(options.placeId) ?? ""
+
+  if (!placeId && options.useFixture) {
+    placeId = "ChIJ-fixture-barba-negra"
+  }
+  const syncedAt = new Date().toISOString()
+
+  const baseReport: ExternalRealitySyncReport = {
+    slug,
+    placeId,
+    status: "fallback",
+    syncedAt,
+  }
+
+  if (!placeId) {
+    const report = {
+      ...baseReport,
+      reason: "missing-place-id",
+    }
+    writeSyncReport(report, rootDir)
+    return report
+  }
+
+  if (options.useFixture) {
+    const fixturePath =
+      options.fixturePath ??
+      join(process.cwd(), EXTERNAL_REALITY_GOOGLE_FIXTURE_RELATIVE_PATH)
+    const snapshot = loadFixtureSnapshot(placeId, fixturePath, syncedAt)
+
+    if (!snapshot) {
+      const report = {
+        ...baseReport,
+        reason: "validation-failed",
+        detail: "fixture snapshot invalid",
+        source: "fixture" as const,
+      }
+      writeSyncReport(report, rootDir)
+      return report
+    }
+
+    writeExternalRealityFileCache(slug, snapshot, rootDir)
+    const snapshotPath = resolveExternalRealitySnapshotCachePath(slug, rootDir)
+    let previewPath: string | undefined
+
+    if (options.mergePreview) {
+      previewPath = writeMergedPreview(slug, snapshot, rootDir)
+    }
+
+    const report: ExternalRealitySyncReport = {
+      slug,
+      placeId,
+      status: "live",
+      source: "fixture",
+      syncedAt,
+      snapshotPath,
+      previewPath,
+    }
+    writeSyncReport(report, rootDir)
+    return report
+  }
+
+  const apiKey = resolveGooglePlacesApiKey(options.apiKey)
+
+  if (!apiKey) {
+    const report = {
+      ...baseReport,
+      reason: "missing-api-key",
+    }
+    writeSyncReport(report, rootDir)
+    return report
+  }
+
+  const fetchResult = await fetchGooglePlacesPlaceDetails({
+    placeId,
+    apiKey,
+    fetchedAt: syncedAt,
+    fetchImpl: options.fetchImpl,
+  })
+
+  if (fetchResult.status === "fallback") {
+    const report: ExternalRealitySyncReport = {
+      slug,
+      placeId,
+      status: "fallback",
+      reason: fetchResult.reason,
+      detail: fetchResult.detail,
+      source: "api",
+      syncedAt,
+    }
+    writeSyncReport(report, rootDir)
+    return report
+  }
+
+  writeExternalRealityFileCache(slug, fetchResult.snapshot, rootDir)
+  const snapshotPath = resolveExternalRealitySnapshotCachePath(slug, rootDir)
+  let previewPath: string | undefined
+
+  if (options.mergePreview) {
+    previewPath = writeMergedPreview(slug, fetchResult.snapshot, rootDir)
+  }
+
+  const report: ExternalRealitySyncReport = {
+    slug,
+    placeId,
+    status: "live",
+    source: "api",
+    syncedAt,
+    snapshotPath,
+    previewPath,
+  }
+  writeSyncReport(report, rootDir)
+  return report
+}
+
+export { resolveExternalRealitySyncReportPath }

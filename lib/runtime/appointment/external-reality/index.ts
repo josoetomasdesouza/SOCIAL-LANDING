@@ -98,3 +98,16 @@ export {
 export type { MergeExternalRealityOptions } from "./merge-into-bundle"
 
 export { runExternalRealityMergeParityChecks } from "./merge-parity"
+
+export { runExternalRealitySyncParityChecks } from "./sync-parity"
+
+export {
+  EXTERNAL_REALITY_GOOGLE_FIXTURE_RELATIVE_PATH,
+  resolveExternalRealityMergedPreviewPath,
+  resolveExternalRealitySyncReportPath,
+  syncExternalReality,
+} from "./sync-external-reality"
+export type {
+  ExternalRealitySyncReport,
+  SyncExternalRealityOptions,
+} from "./sync-external-reality"

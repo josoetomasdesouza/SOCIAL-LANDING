@@ -21,6 +21,7 @@ import {
   resolveAppointmentRuntimeMode,
 } from "../../lib/runtime/appointment/load"
 import { runExternalRealityMergeParityChecks } from "../../lib/runtime/appointment/external-reality/merge-parity"
+import { runExternalRealitySyncParityChecks } from "../../lib/runtime/appointment/external-reality/sync-parity"
 import { APPOINTMENT_PILOT_SLUG } from "../../lib/runtime/appointment/types"
 
 async function main() {
@@ -257,6 +258,19 @@ async function main() {
 
   console.log("PASS external reality merge parity")
   console.log(JSON.stringify(mergeResult.snapshot))
+
+  const syncResult = await runExternalRealitySyncParityChecks()
+
+  if (!syncResult.ok) {
+    console.error("FAIL external reality sync parity")
+    for (const error of syncResult.errors) {
+      console.error(`- ${error}`)
+    }
+    process.exit(1)
+  }
+
+  console.log("PASS external reality sync parity")
+  console.log(JSON.stringify(syncResult.snapshot))
 
   const adapterResult = runAppointmentRuntimeParityChecks()
 
