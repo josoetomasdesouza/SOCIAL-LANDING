@@ -1,5 +1,6 @@
 import type { AppointmentRuntimeBundle } from "./types"
 import { APPOINTMENT_PILOT_SLUG, APPOINTMENT_RUNTIME_VERSION } from "./types"
+import { validateRuntimeExternalMeta } from "./external-reality/validate"
 
 export interface AppointmentRuntimeValidationResult {
   ok: boolean
@@ -48,6 +49,14 @@ export function validateAppointmentRuntimeBundle(
 
   if (!bundle.meta.updatedAt) {
     errors.push("meta.updatedAt is required")
+  }
+
+  if (bundle.meta.external) {
+    const externalValidation = validateRuntimeExternalMeta(bundle.meta.external)
+
+    if (!externalValidation.ok) {
+      errors.push(...externalValidation.errors.map((error) => `meta.external.${error}`))
+    }
   }
 
   if (!bundle.operational.liveState.trim() || !bundle.operational.placeHint.trim()) {

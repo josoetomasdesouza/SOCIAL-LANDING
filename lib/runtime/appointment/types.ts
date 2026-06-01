@@ -1,3 +1,5 @@
+import type { RuntimeExternalMeta } from "./external-reality/types"
+
 export const APPOINTMENT_RUNTIME_VERSION = 1 as const
 
 /** Pilot slug for the Barba Negra demo vertical. */
@@ -135,5 +137,6 @@ export interface AppointmentRuntimeBundle {
     source: AppointmentRuntimeSource
     slug: string
     updatedAt: string
+    external?: RuntimeExternalMeta
   }
 }

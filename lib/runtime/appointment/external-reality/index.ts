@@ -76,3 +76,25 @@ export {
   writeExternalRealityFileCache,
   writeExternalRealityMemoryCache,
 } from "./snapshot-cache"
+
+export {
+  deriveHoursHintFromWeekdayDescriptions,
+  deriveLiveStateFromHours,
+  deriveMapsQueryFromSnapshot,
+} from "./derive-fields"
+
+export {
+  EXTERNAL_REVIEW_MAX_TEXT_LENGTH,
+  filterEditorialReviews,
+  passesEditorialReviewGate,
+} from "./editorial-gate"
+
+export {
+  PRESERVED_EDITORIAL_FIELDS,
+  getPreservedEditorialFieldValues,
+  mergeExternalRealityIntoBundle,
+  preservedEditorialFieldsMatch,
+} from "./merge-into-bundle"
+export type { MergeExternalRealityOptions } from "./merge-into-bundle"
+
+export { runExternalRealityMergeParityChecks } from "./merge-parity"

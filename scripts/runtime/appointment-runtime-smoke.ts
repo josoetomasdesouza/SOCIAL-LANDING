@@ -20,6 +20,7 @@ import {
   loadAppointmentRuntime,
   resolveAppointmentRuntimeMode,
 } from "../../lib/runtime/appointment/load"
+import { runExternalRealityMergeParityChecks } from "../../lib/runtime/appointment/external-reality/merge-parity"
 import { APPOINTMENT_PILOT_SLUG } from "../../lib/runtime/appointment/types"
 
 async function main() {
@@ -243,6 +244,19 @@ async function main() {
       openNow: externalFixture.hours.openNow,
     })
   )
+
+  const mergeResult = runExternalRealityMergeParityChecks()
+
+  if (!mergeResult.ok) {
+    console.error("FAIL external reality merge parity")
+    for (const error of mergeResult.errors) {
+      console.error(`- ${error}`)
+    }
+    process.exit(1)
+  }
+
+  console.log("PASS external reality merge parity")
+  console.log(JSON.stringify(mergeResult.snapshot))
 
   const adapterResult = runAppointmentRuntimeParityChecks()
 
