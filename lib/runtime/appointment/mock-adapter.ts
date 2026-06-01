@@ -17,6 +17,8 @@ import type {
   RuntimeService,
   RuntimeStyleCatalogItem,
 } from "./types"
+import { buildDeterministicSeedAvailability } from "./seed-availability"
+
 import { APPOINTMENT_PILOT_SLUG, APPOINTMENT_RUNTIME_VERSION } from "./types"
 
 export interface BuildAppointmentRuntimeBundleOptions {
@@ -170,13 +172,26 @@ export function resolveAppointmentPilotSlugFromName(name: string) {
   return slugifyName(name)
 }
 
-/** Stable seed bundle for runtime-mode smoke in Etapa 2. */
+/** Stable seed bundle for runtime JSON — deterministic availability, fixed updatedAt. */
 export function buildAppointmentRuntimeSeedBundle(
   options: Omit<BuildAppointmentRuntimeBundleOptions, "source"> = {}
 ): AppointmentRuntimeBundle {
-  return buildAppointmentRuntimeBundleFromMock({
+  const base = buildAppointmentRuntimeBundleFromMock({
     ...options,
     source: "runtime",
     updatedAt: "2026-06-01T00:00:00.000Z",
   })
+
+  return {
+    ...base,
+    professionals: base.professionals.map((professional) => ({
+      ...professional,
+      availability: buildDeterministicSeedAvailability(professional.id),
+    })),
+    meta: {
+      ...base.meta,
+      source: "runtime",
+      updatedAt: "2026-06-01T00:00:00.000Z",
+    },
+  }
 }

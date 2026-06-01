@@ -35,6 +35,15 @@ export {
 } from "./load"
 
 export {
+  getAppointmentRuntimeSeedDocument,
+  getAppointmentRuntimeSeedSlugs,
+  hasAppointmentRuntimeSeed,
+} from "./runtime-store"
+
+export { runAppointmentRuntimeStoreParityChecks } from "./runtime-parity"
+export { getAppointmentRuntimeBundleDiffErrors } from "./bundle-compare"
+
+export {
   assertAppointmentRuntimeBundle,
   validateAppointmentRuntimeBundle,
 } from "./validate"

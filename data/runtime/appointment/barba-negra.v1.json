@@ -1,0 +1,4751 @@
+{
+  "version": 1,
+  "establishment": {
+    "id": "establishment-barba-negra",
+    "slug": "barba-negra",
+    "model": "appointment",
+    "name": "Barba Negra",
+    "brand": {
+      "logo": "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=100&h=100&fit=crop",
+      "coverImage": "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1200&h=600&fit=crop",
+      "primaryColor": "#8B4513",
+      "description": "Barbearia tradicional com atendimento premium"
+    },
+    "contact": {
+      "whatsapp": "5511999999999",
+      "instagram": "@barbanegra",
+      "address": "Rua Augusta, 1500 - Sao Paulo, SP"
+    },
+    "hours": "Seg-Sab: 9h-20h"
+  },
+  "operational": {
+    "liveState": "Aberto agora",
+    "placeHint": "na Augusta",
+    "momentHint": "encaixe leve hoje",
+    "hoursHint": "até 20h"
+  },
+  "arrival": {
+    "drawerTitle": "Chegar na Augusta",
+    "addressLine": "Rua Augusta, 1500 — Jardins",
+    "referenceHint": "Na Augusta, perto do cruzamento com a Paulista — portaria discreta na calcada.",
+    "routeHint": "Vindo da Paulista, desce a Augusta — fica do lado direito.",
+    "parkingHint": "Estacionamento conveniado na rua ao lado.",
+    "arrivalMood": "Movimento mais tranquilo depois das 18h.",
+    "mapsQuery": "Barba Negra, Rua Augusta 1500, Sao Paulo"
+  },
+  "professionals": [
+    {
+      "id": "barber-1",
+      "name": "Carlos Silva",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+      "role": "Barbeiro Senior",
+      "rating": 4.9,
+      "reviewCount": 328,
+      "specialties": [
+        "Degrade",
+        "Barba",
+        "Pigmentacao"
+      ],
+      "availability": [
+        {
+          "date": "2026-06-01",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": false
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-02",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": false
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-03",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-04",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-05",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": false
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-06",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": false
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": false
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-11",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-12",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-13",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "barber-2",
+      "name": "Rafael Santos",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
+      "role": "Barbeiro",
+      "rating": 4.8,
+      "reviewCount": 245,
+      "specialties": [
+        "Corte Social",
+        "Desenho",
+        "Barba"
+      ],
+      "availability": [
+        {
+          "date": "2026-06-01",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": false
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-02",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-03",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-04",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": false
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-05",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": false
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-06",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": false
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": false
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-11",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-12",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": false
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-13",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "barber-3",
+      "name": "Lucas Oliveira",
+      "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face",
+      "role": "Barbeiro",
+      "rating": 4.7,
+      "reviewCount": 189,
+      "specialties": [
+        "Afro",
+        "Dreadlocks",
+        "Tranças"
+      ],
+      "availability": [
+        {
+          "date": "2026-06-01",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-02",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-03",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": false
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-04",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": false
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-05",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-06",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": false
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-11",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": false
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-12",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": false
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-13",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "barber-4",
+      "name": "Pedro Costa",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
+      "role": "Barbeiro Junior",
+      "rating": 4.6,
+      "reviewCount": 87,
+      "specialties": [
+        "Corte Masculino",
+        "Barba"
+      ],
+      "availability": [
+        {
+          "date": "2026-06-01",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-02",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": false
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-03",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": false
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-04",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-05",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-06",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": false
+            }
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": false
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": false
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": false
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-11",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": false
+            },
+            {
+              "time": "10:00",
+              "available": false
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": false
+            },
+            {
+              "time": "13:30",
+              "available": false
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": false
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": false
+            },
+            {
+              "time": "18:00",
+              "available": true
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": false
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-12",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": false
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": true
+            },
+            {
+              "time": "11:30",
+              "available": true
+            },
+            {
+              "time": "12:00",
+              "available": false
+            },
+            {
+              "time": "12:30",
+              "available": false
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": true
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": false
+            },
+            {
+              "time": "15:30",
+              "available": true
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": false
+            },
+            {
+              "time": "17:00",
+              "available": true
+            },
+            {
+              "time": "17:30",
+              "available": true
+            },
+            {
+              "time": "18:00",
+              "available": false
+            },
+            {
+              "time": "18:30",
+              "available": true
+            },
+            {
+              "time": "19:00",
+              "available": true
+            },
+            {
+              "time": "19:30",
+              "available": true
+            }
+          ]
+        },
+        {
+          "date": "2026-06-13",
+          "slots": [
+            {
+              "time": "09:00",
+              "available": true
+            },
+            {
+              "time": "09:30",
+              "available": true
+            },
+            {
+              "time": "10:00",
+              "available": true
+            },
+            {
+              "time": "10:30",
+              "available": true
+            },
+            {
+              "time": "11:00",
+              "available": false
+            },
+            {
+              "time": "11:30",
+              "available": false
+            },
+            {
+              "time": "12:00",
+              "available": true
+            },
+            {
+              "time": "12:30",
+              "available": true
+            },
+            {
+              "time": "13:00",
+              "available": true
+            },
+            {
+              "time": "13:30",
+              "available": true
+            },
+            {
+              "time": "14:00",
+              "available": false
+            },
+            {
+              "time": "14:30",
+              "available": true
+            },
+            {
+              "time": "15:00",
+              "available": true
+            },
+            {
+              "time": "15:30",
+              "available": false
+            },
+            {
+              "time": "16:00",
+              "available": true
+            },
+            {
+              "time": "16:30",
+              "available": true
+            },
+            {
+              "time": "17:00",
+              "available": false
+            },
+            {
+              "time": "17:30",
+              "available": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "id": "service-1",
+      "name": "Corte Masculino",
+      "description": "Corte tradicional com maquina e tesoura",
+      "duration": 30,
+      "price": 45,
+      "image": "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&h=300&fit=crop",
+      "category": "Corte",
+      "popular": true
+    },
+    {
+      "id": "service-2",
+      "name": "Degrade",
+      "description": "Corte com degrade nas laterais e nuca",
+      "duration": 45,
+      "price": 55,
+      "image": "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400&h=300&fit=crop",
+      "category": "Corte",
+      "popular": true
+    },
+    {
+      "id": "service-3",
+      "name": "Barba Completa",
+      "description": "Aparar, modelar e hidratar a barba",
+      "duration": 30,
+      "price": 35,
+      "image": "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=400&h=300&fit=crop",
+      "category": "Barba"
+    },
+    {
+      "id": "service-4",
+      "name": "Corte + Barba",
+      "description": "Combo corte masculino e barba completa",
+      "duration": 60,
+      "price": 70,
+      "image": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&h=300&fit=crop",
+      "category": "Combo",
+      "popular": true
+    },
+    {
+      "id": "service-5",
+      "name": "Pigmentacao de Barba",
+      "description": "Coloracao para cobrir falhas ou grisalhos",
+      "duration": 45,
+      "price": 80,
+      "image": "https://images.unsplash.com/photo-1517832606299-7ae9b720a186?w=400&h=300&fit=crop",
+      "category": "Tratamento"
+    },
+    {
+      "id": "service-6",
+      "name": "Hidratacao Capilar",
+      "description": "Tratamento profundo para cabelos",
+      "duration": 30,
+      "price": 40,
+      "image": "https://images.unsplash.com/photo-1560869713-7d0a29430803?w=400&h=300&fit=crop",
+      "category": "Tratamento"
+    },
+    {
+      "id": "service-7",
+      "name": "Desenho na Barba/Cabelo",
+      "description": "Arte personalizada com maquina",
+      "duration": 20,
+      "price": 25,
+      "image": "https://images.unsplash.com/photo-1534297635766-a262cdcb8ee4?w=400&h=300&fit=crop",
+      "category": "Extra"
+    },
+    {
+      "id": "service-8",
+      "name": "Platinado",
+      "description": "Descoloracao completa do cabelo",
+      "duration": 90,
+      "price": 120,
+      "image": "https://images.unsplash.com/photo-1620122830785-9c5d86e3ad03?w=400&h=300&fit=crop",
+      "category": "Coloracao"
+    }
+  ],
+  "styles": [
+    {
+      "id": "style-1",
+      "name": "Degrade Medio",
+      "image": "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400&h=400&fit=crop",
+      "category": "Degrade",
+      "tags": [
+        "moderno",
+        "versatil"
+      ]
+    },
+    {
+      "id": "style-2",
+      "name": "Degrade Alto",
+      "image": "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=400&h=400&fit=crop",
+      "category": "Degrade",
+      "tags": [
+        "arrojado",
+        "jovem"
+      ]
+    },
+    {
+      "id": "style-3",
+      "name": "Pompadour",
+      "image": "https://images.unsplash.com/photo-1520975954732-35dd22299614?w=400&h=400&fit=crop",
+      "category": "Classico",
+      "tags": [
+        "elegante",
+        "volume"
+      ]
+    },
+    {
+      "id": "style-4",
+      "name": "Buzz Cut",
+      "image": "https://images.unsplash.com/photo-1534297635766-a262cdcb8ee4?w=400&h=400&fit=crop",
+      "category": "Curto",
+      "tags": [
+        "pratico",
+        "militar"
+      ]
+    },
+    {
+      "id": "style-5",
+      "name": "Undercut",
+      "image": "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=400&h=400&fit=crop",
+      "category": "Moderno",
+      "tags": [
+        "estiloso",
+        "contraste"
+      ]
+    },
+    {
+      "id": "style-6",
+      "name": "Social Classico",
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+      "category": "Classico",
+      "tags": [
+        "executivo",
+        "formal"
+      ]
+    },
+    {
+      "id": "style-7",
+      "name": "Afro Natural",
+      "image": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop",
+      "category": "Afro",
+      "tags": [
+        "natural",
+        "volume"
+      ]
+    },
+    {
+      "id": "style-8",
+      "name": "Mullet Moderno",
+      "image": "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?w=400&h=400&fit=crop",
+      "category": "Tendencia",
+      "tags": [
+        "ousado",
+        "retro"
+      ]
+    }
+  ],
+  "feed": {
+    "stories": [
+      {
+        "id": "apt-story-1",
+        "label": "Agendar",
+        "image": "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=200&h=200&fit=crop",
+        "isPrimary": true
+      },
+      {
+        "id": "apt-story-2",
+        "label": "Cortes",
+        "image": "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=200&h=200&fit=crop"
+      },
+      {
+        "id": "apt-story-3",
+        "label": "Barba",
+        "image": "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=200&h=200&fit=crop"
+      },
+      {
+        "id": "apt-story-4",
+        "label": "Ofertas",
+        "image": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=200&h=200&fit=crop"
+      },
+      {
+        "id": "apt-story-5",
+        "label": "Kids",
+        "image": "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=200&h=200&fit=crop"
+      }
+    ],
+    "sections": [
+      {
+        "id": "videos",
+        "items": [
+          {
+            "id": "apt-vid-1",
+            "kind": "video",
+            "title": "Tutorial: Fade Perfeito em 5 Minutos",
+            "image": "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&h=450&fit=crop",
+            "description": "Nosso barbeiro chefe mostra a tecnica do fade mais pedido da casa",
+            "metadata": {
+              "duration": "5:23",
+              "views": 45000
+            }
+          },
+          {
+            "id": "apt-vid-2",
+            "kind": "video",
+            "title": "Tendencias de Corte Masculino 2024",
+            "image": "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800&h=450&fit=crop",
+            "description": "Os estilos que estao bombando esse ano",
+            "metadata": {
+              "duration": "8:45",
+              "views": 32000
+            }
+          },
+          {
+            "id": "apt-vid-3",
+            "kind": "video-vertical",
+            "title": "Antes e Depois: Transformacao completa",
+            "image": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&h=700&fit=crop",
+            "description": "Cliente saiu outro homem!",
+            "metadata": {
+              "duration": "0:45",
+              "views": 120000
+            }
+          }
+        ]
+      },
+      {
+        "id": "reviews",
+        "items": [
+          {
+            "id": "apt-rev-1",
+            "kind": "review",
+            "title": "Melhor barbearia que ja fui! O Carlos e um artista do fade.",
+            "image": "",
+            "metadata": {
+              "rating": 5,
+              "reviewerName": "Marcos Silva",
+              "reviewerAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
+            }
+          },
+          {
+            "id": "apt-rev-2",
+            "kind": "review",
+            "title": "Atendimento impecavel, ambiente muito agradavel. Volto sempre!",
+            "image": "",
+            "metadata": {
+              "rating": 5,
+              "reviewerName": "Pedro Henrique",
+              "reviewerAvatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face"
+            }
+          },
+          {
+            "id": "apt-rev-3",
+            "kind": "review",
+            "title": "Precos justos e qualidade excepcional. Recomendo demais!",
+            "image": "",
+            "metadata": {
+              "rating": 4,
+              "reviewerName": "Lucas Oliveira",
+              "reviewerAvatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face"
+            }
+          }
+        ]
+      },
+      {
+        "id": "news",
+        "items": [
+          {
+            "id": "apt-news-1",
+            "kind": "news",
+            "title": "Barbearia Dom Corleone e eleita a melhor da cidade pelo 3o ano consecutivo",
+            "image": "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=450&fit=crop",
+            "description": "Premiacao foi entregue ontem em cerimonia no centro de convencoes",
+            "metadata": {
+              "source": "Jornal da Cidade",
+              "date": "2024-01-15"
+            }
+          },
+          {
+            "id": "apt-news-2",
+            "kind": "news",
+            "title": "Barbeiro local participa de campeonato mundial",
+            "image": "",
+            "description": "Representante brasileiro vai competir em Las Vegas",
+            "metadata": {
+              "source": "Portal de Noticias",
+              "date": "2024-01-10"
+            }
+          }
+        ]
+      },
+      {
+        "id": "social",
+        "items": [
+          {
+            "id": "apt-soc-1",
+            "kind": "social",
+            "title": "Sabado de casa cheia! Obrigado pela confianca de sempre.",
+            "image": "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&h=800&fit=crop",
+            "metadata": {}
+          },
+          {
+            "id": "apt-soc-2",
+            "kind": "social",
+            "title": "Nosso espaco foi renovado! Vem conhecer o novo lounge.",
+            "image": "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&h=800&fit=crop",
+            "metadata": {}
+          }
+        ]
+      }
+    ]
+  },
+  "meta": {
+    "source": "runtime",
+    "slug": "barba-negra",
+    "updatedAt": "2026-06-01T00:00:00.000Z"
+  }
+}
