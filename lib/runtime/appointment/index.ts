@@ -67,3 +67,29 @@ export {
   appointmentHairStyles,
   appointmentHeroOperationalContext,
 } from "./appointment-feed-data"
+
+export {
+  EXTERNAL_REALITY_MAX_REVIEWS,
+  EXTERNAL_REALITY_PROVIDER_GOOGLE_PLACES,
+  assertExternalRealitySnapshot,
+  assertRuntimeExternalMeta,
+  isExternalRealitySnapshot,
+  isRuntimeExternalMeta,
+  normalizeExternalRealitySnapshot,
+  normalizeExternalReviewCandidates,
+  normalizeRuntimeExternalMeta,
+  validateExternalRealitySnapshot,
+  validateRuntimeExternalMeta,
+} from "./external-reality"
+export type {
+  ExternalHoursData,
+  ExternalPlaceData,
+  ExternalPlaceLocation,
+  ExternalRatingSummary,
+  ExternalRealityProviderId,
+  ExternalRealitySnapshot,
+  ExternalRealitySyncStatus,
+  ExternalRealityValidationResult,
+  ExternalReviewCandidate,
+  RuntimeExternalMeta,
+} from "./external-reality"
