@@ -9,12 +9,18 @@
  *   pnpm qa:events
  *   DEMO_URL=http://localhost:3000/demo pnpm qa:events
  *
+ * Dev note: use `localhost`, not `127.0.0.1` — Next dev blocks cross-origin HMR
+ * from 127.0.0.1 and client hydration/interaction fails in headless runs.
+ *
  * Drawer dismiss: uses Escape (supported by ActionDrawer + BusinessFeedDrawer).
  * No "Fechar" button — aligned with drag-dismiss UX (PR #52).
  */
 import { chromium } from "playwright"
 
-const BASE = process.env.DEMO_URL ?? "http://localhost:3000/demo"
+const BASE = (process.env.DEMO_URL ?? "http://localhost:3000/demo").replace(
+  "127.0.0.1",
+  "localhost"
+)
 const LONG_PRESS_MS = 600
 const TUTORIALS_POST = "#section-tutoriais-e-tendencias article"
 
@@ -79,13 +85,8 @@ async function dismissDrawer(page) {
 
 async function waitForDemoHydrated(page) {
   await page.waitForSelector("button", { timeout: 60000, state: "visible" })
-  await page.waitForFunction(
-    () =>
-      Object.keys(document.querySelector("button") ?? {}).some((key) =>
-        key.startsWith("__react")
-      ),
-    { timeout: 120000 }
-  )
+  // Client shell: EventDebugPanel mounts only after React hydration (dev).
+  await page.getByText(/Events \(\d+\)/).waitFor({ timeout: 120000 })
   await page.waitForTimeout(500)
 }
 
