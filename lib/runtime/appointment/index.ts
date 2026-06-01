@@ -57,3 +57,13 @@ export {
   projectBundleToStyles,
 } from "./legacy-projection"
 export type { AppointmentLegacyContent } from "./legacy-projection"
+
+export {
+  appointmentArrivalContext,
+  appointmentBarberServices,
+  appointmentBarberShopConfig,
+  appointmentBarbers,
+  appointmentFeedContent,
+  appointmentHairStyles,
+  appointmentHeroOperationalContext,
+} from "./appointment-feed-data"

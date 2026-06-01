@@ -67,6 +67,6 @@ export function getAppointmentRuntimeReadiness() {
     mode: resolveAppointmentRuntimeMode(),
     pilotSlug: APPOINTMENT_PILOT_SLUG,
     runtimeJsonReady: hasAppointmentRuntimeSeed(APPOINTMENT_PILOT_SLUG),
-    uiWired: false,
+    uiWired: true,
   }
 }

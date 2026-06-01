@@ -12,12 +12,19 @@ import { SocialContactCTA } from "../social-contact-cta"
 import { ContextSelectable } from "../context-selectable"
 import type { ConversationContextItem } from "../conversational-ai"
 import { ConversationSelectionProvider, useConversationSelectionState } from "../conversation-selection-context"
-import { barberShopConfig, barberShopHeroOperationalContext, barberShopArrivalContext, barbers, barberServices, hairStyles } from "@/lib/mock-data/appointment-data"
+import {
+  appointmentArrivalContext,
+  appointmentBarberServices,
+  appointmentBarberShopConfig,
+  appointmentBarbers,
+  appointmentFeedContent,
+  appointmentHairStyles,
+  appointmentHeroOperationalContext,
+} from "@/lib/runtime/appointment/appointment-feed-data"
 import { createAppointmentMockConversationResolver } from "@/lib/mock-data/appointment-conversational-search"
 import { createAppointmentConversationalVisualBlockRenderer } from "./appointment-conversational-visual-block"
 import { AppointmentOperationalHero } from "./appointment-operational-hero"
 import { AppointmentArrivalDrawer } from "./appointment-arrival-drawer"
-import { appointmentContent } from "@/lib/mock-data/business-content"
 import type { Professional, Service, StyleExample } from "@/lib/business-types"
 
 type BookingStep = "service" | "professional" | "datetime" | "confirmation" | null
@@ -27,7 +34,7 @@ function scrollToAppointmentSection(sectionId: string) {
 }
 
 const APPOINTMENT_LANDING_CONFIG = {
-  ...barberShopConfig,
+  ...appointmentBarberShopConfig,
   description: "",
 }
 
@@ -53,11 +60,11 @@ function ScheduleModule({
       <div>
         <h4 className="font-medium text-foreground mb-3">Servicos populares</h4>
         <div className="space-y-2">
-          {barberServices.filter(s => s.popular).slice(0, 3).map((service) => {
+          {appointmentBarberServices.filter(s => s.popular).slice(0, 3).map((service) => {
             const contextItem = {
               id: `appointment-service-${service.id}`,
               title: service.name,
-              image: service.image || barberShopConfig.logo,
+              image: service.image || appointmentBarberShopConfig.logo,
               subtitle: "Servico",
             }
 
@@ -90,7 +97,7 @@ function ScheduleModule({
       <div>
         <h4 className="font-medium text-foreground mb-3">Profissionais</h4>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-          {barbers.slice(0, 4).map((barber) => {
+          {appointmentBarbers.slice(0, 4).map((barber) => {
             const contextItem = {
               id: `appointment-barber-${barber.id}`,
               title: barber.name,
@@ -138,7 +145,7 @@ function StylesModule({
 }) {
   return (
     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 sm:-mx-5 sm:px-5">
-      {hairStyles.slice(0, 6).map((style) => {
+      {appointmentHairStyles.slice(0, 6).map((style) => {
         const contextItem = {
           id: `appointment-style-${style.id}`,
           title: style.name,
@@ -338,7 +345,7 @@ function ServicesDrawer({
   onToggleConversationContext?: (item: ConversationContextItem) => void
   isInConversation?: (id: string) => boolean
 }) {
-  const categories = [...new Set(barberServices.map(s => s.category))]
+  const categories = [...new Set(appointmentBarberServices.map(s => s.category))]
   
   return (
     <ActionDrawer
@@ -352,11 +359,11 @@ function ServicesDrawer({
           <div key={category}>
             <h4 className="font-medium text-foreground mb-3">{category}</h4>
             <div className="space-y-2">
-              {barberServices.filter(s => s.category === category).map((service) => {
+              {appointmentBarberServices.filter(s => s.category === category).map((service) => {
                 const contextItem = {
                   id: `appointment-service-${service.id}`,
                   title: service.name,
-                  image: service.image || barberShopConfig.logo,
+                  image: service.image || appointmentBarberShopConfig.logo,
                   subtitle: "Servico",
                 }
 
@@ -415,7 +422,7 @@ function ProfessionalsDrawer({
   const serviceContextItem = {
     id: `appointment-service-${service.id}`,
     title: service.name,
-    image: service.image || barberShopConfig.logo,
+    image: service.image || appointmentBarberShopConfig.logo,
     subtitle: "Servico",
   }
 
@@ -444,7 +451,7 @@ function ProfessionalsDrawer({
         </ContextSelectable>
 
         <div className="space-y-2">
-          {barbers.map((barber) => {
+          {appointmentBarbers.map((barber) => {
             const contextItem = {
               id: `appointment-barber-${barber.id}`,
               title: barber.name,
@@ -616,10 +623,10 @@ export function AppointmentFeed() {
   const operationalHero = useMemo(
     () => (
       <AppointmentOperationalHero
-        brandName={barberShopConfig.name}
-        coverImage={barberShopConfig.coverImage || barberShopConfig.logo}
-        coverAlt={`Ambiente ${barberShopConfig.name}`}
-        operationalContext={barberShopHeroOperationalContext}
+        brandName={appointmentBarberShopConfig.name}
+        coverImage={appointmentBarberShopConfig.coverImage || appointmentBarberShopConfig.logo}
+        coverAlt={`Ambiente ${appointmentBarberShopConfig.name}`}
+        operationalContext={appointmentHeroOperationalContext}
         headline="Corte preciso, barba bem feita e um clima de casa — passe quando quiser."
         primaryActionLabel="Agendar horario"
         onPrimaryAction={handleStartBooking}
@@ -665,15 +672,15 @@ export function AppointmentFeed() {
 
   const openBarberFlow = useCallback((barber: Professional) => {
     setSelectedBarber(barber)
-    setSelectedService((current) => current ?? barberServices.find((service) => service.popular) ?? barberServices[0])
+    setSelectedService((current) => current ?? appointmentBarberServices.find((service) => service.popular) ?? appointmentBarberServices[0])
     setBookingStep("datetime")
   }, [])
 
   const openScheduleBooking = useCallback(({ barberId, serviceId }: { barberId?: string; serviceId?: string }) => {
-    const barber = barberId ? barbers.find((item) => item.id === barberId) ?? null : null
+    const barber = barberId ? appointmentBarbers.find((item) => item.id === barberId) ?? null : null
     const service = serviceId
-      ? barberServices.find((item) => item.id === serviceId) ?? null
-      : selectedService ?? barberServices.find((item) => item.popular) ?? barberServices[0]
+      ? appointmentBarberServices.find((item) => item.id === serviceId) ?? null
+      : selectedService ?? appointmentBarberServices.find((item) => item.popular) ?? appointmentBarberServices[0]
 
     if (barber) {
       setSelectedBarber(barber)
@@ -694,8 +701,8 @@ export function AppointmentFeed() {
   const renderConversationVisualBlock = useMemo(
     () =>
       createAppointmentConversationalVisualBlockRenderer({
-        barbers,
-        services: barberServices,
+        barbers: appointmentBarbers,
+        services: appointmentBarberServices,
         onSelectBarber: openBarberFlow,
         onSelectService: handleSelectService,
         onScheduleBooking: openScheduleBooking,
@@ -738,14 +745,14 @@ export function AppointmentFeed() {
       title: "Tutoriais e Tendencias",
       icon: <Play className="w-5 h-5 text-accent" />,
       type: "content",
-      posts: appointmentContent.videos
+      posts: appointmentFeedContent.videos
     },
     {
       id: "reviews",
       title: "O Que Dizem",
       icon: <Star className="w-5 h-5 text-accent" />,
       type: "content",
-      posts: appointmentContent.reviews
+      posts: appointmentFeedContent.reviews
     },
     {
       id: "contact-cta",
@@ -757,8 +764,8 @@ export function AppointmentFeed() {
           contextLabel="Contato rapido"
           headline="Quer falar com a Barba Negra ou ja sair com horario marcado?"
           subheadline="Chama no WhatsApp, veja o horario da casa ou agende agora."
-          whatsapp={barberShopConfig.whatsapp || ""}
-          openingHours={barberShopConfig.openingHours || "Consulte horarios"}
+          whatsapp={appointmentBarberShopConfig.whatsapp || ""}
+          openingHours={appointmentBarberShopConfig.openingHours || "Consulte horarios"}
           location="Rua Augusta • Sao Paulo"
           primaryActionLabel="Agendar agora"
           onPrimaryAction={handlePrimaryBooking}
@@ -769,22 +776,22 @@ export function AppointmentFeed() {
       id: "news",
       title: "Na Midia",
       type: "content",
-      posts: appointmentContent.news
+      posts: appointmentFeedContent.news
     },
     {
       id: "social",
       title: "Bastidores",
       type: "content",
-      posts: appointmentContent.social
+      posts: appointmentFeedContent.social
     }
   ]
   
   return (
-    <ConversationSelectionProvider value={conversationSelection} vertical={barberShopConfig.model}>
+    <ConversationSelectionProvider value={conversationSelection} vertical={appointmentBarberShopConfig.model}>
       <>
       <BusinessSocialLanding
         config={APPOINTMENT_LANDING_CONFIG}
-        stories={appointmentContent.stories}
+        stories={appointmentFeedContent.stories}
         sections={sections}
         leadingContent={operationalHero}
         storiesClassName="max-[360px]:py-3.5"
@@ -844,8 +851,8 @@ export function AppointmentFeed() {
       <AppointmentArrivalDrawer
         isOpen={arrivalDrawerOpen}
         onClose={handleCloseArrival}
-        arrival={barberShopArrivalContext}
-        whatsapp={barberShopConfig.whatsapp}
+        arrival={appointmentArrivalContext}
+        whatsapp={appointmentBarberShopConfig.whatsapp}
       />
       </>
     </ConversationSelectionProvider>
