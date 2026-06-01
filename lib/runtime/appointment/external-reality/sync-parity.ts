@@ -5,9 +5,9 @@ import { join } from "node:path"
 import { APPOINTMENT_PILOT_SLUG } from "../types"
 import {
   resolveExternalRealityMergedPreviewPath,
-  resolveExternalRealitySyncReportPath,
   syncExternalReality,
 } from "./sync-external-reality"
+import { resolveExternalRealitySyncReportPath } from "./sync-report"
 import { resolveExternalRealitySnapshotCachePath } from "./snapshot-cache"
 import type { ExternalRealitySnapshot } from "./types"
 import { validateExternalRealitySnapshot } from "./validate"

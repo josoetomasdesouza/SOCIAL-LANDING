@@ -21,6 +21,7 @@ import {
   resolveAppointmentRuntimeMode,
 } from "../../lib/runtime/appointment/load"
 import { runExternalRealityMergeParityChecks } from "../../lib/runtime/appointment/external-reality/merge-parity"
+import { runExternalRealityOverlayParityChecks } from "../../lib/runtime/appointment/external-reality/overlay-parity"
 import { runExternalRealitySyncParityChecks } from "../../lib/runtime/appointment/external-reality/sync-parity"
 import { APPOINTMENT_PILOT_SLUG } from "../../lib/runtime/appointment/types"
 
@@ -271,6 +272,19 @@ async function main() {
 
   console.log("PASS external reality sync parity")
   console.log(JSON.stringify(syncResult.snapshot))
+
+  const overlayResult = runExternalRealityOverlayParityChecks()
+
+  if (!overlayResult.ok) {
+    console.error("FAIL external reality overlay parity")
+    for (const error of overlayResult.errors) {
+      console.error(`- ${error}`)
+    }
+    process.exit(1)
+  }
+
+  console.log("PASS external reality overlay parity")
+  console.log(JSON.stringify(overlayResult.snapshot))
 
   const adapterResult = runAppointmentRuntimeParityChecks()
 

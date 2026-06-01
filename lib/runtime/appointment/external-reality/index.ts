@@ -99,15 +99,26 @@ export type { MergeExternalRealityOptions } from "./merge-into-bundle"
 
 export { runExternalRealityMergeParityChecks } from "./merge-parity"
 
-export { runExternalRealitySyncParityChecks } from "./sync-parity"
-
 export {
   EXTERNAL_REALITY_GOOGLE_FIXTURE_RELATIVE_PATH,
   resolveExternalRealityMergedPreviewPath,
-  resolveExternalRealitySyncReportPath,
   syncExternalReality,
 } from "./sync-external-reality"
-export type {
-  ExternalRealitySyncReport,
-  SyncExternalRealityOptions,
-} from "./sync-external-reality"
+
+export type { ExternalRealitySyncReport } from "./sync-report"
+export { resolveExternalRealitySyncReportPath } from "./sync-report"
+
+export { resolveAppointmentExternalRealityEnabled } from "./apply-runtime-overlay"
+
+export {
+  EXTERNAL_REALITY_STALE_AFTER_MS,
+  applyExternalRealityRuntimeOverlay,
+  resolveExternalRealityOverlayStatus,
+} from "./apply-runtime-overlay.server"
+export type { ApplyExternalRealityRuntimeOverlayOptions } from "./apply-runtime-overlay.server"
+
+export { runExternalRealityOverlayParityChecks } from "./overlay-parity"
+
+export { runExternalRealitySyncParityChecks } from "./sync-parity"
+
+export type { SyncExternalRealityOptions } from "./sync-external-reality"

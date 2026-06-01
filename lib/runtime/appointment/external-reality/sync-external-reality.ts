@@ -1,7 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 
-import { loadAppointmentRuntimeFromRuntimeStore } from "../load"
+import { getAppointmentRuntimeSeedDocument } from "../runtime-store"
+import type { AppointmentRuntimeBundle } from "../types"
 import { APPOINTMENT_PILOT_SLUG } from "../types"
 import {
   resolveAppointmentExternalPlaceId,
@@ -17,23 +18,15 @@ import {
   resolveExternalRealitySnapshotCachePath,
   writeExternalRealityFileCache,
 } from "./snapshot-cache"
+import type { ExternalRealitySyncReport } from "./sync-report"
+import { resolveExternalRealitySyncReportPath } from "./sync-report"
 import type { ExternalRealitySnapshot } from "./types"
 import { validateExternalRealitySnapshot } from "./validate"
 
 export const EXTERNAL_REALITY_GOOGLE_FIXTURE_RELATIVE_PATH =
   "lib/runtime/appointment/external-reality/fixtures/google-places-barba-negra.json"
 
-export interface ExternalRealitySyncReport {
-  slug: string
-  placeId: string
-  status: "live" | "fallback"
-  reason?: string
-  detail?: string
-  source?: "api" | "fixture"
-  syncedAt: string
-  snapshotPath?: string
-  previewPath?: string
-}
+export type { ExternalRealitySyncReport } from "./sync-report"
 
 export interface SyncExternalRealityOptions {
   slug?: string
@@ -44,10 +37,6 @@ export interface SyncExternalRealityOptions {
   useFixture?: boolean
   fixturePath?: string
   fetchImpl?: typeof fetch
-}
-
-function resolveExternalRealitySyncReportPath(slug: string, rootDir: string = process.cwd()) {
-  return join(rootDir, "data/runtime/appointment/external", `${slug}.sync-report.json`)
 }
 
 export function resolveExternalRealityMergedPreviewPath(
@@ -62,6 +51,23 @@ function writeSyncReport(report: ExternalRealitySyncReport, rootDir: string) {
   mkdirSync(dirname(reportPath), { recursive: true })
   writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8")
   return reportPath
+}
+
+function loadRuntimeStoreBase(slug: string): AppointmentRuntimeBundle {
+  const document = getAppointmentRuntimeSeedDocument(slug)
+
+  if (!document) {
+    throw new Error(`Missing appointment runtime seed document: ${slug}`)
+  }
+
+  return {
+    ...structuredClone(document),
+    meta: {
+      ...document.meta,
+      source: "runtime",
+      slug,
+    },
+  }
 }
 
 function loadFixtureSnapshot(
@@ -85,7 +91,7 @@ function writeMergedPreview(
   snapshot: ExternalRealitySnapshot,
   rootDir: string
 ) {
-  const base = loadAppointmentRuntimeFromRuntimeStore(slug)
+  const base = loadRuntimeStoreBase(slug)
   const merged = mergeExternalRealityIntoBundle(base, snapshot, {
     status: "live",
     syncedAt: snapshot.fetchedAt,
@@ -214,5 +220,3 @@ export async function syncExternalReality(
   writeSyncReport(report, rootDir)
   return report
 }
-
-export { resolveExternalRealitySyncReportPath }
