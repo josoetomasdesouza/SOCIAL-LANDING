@@ -1,6 +1,6 @@
 export type AppointmentPublicationState = "draft" | "live"
 
-export type AppointmentPublicationDerivedFrom = "live" | "mock-adapter" | "manual"
+export type AppointmentPublicationDerivedFrom = "live" | "mock-adapter" | "manual" | "ai"
 
 export interface AppointmentPublicationMeta {
   publicationState: AppointmentPublicationState

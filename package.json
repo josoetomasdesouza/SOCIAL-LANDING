@@ -26,6 +26,7 @@
     "runtime:appointment:rollback": "npx --yes tsx scripts/runtime/rollback-appointment-live.ts",
     "qa:appointment-publication": "node scripts/runtime/appointment-publication-smoke.mjs",
     "qa:appointment-storage": "node scripts/runtime/appointment-storage-smoke.mjs",
+    "qa:appointment-ai-operational": "node scripts/runtime/appointment-ai-operational-smoke.mjs",
     "qa:appointment-runtime-overlay-build": "node scripts/runtime/appointment-external-reality-build-gate.mjs",
     "qa:ai-observation": "node scripts/qa/ai-resolver-regression.mjs",
     "qa:ai-regression": "node scripts/qa/ai-regression-harness.mjs",
