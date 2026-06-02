@@ -1,7 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { dirname, join } from "node:path"
-
 import type { ExternalRealitySnapshot } from "./types"
+import { buildExternalSnapshotKey } from "../../storage/keys"
+import { getFilesystemStorage } from "../../storage/resolve-storage.server"
 
 interface MemoryCacheEntry {
   snapshot: ExternalRealitySnapshot
@@ -53,22 +52,18 @@ export function resolveExternalRealitySnapshotCachePath(
   slug: string,
   rootDir: string = process.cwd()
 ): string {
-  return join(rootDir, "data/runtime/appointment/external", `${slug}.snapshot.json`)
+  return getFilesystemStorage(rootDir).resolvePath(buildExternalSnapshotKey(slug))
 }
 
 export function readExternalRealityFileCache(
   slug: string,
   rootDir: string = process.cwd()
 ): ExternalRealitySnapshot | null {
-  const cachePath = resolveExternalRealitySnapshotCachePath(slug, rootDir)
+  const result = getFilesystemStorage(rootDir).readJson<ExternalRealitySnapshot>(
+    buildExternalSnapshotKey(slug)
+  )
 
-  try {
-    const raw = readFileSync(cachePath, "utf8")
-    const parsed = JSON.parse(raw) as ExternalRealitySnapshot
-    return parsed
-  } catch {
-    return null
-  }
+  return result.ok ? result.data : null
 }
 
 export function writeExternalRealityFileCache(
@@ -76,7 +71,11 @@ export function writeExternalRealityFileCache(
   snapshot: ExternalRealitySnapshot,
   rootDir: string = process.cwd()
 ) {
-  const cachePath = resolveExternalRealitySnapshotCachePath(slug, rootDir)
-  mkdirSync(dirname(cachePath), { recursive: true })
-  writeFileSync(cachePath, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8")
+  const writeResult = getFilesystemStorage(rootDir).writeJson(buildExternalSnapshotKey(slug), snapshot)
+
+  if (!writeResult.ok) {
+    throw new Error(`Failed to write external reality snapshot for slug: ${slug}`)
+  }
+
+  return writeResult.path
 }

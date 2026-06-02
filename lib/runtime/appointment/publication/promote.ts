@@ -1,12 +1,17 @@
-import { copyFileSync, existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs"
-import { dirname } from "node:path"
-
 import type { AppointmentRuntimeBundle } from "../types"
-import { readAppointmentRuntimeDocument } from "./load-document"
 import {
+  buildRuntimeBackupKey,
+  buildRuntimeDraftKey,
+  buildRuntimeLiveKey,
   formatBackupTimestamp,
+} from "../../storage/keys"
+import { getFilesystemStorage } from "../../storage/resolve-storage.server"
+import {
+  readAppointmentRuntimeDocumentByKey,
+  writeAppointmentRuntimeDocumentByKey,
+} from "./load-document"
+import {
   resolveAppointmentDraftDocumentPath,
-  resolveAppointmentLiveBackupPath,
   resolveAppointmentLiveDocumentPath,
 } from "./paths"
 import { assertAppointmentDraftBundle, validateAppointmentDraftBundle } from "./validate-draft"
@@ -45,14 +50,22 @@ export function promoteAppointmentDraft(
 ): PromoteAppointmentDraftResult {
   const rootDir = options.rootDir ?? process.cwd()
   const dryRun = options.dryRun ?? false
+  const storage = getFilesystemStorage(rootDir)
+  const draftKey = buildRuntimeDraftKey(options.slug)
+  const liveKey = buildRuntimeLiveKey(options.slug)
   const draftPath = resolveAppointmentDraftDocumentPath(options.slug, rootDir)
   const livePath = resolveAppointmentLiveDocumentPath(options.slug, rootDir)
 
-  if (!existsSync(draftPath)) {
+  if (!storage.exists(draftKey)) {
     throw new Error(`Draft document not found: ${draftPath}`)
   }
 
-  const draft = readAppointmentRuntimeDocument(draftPath)
+  const draft = readAppointmentRuntimeDocumentByKey(draftKey, rootDir)
+
+  if (!draft) {
+    throw new Error(`Draft document not readable: ${draftPath}`)
+  }
+
   const validation = validateAppointmentDraftBundle(draft, options.slug)
 
   if (!validation.ok) {
@@ -67,47 +80,40 @@ export function promoteAppointmentDraft(
   }
 
   const normalizedLive = normalizeDraftForLivePromotion(draft)
-  const backupPath = existsSync(livePath)
-    ? resolveAppointmentLiveBackupPath(options.slug, formatBackupTimestamp(), rootDir)
-    : null
+  const backupKey = storage.exists(liveKey)
+    ? buildRuntimeBackupKey(options.slug, formatBackupTimestamp())
+    : undefined
+  const backupPath = backupKey ? storage.resolvePath(backupKey) : null
 
-  if (dryRun) {
-    return {
-      slug: options.slug,
-      dryRun: true,
-      draftPath,
-      livePath,
-      backupPath,
-      validationErrors: [],
-    }
+  const writeResult = writeAppointmentRuntimeDocumentByKey(liveKey, normalizedLive, rootDir, {
+    dryRun,
+    backup: Boolean(backupKey),
+    backupKey,
+  })
+
+  if (!writeResult.ok) {
+    throw new Error(`Promote failed for live key: ${liveKey}`)
   }
-
-  if (existsSync(livePath) && !backupPath) {
-    throw new Error(`Promote requires a live backup path when ${livePath} exists`)
-  }
-
-  if (backupPath) {
-    mkdirSync(dirname(backupPath), { recursive: true })
-    copyFileSync(livePath, backupPath)
-  }
-
-  const tempLivePath = `${livePath}.promote.tmp`
-  mkdirSync(dirname(livePath), { recursive: true })
-  writeFileSync(tempLivePath, `${JSON.stringify(normalizedLive, null, 2)}\n`, "utf8")
-  renameSync(tempLivePath, livePath)
 
   return {
     slug: options.slug,
-    dryRun: false,
+    dryRun,
     draftPath,
     livePath,
-    backupPath,
+    backupPath: writeResult.backupPath ?? backupPath,
     validationErrors: [],
   }
 }
 
 export function assertPromoteAppointmentDraft(options: PromoteAppointmentDraftOptions) {
-  const draftPath = resolveAppointmentDraftDocumentPath(options.slug, options.rootDir ?? process.cwd())
-  const draft = readAppointmentRuntimeDocument(draftPath)
+  const draft = readAppointmentRuntimeDocumentByKey(
+    buildRuntimeDraftKey(options.slug),
+    options.rootDir
+  )
+
+  if (!draft) {
+    throw new Error(`Missing draft for slug: ${options.slug}`)
+  }
+
   assertAppointmentDraftBundle(draft, options.slug)
 }

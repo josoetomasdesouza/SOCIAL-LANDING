@@ -19,7 +19,7 @@ import {
   writeExternalRealityFileCache,
 } from "./snapshot-cache"
 import type { ExternalRealitySyncReport } from "./sync-report"
-import { resolveExternalRealitySyncReportPath } from "./sync-report"
+import { writeExternalRealitySyncReport } from "./sync-report"
 import type { ExternalRealitySnapshot } from "./types"
 import { validateExternalRealitySnapshot } from "./validate"
 
@@ -47,10 +47,7 @@ export function resolveExternalRealityMergedPreviewPath(
 }
 
 function writeSyncReport(report: ExternalRealitySyncReport, rootDir: string) {
-  const reportPath = resolveExternalRealitySyncReportPath(report.slug, rootDir)
-  mkdirSync(dirname(reportPath), { recursive: true })
-  writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8")
-  return reportPath
+  return writeExternalRealitySyncReport(report, rootDir)
 }
 
 function loadRuntimeStoreBase(slug: string): AppointmentRuntimeBundle {

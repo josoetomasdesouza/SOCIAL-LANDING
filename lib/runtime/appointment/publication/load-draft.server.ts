@@ -1,21 +1,26 @@
-import { existsSync } from "node:fs"
-
 import type { AppointmentRuntimeBundle } from "../types"
-import { readAppointmentRuntimeDocument } from "./load-document"
-import { resolveAppointmentDraftDocumentPath } from "./paths"
+import { buildRuntimeDraftKey } from "../../storage/keys"
+import { getFilesystemStorage } from "../../storage/resolve-storage.server"
+import { readAppointmentRuntimeDocumentByKey } from "./load-document"
 import { validateAppointmentDraftBundle } from "./validate-draft"
 
 export function loadAppointmentRuntimeDraftFromDisk(
   slug: string,
   rootDir: string = process.cwd()
 ): AppointmentRuntimeBundle | null {
-  const draftPath = resolveAppointmentDraftDocumentPath(slug, rootDir)
+  const storage = getFilesystemStorage(rootDir)
+  const draftKey = buildRuntimeDraftKey(slug)
 
-  if (!existsSync(draftPath)) {
+  if (!storage.exists(draftKey)) {
     return null
   }
 
-  const draft = readAppointmentRuntimeDocument(draftPath)
+  const draft = readAppointmentRuntimeDocumentByKey(draftKey, rootDir)
+
+  if (!draft) {
+    return null
+  }
+
   const validation = validateAppointmentDraftBundle(draft, slug)
 
   if (!validation.ok) {

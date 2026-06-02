@@ -1,9 +1,16 @@
-import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync } from "node:fs"
+import { existsSync } from "node:fs"
 import { basename } from "node:path"
 
 import {
+  backupFilenameToKey,
+  buildRuntimeBackupKey,
+  buildRuntimeLiveKey,
+  formatBackupTimestamp,
   parseBackupFilename,
-  resolveAppointmentBackupDir,
+} from "../../storage/keys"
+import { getFilesystemStorage } from "../../storage/resolve-storage.server"
+import { listBackupKeysForSlug } from "../../storage/filesystem-adapter"
+import {
   resolveAppointmentLiveBackupPath,
   resolveAppointmentLiveDocumentPath,
 } from "./paths"
@@ -27,34 +34,27 @@ export interface AppointmentLiveBackupEntry {
   filename: string
   path: string
   timestamp: string
+  key: string
 }
 
 export function listAppointmentLiveBackups(
   slug: string,
   rootDir: string = process.cwd()
 ): AppointmentLiveBackupEntry[] {
-  const backupDir = resolveAppointmentBackupDir(rootDir)
+  const storage = getFilesystemStorage(rootDir)
 
-  if (!existsSync(backupDir)) {
-    return []
-  }
+  return listBackupKeysForSlug(storage, slug).map((key) => {
+    const path = storage.resolvePath(key)
+    const filename = basename(path)
+    const parsed = parseBackupFilename(filename)
 
-  return readdirSync(backupDir)
-    .map((filename) => {
-      const parsed = parseBackupFilename(filename)
-
-      if (!parsed || parsed.slug !== slug) {
-        return null
-      }
-
-      return {
-        filename,
-        path: resolveAppointmentLiveBackupPath(slug, parsed.timestamp, rootDir),
-        timestamp: parsed.timestamp,
-      }
-    })
-    .filter((entry): entry is AppointmentLiveBackupEntry => entry !== null)
-    .sort((left, right) => right.timestamp.localeCompare(left.timestamp))
+    return {
+      filename,
+      path,
+      timestamp: parsed?.timestamp ?? "",
+      key,
+    }
+  })
 }
 
 export function resolveLatestAppointmentLiveBackup(
@@ -84,6 +84,8 @@ function resolveRollbackBackupTarget(
   to: string | undefined,
   rootDir: string
 ): AppointmentLiveBackupEntry {
+  const storage = getFilesystemStorage(rootDir)
+
   if (!to) {
     const latest = resolveLatestAppointmentLiveBackup(slug, rootDir)
 
@@ -94,11 +96,31 @@ function resolveRollbackBackupTarget(
     return latest
   }
 
+  if (storage.exists(to)) {
+    const filename = basename(storage.resolvePath(to))
+    const key = to
+
+    return {
+      path: storage.resolvePath(key),
+      filename,
+      timestamp: parseBackupFilename(filename)?.timestamp ?? "",
+      key,
+    }
+  }
+
   if (existsSync(to)) {
+    const filename = basename(to)
+    const key = backupFilenameToKey(filename)
+
+    if (!key) {
+      throw new Error(`Invalid backup path: ${to}`)
+    }
+
     return {
       path: to,
-      filename: basename(to),
-      timestamp: parseBackupFilename(basename(to))?.timestamp ?? "",
+      filename,
+      timestamp: parseBackupFilename(filename)?.timestamp ?? "",
+      key,
     }
   }
 
@@ -116,19 +138,21 @@ export function rollbackAppointmentLive(
 ): RollbackAppointmentLiveResult {
   const rootDir = options.rootDir ?? process.cwd()
   const dryRun = options.dryRun ?? false
+  const storage = getFilesystemStorage(rootDir)
+  const liveKey = buildRuntimeLiveKey(options.slug)
   const livePath = resolveAppointmentLiveDocumentPath(options.slug, rootDir)
   const backupEntry = resolveRollbackBackupTarget(options.slug, options.to, rootDir)
 
-  if (!existsSync(backupEntry.path)) {
+  if (!storage.exists(backupEntry.key)) {
     throw new Error(`Backup document not found: ${backupEntry.path}`)
   }
 
-  const preRollbackBackupPath = existsSync(livePath)
-    ? resolveAppointmentLiveBackupPath(
-        options.slug,
-        new Date().toISOString().replace(/:/g, "-"),
-        rootDir
-      )
+  const preRollbackTimestamp = formatBackupTimestamp()
+  const preRollbackBackupKey = storage.exists(liveKey)
+    ? buildRuntimeBackupKey(options.slug, preRollbackTimestamp)
+    : null
+  const preRollbackBackupPath = preRollbackBackupKey
+    ? resolveAppointmentLiveBackupPath(options.slug, preRollbackTimestamp, rootDir)
     : null
 
   if (dryRun) {
@@ -141,20 +165,21 @@ export function rollbackAppointmentLive(
     }
   }
 
-  if (preRollbackBackupPath) {
-    mkdirSync(resolveAppointmentBackupDir(rootDir), { recursive: true })
-    copyFileSync(livePath, preRollbackBackupPath)
+  if (preRollbackBackupKey) {
+    storage.backup(liveKey, preRollbackBackupKey)
   }
 
-  const tempLivePath = `${livePath}.rollback.tmp`
-  copyFileSync(backupEntry.path, tempLivePath)
-  renameSync(tempLivePath, livePath)
+  const restoreResult = storage.restore(backupEntry.key, liveKey)
+
+  if (!restoreResult.ok) {
+    throw new Error(`Rollback failed for slug: ${options.slug}`)
+  }
 
   return {
     slug: options.slug,
     dryRun: false,
     livePath,
     backupPath: backupEntry.path,
-    preRollbackBackupPath,
+    preRollbackBackupPath: restoreResult.backupPath ?? preRollbackBackupPath,
   }
 }

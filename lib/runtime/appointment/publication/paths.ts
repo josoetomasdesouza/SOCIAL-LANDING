@@ -1,31 +1,37 @@
 import { join } from "node:path"
 
-import { APPOINTMENT_LIVE_VERSION } from "./types"
+import {
+  buildRuntimeBackupKey,
+  formatBackupTimestamp,
+  parseBackupFilename,
+  resolveAppointmentStorageRoot,
+  resolveStorageKeyPath,
+  RUNTIME_LIVE_VERSION,
+} from "../../storage/keys"
+import { buildRuntimeDraftKey, buildRuntimeLiveKey } from "../../storage/keys"
+
+export { formatBackupTimestamp, parseBackupFilename, RUNTIME_LIVE_VERSION as APPOINTMENT_LIVE_VERSION }
 
 export function resolveAppointmentRuntimeRoot(rootDir: string = process.cwd()): string {
-  return join(rootDir, "data/runtime/appointment")
+  return resolveAppointmentStorageRoot(rootDir)
 }
 
 export function resolveAppointmentLiveDocumentPath(
   slug: string,
   rootDir: string = process.cwd()
 ): string {
-  return join(resolveAppointmentRuntimeRoot(rootDir), `${slug}.${APPOINTMENT_LIVE_VERSION}.json`)
+  return resolveStorageKeyPath(buildRuntimeLiveKey(slug), resolveAppointmentStorageRoot(rootDir))!
 }
 
 export function resolveAppointmentDraftDocumentPath(
   slug: string,
   rootDir: string = process.cwd()
 ): string {
-  return join(resolveAppointmentRuntimeRoot(rootDir), `${slug}.draft.json`)
+  return resolveStorageKeyPath(buildRuntimeDraftKey(slug), resolveAppointmentStorageRoot(rootDir))!
 }
 
 export function resolveAppointmentBackupDir(rootDir: string = process.cwd()): string {
-  return join(resolveAppointmentRuntimeRoot(rootDir), "backups")
-}
-
-export function formatBackupTimestamp(date: Date = new Date()): string {
-  return date.toISOString().replace(/:/g, "-")
+  return join(resolveAppointmentStorageRoot(rootDir), "backups")
 }
 
 export function resolveAppointmentLiveBackupPath(
@@ -33,18 +39,20 @@ export function resolveAppointmentLiveBackupPath(
   timestamp: string,
   rootDir: string = process.cwd()
 ): string {
-  return join(resolveAppointmentBackupDir(rootDir), `${slug}.${APPOINTMENT_LIVE_VERSION}.${timestamp}.backup.json`)
+  return resolveStorageKeyPath(
+    buildRuntimeBackupKey(slug, timestamp),
+    resolveAppointmentStorageRoot(rootDir)
+  )!
 }
 
-export function parseBackupFilename(filename: string): { slug: string; timestamp: string } | null {
-  const match = /^(.+)\.v1\.(.+)\.backup\.json$/.exec(filename)
+export function buildRuntimeLiveKeyForSlug(slug: string): string {
+  return buildRuntimeLiveKey(slug)
+}
 
-  if (!match) {
-    return null
-  }
+export function buildRuntimeDraftKeyForSlug(slug: string): string {
+  return buildRuntimeDraftKey(slug)
+}
 
-  return {
-    slug: match[1],
-    timestamp: match[2],
-  }
+export function buildRuntimeBackupKeyForSlug(slug: string, timestamp: string = formatBackupTimestamp()): string {
+  return buildRuntimeBackupKey(slug, timestamp)
 }

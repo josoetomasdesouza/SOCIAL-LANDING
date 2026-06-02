@@ -1,10 +1,12 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs"
-import { dirname } from "node:path"
-
+import { buildRuntimeDraftKey, buildRuntimeLiveKey } from "../../storage/keys"
+import { getFilesystemStorage } from "../../storage/resolve-storage.server"
 import { buildAppointmentRuntimeSeedBundle } from "../mock-adapter"
 import type { AppointmentRuntimeBundle } from "../types"
-import { readAppointmentRuntimeDocument } from "./load-document"
-import { resolveAppointmentDraftDocumentPath, resolveAppointmentLiveDocumentPath } from "./paths"
+import {
+  readAppointmentRuntimeDocumentByKey,
+  writeAppointmentRuntimeDocumentByKey,
+} from "./load-document"
+import { resolveAppointmentDraftDocumentPath } from "./paths"
 import type { AppointmentPublicationDerivedFrom } from "./types"
 import { assertAppointmentDraftBundle } from "./validate-draft"
 
@@ -55,9 +57,11 @@ export function createDraftBundleFromMock(slug: string): AppointmentRuntimeBundl
 
 export function initAppointmentDraft(options: InitAppointmentDraftOptions): InitAppointmentDraftResult {
   const rootDir = options.rootDir ?? process.cwd()
+  const storage = getFilesystemStorage(rootDir)
+  const draftKey = buildRuntimeDraftKey(options.slug)
   const draftPath = resolveAppointmentDraftDocumentPath(options.slug, rootDir)
 
-  if (existsSync(draftPath) && !options.force) {
+  if (storage.exists(draftKey) && !options.force) {
     throw new Error(`Draft already exists: ${draftPath} (use --force to overwrite)`)
   }
 
@@ -68,20 +72,23 @@ export function initAppointmentDraft(options: InitAppointmentDraftOptions): Init
     draft = createDraftBundleFromMock(options.slug)
     derivedFrom = "mock-adapter"
   } else {
-    const livePath = resolveAppointmentLiveDocumentPath(options.slug, rootDir)
+    const live = readAppointmentRuntimeDocumentByKey(buildRuntimeLiveKey(options.slug), rootDir)
 
-    if (!existsSync(livePath)) {
-      throw new Error(`Live document not found: ${livePath}`)
+    if (!live) {
+      throw new Error(`Live document not found for slug: ${options.slug}`)
     }
 
-    draft = createDraftBundleFromLive(readAppointmentRuntimeDocument(livePath))
+    draft = createDraftBundleFromLive(live)
     derivedFrom = "live"
   }
 
   assertAppointmentDraftBundle(draft, options.slug)
 
-  mkdirSync(dirname(draftPath), { recursive: true })
-  writeFileSync(draftPath, `${JSON.stringify(draft, null, 2)}\n`, "utf8")
+  const writeResult = writeAppointmentRuntimeDocumentByKey(draftKey, draft, rootDir)
+
+  if (!writeResult.ok) {
+    throw new Error(`Failed to write draft document: ${draftPath}`)
+  }
 
   return {
     draftPath,

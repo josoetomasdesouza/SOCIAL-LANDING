@@ -2,6 +2,7 @@ import {
   runAppointmentPublicationParityChecks,
   runAppointmentPublicationPathParityChecks,
 } from "../../lib/runtime/appointment/publication/parity"
+import { runFilesystemStorageParityChecks } from "../../lib/runtime/storage/parity"
 import { runAppointmentPublicationWiringParityChecks } from "../../lib/runtime/appointment/publication/wiring-parity"
 import {
   isAppointmentPublicationDraftPreviewEnabled,
@@ -59,6 +60,19 @@ function main() {
 
   console.log("PASS appointment publication wiring parity")
   console.log(JSON.stringify(wiringResult.snapshot))
+
+  const storageResult = runFilesystemStorageParityChecks()
+
+  if (!storageResult.ok) {
+    console.error("FAIL filesystem storage parity")
+    for (const error of storageResult.errors) {
+      console.error(`- ${error}`)
+    }
+    process.exit(1)
+  }
+
+  console.log("PASS filesystem storage parity")
+  console.log(JSON.stringify(storageResult.snapshot))
 }
 
 main()

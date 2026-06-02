@@ -1,27 +1,15 @@
-import { readFileSync } from "node:fs"
-
 import type { AppointmentRuntimeBundle } from "../types"
 import { mergeExternalRealityIntoBundle } from "./merge-into-bundle"
 import { resolveAppointmentExternalRealityEnabled } from "./apply-runtime-overlay"
 import { readExternalRealityFileCache } from "./snapshot-cache"
-import type { ExternalRealitySyncReport } from "./sync-report"
-import { resolveExternalRealitySyncReportPath } from "./sync-report"
+import {
+  readExternalRealitySyncReport,
+  type ExternalRealitySyncReport,
+} from "./sync-report"
 import type { ExternalRealitySnapshot, ExternalRealitySyncStatus } from "./types"
 import { validateExternalRealitySnapshot } from "./validate"
 
 export const EXTERNAL_REALITY_STALE_AFTER_MS = 7 * 24 * 60 * 60 * 1000
-
-export function readExternalRealitySyncReport(
-  slug: string,
-  rootDir: string = process.cwd()
-): ExternalRealitySyncReport | null {
-  try {
-    const raw = readFileSync(resolveExternalRealitySyncReportPath(slug, rootDir), "utf8")
-    return JSON.parse(raw) as ExternalRealitySyncReport
-  } catch {
-    return null
-  }
-}
 
 export function resolveExternalRealityOverlayStatus(
   snapshot: ExternalRealitySnapshot,
