@@ -379,6 +379,22 @@
 
 ---
 
+### WS-15A — Publication Primitive (Appointment)
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 4 — Runtime operacional |
+| **Status** | ✅ **Concluído** @ `141c263` — preview **default OFF** · promote **manual `--execute`** |
+| **Objetivo** | Camada mínima draft/live para Appointment Runtime sem CMS |
+| **Escopo** | Publication module · CLI draft-init/validate/promote/rollback · preview server-only opt-in · seed → draft default |
+| **Fora de escopo** | Editor · DB · IA · admin · auto-promote · CI promotion · UI draft/live · multi-vertical |
+| **Entregáveis** | [`WS-15A_PUBLICATION_PRIMITIVE.md`](../audit/WS-15A_PUBLICATION_PRIMITIVE.md) · runbook §Runbook operacional |
+| **Gate de saída** | G1–G13 ✅ · `pnpm qa:appointment-publication` · wiring parity em `qa:appointment-runtime` |
+| **Decisão** | Publication = infra silenciosa · preview OFF · auto-promote proibido |
+| **Refs** | WS-14A runtime · WS-16A overlay independente · produto perceptivo @ `1c92acc` |
+
+---
+
 ## Sequência recomendada
 
 ```txt
@@ -391,11 +407,12 @@ WS-12 ✅ — Drawer physical continuity · [`WS-12_DRAWER_PHYSICAL_CONTINUITY.m
   └──► WS-12.1 ✅ — Perceptual validation · [`WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md`](../audit/WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md)
 WS-13 🟡 — Presença contínua · Etapa 1 observacional · [`WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md`](../audit/WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md) (M-01 ✅ @ `b88172c` · Sessão B pendente)
 WS-16A ✅ — External Reality Minimum · [`WS-16A_EXTERNAL_REALITY_MINIMUM.md`](../audit/WS-16A_EXTERNAL_REALITY_MINIMUM.md) @ `d9c4f3e` (overlay opt-in · default OFF · Sessão B antes de promoção)
+WS-15A ✅ — Publication Primitive · [`WS-15A_PUBLICATION_PRIMITIVE.md`](../audit/WS-15A_PUBLICATION_PRIMITIVE.md) @ `141c263` (draft/live CLI · preview OFF · auto-promote proibido)
 WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **Era 4 emergente** @ `d9c4f3e` — WS-16A concluído (opt-in); WS-13 Etapa 1 ativa; Sessão B humana pendente.
+**Atual:** **Era 4 emergente** @ `141c263` — WS-15A + WS-16A concluídos; WS-13 Etapa 1 ativa; Sessão B humana pendente; próxima decisão: WS-09 vs WS-18 vs WS-17.
 
 ---
 

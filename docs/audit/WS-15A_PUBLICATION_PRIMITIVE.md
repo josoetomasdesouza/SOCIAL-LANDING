@@ -1,28 +1,28 @@
 # WS-15A — Publication Primitive: Appointment First
 
-**Baseline técnico:** `origin/main` @ `4cd71c9`  
+**Baseline técnico:** `origin/main` @ `141c263`  
 **Pré-requisitos:** WS-14A ✅ runtime-backed · WS-16A ✅ external reality opt-in/default OFF  
 **Baseline produto perceptivo:** `1c92acc` (inalterado)  
 **Classificação:** camada operacional de publicação mínima — **não** feature de produto  
-**Status:** 📋 Charter proposto — **sem implementação até GO explícito**  
-**Relação:** senta sobre WS-14A (read path) e WS-16A (overlay opt-in); **não substitui** WS-09 (DB) nem abre WS-17 (editor)
+**Status:** ✅ **WS-15A concluído (Etapas 0–3)** — preview **default OFF** · promote **manual `--execute`** · **zero JSX**  
+**Relação:** senta sobre WS-14A (read path) e independente de WS-16A (overlay); **não substitui** WS-09 (DB) nem abre WS-17 (editor)
 
 ---
 
 ## Pergunta gate
 
 ```txt
-isso cria publicação mínima
-ou começou a virar CMS?
+publication ficou segura e operacional
+ou começou a virar workflow editorial visível?
 ```
 
-**Resposta do charter:** publicação mínima **somente se** draft/live forem **artefatos de arquivo + CLI**, com promote explícito, rollback trivial e **zero superfície de edição** — não painel, não CRUD, não workflow multi-usuário.
+**Resposta do charter (Etapas 1–3):** publication **segura e operacional** — draft/live file-first, CLI controlado, preview server-only opt-in, **zero superfície visível** ao usuário final.
 
 **Anti-padrão explícito:**
 
 ```txt
 arquivo + CLI + promote consciente = GO (publicação primitiva)
-UI de edição + permissões + multi-tenant = NO-GO (CMS)
+UI de edição + permissões + auto-promote = NO-GO (CMS / workflow editorial)
 ```
 
 Referências: [`WS-14A_LIVING_RUNTIME_FOUNDATION.md`](WS-14A_LIVING_RUNTIME_FOUNDATION.md), [`WS-16A_EXTERNAL_REALITY_MINIMUM.md`](WS-16A_EXTERNAL_REALITY_MINIMUM.md), [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](../os/PERCEPTUAL_LANGUAGE_SYSTEM.md).
@@ -47,19 +47,22 @@ Depois deste WS (se gate cumplido):
 
 ---
 
-## Estado atual (pós WS-14A + WS-16A)
+## Estado atual (pós WS-15A @ `141c263`)
 
 | Camada | Status |
 |--------|--------|
 | Live seed | `data/runtime/appointment/barba-negra.v1.json` — import estático em `runtime-store.ts` |
-| Read path | `loadAppointmentRuntime()` → `mock` \| `runtime` via `NEXT_PUBLIC_APPOINTMENT_RUNTIME` |
-| Validação bundle | `validateAppointmentRuntimeBundle()` + `assertAppointmentRuntimeBundle()` |
-| Regeneração seed | `pnpm runtime:appointment:seed` (mock adapter → v1 overwrite) |
-| External overlay | opt-in `NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY=1` · default OFF |
-| Draft / promote | ❌ inexistente |
-| Publication states | ❌ não modelados (explicitamente fora de WS-14A) |
+| Draft workspace | `barba-negra.draft.json` — gitignored; gerável via `draft-init` / `seed` |
+| Backups | `data/runtime/appointment/backups/` — gitignored; criados antes de promote `--execute` |
+| Read path default | `loadAppointmentRuntime()` → live committed (preview OFF) |
+| Preview draft | `APPOINTMENT_PUBLICATION_PREVIEW=draft` — server-only opt-in @ `141c263` |
+| Validação | `validateAppointmentDraftBundle()` + `validateAppointmentLiveBundle()` |
+| Promote / rollback | CLI real com `--execute` obrigatório; dry-run default |
+| Seed | `pnpm runtime:appointment:seed` → **draft** default; live exige `--live --force` |
+| External overlay | opt-in `NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY=1` · default OFF (WS-16A) |
+| Gates | `qa:appointment-publication` + wiring parity em `qa:appointment-runtime` |
 
-**Gap:** hoje qualquer alteração de conteúdo runtime exige editar ou regenerar `v1.json` diretamente — sem workspace draft, sem gate de promote, sem backup operacional padronizado.
+**Política oficial:** publication é **infraestrutura silenciosa** — não interface operacional visível.
 
 ---
 
@@ -154,17 +157,19 @@ interface AppointmentPublicationMeta {
 
 ---
 
-## Comandos propostos
+## Comandos (implementados)
 
 | Comando | Papel |
 |---------|-------|
-| `pnpm runtime:appointment:draft-init` | Cria `barba-negra.draft.json` a partir do live v1 (ou `--from-mock` via adapter) |
-| `pnpm runtime:appointment:draft-validate` | Valida draft: schema, IDs, slug, publicationState=draft; smoke parity |
-| `pnpm runtime:appointment:promote` | `draft-validate` → backup v1 → escreve v1 ← draft → smoke live |
-| `pnpm runtime:appointment:rollback` | Restaura último backup de v1 (ou `--to=<backup>`) |
-| `pnpm qa:appointment-publication` | Gate agregado: validate live + draft-init smoke + promote dry-run fixture |
+| `pnpm runtime:appointment:draft-init` | Cria draft a partir do live (`--from-mock` opcional) |
+| `pnpm runtime:appointment:draft-validate` | Valida live committed + draft local (se existir) |
+| `pnpm runtime:appointment:promote` | Dry-run default; `--execute` → validate + backup + atomic write v1 |
+| `pnpm runtime:appointment:rollback` | Dry-run default; `--execute` → restore backup |
+| `pnpm runtime:appointment:seed` | **Default draft**; `--live --force` para overwrite live explícito |
+| `pnpm qa:appointment-publication` | Gate: live parity + draft/promote/rollback temp + wiring |
+| `pnpm qa:appointment-runtime` | Inclui publication wiring parity |
 
-### Exemplo de workflow
+### Workflow operacional
 
 ```bash
 # 1. Criar workspace draft a partir do live atual
@@ -175,67 +180,60 @@ pnpm runtime:appointment:draft-init
 # 3. Validar sem promover
 pnpm runtime:appointment:draft-validate
 
-# 4. Promover para live (gera backup automático)
+# 4. Inspecionar promote (dry-run — default)
 pnpm runtime:appointment:promote
 
-# 5. Gates pós-promote
+# 5. Promover para live (backup obrigatório quando v1 existe)
+pnpm runtime:appointment:promote -- --execute
+
+# 6. Gates pós-promote
 pnpm typecheck
+pnpm qa:appointment-publication
 pnpm qa:appointment-runtime
 pnpm qa:appointment
 pnpm qa:events
 
-# 6. Commit do v1 atualizado (operador — fora do CLI)
+# 7. Commit do v1 atualizado (operador — CLI não faz git commit)
 git add data/runtime/appointment/barba-negra.v1.json
 git commit -m "chore: promote barba-negra runtime draft"
 
 # Rollback se necessário
-pnpm runtime:appointment:rollback
-# ou
+pnpm runtime:appointment:rollback -- --execute
+# ou backup explícito por timestamp
+pnpm runtime:appointment:rollback -- --execute --to=2026-06-02T00-09-45.720Z
+# ou git
 git checkout -- data/runtime/appointment/barba-negra.v1.json
 ```
 
-### Flags propostas
+### Flags
 
 | Flag | Comando | Efeito |
 |------|---------|--------|
 | `--slug=barba-negra` | todos | Pilot slug (default) |
-| `--from-mock` | draft-init | Seed draft via mock adapter em vez de copy live |
-| `--dry-run` | promote | Validate + diff summary; não escreve v1 |
-| `--force` | promote | Promove mesmo com warnings não-bloqueantes (log explícito) |
-| `--to=<file>` | rollback | Restaura backup específico |
+| `--from-mock` | draft-init | Seed draft via mock adapter |
+| `--force` | draft-init, seed | Sobrescreve draft/live existente |
+| `--execute` | promote, rollback | Execução real (sem flag = dry-run) |
+| `--to=<timestamp\|path>` | rollback | Backup explícito ou último se omitido |
+| `--live` / `--target=live` | seed | Escreve v1 — exige `--force` se existir |
 
 ---
 
-## Arquivos candidatos
+## Arquivos implementados
 
-### Novos (propostos)
-
-| Path | Papel |
-|------|-------|
-| `lib/runtime/appointment/publication/types.ts` | `AppointmentPublicationMeta`, paths, constants |
-| `lib/runtime/appointment/publication/paths.ts` | Resolve `{slug}.v1.json`, `.draft.json`, backup dir |
-| `lib/runtime/appointment/publication/load-document.ts` | Read JSON from disk (server/CLI only — não client bundle) |
-| `lib/runtime/appointment/publication/validate-draft.ts` | Draft-specific validation + publicationState gate |
-| `lib/runtime/appointment/publication/promote.ts` | Backup + atomic promote core |
-| `lib/runtime/appointment/publication/rollback.ts` | Restore backup |
-| `lib/runtime/appointment/publication/preview.ts` | `resolvePublicationPreviewMode()` — client-safe env resolver |
-| `lib/runtime/appointment/publication/parity.ts` | Smoke: draft-init, validate, promote dry-run |
-| `scripts/runtime/init-appointment-draft.ts` | CLI draft-init |
-| `scripts/runtime/validate-appointment-draft.ts` | CLI draft-validate |
-| `scripts/runtime/promote-appointment-draft.ts` | CLI promote |
-| `scripts/runtime/rollback-appointment-live.ts` | CLI rollback |
-| `scripts/runtime/appointment-publication-smoke.mjs` | Gate `qa:appointment-publication` |
-
-### Alterados (mínimo)
-
-| Path | Mudança |
-|------|---------|
-| `lib/runtime/appointment/runtime-store.ts` | Live load inalterado; optional draft preview via server-only branch |
-| `lib/runtime/appointment/load.ts` | Branch preview draft (server-only, env opt-in) — default path intacto |
-| `lib/runtime/appointment/types.ts` | `meta.publication?` opcional |
-| `lib/runtime/appointment/validate.ts` | Validar `publicationState` quando presente |
-| `package.json` | Scripts publication + `qa:appointment-publication` |
-| `.gitignore` | `*.draft.json`, `data/runtime/appointment/backups/` |
+| Path | Papel | Commit |
+|------|-------|--------|
+| `lib/runtime/appointment/publication/*` | Module draft/live/promote/rollback/preview | `283086b` + `141c263` |
+| `lib/runtime/appointment/publication/load-draft.server.ts` | Leitura draft server-only | `141c263` |
+| `lib/runtime/appointment/publication/wiring-parity.ts` | Smoke preview ON/OFF | `141c263` |
+| `lib/runtime/appointment/load.ts` | Preview branch runtime load path | `141c263` |
+| `lib/runtime/appointment/types.ts` | `meta.publication?` | `283086b` |
+| `scripts/runtime/init-appointment-draft.ts` | CLI draft-init | `283086b` |
+| `scripts/runtime/validate-appointment-draft.ts` | CLI validate | `283086b` |
+| `scripts/runtime/promote-appointment-draft.ts` | CLI promote | `283086b` |
+| `scripts/runtime/rollback-appointment-live.ts` | CLI rollback | `283086b` |
+| `scripts/runtime/generate-appointment-runtime-seed.ts` | Seed → draft default | `141c263` |
+| `scripts/runtime/appointment-publication-smoke.*` | Gate publication | `283086b` |
+| `.gitignore` | `*.draft.json`, `backups/` | `283086b` |
 
 ### Intocados (Tier 1 / perceptivo)
 
@@ -243,14 +241,7 @@ git checkout -- data/runtime/appointment/barba-negra.v1.json
 - `components/business/conversational-ai.tsx`
 - `lib/ui/composer-surface-material.ts`
 - `lib/surfaces/*`
-- `components/business/context-selectable.tsx`
 - `app/criar/**` (editor legado — fora de escopo)
-
-### Live atual (preservado)
-
-| Path | Papel |
-|------|-------|
-| `data/runtime/appointment/barba-negra.v1.json` | **Live** — permanece seed committed; promote atualiza este arquivo |
 
 ---
 
@@ -265,7 +256,7 @@ git checkout -- data/runtime/appointment/barba-negra.v1.json
 | Quebra import estático `runtime-store` após promote | **Média** | v1 continua mesmo path/nome; rebuild necessário (documentado) |
 | Preview draft vaza para produção | **Alta** | `APPOINTMENT_PUBLICATION_PREVIEW` nunca setado em prod; build gate verifica |
 | Conflito com external reality overlay | **Baixa** | Overlay aplica após load; publication não altera WS-16A policy |
-| Regeneração `runtime:appointment:seed` sobrescreve v1 sem draft | **Média** | Deprecar seed direto para v1 ou exigir `--target=draft`; documentar no runbook |
+| Regeneração `runtime:appointment:seed` sobrescreve v1 | **Média** | Mitigado @ `141c263` — default draft; live exige `--live --force` |
 | Schema creep (versionamento v2/v3, approval flows) | **Média** | Sprint 1 = v1 + draft only; expansão exige novo charter |
 | Rollback incompleto | **Média** | Backup timestamped antes de cada promote; `git checkout` como fallback |
 
@@ -273,165 +264,230 @@ git checkout -- data/runtime/appointment/barba-negra.v1.json
 
 ## Plano de implementação — micro-etapas
 
-### Etapa 0 — Charter ✅ (este documento)
+### Etapa 0 — Charter ✅ @ `283086b` (charter doc)
 
 - [x] Definir draft/live file-first
 - [x] Propor comandos validate/promote/rollback
-- [x] Mapear arquivos candidatos
 - [x] Gate CMS vs publicação mínima
-- [ ] **GO humano explícito para código**
 
-### Etapa 1 — Types + paths (sem wiring load)
+### Etapa 1 — Publication primitive foundation ✅ @ `283086b`
 
-- `publication/types.ts`, `paths.ts`
-- Extensão opcional `meta.publication`
-- Unit smoke: path resolution
+- [x] `publication/types`, `paths`, `load-document`, `preview`, `validate-draft`
+- [x] `draft-init`, `promote`, `rollback` (library)
+- [x] CLI draft-init + draft-validate
+- [x] `qa:appointment-publication` + `.gitignore`
 
-### Etapa 2 — Draft init + validate CLI
+### Etapa 2 — Wiring + controlled promote ✅ @ `141c263`
 
-- `draft-init`, `draft-validate`
-- `.gitignore` draft + backups
-- Gate: validate live v1 atual PASS
+- [x] `load-draft.server.ts` + preview branch em `load.ts`
+- [x] Promote/rollback `--execute` real; dry-run default
+- [x] Seed default → draft
+- [x] Wiring parity em `qa:appointment-runtime`
 
-### Etapa 3 — Promote + rollback CLI
+### Etapa 3 — Gates + runbook ✅ (este fechamento)
 
-- `promote.ts` backup + atomic write
-- `rollback` restore
-- `--dry-run` promote
+- [x] Runbook operacional completo
+- [x] Gate de saída G1–G13 verificados
+- [x] `WORKSTREAMS.md` atualizado
+- [x] Decisão: preview OFF · auto-promote proibido
 
-### Etapa 4 — Preview opt-in no read path (server-only)
+**Histórico commits WS-15A:**
 
-- `preview.ts` env resolver
-- Branch em `load.ts` / `runtime-store` — **default inalterado**
-- Smoke: preview OFF = live; preview ON + draft = draft
-
-### Etapa 5 — Gates + runbook
-
-- `qa:appointment-publication`
-- Estender `qa:appointment-runtime`
-- Atualizar `WORKSTREAMS.md`
-- Runbook §Publication operacional
-
-**Estimativa:** 2 PRs — (1) CLI publication core + (2) preview opt-in + gates — **não** big bang.
+```txt
+283086b  feat: add appointment publication primitive      (Etapa 1)
+141c263  feat: add controlled appointment publication workflow  (Etapa 2)
+```
 
 ---
 
 ## Gate de saída WS-15A
 
-| # | Critério | Verificação |
-|---|----------|-------------|
-| G1 | Conceito draft/live documentado e implementado file-first | paths + meta |
-| G2 | `barba-negra.v1.json` permanece live default | runtime mode sem preview |
-| G3 | `barba-negra.draft.json` gerável via `draft-init` | CLI smoke |
-| G4 | `draft-validate` bloqueia draft inválido | smoke fixture inválido FAIL |
-| G5 | `promote` exige validate + cria backup | CLI + arquivo backup |
-| G6 | `rollback` restaura v1 pré-promote | CLI smoke |
-| G7 | Preview draft = opt-in; default OFF | env gate |
-| G8 | External reality overlay default OFF inalterado | WS-16A policy |
-| G9 | `pnpm qa:appointment-runtime` PASS | CI/local |
-| G10 | `pnpm qa:appointment` + `pnpm qa:events` PASS | 8/8 |
-| G11 | Zero diff JSX/UI Tier 1 | grep / review |
-| G12 | Nenhuma vertical além Appointment | diff scope |
-| G13 | Zero editor / DB / auth / admin | diff scope |
+| # | Critério | Verificação | Etapa 3 |
+|---|----------|-------------|---------|
+| G1 | Conceito draft/live file-first | paths + meta | ✅ |
+| G2 | `barba-negra.v1.json` live default | runtime mode preview OFF | ✅ wiring parity |
+| G3 | Draft gerável via `draft-init` | CLI smoke | ✅ publication parity |
+| G4 | `draft-validate` bloqueia inválido | smoke temp dir | ✅ publication parity |
+| G5 | Promote exige validate + backup | `--execute` + backup file | ✅ publication parity |
+| G6 | Rollback restaura v1 pré-promote | timestamp rollback smoke | ✅ publication parity |
+| G7 | Preview draft opt-in; default OFF | env gate | ✅ wiring parity |
+| G8 | Preview server-only | `typeof window` guard | ✅ load.ts |
+| G9 | External reality overlay default OFF | WS-16A policy | ✅ inalterado |
+| G10 | `pnpm qa:appointment-runtime` PASS | CI/local | ✅ |
+| G11 | `pnpm qa:appointment-publication` PASS | wiring + parity | ✅ |
+| G12 | `pnpm qa:appointment` + `pnpm qa:events` PASS | 8/8 | ✅ |
+| G13 | Zero JSX/UI · zero editor/DB/auth | diff scope | ✅ |
 
 ---
 
-## Runbook operacional (proposto)
+## Runbook operacional
 
 ### Política oficial
 
 | Política | Valor |
 |----------|-------|
+| **Publication** | Infraestrutura silenciosa — não interface operacional visível |
 | Live default | `barba-negra.v1.json` committed |
 | Draft | gitignored — workspace local/staging |
-| Promote | manual explícito — nunca CI automático para prod |
-| Preview draft | OFF default — dev/staging opt-in |
-| External reality | OFF default — independente de publication |
+| Promote | manual `--execute` — **nunca CI automático** |
+| Preview draft | **OFF default** — `APPOINTMENT_PUBLICATION_PREVIEW=draft` dev/staging only |
+| Seed | default **draft**; live exige `--live --force` |
+| External reality | OFF default — independente de publication (WS-16A) |
 | Commit pós-promote | operador commita v1 — CLI não faz git commit |
+| Editor / DB / IA | **fora de escopo** WS-15A |
+
+### Variáveis de ambiente
+
+| Variável | Onde | Default | Função |
+|----------|------|---------|--------|
+| `NEXT_PUBLIC_APPOINTMENT_RUNTIME` | build/runtime | `mock` | `runtime` = seed JSON live |
+| `APPOINTMENT_PUBLICATION_PREVIEW` | server / dev | unset (**live**) | `draft` = preview draft server-side |
+| `NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY` | build/runtime | **OFF** | overlay WS-16A — independente |
+
+### Preview draft no load path
+
+Preview aplica **somente** quando **todas** as condições:
+
+1. `APPOINTMENT_PUBLICATION_PREVIEW=draft`
+2. Server-side (`typeof window === "undefined"`)
+3. `NEXT_PUBLIC_APPOINTMENT_RUNTIME=runtime` (via `loadAppointmentRuntimeFromRuntimeStore`)
+4. Draft local válido (`barba-negra.draft.json` + `draft-validate` rules)
+
+Implementação: `load.ts` → `load-draft.server.ts` (require server-only)
+
+| Condição | Efeito |
+|----------|--------|
+| Preview OFF (default) | Live committed via `runtime-store` |
+| Preview ON + draft válido | Conteúdo draft server-side |
+| Preview ON + draft ausente/inválido | Fallback silencioso → live |
+| Client bundle | **Sempre live** — ignora preview |
+
+### Promote workflow
+
+```bash
+pnpm runtime:appointment:draft-validate
+pnpm runtime:appointment:promote              # dry-run (default)
+pnpm runtime:appointment:promote -- --execute # backup + atomic write v1
+```
+
+**Regras `--execute`:**
+
+- Sempre valida draft antes de escrever
+- Backup **obrigatório** quando live v1 existe
+- Escrita atômica via temp file + rename
+- Rebuild/restart necessário para `runtime-store` static import refletir v1
 
 ### Rollback
 
 ```txt
-1. pnpm runtime:appointment:rollback
+1. pnpm runtime:appointment:rollback -- --execute
    → restaura último backup timestamped
 
-2. git checkout -- data/runtime/appointment/barba-negra.v1.json
+2. pnpm runtime:appointment:rollback -- --execute --to=<timestamp>
+   → backup explícito por timestamp no filename
+
+3. git checkout -- data/runtime/appointment/barba-negra.v1.json
    → restaura último committed
 
-3. rebuild / restart dev server
+4. rebuild / restart dev server
    → runtime-store re-importa v1
+```
+
+### Seed workflow
+
+```bash
+# Default — escreve draft (nunca live implicitamente)
+pnpm runtime:appointment:seed
+
+# Live explícito — exige --force se v1 existir
+pnpm runtime:appointment:seed -- --live --force
 ```
 
 ### Quando promover
 
 - Draft validado (`draft-validate` PASS)
-- Diff revisado (conteúdo editorial, IDs morph preservados)
+- Diff revisado (IDs morph preservados)
 - Gates pós-promote verdes
-- Intenção operacional clara — não promote automático em merge
+- Intenção operacional clara — **não** promote automático em merge/CI
 
 ### Quando NÃO promover
 
 - Draft inválido ou IDs morph alterados sem revisão
-- Objetivo é “testar copy” → usar preview opt-in, não promote
-- Misturar com overlay external reality default-on
-- Antes de Sessão B se alteração afetar copy perceptiva hero/chegada
+- Objetivo é “testar copy” → usar **preview opt-in**, não promote
+- CI/CD pipeline — **auto-promote proibido**
+- Antes de revisão perceptiva se alteração afeta hero/chegada/copy WS-09D
+
+### Fallback behavior
+
+| Condição | Efeito |
+|----------|--------|
+| Preview OFF | Live v1 intacto — **comportamento produto default** |
+| Preview ON sem draft | noop → live |
+| Draft inválido | noop → live |
+| Promote sem `--execute` | noop no disco (dry-run) |
+| Rollback sem `--execute` | noop no disco (dry-run) |
 
 ---
 
-## GO / NO-GO — começar código
+## Decisão WS-15A — pós Etapa 3
 
-### GO ✅ (recomendado — charter)
+| Opção | Decisão |
+|-------|---------|
+| **Preview default OFF** | ✅ **Adotado** @ `141c263` |
+| **Promote manual `--execute`** | ✅ **Adotado** — dry-run default |
+| **Auto-promote / CI promotion** | ❌ **Proibido** |
+| **Editor / DB / IA / admin panel** | ❌ **Fora de escopo** |
+| **Publication como infra silenciosa** | ✅ **Política oficial** |
+
+**Veredicto gate:** publication **segura e operacional** — não workflow editorial visível.
+
+---
+
+## GO / NO-GO — WS-15A fechado
+
+### GO ✅ — WS-15A oficialmente concluído
 
 | Condição | Estado |
 |----------|--------|
-| WS-14A runtime wired | ✅ @ `4cd71c9` |
-| WS-16A external reality fechado | ✅ default OFF |
-| Produto perceptivo congelado | ✅ @ `1c92acc` |
-| Live seed estável (`barba-negra.v1.json`) | ✅ committed |
-| Validação bundle existente | ✅ `validate.ts` |
-| Escopo Appointment-only definido | ✅ este charter |
-| Gate CMS vs primitivo respondido | ✅ file + CLI only |
+| Etapas 1–2 implementadas | ✅ @ `283086b` + `141c263` |
+| Runbook + gates G1–G13 | ✅ Etapa 3 |
+| Preview default OFF | ✅ |
+| Promote auto proibido | ✅ |
+| Zero JSX/UI | ✅ @ `1c92acc` perceptivo |
+| Produto perceptivo inalterado | ✅ |
 
-**Veredicto:** **GO para implementação WS-15A** após aprovação explícita deste charter.
+**Veredicto:** **WS-15A FECHADO** — publication primitive operacional; próximo ciclo = decisão estratégica deliberada.
 
-**Condicionantes:**
+### NO-GO ❌ (próximos ciclos — não autorizado sem charter)
 
-1. Sprint 1 limitado a **v1 live + draft** — sem v2/multi-version
-2. Preview draft permanece **opt-in** — nunca default prod
-3. Promote **nunca** altera JSX/motion/composer
-4. `runtime:appointment:seed` direct-to-v1 revisado para não contornar draft workflow
-
-### NO-GO ❌ (se)
-
-- Qualquer UI de edição, upload ou admin panel
-- Autenticação, permissões ou multi-tenant
-- DB / Drizzle no mesmo PR
-- Promote automático em CI para produção
-- Preview draft default-on
-- Default-on external reality “bundled” com publication
-- Schema virar workflow de aprovação enterprise
-- Alteração perceptiva Tier 1 sem charter separado
+- Editor visual (WS-17)
+- DB persistência write (WS-09)
+- IA operacional (WS-18)
+- Preview default-on em produção
+- CI auto-promote
+- Badge/UI draft-live
+- Multi-vertical publication
 
 ---
 
-## Decisão estratégica adjacente (fora deste WS)
+## Decisão estratégica adjacente (pós WS-15A)
 
 ```txt
-WS-15A publication primitiva  →  (este charter)
-WS-09 persistência DB           →  ciclo separado — write path enterprise
-WS-17 editor perceptivo         →  requer publication madura
-WS-18 IA operacional            →  requer entidades + histórico
+WS-15A publication primitiva  →  ✅ FECHADO @ 141c263
+WS-09 persistência DB           →  ciclo separado — decisão deliberada
+WS-17 editor perceptivo         →  requer publication madura — não abrir automaticamente
+WS-18 IA operacional            →  requer entidades + histórico — decisão deliberada
 ```
 
-**Ordem recomendada pós-15A:** WS-09 (persistência) **ou** WS-18 (IA) — decisão deliberada; publication primitiva **não** exige DB para respirar.
+**Próxima decisão estratégica (deliberada — não abrir automaticamente):**
 
-**Comparação deliberativa (referência — não decidir aqui):**
+| Ciclo | Quando faz sentido | Risco |
+|-------|-------------------|-------|
+| **WS-09** persistência DB | write path multi-env, histórico | schema creep, infra cedo |
+| **WS-18** IA operacional | resolver com runtime maduro | requer entidades reais |
+| **WS-17** editor perceptivo | após publication + DB maduros | virar CMS se prematuro |
 
-| Ciclo | Valor imediato | Risco |
-|-------|----------------|-------|
-| WS-09 persistência | write path real, multi-env | schema creep, infra pesada cedo |
-| WS-15A publication | promote seguro **agora**, zero infra | limitado a file-first |
-| WS-18 IA | resolver operacional | requer runtime/publication maduros |
+**Recomendação:** publication permanece **infra silenciosa**. Operar via CLI draft/live antes de abrir editor ou DB.
 
 ---
 
@@ -439,9 +495,11 @@ WS-18 IA operacional            →  requer entidades + histórico
 
 | Campo | Valor |
 |-------|-------|
-| Charter autor | proposta operacional @ `4cd71c9` |
+| Charter | proposta @ `4cd71c9` · implementação @ `283086b`–`141c263` |
+| Fechamento Etapa 3 | runbook + gates @ `141c263` baseline |
 | Pilot slug | `barba-negra` |
-| Live atual | `data/runtime/appointment/barba-negra.v1.json` |
-| Implementação | **aguardando GO explícito** |
+| Live | `data/runtime/appointment/barba-negra.v1.json` |
+| Commits WS-15A | `283086b` (Etapa 1) · `141c263` (Etapa 2) |
+| Status | ✅ **WS-15A concluído** |
 
-*Publication Primitive — promote consciente, não CMS.*
+*Publication Primitive — promote consciente, infra silenciosa, não CMS.*
