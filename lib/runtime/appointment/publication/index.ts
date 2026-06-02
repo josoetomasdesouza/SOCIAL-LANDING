@@ -5,6 +5,7 @@ export type {
 } from "./rollback"
 export {
   listAppointmentLiveBackups,
+  resolveAppointmentLiveBackupByTimestamp,
   resolveLatestAppointmentLiveBackup,
   rollbackAppointmentLive,
 } from "./rollback"
@@ -52,6 +53,8 @@ export {
   readAppointmentRuntimeDocument,
 } from "./load-document"
 
+export { loadAppointmentRuntimeDraftFromDisk } from "./load-draft.server"
+
 export type { AppointmentPublicationPreviewMode } from "./preview"
 export {
   isAppointmentPublicationDraftPreviewEnabled,
@@ -69,3 +72,4 @@ export {
   runAppointmentPublicationParityChecks,
   runAppointmentPublicationPathParityChecks,
 } from "./parity"
+export { runAppointmentPublicationWiringParityChecks } from "./wiring-parity"

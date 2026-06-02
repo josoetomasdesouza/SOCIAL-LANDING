@@ -1,11 +1,16 @@
 import { buildAppointmentRuntimeBundleFromMock } from "./mock-adapter"
 import { resolveAppointmentExternalRealityEnabled } from "./external-reality/apply-runtime-overlay"
+import { isAppointmentPublicationDraftPreviewEnabled } from "./publication/preview"
 import { getAppointmentRuntimeSeedDocument, hasAppointmentRuntimeSeed } from "./runtime-store"
 import type { AppointmentRuntimeBundle, AppointmentRuntimeMode } from "./types"
 import { APPOINTMENT_PILOT_SLUG } from "./types"
 import { assertAppointmentRuntimeBundle } from "./validate"
 
 export { resolveAppointmentExternalRealityEnabled } from "./external-reality/apply-runtime-overlay"
+export {
+  isAppointmentPublicationDraftPreviewEnabled,
+  resolveAppointmentPublicationPreviewMode,
+} from "./publication/preview"
 
 function applyExternalRealityOverlayIfEnabled(
   bundle: AppointmentRuntimeBundle,
@@ -23,6 +28,46 @@ function applyExternalRealityOverlayIfEnabled(
     require("./external-reality/apply-runtime-overlay.server") as typeof import("./external-reality/apply-runtime-overlay.server")
 
   return applyExternalRealityRuntimeOverlay(bundle, slug)
+}
+
+function loadAppointmentRuntimeLiveFromRuntimeStore(
+  slug: string = APPOINTMENT_PILOT_SLUG
+): AppointmentRuntimeBundle {
+  if (!hasAppointmentRuntimeSeed(slug)) {
+    throw new Error(`Unknown appointment runtime seed: ${slug}`)
+  }
+
+  const document = getAppointmentRuntimeSeedDocument(slug)
+
+  if (!document) {
+    throw new Error(`Missing appointment runtime seed document: ${slug}`)
+  }
+
+  return {
+    ...structuredClone(document),
+    meta: {
+      ...document.meta,
+      source: "runtime",
+      slug,
+    },
+  }
+}
+
+function loadAppointmentRuntimeDraftPreviewIfEnabled(
+  slug: string = APPOINTMENT_PILOT_SLUG
+): AppointmentRuntimeBundle | null {
+  if (!isAppointmentPublicationDraftPreviewEnabled()) {
+    return null
+  }
+
+  if (typeof window !== "undefined") {
+    return null
+  }
+
+  const { loadAppointmentRuntimeDraftFromDisk } =
+    require("./publication/load-draft.server") as typeof import("./publication/load-draft.server")
+
+  return loadAppointmentRuntimeDraftFromDisk(slug)
 }
 
 export function resolveAppointmentRuntimeMode(): AppointmentRuntimeMode {
@@ -50,25 +95,8 @@ export function loadAppointmentRuntimeFromMock(
 export function loadAppointmentRuntimeFromRuntimeStore(
   slug: string = APPOINTMENT_PILOT_SLUG
 ): AppointmentRuntimeBundle {
-  if (!hasAppointmentRuntimeSeed(slug)) {
-    throw new Error(`Unknown appointment runtime seed: ${slug}`)
-  }
-
-  const document = getAppointmentRuntimeSeedDocument(slug)
-
-  if (!document) {
-    throw new Error(`Missing appointment runtime seed document: ${slug}`)
-  }
-
-  const bundle: AppointmentRuntimeBundle = {
-    ...structuredClone(document),
-    meta: {
-      ...document.meta,
-      source: "runtime",
-      slug,
-    },
-  }
-
+  const previewDraft = loadAppointmentRuntimeDraftPreviewIfEnabled(slug)
+  const bundle = previewDraft ?? loadAppointmentRuntimeLiveFromRuntimeStore(slug)
   const withOverlay = applyExternalRealityOverlayIfEnabled(bundle, slug)
 
   assertAppointmentRuntimeBundle(withOverlay, slug)
@@ -92,5 +120,6 @@ export function getAppointmentRuntimeReadiness() {
     runtimeJsonReady: hasAppointmentRuntimeSeed(APPOINTMENT_PILOT_SLUG),
     uiWired: true,
     externalRealityOverlayEnabled: resolveAppointmentExternalRealityEnabled(),
+    publicationPreviewMode: isAppointmentPublicationDraftPreviewEnabled() ? "draft" : "live",
   }
 }

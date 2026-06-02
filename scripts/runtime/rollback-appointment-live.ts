@@ -30,7 +30,7 @@ function main() {
         backupPath: result.backupPath,
         preRollbackBackupPath: result.preRollbackBackupPath,
         note: dryRun
-          ? "Etapa 1 — dry-run only. Pass --execute for real rollback (Etapa 2 gate)."
+          ? "Dry-run only. Pass --execute for real rollback. Use --to=<timestamp|path> for explicit backup."
           : "Live document restored from backup.",
       },
       null,

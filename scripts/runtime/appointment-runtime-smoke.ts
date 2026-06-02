@@ -25,6 +25,7 @@ import {
 import { runExternalRealityMergeParityChecks } from "../../lib/runtime/appointment/external-reality/merge-parity"
 import { runExternalRealityOverlayParityChecks } from "../../lib/runtime/appointment/external-reality/overlay-parity"
 import { runExternalRealitySyncParityChecks } from "../../lib/runtime/appointment/external-reality/sync-parity"
+import { runAppointmentPublicationWiringParityChecks } from "../../lib/runtime/appointment/publication/wiring-parity"
 import { APPOINTMENT_PILOT_SLUG } from "../../lib/runtime/appointment/types"
 
 async function main() {
@@ -313,6 +314,19 @@ async function main() {
 
   console.log("PASS appointment runtime store parity")
   console.log(JSON.stringify(runtimeResult.snapshot))
+
+  const publicationWiringResult = runAppointmentPublicationWiringParityChecks()
+
+  if (!publicationWiringResult.ok) {
+    console.error("FAIL appointment publication wiring parity")
+    for (const error of publicationWiringResult.errors) {
+      console.error(`- ${error}`)
+    }
+    process.exit(1)
+  }
+
+  console.log("PASS appointment publication wiring parity")
+  console.log(JSON.stringify(publicationWiringResult.snapshot))
 
   const previousMode = process.env.NEXT_PUBLIC_APPOINTMENT_RUNTIME
   process.env.NEXT_PUBLIC_APPOINTMENT_RUNTIME = "runtime"

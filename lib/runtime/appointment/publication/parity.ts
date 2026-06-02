@@ -9,8 +9,9 @@ import { readAppointmentRuntimeDocument } from "./load-document"
 import { resolveAppointmentDraftDocumentPath, resolveAppointmentLiveDocumentPath } from "./paths"
 import { isAppointmentPublicationDraftPreviewEnabled, resolveAppointmentPublicationPreviewMode } from "./preview"
 import { promoteAppointmentDraft } from "./promote"
-import { listAppointmentLiveBackups } from "./rollback"
+import { listAppointmentLiveBackups, rollbackAppointmentLive } from "./rollback"
 import { validateAppointmentDraftBundle, validateAppointmentLiveBundle } from "./validate-draft"
+import { loadAppointmentRuntimeDraftFromDisk } from "./load-draft.server"
 
 export function runAppointmentPublicationParityChecks() {
   const errors: string[] = []
@@ -99,6 +100,12 @@ export function runAppointmentPublicationParityChecks() {
       errors.push("promote dry-run must resolve backup path when live exists")
     }
 
+    draft.operational = {
+      ...draft.operational,
+      liveState: "PROMOTED-DRAFT-MARKER",
+    }
+    writeFileSync(draftPath, `${JSON.stringify(draft, null, 2)}\n`, "utf8")
+
     const backupsBeforeExecute = listAppointmentLiveBackups(slug, workspaceDir).length
 
     const executeResult = promoteAppointmentDraft({
@@ -126,6 +133,79 @@ export function runAppointmentPublicationParityChecks() {
 
     if (promotedLive.meta.publication) {
       errors.push("promoted live must strip meta.publication draft fields")
+    }
+
+    const promotedMarker = promotedLive.operational.liveState
+    const backupTimestamp = executeResult.backupPath
+      ? listAppointmentLiveBackups(slug, workspaceDir)[0]?.timestamp
+      : null
+
+    if (!backupTimestamp) {
+      errors.push("promote execute must expose backup timestamp for rollback")
+    } else {
+      const rollbackDryRun = rollbackAppointmentLive({
+        slug,
+        rootDir: workspaceDir,
+        to: backupTimestamp,
+        dryRun: true,
+      })
+
+      if (!rollbackDryRun.backupPath) {
+        errors.push("rollback dry-run must resolve backup by timestamp")
+      }
+
+      rollbackAppointmentLive({
+        slug,
+        rootDir: workspaceDir,
+        to: backupTimestamp,
+        dryRun: false,
+      })
+
+      const restoredLive = readAppointmentRuntimeDocument(livePath)
+
+      if (restoredLive.operational.liveState !== liveSeed.operational.liveState) {
+        errors.push("rollback execute must restore pre-promote live content")
+      }
+
+      if (restoredLive.operational.liveState === promotedMarker && promotedMarker !== liveSeed.operational.liveState) {
+        errors.push("rollback execute must undo promote marker change")
+      }
+    }
+
+    const previewDraft = structuredClone(draft)
+    previewDraft.operational = {
+      ...previewDraft.operational,
+      liveState: "PREVIEW-DRAFT-MARKER",
+    }
+    writeFileSync(draftPath, `${JSON.stringify(previewDraft, null, 2)}\n`, "utf8")
+
+    const loadedDraftPreview = loadAppointmentRuntimeDraftFromDisk(slug, workspaceDir)
+
+    if (!loadedDraftPreview) {
+      errors.push("draft preview loader must read draft document from disk")
+    } else if (loadedDraftPreview.operational.liveState !== "PREVIEW-DRAFT-MARKER") {
+      errors.push("draft preview loader must surface draft operational content")
+    }
+
+    if (loadedDraftPreview?.meta.publication) {
+      errors.push("draft preview loader must strip meta.publication from runtime bundle")
+    }
+
+    const previousPreviewEnv = process.env.APPOINTMENT_PUBLICATION_PREVIEW
+    process.env.APPOINTMENT_PUBLICATION_PREVIEW = "draft"
+
+    if (resolveAppointmentPublicationPreviewMode() !== "draft") {
+      errors.push("preview env APPOINTMENT_PUBLICATION_PREVIEW=draft must resolve to draft mode")
+    }
+
+    if (previousPreviewEnv === undefined) {
+      delete process.env.APPOINTMENT_PUBLICATION_PREVIEW
+    } else {
+      process.env.APPOINTMENT_PUBLICATION_PREVIEW = previousPreviewEnv
+    }
+
+    if (resolveAppointmentPublicationPreviewMode() !== "live") {
+      errors.push("preview env unset must default to live mode")
     }
 
     return {

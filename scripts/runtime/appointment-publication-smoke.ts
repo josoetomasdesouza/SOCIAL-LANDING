@@ -2,6 +2,7 @@ import {
   runAppointmentPublicationParityChecks,
   runAppointmentPublicationPathParityChecks,
 } from "../../lib/runtime/appointment/publication/parity"
+import { runAppointmentPublicationWiringParityChecks } from "../../lib/runtime/appointment/publication/wiring-parity"
 import {
   isAppointmentPublicationDraftPreviewEnabled,
   resolveAppointmentPublicationPreviewMode,
@@ -45,6 +46,19 @@ function main() {
 
   console.log("PASS appointment publication parity")
   console.log(JSON.stringify(parityResult.snapshot))
+
+  const wiringResult = runAppointmentPublicationWiringParityChecks()
+
+  if (!wiringResult.ok) {
+    console.error("FAIL appointment publication wiring parity")
+    for (const error of wiringResult.errors) {
+      console.error(`- ${error}`)
+    }
+    process.exit(1)
+  }
+
+  console.log("PASS appointment publication wiring parity")
+  console.log(JSON.stringify(wiringResult.snapshot))
 }
 
 main()

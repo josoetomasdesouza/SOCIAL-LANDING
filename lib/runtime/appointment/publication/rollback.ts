@@ -65,20 +65,59 @@ export function resolveLatestAppointmentLiveBackup(
   return backups[0] ?? null
 }
 
+export function resolveAppointmentLiveBackupByTimestamp(
+  slug: string,
+  timestamp: string,
+  rootDir: string = process.cwd()
+): AppointmentLiveBackupEntry | null {
+  const backups = listAppointmentLiveBackups(slug, rootDir)
+
+  return (
+    backups.find(
+      (entry) => entry.timestamp === timestamp || entry.filename.includes(timestamp)
+    ) ?? null
+  )
+}
+
+function resolveRollbackBackupTarget(
+  slug: string,
+  to: string | undefined,
+  rootDir: string
+): AppointmentLiveBackupEntry {
+  if (!to) {
+    const latest = resolveLatestAppointmentLiveBackup(slug, rootDir)
+
+    if (!latest) {
+      throw new Error(`No live backup found for slug: ${slug}`)
+    }
+
+    return latest
+  }
+
+  if (existsSync(to)) {
+    return {
+      path: to,
+      filename: basename(to),
+      timestamp: parseBackupFilename(basename(to))?.timestamp ?? "",
+    }
+  }
+
+  const byTimestamp = resolveAppointmentLiveBackupByTimestamp(slug, to, rootDir)
+
+  if (!byTimestamp) {
+    throw new Error(`No live backup found for slug ${slug} matching timestamp: ${to}`)
+  }
+
+  return byTimestamp
+}
+
 export function rollbackAppointmentLive(
   options: RollbackAppointmentLiveOptions
 ): RollbackAppointmentLiveResult {
   const rootDir = options.rootDir ?? process.cwd()
   const dryRun = options.dryRun ?? false
   const livePath = resolveAppointmentLiveDocumentPath(options.slug, rootDir)
-
-  const backupEntry = options.to
-    ? { path: options.to, filename: basename(options.to), timestamp: "" }
-    : resolveLatestAppointmentLiveBackup(options.slug, rootDir)
-
-  if (!backupEntry) {
-    throw new Error(`No live backup found for slug: ${options.slug}`)
-  }
+  const backupEntry = resolveRollbackBackupTarget(options.slug, options.to, rootDir)
 
   if (!existsSync(backupEntry.path)) {
     throw new Error(`Backup document not found: ${backupEntry.path}`)

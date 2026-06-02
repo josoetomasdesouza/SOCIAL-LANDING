@@ -82,6 +82,10 @@ export function promoteAppointmentDraft(
     }
   }
 
+  if (existsSync(livePath) && !backupPath) {
+    throw new Error(`Promote requires a live backup path when ${livePath} exists`)
+  }
+
   if (backupPath) {
     mkdirSync(dirname(backupPath), { recursive: true })
     copyFileSync(livePath, backupPath)

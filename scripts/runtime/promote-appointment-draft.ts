@@ -36,7 +36,7 @@ function main() {
         livePath: result.livePath,
         backupPath: result.backupPath,
         note: dryRun
-          ? "Etapa 1 — dry-run only. Pass --execute for real promote (Etapa 2 gate)."
+          ? "Dry-run only. Pass --execute for real promote (creates backup when live exists)."
           : "Live document updated. Rebuild/restart required for runtime-store import refresh.",
       },
       null,
