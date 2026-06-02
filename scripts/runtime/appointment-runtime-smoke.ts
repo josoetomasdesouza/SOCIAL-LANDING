@@ -21,7 +21,7 @@ import {
   loadAppointmentRuntime,
   loadAppointmentRuntimeFromRuntimeStore,
   resolveAppointmentRuntimeMode,
-} from "../../lib/runtime/appointment/load"
+} from "../../lib/runtime/appointment/load.server"
 import { runExternalRealityMergeParityChecks } from "../../lib/runtime/appointment/external-reality/merge-parity"
 import { runExternalRealityOverlayParityChecks } from "../../lib/runtime/appointment/external-reality/overlay-parity"
 import { runExternalRealitySyncParityChecks } from "../../lib/runtime/appointment/external-reality/sync-parity"

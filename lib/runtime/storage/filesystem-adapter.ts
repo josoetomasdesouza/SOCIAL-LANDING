@@ -3,15 +3,16 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  readdirSync,
   renameSync,
   unlinkSync,
   writeFileSync,
 } from "node:fs"
-import { dirname } from "node:path"
+import { dirname, join } from "node:path"
 
 import {
   backupFilenameToKey,
-  listRuntimeBackupKeys,
+  buildRuntimeBackupPrefix,
   resolveStorageKeyPath,
 } from "./keys"
 import type {
@@ -249,6 +250,19 @@ export class FileSystemStorageAdapter implements RuntimeStorageAdapter {
       backupKey,
       backupPath,
     }
+  }
+}
+
+export function listRuntimeBackupKeys(slug: string, storageRoot: string): string[] {
+  const backupDir = join(storageRoot, "backups")
+
+  try {
+    return readdirSync(backupDir)
+      .map((filename) => backupFilenameToKey(filename))
+      .filter((entry): entry is string => entry !== null && entry.startsWith(buildRuntimeBackupPrefix(slug)))
+      .sort((left, right) => right.localeCompare(left))
+  } catch {
+    return []
   }
 }
 

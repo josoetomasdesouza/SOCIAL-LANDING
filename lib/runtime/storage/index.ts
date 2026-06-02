@@ -19,7 +19,6 @@ export {
   buildRuntimeDraftKey,
   buildRuntimeLiveKey,
   formatBackupTimestamp,
-  listRuntimeBackupKeys,
   parseBackupFilename,
   resolveAppointmentStorageRoot,
   resolveStorageKeyFromFilesystemPath,
@@ -29,6 +28,7 @@ export {
 export {
   FileSystemStorageAdapter,
   listBackupKeysForSlug,
+  listRuntimeBackupKeys,
   resolveBackupKeyFromFilename,
 } from "./filesystem-adapter"
 

@@ -1,4 +1,4 @@
-import { loadAppointmentRuntime } from "./load"
+import { loadAppointmentRuntimeForFeed } from "./load-feed"
 import {
   projectBundleToBusinessConfig,
   projectBundleToLegacyContent,
@@ -7,7 +7,7 @@ import {
   projectBundleToStyles,
 } from "./legacy-projection"
 
-const appointmentRuntimeBundle = loadAppointmentRuntime()
+const appointmentRuntimeBundle = loadAppointmentRuntimeForFeed()
 
 export const appointmentBarberShopConfig = projectBundleToBusinessConfig(appointmentRuntimeBundle)
 export const appointmentHeroOperationalContext = appointmentRuntimeBundle.operational

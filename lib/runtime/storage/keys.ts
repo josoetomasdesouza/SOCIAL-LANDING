@@ -1,7 +1,5 @@
 import { join } from "node:path"
 
-import { readdirSync } from "node:fs"
-
 export const RUNTIME_LIVE_VERSION = "v1" as const
 
 export const STORAGE_KEY_RUNTIME_LIVE = "runtime"
@@ -159,17 +157,4 @@ export function resolveStorageKeyFromFilesystemPath(
   }
 
   return null
-}
-
-export function listRuntimeBackupKeys(slug: string, storageRoot: string): string[] {
-  const backupDir = join(storageRoot, "backups")
-
-  try {
-    return readdirSync(backupDir)
-      .map((filename) => backupFilenameToKey(filename))
-      .filter((entry): entry is string => entry !== null && entry.startsWith(buildRuntimeBackupPrefix(slug)))
-      .sort((left, right) => right.localeCompare(left))
-  } catch {
-    return []
-  }
 }

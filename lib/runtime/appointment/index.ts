@@ -28,11 +28,14 @@ export type { BuildAppointmentRuntimeBundleOptions } from "./mock-adapter"
 
 export {
   getAppointmentRuntimeReadiness,
-  loadAppointmentRuntime,
   loadAppointmentRuntimeFromMock,
-  loadAppointmentRuntimeFromRuntimeStore,
   resolveAppointmentRuntimeMode,
 } from "./load"
+
+export {
+  loadAppointmentRuntime,
+  loadAppointmentRuntimeFromRuntimeStore,
+} from "./load.server"
 
 export {
   getAppointmentRuntimeSeedDocument,

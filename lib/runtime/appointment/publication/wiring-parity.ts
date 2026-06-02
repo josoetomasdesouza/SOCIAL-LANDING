@@ -2,10 +2,8 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 
-import {
-  getAppointmentRuntimeReadiness,
-  loadAppointmentRuntimeFromRuntimeStore,
-} from "../load"
+import { getAppointmentRuntimeReadiness } from "../load"
+import { loadAppointmentRuntimeFromRuntimeStore } from "../load.server"
 import { getAppointmentRuntimeSeedDocument } from "../runtime-store"
 import { APPOINTMENT_PILOT_SLUG } from "../types"
 import { initAppointmentDraft } from "./draft-init"
