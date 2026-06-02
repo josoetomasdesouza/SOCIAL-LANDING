@@ -20,6 +20,7 @@
     "qa:appointment-runtime": "node scripts/runtime/appointment-runtime-smoke.mjs",
     "runtime:appointment:seed": "npx --yes tsx scripts/runtime/generate-appointment-runtime-seed.ts",
     "runtime:appointment:sync-external": "npx --yes tsx scripts/runtime/sync-appointment-external-reality.ts",
+    "qa:appointment-runtime-overlay-build": "node scripts/runtime/appointment-external-reality-build-gate.mjs",
     "qa:ai-observation": "node scripts/qa/ai-resolver-regression.mjs",
     "qa:ai-regression": "node scripts/qa/ai-regression-harness.mjs",
     "qa:visual": "node scripts/visual/personal-phase3-visual-smoke.mjs"

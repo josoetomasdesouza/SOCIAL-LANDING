@@ -15,9 +15,11 @@ import {
   writeExternalRealityFileCache,
   type GooglePlacesPlaceDetailsPayload,
 } from "../../lib/runtime/appointment/external-reality"
+import { readExternalRealityFileCache } from "../../lib/runtime/appointment/external-reality/snapshot-cache"
 import { runAppointmentRuntimeStoreParityChecks } from "../../lib/runtime/appointment/runtime-parity"
 import {
   loadAppointmentRuntime,
+  loadAppointmentRuntimeFromRuntimeStore,
   resolveAppointmentRuntimeMode,
 } from "../../lib/runtime/appointment/load"
 import { runExternalRealityMergeParityChecks } from "../../lib/runtime/appointment/external-reality/merge-parity"
@@ -340,6 +342,41 @@ async function main() {
       source: runtimeModeBundle.meta.source,
     })
   )
+
+  const previousExternalEnv = process.env.NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY
+  process.env.NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY = "1"
+  process.env.NEXT_PUBLIC_APPOINTMENT_RUNTIME = "runtime"
+
+  const runtimeBaseForOverlay = loadAppointmentRuntimeFromRuntimeStore(APPOINTMENT_PILOT_SLUG)
+  const snapshotOnDisk = readExternalRealityFileCache(APPOINTMENT_PILOT_SLUG)
+
+  if (!snapshotOnDisk) {
+    if (runtimeBaseForOverlay.meta.external) {
+      console.error("FAIL overlay env load — meta.external must stay unset without snapshot cache")
+      process.exit(1)
+    }
+
+    if (runtimeBaseForOverlay.establishment.contact.address !== runtimeModeBundle.establishment.contact.address) {
+      console.error("FAIL overlay env load — bundle must match runtime seed without snapshot cache")
+      process.exit(1)
+    }
+
+    console.log("PASS overlay env load without snapshot cache (noop)")
+  } else {
+    console.log("SKIP overlay env load without snapshot — local cache present")
+  }
+
+  if (previousExternalEnv === undefined) {
+    delete process.env.NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY
+  } else {
+    process.env.NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY = previousExternalEnv
+  }
+
+  if (previousMode === undefined) {
+    delete process.env.NEXT_PUBLIC_APPOINTMENT_RUNTIME
+  } else {
+    process.env.NEXT_PUBLIC_APPOINTMENT_RUNTIME = previousMode
+  }
 }
 
 main().catch((error) => {

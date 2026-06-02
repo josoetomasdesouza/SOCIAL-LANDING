@@ -1,9 +1,10 @@
 # WS-16A — External Reality Minimum: Appointment First
 
-**Baseline:** `origin/main` @ `1c92acc`  
+**Baseline produto perceptivo:** `1c92acc` (inalterado)  
+**Baseline técnico WS-16A:** `origin/main` @ `d9c4f3e`  
 **Pré-requisito:** WS-14A Etapas 1–3 ✅ — Appointment runtime-backed  
 **Classificação:** camada externa mínima / densidade operacional — **não** feature de produto  
-**Status:** 📋 Charter proposto — **sem implementação até GO explícito**  
+**Status:** ✅ **WS-16A concluído (Etapas 0–6)** — overlay **default OFF** · promoção perceptiva **não autorizada**  
 **Relação:** antecede WS-09 (DB) e WS-15 (publication); **não substitui** nenhum dos dois
 
 ---
@@ -260,66 +261,196 @@ Google Places API (server)
 - [x] Campos in/out
 - [x] Riscos perceptivos
 - [x] Estratégia ingestão
-- [ ] **GO humano explícito para código**
+- [x] GO humano explícito para código
 
-### Etapa 1 — Types + snapshot schema
+### Etapa 1 — Types + snapshot schema ✅ @ `8d71c48`
 
-- `ExternalRealitySnapshot`, `RuntimeExternalMeta`
-- Validators; zero fetch
+- [x] `ExternalRealitySnapshot`, `RuntimeExternalMeta`
+- [x] Validators; zero fetch
 
-### Etapa 2 — Google Places client (server-only)
+### Etapa 2 — Google Places client (server-only) ✅ @ `e8cf4eb`
 
-- Place Details API (fields mínimos)
-- Env: `GOOGLE_PLACES_API_KEY`, `APPOINTMENT_EXTERNAL_PLACE_ID`
-- Pilot: Barba Negra placeId configurável
+- [x] Place Details API (fields mínimos)
+- [x] Env: `GOOGLE_PLACES_API_KEY`, `APPOINTMENT_EXTERNAL_PLACE_ID`
 
-### Etapa 3 — Normalize + merge
+### Etapa 3 — Normalize + merge ✅ @ `5ef3fda`
 
-- `mergeExternalRealityIntoBundle()`
-- Regras: editorial prevalece; derivar `liveState` / `hoursHint`
-- Output: `barba-negra.v2.json` ou overlay merge at load
+- [x] `mergeExternalRealityIntoBundle()`
+- [x] Regras: editorial prevalece; derivar `liveState` / `hoursHint`
 
-### Etapa 4 — Sync CLI + cache file
+### Etapa 4 — Sync CLI + cache file ✅ @ `ff15b93`
 
-- `pnpm runtime:appointment:sync-external`
-- Commit snapshot cache (opcional) ou gitignored local
-- Fallback: merge noop sem key
+- [x] `pnpm runtime:appointment:sync-external`
+- [x] Fallback: merge noop sem key
 
-### Etapa 5 — Load path integration
+### Etapa 5 — Load path integration ✅ @ `d9c4f3e`
 
-- `loadAppointmentRuntimeFromRuntimeStore()` aplica overlay se presente
-- `meta.external.status` = live | fallback | stale
-- **Zero JSX**
+- [x] `loadAppointmentRuntimeFromRuntimeStore()` aplica overlay se presente
+- [x] `meta.external.status` = live | fallback | stale
+- [x] Zero JSX
 
-### Etapa 6 — Gates
+### Etapa 6 — Gates perceptivos + consolidação operacional ✅
 
-- `pnpm qa:appointment-runtime` estendido (merge parity)
-- `pnpm qa:appointment` mock + runtime
-- `pnpm qa:events`
-- Checklist perceptivo manual: hero / chegada / reviews (proxy)
+- Gates técnicos verdes (typecheck, qa:appointment-runtime, qa:appointment, qa:events)
+- Build runtime + overlay (`pnpm qa:appointment-runtime-overlay-build`)
+- Checklist perceptivo proxy registrado (§Checklist perceptivo Etapa 6)
+- Documentação operacional (§Runbook operacional)
+- **Decisão:** manter overlay **opt-in** — sem default-on
 
 ### Etapa 7 — Documentação operacional
 
-- Atualizar baseline; registrar placeId pilot
+- [x] Absorvida na Etapa 6 (runbook + gate de saída abaixo)
 
-**Estimativa:** 2 PRs — (1) types + merge + fallback, (2) Google client + sync CLI.
+**Estimativa original:** 2 PRs — concluído em 6 etapas incrementais @ `d9c4f3e`.
 
 ---
 
 ## Gate de saída WS-16A
 
-| # | Critério | Verificação |
-|---|----------|-------------|
-| G1 | Snapshot externo normalizado | schema validate |
-| G2 | Merge alimenta bundle sem UI nova | grep: zero JSX diff default |
-| G3 | Fallback sem API key | seed v1/v2 idêntico em projeção |
-| G4 | `operational.liveState` derivado quando live | smoke |
-| G5 | `arrival.mapsQuery` ancorado em place real | smoke |
-| G6 | Reviews externas ≤3 ou fallback mock | smoke |
-| G7 | Copy editorial WS-09D preservada | manual / proxy |
-| G8 | `qa:appointment` + `qa:events` PASS | CI/local |
-| G9 | API key nunca no client bundle | audit grep |
-| G10 | Zero dashboard / embed Maps | review perceptivo |
+| # | Critério | Verificação | Etapa 6 |
+|---|----------|-------------|---------|
+| G1 | Snapshot externo normalizado | schema validate | ✅ smoke |
+| G2 | Merge alimenta bundle sem UI nova | zero JSX diff default | ✅ grep / parity |
+| G3 | Fallback sem API key | seed idêntico em projeção default | ✅ sync parity |
+| G4 | `operational.liveState` derivado quando live | merge smoke | ✅ merge parity |
+| G5 | `arrival.mapsQuery` ancorado em place real | merge smoke | ✅ merge parity |
+| G6 | Reviews externas ≤3 ou fallback mock | cap + gate editorial | ✅ merge/sync parity |
+| G7 | Copy editorial WS-09D preservada | `placeHint`, `drawerTitle`, hints | ✅ overlay parity |
+| G8 | `qa:appointment` + `qa:events` PASS | CI/local | ✅ 8/8 |
+| G9 | API key nunca no client bundle | audit grep | ✅ server/scripts only |
+| G10 | Zero dashboard / embed Maps | review perceptivo | ✅ proxy GO (§Checklist) |
+
+---
+
+## Runbook operacional
+
+### Variáveis de ambiente
+
+| Variável | Onde | Default | Função |
+|----------|------|---------|--------|
+| `GOOGLE_PLACES_API_KEY` | server / sync CLI | — | Fetch Place Details (nunca client) |
+| `APPOINTMENT_EXTERNAL_PLACE_ID` | server / sync CLI | — | Place ID pilot (Barba Negra) |
+| `NEXT_PUBLIC_APPOINTMENT_RUNTIME` | build/runtime | `mock` | `runtime` = seed JSON |
+| `NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY` | build/runtime | **OFF** | `1` ou `true` = overlay opt-in |
+
+### Place ID pilot
+
+- Configurar `APPOINTMENT_EXTERNAL_PLACE_ID` com Place ID real do estabelecimento pilot
+- Dev/smoke sem key: `pnpm runtime:appointment:sync-external -- --fixture`
+- Place ID fixture smoke: `ChIJ-fixture-barba-negra`
+
+### Sync workflow
+
+```bash
+# 1. Materializar snapshot (server-only)
+GOOGLE_PLACES_API_KEY=... APPOINTMENT_EXTERNAL_PLACE_ID=... \
+  pnpm runtime:appointment:sync-external
+
+# 2. Inspecionar merge sem alterar seed (opcional)
+pnpm runtime:appointment:sync-external -- --merge-preview
+
+# 3. Validar gates
+pnpm qa:appointment-runtime
+pnpm qa:appointment-runtime-overlay-build
+```
+
+**Artefatos gerados** (gitignored por default):
+
+| Arquivo | Conteúdo |
+|---------|----------|
+| `data/runtime/appointment/external/{slug}.snapshot.json` | `ExternalRealitySnapshot` |
+| `data/runtime/appointment/external/{slug}.sync-report.json` | status/reason/syncedAt |
+| `data/runtime/appointment/external/{slug}.merged-preview.json` | bundle enriquecido (inspeção) |
+
+### Overlay no load path
+
+Overlay aplica **somente** quando **todas** as condições:
+
+1. `NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY=1`
+2. Server-side (SSR/build — não browser bundle)
+3. Snapshot cache válido
+4. `sync-report.json` com `status: live`
+5. Snapshot não stale (< 7 dias desde `fetchedAt`)
+
+Implementação: `loadAppointmentRuntimeFromRuntimeStore()` → `apply-runtime-overlay.server.ts`
+
+### Fallback behavior
+
+| Condição | Efeito |
+|----------|--------|
+| Env overlay OFF | Seed v1 intacto — **comportamento produto default** |
+| Sem snapshot | noop total |
+| Snapshot inválido | noop total |
+| Sync report `fallback` | noop campos; `meta.external.status=fallback` |
+| Snapshot stale (>7d) | noop campos; `meta.external.status=stale` |
+| API/sync fail | noop; report registra reason |
+| Erro runtime | noop silencioso → seed |
+
+### Rollback
+
+```txt
+1. Remover NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY (ou ≠ 1)
+2. Rebuild / restart
+3. Opcional: apagar data/runtime/appointment/external/*.snapshot.json
+→ runtime volta ao seed barba-negra.v1.json sem diff perceptivo
+```
+
+### Quando usar overlay
+
+- Piloto operacional com Place ID real validado
+- Snapshot `live` recente via sync
+- Revisão perceptiva aprovada (hero/chegada/reviews permanecem gramática)
+- Ambiente staging/demo controlado — **não** produção default
+
+### Quando NÃO usar overlay
+
+- Sem Sessão B / gate perceptivo humano
+- Snapshot stale ou sync report `fallback`
+- Qualquer sensação de ficha Google / dashboard / painel reviews
+- Antes de validar copy editorial WS-09D preservada
+- Como default-on em produção (**proibido neste ciclo**)
+
+---
+
+## Checklist perceptivo — Etapa 6
+
+**Data:** 2026-06-01 · **Baseline:** `d9c4f3e` · **Modo default:** overlay OFF  
+**Facilitador:** gates automatizados + proxy Playwright (`qa:events`, `qa:appointment`)
+
+### Pergunta gate
+
+```txt
+external reality está reforçando presença contextual
+ou começando a transformar a experiência em informação operacional?
+```
+
+**Resposta proxy Etapa 6:** reforça presença contextual **somente via enrichment invisível** — default OFF garante zero mudança perceptiva em produção.
+
+| Superfície | Verificação | Proxy Etapa 6 | Humano |
+|------------|-------------|---------------|--------|
+| Hero | `placeHint` editorial preservado (`"na Augusta"`) | ✅ overlay parity | ☐ pendente |
+| Hero | Sem badge rating / ficha Google | ✅ zero JSX | ☐ pendente |
+| Chegada | `drawerTitle` WS-09D (`"Chegar na Augusta"`) | ✅ overlay parity | ☐ pendente |
+| Chegada | `referenceHint` / `routeHint` / `parkingHint` intactos | ✅ merge rules | ☐ pendente |
+| Chegada | Maps = fallback link, não embed | ✅ AR-02; no embed | ☐ pendente |
+| Reviews | ≤3; tom editorial; sem feed infinito | ✅ cap + gate | ☐ pendente |
+| Composer | Sem regressão smoke-fume / events | ✅ qa:events 8/8 | ☐ pendente |
+| Feed continuity | morph/drawer/events intactos | ✅ qa:events 8/8 | ☐ pendente |
+
+**Veredicto proxy:** ✅ GO técnico-perceptivo condicional — **manter opt-in**  
+**Veredicto humano:** ☐ pendente (Sessão B) antes de qualquer promoção default-on
+
+---
+
+## Decisão WS-16A — pós Etapa 6
+
+| Opção | Decisão |
+|-------|---------|
+| **Manter opt-in (default OFF)** | ✅ **Adotado** @ `d9c4f3e` |
+| Promover overlay default-on | ❌ **Não autorizado** — requer Sessão B + gate humano |
+| Bloquear overlay | ❌ Não — pipeline operacional válido para pilot controlado |
+
+**Recomendação:** external reality permanece **infraestrutura silenciosa**. Próximo passo opcional: pilot real com Place ID + sessão humana WS-13/16A — **não** antecipar WS-09/15/17/18.
 
 ---
 
@@ -371,8 +502,10 @@ WS-15 publication               →  não antecipar
 | Campo | Valor |
 |-------|-------|
 | Charter autor | proposta @ `1c92acc` |
-| Implementação | **aguardando GO explícito** |
+| Implementação | ✅ Etapas 1–6 @ `d9c4f3e` |
 | UI wiring | WS-14A Etapa 3 ✅ — enrichment via merge only |
-| Perceptivo | Sessão B humana pendente — não bloqueia 16A técnico |
+| Overlay | opt-in @ `d9c4f3e` — **default OFF** |
+| Perceptivo | Proxy GO condicional · Sessão B humana pendente |
+| Decisão | **Manter opt-in** — sem default-on |
 
 *External Reality Minimum — realidade contextual, não informação empilhada.*

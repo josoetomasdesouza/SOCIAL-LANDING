@@ -363,6 +363,22 @@
 
 ---
 
+### WS-16A — External Reality Minimum (Appointment)
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 4 — Presença contextual / runtime operacional |
+| **Status** | ✅ **Concluído** @ `d9c4f3e` — overlay **default OFF** |
+| **Objetivo** | Ancorar runtime Appointment em sinais externos mínimos sem dashboard Google |
+| **Escopo** | Snapshot schema · Google client server-only · merge editorial · sync CLI · overlay opt-in |
+| **Fora de escopo** | Default-on · Maps embed · DB · editor · publication · IA · multi-vertical |
+| **Entregáveis** | [`WS-16A_EXTERNAL_REALITY_MINIMUM.md`](../audit/WS-16A_EXTERNAL_REALITY_MINIMUM.md) · runbook §Runbook operacional |
+| **Gate de saída** | G1–G10 ✅ · `pnpm qa:appointment-runtime-overlay-build` · checklist proxy |
+| **Decisão** | Manter opt-in — promoção requer Sessão B humana |
+| **Refs** | WS-14A runtime @ `1c92acc` · produto perceptivo congelado @ `1c92acc` |
+
+---
+
 ## Sequência recomendada
 
 ```txt
@@ -374,11 +390,12 @@ WS-11 ✅ — Arrival return scroll continuity (gate §8 · piloto Appointment)
 WS-12 ✅ — Drawer physical continuity · [`WS-12_DRAWER_PHYSICAL_CONTINUITY.md`](../audit/WS-12_DRAWER_PHYSICAL_CONTINUITY.md)
   └──► WS-12.1 ✅ — Perceptual validation · [`WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md`](../audit/WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md)
 WS-13 🟡 — Presença contínua · Etapa 1 observacional · [`WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md`](../audit/WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md) (M-01 ✅ @ `b88172c` · Sessão B pendente)
+WS-16A ✅ — External Reality Minimum · [`WS-16A_EXTERNAL_REALITY_MINIMUM.md`](../audit/WS-16A_EXTERNAL_REALITY_MINIMUM.md) @ `d9c4f3e` (overlay opt-in · default OFF · Sessão B antes de promoção)
 WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB) — paralelo, GO humano
 ```
 
-**Atual:** **Era 4 emergente** @ `b88172c` — WS-13 Etapa 1 ativa; M-01 corrigido; Sessão B humana pendente.
+**Atual:** **Era 4 emergente** @ `d9c4f3e` — WS-16A concluído (opt-in); WS-13 Etapa 1 ativa; Sessão B humana pendente.
 
 ---
 
