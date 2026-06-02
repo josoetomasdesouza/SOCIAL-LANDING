@@ -4,6 +4,7 @@ import { join } from "node:path"
 
 import { createFilesystemStorage } from "./resolve-storage.server"
 import {
+  buildExternalMergedPreviewKey,
   buildExternalSnapshotKey,
   buildExternalSyncReportKey,
   buildRuntimeBackupKey,
@@ -23,6 +24,7 @@ export function runFilesystemStorageParityChecks() {
     const draftKey = buildRuntimeDraftKey(slug)
     const snapshotKey = buildExternalSnapshotKey(slug)
     const syncReportKey = buildExternalSyncReportKey(slug)
+    const mergedPreviewKey = buildExternalMergedPreviewKey(slug)
     const payload = { marker: "storage-parity", version: 1 }
 
     const initialWrite = adapter.writeJson(liveKey, payload)
@@ -89,6 +91,12 @@ export function runFilesystemStorageParityChecks() {
 
     if (!syncWrite.ok || !adapter.exists(syncReportKey)) {
       errors.push("external sync-report key must be writable")
+    }
+
+    const mergedPreviewWrite = adapter.writeJson(mergedPreviewKey, { slug, preview: true })
+
+    if (!mergedPreviewWrite.ok || !adapter.exists(mergedPreviewKey)) {
+      errors.push("external merged-preview key must be writable")
     }
 
     const deleteResult = adapter.delete(draftKey)

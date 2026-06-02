@@ -1,5 +1,5 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { dirname, join } from "node:path"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 
 import { getAppointmentRuntimeSeedDocument } from "../runtime-store"
 import type { AppointmentRuntimeBundle } from "../types"
@@ -15,6 +15,10 @@ import {
 } from "./google-places-map"
 import { mergeExternalRealityIntoBundle } from "./merge-into-bundle"
 import {
+  resolveExternalRealityMergedPreviewPath,
+  writeExternalRealityMergedPreview,
+} from "./merged-preview"
+import {
   resolveExternalRealitySnapshotCachePath,
   writeExternalRealityFileCache,
 } from "./snapshot-cache"
@@ -27,6 +31,7 @@ export const EXTERNAL_REALITY_GOOGLE_FIXTURE_RELATIVE_PATH =
   "lib/runtime/appointment/external-reality/fixtures/google-places-barba-negra.json"
 
 export type { ExternalRealitySyncReport } from "./sync-report"
+export { resolveExternalRealityMergedPreviewPath } from "./merged-preview"
 
 export interface SyncExternalRealityOptions {
   slug?: string
@@ -37,13 +42,6 @@ export interface SyncExternalRealityOptions {
   useFixture?: boolean
   fixturePath?: string
   fetchImpl?: typeof fetch
-}
-
-export function resolveExternalRealityMergedPreviewPath(
-  slug: string,
-  rootDir: string = process.cwd()
-) {
-  return join(rootDir, "data/runtime/appointment/external", `${slug}.merged-preview.json`)
 }
 
 function writeSyncReport(report: ExternalRealitySyncReport, rootDir: string) {
@@ -93,10 +91,8 @@ function writeMergedPreview(
     status: "live",
     syncedAt: snapshot.fetchedAt,
   })
-  const previewPath = resolveExternalRealityMergedPreviewPath(slug, rootDir)
-  mkdirSync(dirname(previewPath), { recursive: true })
-  writeFileSync(previewPath, `${JSON.stringify(merged, null, 2)}\n`, "utf8")
-  return previewPath
+
+  return writeExternalRealityMergedPreview(slug, merged, rootDir)
 }
 
 export async function syncExternalReality(

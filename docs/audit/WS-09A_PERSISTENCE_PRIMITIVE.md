@@ -1,11 +1,11 @@
 # WS-09A — Persistence Primitive: Appointment First
 
-**Baseline técnico:** `origin/main` @ `a837064`  
-**Pré-requisitos:** WS-14A ✅ runtime-backed · WS-16A ✅ external reality opt-in/default OFF · WS-15A ✅ publication draft/live  
+**Baseline técnico:** `origin/main` @ `3e6c80e` (Etapa 0–1)  
+**Pré-requisitos:** WS-14A ✅ · WS-16A ✅ · WS-15A ✅ · WS-09A Etapa 0–1 ✅ @ `3e6c80e`  
 **Baseline produto perceptivo:** `1c92acc` (inalterado)  
 **Classificação:** camada operacional de persistência mínima — **não** backend platform  
-**Status:** 📋 Charter proposto (Etapa 0) — **sem implementação até GO explícito**  
-**Relação:** unifica I/O server-side de WS-14A/15A/16A; **não substitui** WS-17 (editor) nem WS-18 (IA); **não reabre** WS-09 enterprise (Drizzle/Postgres/media API)
+**Status:** Etapa 0–1 publicada @ `3e6c80e` · **Etapa 2 implementada localmente** (aguardando commit)  
+**Relação:** unifica I/O server-side de WS-14A/15A/16A; **não substitui** WS-17 (editor) nem WS-18 (IA)
 
 ---
 
@@ -120,6 +120,7 @@ filesystem-first  →  adapter port  →  (opcional) SQLite local
 | `runtime/{slug}/backup/{timestamp}` | `AppointmentRuntimeBundle` | gitignored; pré-promote |
 | `external/{slug}/snapshot` | `ExternalRealitySnapshot` | gitignored operacional |
 | `external/{slug}/sync-report` | sync report JSON | gitignored operacional |
+| `external/{slug}/merged-preview` | merged runtime preview JSON | gitignored operacional (CLI sync only) |
 
 **Mapeamento filesystem (Sprint 1):**
 
@@ -130,6 +131,7 @@ filesystem-first  →  adapter port  →  (opcional) SQLite local
 | `runtime/barba-negra/backup/{ts}` | `data/runtime/appointment/backups/barba-negra.v1.{ts}.backup.json` |
 | `external/barba-negra/snapshot` | `data/runtime/appointment/external/barba-negra.snapshot.json` |
 | `external/barba-negra/sync-report` | `data/runtime/appointment/external/barba-negra.sync-report.json` |
+| `external/barba-negra/merged-preview` | `data/runtime/appointment/external/barba-negra.merged-preview.json` |
 
 ### Interface proposta
 
@@ -313,13 +315,44 @@ loadAppointmentRuntime()
 - [x] Micro-etapas 1–6
 - [ ] **GO humano explícito para código**
 
-### Etapa 1 — Adapter port + filesystem backend
+### Etapa 1 — Adapter port + filesystem backend ✅ @ `3e6c80e`
 
-- `storage/types.ts`, `keys.ts`, `filesystem-adapter.ts`
-- Smoke round-trip read/write temp keys
-- **Zero wiring** load/publication/external
+- `lib/runtime/storage/*` — `FileSystemStorageAdapter`, keys, parity
+- Publication + external I/O wired via adapter
+- Atomic write + backup-before-overwrite
 
-### Etapa 2 — Wire publication I/O
+### Etapa 2 — Storage consolidation pack ✅ (local)
+
+- Namespace final inclui `external/{slug}/merged-preview`
+- `resolveStorageKeyFromFilesystemPath` — path ↔ key unificado
+- `merged-preview.ts` — read/write via adapter
+- Gate dedicado `pnpm qa:appointment-storage`
+- Parity storage removido de `qa:appointment-publication` (canonical no storage gate)
+
+**Decisões Etapa 2:**
+
+1. `merged-preview` entra no namespace external — mesmo root `data/runtime/appointment/external/`
+2. Fixtures Google Places permanecem fora do namespace (repo fixtures, não runtime storage)
+3. Scripts de parity (`publication/parity.ts`, `sync-parity.ts`) mantêm `fs` direto em temp dirs — isolamento explícito
+4. `load-document` fallback `readFileSync` apenas para paths fora de `storageRoot`
+
+**Comandos:**
+
+```bash
+pnpm qa:appointment-storage      # gate dedicado Etapa 2
+pnpm qa:appointment-publication  # publication (sem storage duplicado)
+pnpm qa:appointment-runtime      # runtime + external parity
+```
+
+**Riscos residuais Etapa 2:**
+
+| Risco | Mitigação |
+|-------|-----------|
+| Parity scripts ainda usam `fs` em temp dirs | Aceito — isolamento test-only |
+| Fixture paths fora do adapter | By design — não são runtime keys |
+| SQLite Sprint 2 | Fora de escopo até GO explícito |
+
+### Etapa 3 — Wire publication I/O (legado charter — absorvido Etapa 1)
 
 - `load-document`, `promote`, `rollback` → adapter
 - `qa:appointment-publication` verde
@@ -463,9 +496,9 @@ WS-18 IA operacional            →  decisão deliberada
 
 | Campo | Valor |
 |-------|-------|
-| Charter autor | proposta operacional @ `a837064` |
+| Charter autor | Etapa 0 @ `a837064` · Etapa 0–1 @ `3e6c80e` · Etapa 2 local |
 | Pilot slug | `barba-negra` |
 | Modo | acelerado — filesystem-first |
-| Implementação | **aguardando GO explícito** |
+| Implementação | Etapa 0–1 publicada · Etapa 2 pronta para commit |
 
 *Persistence Primitive — adapter silencioso, não backend platform.*

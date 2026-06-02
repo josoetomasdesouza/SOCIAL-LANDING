@@ -7,6 +7,7 @@ import {
   buildRuntimeLiveKey,
   formatBackupTimestamp,
   parseBackupFilename,
+  resolveStorageKeyFromFilesystemPath,
 } from "../../storage/keys"
 import { getFilesystemStorage } from "../../storage/resolve-storage.server"
 import { listBackupKeysForSlug } from "../../storage/filesystem-adapter"
@@ -109,15 +110,17 @@ function resolveRollbackBackupTarget(
   }
 
   if (existsSync(to)) {
+    const storageRoot = storage.storageRoot
+    const keyFromPath = resolveStorageKeyFromFilesystemPath(to, storageRoot)
     const filename = basename(to)
-    const key = backupFilenameToKey(filename)
+    const key = keyFromPath ?? backupFilenameToKey(filename)
 
     if (!key) {
       throw new Error(`Invalid backup path: ${to}`)
     }
 
     return {
-      path: to,
+      path: keyFromPath ? storage.resolvePath(key) : to,
       filename,
       timestamp: parseBackupFilename(filename)?.timestamp ?? "",
       key,

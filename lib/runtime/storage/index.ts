@@ -11,6 +11,7 @@ export type {
 export {
   RUNTIME_LIVE_VERSION,
   backupFilenameToKey,
+  buildExternalMergedPreviewKey,
   buildExternalSnapshotKey,
   buildExternalSyncReportKey,
   buildRuntimeBackupKey,
@@ -21,6 +22,7 @@ export {
   listRuntimeBackupKeys,
   parseBackupFilename,
   resolveAppointmentStorageRoot,
+  resolveStorageKeyFromFilesystemPath,
   resolveStorageKeyPath,
 } from "./keys"
 
@@ -37,3 +39,4 @@ export {
 } from "./resolve-storage.server"
 
 export { runFilesystemStorageParityChecks } from "./parity"
+export { runAppointmentStorageGateChecks } from "./gate"

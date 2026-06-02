@@ -101,9 +101,14 @@ export { runExternalRealityMergeParityChecks } from "./merge-parity"
 
 export {
   EXTERNAL_REALITY_GOOGLE_FIXTURE_RELATIVE_PATH,
-  resolveExternalRealityMergedPreviewPath,
   syncExternalReality,
 } from "./sync-external-reality"
+
+export {
+  readExternalRealityMergedPreview,
+  resolveExternalRealityMergedPreviewPath,
+  writeExternalRealityMergedPreview,
+} from "./merged-preview"
 
 export type { ExternalRealitySyncReport } from "./sync-report"
 export { resolveExternalRealitySyncReportPath } from "./sync-report"

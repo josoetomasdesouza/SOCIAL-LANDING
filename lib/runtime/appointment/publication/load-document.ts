@@ -1,9 +1,6 @@
 import { existsSync, readFileSync } from "node:fs"
 
-import {
-  buildRuntimeDraftKey,
-  buildRuntimeLiveKey,
-} from "../../storage/keys"
+import { resolveStorageKeyFromFilesystemPath } from "../../storage/keys"
 import { getFilesystemStorage } from "../../storage/resolve-storage.server"
 import type { AppointmentRuntimeBundle } from "../types"
 
@@ -21,25 +18,7 @@ function readBundleFromStorageKey(
 }
 
 function resolveStorageKeyFromPath(path: string, rootDir: string = process.cwd()): string | null {
-  const storageRoot = getFilesystemStorage(rootDir).storageRoot
-
-  if (!path.startsWith(storageRoot)) {
-    return null
-  }
-
-  const relative = path.slice(storageRoot.length + 1)
-
-  if (relative.endsWith(".draft.json")) {
-    return buildRuntimeDraftKey(relative.replace(".draft.json", ""))
-  }
-
-  const liveMatch = /^(.+)\.v1\.json$/.exec(relative)
-
-  if (liveMatch) {
-    return buildRuntimeLiveKey(liveMatch[1])
-  }
-
-  return null
+  return resolveStorageKeyFromFilesystemPath(path, getFilesystemStorage(rootDir).storageRoot)
 }
 
 export function appointmentRuntimeDocumentExists(

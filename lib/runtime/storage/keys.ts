@@ -9,6 +9,7 @@ export const STORAGE_KEY_RUNTIME_DRAFT = "draft"
 export const STORAGE_KEY_RUNTIME_BACKUP = "backup"
 export const STORAGE_KEY_EXTERNAL_SNAPSHOT = "snapshot"
 export const STORAGE_KEY_EXTERNAL_SYNC_REPORT = "sync-report"
+export const STORAGE_KEY_EXTERNAL_MERGED_PREVIEW = "merged-preview"
 
 export function resolveAppointmentStorageRoot(rootDir: string = process.cwd()): string {
   return join(rootDir, "data/runtime/appointment")
@@ -36,6 +37,10 @@ export function buildExternalSnapshotKey(slug: string): string {
 
 export function buildExternalSyncReportKey(slug: string): string {
   return `external/${slug}/${STORAGE_KEY_EXTERNAL_SYNC_REPORT}`
+}
+
+export function buildExternalMergedPreviewKey(slug: string): string {
+  return `external/${slug}/${STORAGE_KEY_EXTERNAL_MERGED_PREVIEW}`
 }
 
 export function formatBackupTimestamp(date: Date = new Date()): string {
@@ -98,6 +103,59 @@ export function resolveStorageKeyPath(key: string, storageRoot: string): string 
 
   if (syncReportMatch) {
     return join(storageRoot, "external", `${syncReportMatch[1]}.sync-report.json`)
+  }
+
+  const mergedPreviewMatch = /^external\/([^/]+)\/merged-preview$/.exec(key)
+
+  if (mergedPreviewMatch) {
+    return join(storageRoot, "external", `${mergedPreviewMatch[1]}.merged-preview.json`)
+  }
+
+  return null
+}
+
+export function resolveStorageKeyFromFilesystemPath(
+  path: string,
+  storageRoot: string
+): string | null {
+  if (!path.startsWith(storageRoot)) {
+    return null
+  }
+
+  const relative = path.slice(storageRoot.length + 1)
+
+  if (relative.endsWith(".draft.json") && !relative.includes("/")) {
+    return buildRuntimeDraftKey(relative.replace(".draft.json", ""))
+  }
+
+  const liveMatch = /^(.+)\.v1\.json$/.exec(relative)
+
+  if (liveMatch && !relative.includes("/")) {
+    return buildRuntimeLiveKey(liveMatch[1])
+  }
+
+  const backupMatch = /^backups\/(.+)\.v1\.(.+)\.backup\.json$/.exec(relative)
+
+  if (backupMatch) {
+    return buildRuntimeBackupKey(backupMatch[1], backupMatch[2])
+  }
+
+  const snapshotMatch = /^external\/(.+)\.snapshot\.json$/.exec(relative)
+
+  if (snapshotMatch) {
+    return buildExternalSnapshotKey(snapshotMatch[1])
+  }
+
+  const syncReportMatch = /^external\/(.+)\.sync-report\.json$/.exec(relative)
+
+  if (syncReportMatch) {
+    return buildExternalSyncReportKey(syncReportMatch[1])
+  }
+
+  const mergedPreviewMatch = /^external\/(.+)\.merged-preview\.json$/.exec(relative)
+
+  if (mergedPreviewMatch) {
+    return buildExternalMergedPreviewKey(mergedPreviewMatch[1])
   }
 
   return null
