@@ -54,3 +54,8 @@ export {
 } from "./validate-output"
 
 export { runOperationalAiParityChecks } from "./parity"
+export { writeOperationalAiDraft } from "./write-draft.server"
+export type {
+  WriteOperationalAiDraftOptions,
+  WriteOperationalAiDraftResult,
+} from "./write-draft.server"

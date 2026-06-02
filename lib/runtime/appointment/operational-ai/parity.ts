@@ -1,3 +1,10 @@
+import { mkdtempSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+
+import { buildRuntimeDraftKey, buildRuntimeLiveKey } from "../../storage/keys"
+import { getFilesystemStorage } from "../../storage/resolve-storage.server"
+import { writeAppointmentRuntimeDocumentByKey, readAppointmentRuntimeDocumentByKey } from "../publication/load-document"
 import { getAppointmentRuntimeSeedDocument } from "../runtime-store"
 import { APPOINTMENT_PILOT_SLUG } from "../types"
 import type { ExternalRealitySnapshot } from "../external-reality/types"
@@ -9,6 +16,7 @@ import {
   buildValidPatchExample,
   validateOperationalAiOutput,
 } from "./validate-output"
+import { writeOperationalAiDraft } from "./write-draft.server"
 
 function buildFixtureSnapshot(): ExternalRealitySnapshot {
   return {
@@ -178,6 +186,85 @@ export function runOperationalAiParityChecks() {
     errors.push("marketing drift copy must be rejected")
   }
 
+  const workspaceDir = mkdtempSync(join(tmpdir(), "operational-ai-draft-write-"))
+  const storageSlug = "operational-ai-draft-parity"
+
+  try {
+    const liveSeed = structuredClone(baseBundle)
+    liveSeed.meta.slug = storageSlug
+    liveSeed.establishment.slug = storageSlug
+    liveSeed.establishment.id = `establishment-${storageSlug}`
+
+    const liveWrite = writeAppointmentRuntimeDocumentByKey(
+      buildRuntimeLiveKey(storageSlug),
+      liveSeed,
+      workspaceDir
+    )
+
+    if (!liveWrite.ok) {
+      errors.push("draft write parity: failed to seed live document")
+    }
+
+    const dryRunResult = writeOperationalAiDraft({
+      slug: storageSlug,
+      adaptationKind: "operational_hints_refresh",
+      rootDir: workspaceDir,
+      dryRun: true,
+      operatorBrief: "parity dry-run",
+    })
+
+    if (!dryRunResult.ok) {
+      errors.push(...dryRunResult.validationErrors.map((error) => `draft dry-run: ${error}`))
+    }
+
+    if (!dryRunResult.dryRun) {
+      errors.push("draft dry-run: result must stay dry-run")
+    }
+
+    if (getFilesystemStorage(workspaceDir).exists(buildRuntimeDraftKey(storageSlug))) {
+      errors.push("draft dry-run: must not create draft key on disk")
+    }
+
+    const executeResult = writeOperationalAiDraft({
+      slug: storageSlug,
+      adaptationKind: "operational_hints_refresh",
+      rootDir: workspaceDir,
+      dryRun: false,
+      force: true,
+      operatorBrief: "parity execute",
+    })
+
+    if (!executeResult.ok) {
+      errors.push(...executeResult.validationErrors.map((error) => `draft execute: ${error}`))
+    }
+
+    if (!executeResult.roundTripOk) {
+      errors.push("draft execute: storage round-trip must succeed")
+    }
+
+    const liveAfterWrite = readAppointmentRuntimeDocumentByKey(
+      buildRuntimeLiveKey(storageSlug),
+      workspaceDir
+    )
+
+    if (!liveAfterWrite) {
+      errors.push("draft execute: live document must remain readable")
+    } else if (JSON.stringify(liveAfterWrite.operational) !== JSON.stringify(liveSeed.operational)) {
+      errors.push("draft execute: live document must remain unchanged")
+    }
+
+    const persistedDraft = readAppointmentRuntimeDocumentByKey(
+      buildRuntimeDraftKey(storageSlug),
+      workspaceDir
+    )
+
+    if (!persistedDraft?.meta.publication || persistedDraft.meta.publication.derivedFrom !== "ai") {
+      errors.push("draft execute: persisted draft must declare derivedFrom=ai")
+    }
+  } finally {
+    rmSync(workspaceDir, { recursive: true, force: true })
+  }
+
   return {
     ok: errors.length === 0,
     errors,
@@ -186,6 +273,8 @@ export function runOperationalAiParityChecks() {
       primitiveResults: snapshot,
       invalidPatchRejected: !invalidValidation.ok,
       marketingDriftRejected: !marketingValidation.ok,
+      draftWriteDryRun: true,
+      draftWriteRoundTrip: true,
     },
   }
 }
