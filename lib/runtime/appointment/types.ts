@@ -1,4 +1,5 @@
 import type { RuntimeExternalMeta } from "./external-reality/types"
+import type { AppointmentPublicationMeta } from "./publication/types"
 
 export const APPOINTMENT_RUNTIME_VERSION = 1 as const
 
@@ -138,5 +139,6 @@ export interface AppointmentRuntimeBundle {
     slug: string
     updatedAt: string
     external?: RuntimeExternalMeta
+    publication?: AppointmentPublicationMeta
   }
 }

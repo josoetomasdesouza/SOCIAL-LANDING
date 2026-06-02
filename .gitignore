@@ -1,0 +1,5 @@
+node_modules
+
+# WS-15A — appointment publication operational artifacts
+data/runtime/appointment/*.draft.json
+data/runtime/appointment/backups/
