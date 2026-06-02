@@ -317,7 +317,7 @@
 
 ---
 
-### WS-09 — DB/Storage Isolation
+### WS-09 — DB/Storage Isolation (enterprise)
 
 | Campo | Valor |
 |-------|-------|
@@ -329,6 +329,24 @@
 | **Branch sugerida** | `workstream/db-storage` |
 | **Gate de saída** | Smokes SQL verdes; doc alignment preenchido |
 | **Refs** | `docs/architecture/social-landing-storage-schema-alignment.md` |
+| **Nota** | **Distinto de WS-09A** — enterprise DB · WS-09A (filesystem primitive) ✅ fechado |
+
+---
+
+### WS-09A — Persistence Primitive (Appointment)
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 4 — Runtime operacional |
+| **Status** | ✅ **Concluído** @ `67e41fe` — filesystem-only · SQLite **BLOCKED** |
+| **Objetivo** | Adapter único server-only para I/O runtime/publication/external — sem backend platform |
+| **Escopo** | `lib/runtime/storage/*` · keys namespace · atomic write · backup · gate `qa:appointment-storage` |
+| **Fora de escopo** | SQLite · DB · ORM · auth · editor · UI · cloud · multi-tenant · realtime |
+| **Entregáveis** | [`WS-09A_PERSISTENCE_PRIMITIVE.md`](../audit/WS-09A_PERSISTENCE_PRIMITIVE.md) · runbook §Runbook operacional |
+| **Gate de saída** | G1–G12 ✅ · `pnpm qa:appointment-storage` · publication + runtime gates |
+| **Decisão** | Persistência = infra silenciosa · writes CLI-only · SQLite optional **BLOCKED** até GO explícito |
+| **Próximo ciclo** | **WS-18A** IA operacional mínima (recomendado) |
+| **Refs** | WS-14A runtime · WS-15A publication · WS-16A external · produto @ `1c92acc` |
 
 ---
 
@@ -407,12 +425,14 @@ WS-12 ✅ — Drawer physical continuity · [`WS-12_DRAWER_PHYSICAL_CONTINUITY.m
   └──► WS-12.1 ✅ — Perceptual validation · [`WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md`](../audit/WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md)
 WS-13 🟡 — Presença contínua · Etapa 1 observacional · [`WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md`](../audit/WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md) (M-01 ✅ @ `b88172c` · Sessão B pendente)
 WS-16A ✅ — External Reality Minimum · [`WS-16A_EXTERNAL_REALITY_MINIMUM.md`](../audit/WS-16A_EXTERNAL_REALITY_MINIMUM.md) @ `d9c4f3e` (overlay opt-in · default OFF · Sessão B antes de promoção)
-WS-15A ✅ — Publication Primitive · [`WS-15A_PUBLICATION_PRIMITIVE.md`](../audit/WS-15A_PUBLICATION_PRIMITIVE.md) @ `141c263` (draft/live CLI · preview OFF · auto-promote proibido)
+WS-15A ✅ — Publication Primitive · [`WS-15A_PUBLICATION_PRIMITIVE.md`](../audit/WS-15A_PUBLICATION_PRIMITIVE.md) @ `a837064` (draft/live CLI · preview OFF · auto-promote proibido)
+WS-09A ✅ — Persistence Primitive · [`WS-09A_PERSISTENCE_PRIMITIVE.md`](../audit/WS-09A_PERSISTENCE_PRIMITIVE.md) @ `67e41fe` (filesystem adapter · SQLite BLOCKED)
 WS-03 (parity gaps) — paralelo, escopo menor
-WS-09 (DB) — paralelo, GO humano
+WS-09 (DB enterprise) — BLOCKED, GO humano separado
+WS-18A — ⭐ próximo ciclo recomendado (IA operacional mínima)
 ```
 
-**Atual:** **Era 4 emergente** @ `141c263` — WS-15A + WS-16A concluídos; WS-13 Etapa 1 ativa; Sessão B humana pendente; próxima decisão: WS-09 vs WS-18 vs WS-17.
+**Atual:** **Era 4 emergente** @ `67e41fe` — WS-09A fechado; WS-15A + WS-16A concluídos; WS-13 Etapa 1 ativa; **próximo ciclo recomendado: WS-18A** (IA operacional mínima) · WS-17 (editor) alternativa deliberada · WS-09 enterprise permanece BLOCKED.
 
 ---
 

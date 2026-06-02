@@ -1,22 +1,33 @@
 # WS-09A — Persistence Primitive: Appointment First
 
-**Baseline técnico:** `origin/main` @ `3e6c80e` (Etapa 0–1)  
-**Pré-requisitos:** WS-14A ✅ · WS-16A ✅ · WS-15A ✅ · WS-09A Etapa 0–1 ✅ @ `3e6c80e`  
+**Baseline técnico:** `origin/main` @ `67e41fe`  
+**Pré-requisitos:** WS-14A ✅ · WS-15A ✅ @ `a837064` · WS-16A ✅ · WS-09A Etapas 0–2 ✅ @ `67e41fe`  
 **Baseline produto perceptivo:** `1c92acc` (inalterado)  
 **Classificação:** camada operacional de persistência mínima — **não** backend platform  
-**Status:** Etapa 0–1 publicada @ `3e6c80e` · **Etapa 2 implementada localmente** (aguardando commit)  
-**Relação:** unifica I/O server-side de WS-14A/15A/16A; **não substitui** WS-17 (editor) nem WS-18 (IA)
+**Status:** ✅ **FECHADO** @ Etapa 3 (`67e41fe` + docs fechamento) — filesystem-first · SQLite **BLOCKED**  
+**Relação:** unifica I/O server-side de WS-14A/15A/16A; **não substitui** WS-17 (editor) · **próximo ciclo recomendado:** WS-18A (IA operacional mínima)
 
 ---
 
-## Pergunta gate
+## Pergunta gate (Etapa 3 — fechamento)
+
+```txt
+a persistência já é suficiente para destravar operação
+ou ainda estamos perseguindo infraestrutura perfeita?
+```
+
+**Resposta:** **Suficiente para destravar operação.** Adapter único, namespace fechado, gates verdes, writes CLI-only — publication, external sync e rollback operam sem SQLite. Perseguir SQLite agora seria **infraestrutura perfeita prematura**, não destrave operacional.
+
+---
+
+## Pergunta gate (charter original)
 
 ```txt
 isso é persistência operacional mínima
 ou backend platform prematuro?
 ```
 
-**Resposta do charter:** persistência operacional mínima **somente se** for um **storage adapter server-only** que formaliza read/write já existentes (JSON files) — sem ORM enterprise, sem auth, sem multi-tenant, sem cloud architecture.
+**Resposta:** persistência operacional mínima — **storage adapter server-only** que formaliza read/write JSON existentes. Confirmado pós-implementação @ `67e41fe`.
 
 **Anti-padrão explícito:**
 
@@ -41,27 +52,28 @@ Depois deste WS (se gate cumplido):
 
 - read/write runtime Appointment passam por **uma porta** (`StorageAdapter`)
 - draft/live publication e external snapshots usam **mesma gramática de keys**
-- filesystem permanece **default** (zero regressão); SQLite opcional como Sprint 2
+- filesystem permanece **único backend** (SQLite **BLOCKED** até GO explícito separado)
 - rollback continua **trivial** (backup file + git checkout live committed)
 - produto default **inalterado** — adapter é infra silenciosa
 
 ---
 
-## Estado atual (pós WS-14A + WS-15A + WS-16A @ `a837064`)
+## Estado entregue (pós Etapas 0–2 @ `67e41fe`)
 
-| Domínio | Persistência hoje | Onde |
-|---------|-------------------|------|
-| Live runtime | `barba-negra.v1.json` committed + import estático | `runtime-store.ts` |
-| Draft publication | `barba-negra.draft.json` gitignored | `publication/load-document.ts` |
-| Backups publication | `backups/*.backup.json` gitignored | `publication/promote.ts` |
-| External snapshot | `{slug}.snapshot.json` gitignored | `external-reality/snapshot-cache.ts` |
-| External sync report | `{slug}.sync-report.json` gitignored | `external-reality/sync-report.ts` |
-| Read path produto | `load.ts` → mock \| runtime + overlays opt-in | sem adapter unificado |
-| Write path | CLI publication + CLI external sync | `fs` direto, sem abstração |
+| Domínio | Persistência | Implementação |
+|---------|--------------|---------------|
+| Live runtime | `runtime/{slug}/live` | `FileSystemStorageAdapter` + static import default |
+| Draft publication | `runtime/{slug}/draft` | adapter via `publication/*` |
+| Backups publication | `runtime/{slug}/backup/{ts}` | adapter backup/restore + `list()` |
+| External snapshot | `external/{slug}/snapshot` | `snapshot-cache.ts` |
+| External sync report | `external/{slug}/sync-report` | `sync-report.ts` |
+| External merged preview | `external/{slug}/merged-preview` | `merged-preview.ts` |
+| Read path produto | mock \| runtime + overlays opt-in | **inalterado** @ `1c92acc` |
+| Write path | CLI publication + CLI external sync | **adapter único** — CLI-only |
 
-**Gap:** I/O operacional funciona, mas está **fragmentado** — difícil trocar backend, auditar writes, ou evoluir para SQLite local sem duplicar lógica.
+**Gap original (fragmentação I/O):** ✅ **fechado** — `lib/runtime/storage/*` + wiring publication/external.
 
-**WS-09 legacy (blocked):** Drizzle/Postgres/media API — **fora deste charter**. WS-09A é **re-escopo estreito** da trilha persistência, não reopen do PR db-media enterprise.
+**WS-09 legacy (enterprise):** Drizzle/Postgres/media API — permanece **BLOCKED** · WS-09A ≠ reopen WS-09.
 
 ---
 
@@ -73,8 +85,8 @@ Depois deste WS (se gate cumplido):
 2. **Read/write runtime** — live bundle via adapter (fallback import estático preservado Sprint 1)
 3. **Persistência draft/live** — publication domain keys; promote/rollback via adapter
 4. **Persistência external snapshots** — snapshot + sync-report via adapter
-5. **Filesystem-first** — `FileSystemStorageAdapter` wrap paths existentes (default)
-6. **SQLite simples (opcional Sprint 2)** — single-file local; **sem ORM**; JSON blob columns ou document store minimal
+5. **Filesystem-only** — `FileSystemStorageAdapter` único backend implementado
+6. ~~SQLite simples (opcional Sprint 2)~~ — **BLOCKED** · ver §Decisão SQLite
 7. **Rollback simples** — backup-before-write + restore; compatível com publication rollback atual
 8. **Gates técnicos** — smoke adapter + `qa:appointment-runtime` + `qa:appointment-publication` verdes
 9. **Runbook operacional** — documentar env, paths, rollback, política default
@@ -104,12 +116,12 @@ Depois deste WS (se gate cumplido):
 ### Princípio
 
 ```txt
-filesystem-first  →  adapter port  →  (opcional) SQLite local
+filesystem-first  →  adapter port  →  (BLOCKED) SQLite local
 ```
 
-**Sprint 1 (recomendado):** apenas `FileSystemStorageAdapter` — **zero mudança de comportamento default**; unifica callsites.
+**Entregue:** `FileSystemStorageAdapter` @ `lib/runtime/storage/*` — comportamento default inalterado; I/O operacional unificado.
 
-**Sprint 2 (opcional pós-gate):** `SqliteStorageAdapter` — arquivo único ex.: `data/runtime/appointment/store.sqlite` — para atomic write multi-key; ainda server-only, sem migrations enterprise.
+**SQLite:** **não iniciado** · **BLOCKED** até GO explícito em ciclo separado (ver §Decisão SQLite).
 
 ### Domínios de storage (keys propostas)
 
@@ -133,31 +145,24 @@ filesystem-first  →  adapter port  →  (opcional) SQLite local
 | `external/barba-negra/sync-report` | `data/runtime/appointment/external/barba-negra.sync-report.json` |
 | `external/barba-negra/merged-preview` | `data/runtime/appointment/external/barba-negra.merged-preview.json` |
 
-### Interface proposta
+### Interface implementada
 
 ```ts
-// lib/runtime/appointment/storage/types.ts (proposto — não implementado)
+// lib/runtime/storage/types.ts + filesystem-adapter.ts
 
-interface StorageReadResult<T> {
-  ok: boolean
-  data: T | null
-  source: "filesystem" | "sqlite" | "static-import"
-  error?: string
-}
-
-interface StorageWriteOptions {
-  backup?: boolean
-  dryRun?: boolean
-}
-
-interface AppointmentStorageAdapter {
-  readJson<T>(key: string): Promise<StorageReadResult<T>> | StorageReadResult<T>
-  writeJson<T>(key: string, data: T, options?: StorageWriteOptions): { ok: boolean; backupKey?: string }
+interface RuntimeStorageAdapter {
   exists(key: string): boolean
+  readJson<T>(key: string): StorageReadResult<T>
+  writeJson<T>(key: string, data: T, options?: StorageWriteOptions): StorageWriteResult
+  delete(key: string): StorageDeleteResult
   list(prefix: string): string[]
-  resolvePath?(key: string): string // filesystem adapter only — debug/runbook
+  resolvePath(key: string): string
+  backup(sourceKey: string, backupKey: string): StorageBackupResult
+  restore(backupKey: string, targetKey: string, options?: { dryRun?: boolean }): StorageWriteResult
 }
 ```
+
+Entry point: `getFilesystemStorage(rootDir?)` · keys: `lib/runtime/storage/keys.ts`
 
 **Regras:**
 
@@ -171,10 +176,8 @@ interface AppointmentStorageAdapter {
 
 | Variável | Default | Função |
 |----------|---------|--------|
-| `APPOINTMENT_STORAGE_BACKEND` | `filesystem` | `filesystem` \| `sqlite` (Sprint 2) |
-| `APPOINTMENT_STORAGE_ROOT` | `data/runtime/appointment` | Root operacional (filesystem) |
-
-**Política:** default `filesystem` — produto e CI idênticos ao estado @ `a837064`.
+| `APPOINTMENT_STORAGE_BACKEND` | `filesystem` | **Único backend implementado** — SQLite não existe no codebase |
+| Root operacional | `data/runtime/appointment` | Via `resolveAppointmentStorageRoot(rootDir)` |
 
 ---
 
@@ -255,30 +258,24 @@ loadAppointmentRuntime()
 
 ---
 
-## Arquivos candidatos
+## Arquivos entregues
 
-### Novos (propostos)
+### Implementados @ `3e6c80e`–`67e41fe`
 
 | Path | Papel |
 |------|-------|
-| `lib/runtime/appointment/storage/types.ts` | Adapter interface + key constants |
-| `lib/runtime/appointment/storage/keys.ts` | Key ↔ path mapping |
-| `lib/runtime/appointment/storage/filesystem-adapter.ts` | Default backend |
-| `lib/runtime/appointment/storage/sqlite-adapter.ts` | Sprint 2 optional |
-| `lib/runtime/appointment/storage/resolve-adapter.server.ts` | Env backend resolver |
-| `lib/runtime/appointment/storage/parity.ts` | Round-trip smoke |
+| `lib/runtime/storage/types.ts` | `RuntimeStorageAdapter` interface |
+| `lib/runtime/storage/keys.ts` | Key ↔ path mapping + `resolveStorageKeyFromFilesystemPath` |
+| `lib/runtime/storage/filesystem-adapter.ts` | Filesystem backend (atomic write, backup) |
+| `lib/runtime/storage/resolve-storage.server.ts` | `getFilesystemStorage()` |
+| `lib/runtime/storage/parity.ts` | Core adapter round-trip |
+| `lib/runtime/storage/gate.ts` | Gate integrado (core + publication + external) |
+| `lib/runtime/storage/index.ts` | Public exports |
+| `lib/runtime/appointment/publication/*` | Draft/live/backup via adapter |
+| `lib/runtime/appointment/external-reality/snapshot-cache.ts` | Snapshot via adapter |
+| `lib/runtime/appointment/external-reality/sync-report.ts` | Sync report via adapter |
+| `lib/runtime/appointment/external-reality/merged-preview.ts` | Merged preview via adapter |
 | `scripts/runtime/appointment-storage-smoke.mjs` | Gate `qa:appointment-storage` |
-
-### Alterados (mínimo — incremental)
-
-| Path | Mudança |
-|------|---------|
-| `publication/load-document.ts` | Delegar read/write ao adapter |
-| `publication/promote.ts` / `rollback.ts` | Write via adapter |
-| `external-reality/snapshot-cache.ts` | Read/write via adapter |
-| `external-reality/sync-report.ts` | Read/write via adapter |
-| `load.ts` | Optional adapter read draft (já wired preview) |
-| `package.json` | `qa:appointment-storage` |
 
 ### Intocados (Tier 1 / perceptivo)
 
@@ -307,112 +304,91 @@ loadAppointmentRuntime()
 
 ## Plano de implementação — micro-etapas
 
-### Etapa 0 — Charter ✅ (este documento)
+### Etapa 0 — Charter ✅ @ `3e6c80e`
 
 - [x] Storage strategy filesystem-first
 - [x] Read/write/rollback strategy
 - [x] Gate platform vs primitivo
-- [x] Micro-etapas 1–6
-- [ ] **GO humano explícito para código**
 
-### Etapa 1 — Adapter port + filesystem backend ✅ @ `3e6c80e`
+### Etapa 1 — FileSystem Storage Adapter ✅ @ `3e6c80e`
 
-- `lib/runtime/storage/*` — `FileSystemStorageAdapter`, keys, parity
-- Publication + external I/O wired via adapter
-- Atomic write + backup-before-overwrite
+- [x] `lib/runtime/storage/*` — adapter, keys, parity
+- [x] Publication + external I/O wired
+- [x] Atomic write + backup-before-overwrite
 
-### Etapa 2 — Storage consolidation pack ✅ (local)
+### Etapa 2 — Storage consolidation pack ✅ @ `67e41fe`
 
-- Namespace final inclui `external/{slug}/merged-preview`
-- `resolveStorageKeyFromFilesystemPath` — path ↔ key unificado
-- `merged-preview.ts` — read/write via adapter
-- Gate dedicado `pnpm qa:appointment-storage`
-- Parity storage removido de `qa:appointment-publication` (canonical no storage gate)
+- [x] Namespace final inclui `external/{slug}/merged-preview`
+- [x] `resolveStorageKeyFromFilesystemPath` — path ↔ key unificado
+- [x] Gate dedicado `pnpm qa:appointment-storage`
 
-**Decisões Etapa 2:**
+### Etapa 3 — Fechamento sem SQLite ✅ (este commit)
 
-1. `merged-preview` entra no namespace external — mesmo root `data/runtime/appointment/external/`
-2. Fixtures Google Places permanecem fora do namespace (repo fixtures, não runtime storage)
-3. Scripts de parity (`publication/parity.ts`, `sync-parity.ts`) mantêm `fs` direto em temp dirs — isolamento explícito
-4. `load-document` fallback `readFileSync` apenas para paths fora de `storageRoot`
+- [x] Runbook operacional finalizado (§ abaixo)
+- [x] Gate de saída G1–G12 verificado
+- [x] Usos `fs` remanescentes documentados
+- [x] Decisão SQLite: **BLOCKED**
+- [x] WORKSTREAMS.md atualizado
+- [x] **WS-09A oficialmente fechado**
 
-**Comandos:**
+### Não entregue (deliberado)
 
-```bash
-pnpm qa:appointment-storage      # gate dedicado Etapa 2
-pnpm qa:appointment-publication  # publication (sem storage duplicado)
-pnpm qa:appointment-runtime      # runtime + external parity
-```
-
-**Riscos residuais Etapa 2:**
-
-| Risco | Mitigação |
-|-------|-----------|
-| Parity scripts ainda usam `fs` em temp dirs | Aceito — isolamento test-only |
-| Fixture paths fora do adapter | By design — não são runtime keys |
-| SQLite Sprint 2 | Fora de escopo até GO explícito |
-
-### Etapa 3 — Wire publication I/O (legado charter — absorvido Etapa 1)
-
-- `load-document`, `promote`, `rollback` → adapter
-- `qa:appointment-publication` verde
-- Comportamento idêntico @ `a837064`
-
-### Etapa 3 — Wire external-reality I/O
-
-- `snapshot-cache`, `sync-report` → adapter
-- `qa:appointment-runtime` verde (external parity inalterado)
-
-### Etapa 4 — Read path optional consolidation
-
-- Draft preview read via adapter (substituir fs direto)
-- Live static import **preservado** default
-- Wiring parity publication verde
-
-### Etapa 5 — SQLite adapter (opcional)
-
-- Single-file local; feature flag `APPOINTMENT_STORAGE_BACKEND=sqlite`
-- Migration tool one-shot filesystem → sqlite
-- Rollback para filesystem documentado
-
-### Etapa 6 — Gates + runbook + WORKSTREAMS
-
-- `qa:appointment-storage`
-- Runbook §Storage operacional
-- Gate de saída G1–G12
-- WS-09A fechado
-
-**Estimativa:** 3 PRs — (1) adapter + fs · (2) publication + external wire · (3) gates/runbook — SQLite Sprint 2 separado se necessário.
+| Item | Status |
+|------|--------|
+| SQLite adapter | **BLOCKED** — GO explícito separado |
+| WS-09 enterprise (Drizzle/Postgres) | **BLOCKED** — ciclo separado |
+| Editor (WS-17) | Ciclo futuro |
+| IA operacional (WS-18A) | **Próximo ciclo recomendado** |
 
 ---
 
-## Gate de saída WS-09A
+## Gate de saída WS-09A — ✅ TODOS VERIFICADOS @ `67e41fe`
 
 | # | Critério | Verificação |
 |---|----------|-------------|
-| G1 | Storage adapter documentado e implementado | types + fs backend |
-| G2 | Filesystem default; produto default inalterado | parity vs `a837064` |
-| G3 | Publication draft/live/backup via adapter | promote/rollback smoke |
-| G4 | External snapshot/sync-report via adapter | sync parity |
-| G5 | Write CLI-only; zero HTTP auto-write | grep / review |
-| G6 | Rollback trivial (backup + git) | runbook + smoke |
-| G7 | Preview publication OFF default | WS-15A policy |
-| G8 | External overlay OFF default | WS-16A policy |
-| G9 | Server-only; zero client adapter import | grep gate |
-| G10 | `qa:appointment-storage` PASS | CI/local |
-| G11 | `qa:appointment-runtime` + `qa:appointment-publication` PASS | CI/local |
-| G12 | Zero JSX/UI · zero auth/admin/ORM enterprise | diff scope |
+| G1 | Storage adapter documentado e implementado | ✅ `lib/runtime/storage/*` |
+| G2 | Filesystem default; produto default inalterado | ✅ gates perceptivos @ `1c92acc` |
+| G3 | Publication draft/live/backup via adapter | ✅ `qa:appointment-storage` + publication |
+| G4 | External snapshot/sync-report/merged-preview via adapter | ✅ storage gate external block |
+| G5 | Write CLI-only; zero HTTP auto-write | ✅ review |
+| G6 | Rollback trivial (backup + git) | ✅ runbook + smoke |
+| G7 | Preview publication OFF default | ✅ WS-15A policy |
+| G8 | External overlay OFF default | ✅ WS-16A policy |
+| G9 | Server-only; zero client adapter import | ✅ grep gate |
+| G10 | `qa:appointment-storage` PASS | ✅ CI/local |
+| G11 | `qa:appointment-runtime` + `qa:appointment-publication` PASS | ✅ CI/local |
+| G12 | Zero JSX/UI · zero auth/admin/ORM enterprise | ✅ diff scope |
 
 ---
 
-## Runbook operacional (proposto)
+## Runbook operacional
+
+### Comandos de validação
+
+```bash
+pnpm qa:appointment-storage      # gate dedicado — core + publication + external
+pnpm qa:appointment-publication  # publication draft/promote/rollback
+pnpm qa:appointment-runtime      # runtime + external parity
+pnpm qa:appointment              # perceptual 8/8
+pnpm qa:events                   # eventos passivos
+```
+
+### CLI operacional (writes)
+
+```bash
+pnpm runtime:appointment:draft-init
+pnpm runtime:appointment:draft-validate
+pnpm runtime:appointment:promote -- --execute
+pnpm runtime:appointment:rollback -- --execute
+pnpm runtime:appointment:sync-external
+```
 
 ### Política oficial
 
 | Política | Valor |
 |----------|-------|
-| **Persistência** | Infra silenciosa — não backend visível |
-| Backend default | `filesystem` |
+| **Persistência** | Infra silenciosa — adapter filesystem-only |
+| Backend | **`filesystem` único** — SQLite não implementado |
 | Live committed | `barba-negra.v1.json` — git source of truth |
 | Writes | CLI explicit only |
 | Auto-promote / CI write | **Proibido** (WS-15A) |
@@ -443,52 +419,68 @@ rm data/runtime/appointment/external/barba-negra.snapshot.json
 
 ---
 
-## GO / NO-GO — começar código
+---
 
-### GO ✅ (recomendado — charter)
+## Usos `fs` remanescentes (aceitos)
 
-| Condição | Estado |
-|----------|--------|
-| WS-14A runtime wired | ✅ |
-| WS-15A publication fechado | ✅ @ `a837064` |
-| WS-16A external reality fechado | ✅ default OFF |
-| Produto perceptivo congelado | ✅ @ `1c92acc` |
-| I/O fragmentado identificado | ✅ |
-| Escopo Appointment-only | ✅ este charter |
-| Gate platform vs primitivo respondido | ✅ adapter + fs default |
+| Local | Uso | Justificativa |
+|-------|-----|---------------|
+| `lib/runtime/storage/filesystem-adapter.ts` | read/write/rename/copy | **Implementação única** do adapter |
+| `lib/runtime/storage/keys.ts` | `readdirSync` (backups) | Listagem de backup keys |
+| `lib/runtime/storage/parity.ts` | `readFileSync` pós dry-run | Assert atômico em teste isolado |
+| `publication/load-document.ts` | fallback `readFileSync` | Paths fora de `storageRoot` (parity temp) |
+| `publication/rollback.ts` | `existsSync(to)` | Backup path absoluto legado CLI |
+| `sync-external-reality.ts` | `readFileSync(fixture)` | Fixture Google Places — fora do namespace |
+| `*-parity.ts` | seed/assert temp dirs | Test-only — isolamento explícito |
 
-**Veredicto:** **GO para implementação WS-09A** após aprovação explícita deste charter.
-
-**Condicionantes:**
-
-1. Sprint 1 = **filesystem adapter only** — SQLite Sprint 2 optional
-2. Live static import **preservado** até gate explícito de migração
-3. **Zero** Drizzle/Postgres/auth/admin neste WS
-4. Writes permanecem **CLI-only**
-
-### NO-GO ❌ (se)
-
-- Drizzle migrations / Postgres / cloud DB
-- Auth, permissions, multi-tenant
-- Media API / upload pipeline
-- Admin UI / storage dashboard
-- Realtime / websocket sync
-- Auto-write em request handlers
-- Alteração perceptiva Tier 1
-- Confundir WS-09A com reopen WS-09 enterprise db-media PR
+**Política:** novo I/O operacional runtime/publication/external → **adapter only**. `fs` direto permitido apenas nos casos acima.
 
 ---
 
-## Decisão estratégica adjacente
+## Decisão SQLite
+
+| Decisão | Valor |
+|---------|-------|
+| SQLite adapter | **BLOCKED** — não iniciado neste WS |
+| Condição de reopen | GO humano explícito + charter separado |
+| Motivo do block | Persistência já destrava publication + external + rollback; SQLite = infra adicional sem necessidade operacional imediata |
+| WS-09 enterprise | Permanece **BLOCKED** — Drizzle/Postgres/media API |
+
+---
+
+## Decisão estratégica — pós-fechamento
 
 ```txt
-WS-09A persistence primitiva  →  (este charter)
-WS-09 legacy (Drizzle/Postgres/media)  →  permanece BLOCKED — ciclo separado
-WS-17 editor perceptivo         →  após publication + storage maduros
-WS-18 IA operacional            →  decisão deliberada
+WS-09A persistence primitiva     →  ✅ FECHADO @ 67e41fe
+WS-09 legacy (Drizzle/Postgres)    →  BLOCKED — ciclo separado
+SQLite local                       →  BLOCKED — GO explícito separado
+WS-18A IA operacional mínima       →  ⭐ PRÓXIMO CICLO RECOMENDADO
+WS-17 editor perceptivo            →  alternativa deliberada pós-WS-18A ou paralelo
 ```
 
-**Ordem recomendada pós-09A:** WS-18 (IA) **ou** WS-17 (editor) — **não** reopen WS-09 enterprise automaticamente.
+**Rationale:** Runtime + publication + external + storage maduros — destrave natural é **IA operacional** (adaptação server-side) sem abrir editor ou backend platform.
+
+---
+
+## GO / NO-GO — fechamento WS-09A
+
+### GO ✅ FECHADO
+
+| Condição | Estado |
+|----------|--------|
+| Adapter filesystem implementado | ✅ @ `3e6c80e` |
+| Namespace final fechado | ✅ @ `67e41fe` |
+| Gate `qa:appointment-storage` | ✅ |
+| Gates perceptivos verdes | ✅ |
+| Produto @ `1c92acc` inalterado | ✅ |
+| SQLite não iniciado | ✅ BLOCKED |
+
+### NO-GO ❌ (permanece)
+
+- SQLite / Drizzle / Postgres sem GO separado
+- Auth, permissions, multi-tenant
+- Auto-write em request handlers
+- Alteração perceptiva Tier 1
 
 ---
 
@@ -496,9 +488,11 @@ WS-18 IA operacional            →  decisão deliberada
 
 | Campo | Valor |
 |-------|-------|
-| Charter autor | Etapa 0 @ `a837064` · Etapa 0–1 @ `3e6c80e` · Etapa 2 local |
+| Charter | Etapa 0 @ `a837064` |
+| Implementação | Etapa 1 @ `3e6c80e` · Etapa 2 @ `67e41fe` |
+| Fechamento | Etapa 3 @ docs (pós-`67e41fe`) |
 | Pilot slug | `barba-negra` |
 | Modo | acelerado — filesystem-first |
-| Implementação | Etapa 0–1 publicada · Etapa 2 pronta para commit |
+| Status final | ✅ **WS-09A FECHADO** |
 
-*Persistence Primitive — adapter silencioso, não backend platform.*
+*Persistence Primitive — adapter silencioso, não backend platform. Suficiente para destravar operação.*
