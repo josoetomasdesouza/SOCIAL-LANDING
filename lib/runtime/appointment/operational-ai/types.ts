@@ -2,9 +2,11 @@ import type { ExternalRealitySnapshot } from "../external-reality/types"
 import type { AppointmentRuntimeBundle } from "../types"
 
 export const OPERATIONAL_AI_PROVIDER_FIXTURE = "fixture" as const
+export const OPERATIONAL_AI_PROVIDER_LLM = "llm" as const
 
-export type OperationalAiProvider =
+export type OperationalAiProviderId =
   | typeof OPERATIONAL_AI_PROVIDER_FIXTURE
+  | typeof OPERATIONAL_AI_PROVIDER_LLM
   | "openai"
   | "anthropic"
   | (string & {})
@@ -46,7 +48,7 @@ export interface OperationalAiInput {
 }
 
 export interface AppointmentAiMeta {
-  provider: OperationalAiProvider
+  provider: OperationalAiProviderId
   adaptationKind: OperationalAdaptationKind
   primitiveId: string
   generatedAt: string
@@ -75,7 +77,7 @@ export interface OperationalAiPatch {
 }
 
 export interface OperationalAiOutputEnvelope {
-  provider: OperationalAiProvider
+  provider: OperationalAiProviderId
   adaptationKind: OperationalAdaptationKind
   primitiveId: string
   patch: OperationalAiPatch

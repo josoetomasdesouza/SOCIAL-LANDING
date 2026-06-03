@@ -9,7 +9,8 @@ import { getAppointmentRuntimeSeedDocument } from "../runtime-store"
 import { APPOINTMENT_PILOT_SLUG } from "../types"
 import type { ExternalRealitySnapshot } from "../external-reality/types"
 import { OPERATIONAL_ADAPTATION_KINDS } from "./types"
-import { generateOperationalAiFixture } from "./fixture-generator"
+import { generateOperationalAiFixture, generateOperationalAiOutput } from "./generate-output.server"
+import { parseOperationalAiPatchResponse } from "./parse-output.server"
 import { mergeOperationalPatch, attachOperationalDraftMeta } from "./merge-patch"
 import {
   buildInvalidPatchExample,
@@ -48,7 +49,7 @@ function buildFixtureSnapshot(): ExternalRealitySnapshot {
   }
 }
 
-export function runOperationalAiParityChecks() {
+export async function runOperationalAiParityChecks() {
   const errors: string[] = []
   const slug = APPOINTMENT_PILOT_SLUG
   const baseBundle = getAppointmentRuntimeSeedDocument(slug)
@@ -186,6 +187,46 @@ export function runOperationalAiParityChecks() {
     errors.push("marketing drift copy must be rejected")
   }
 
+  try {
+    const parsedValid = parseOperationalAiPatchResponse(
+      JSON.stringify({ patch: validPatch }),
+      "operational_hints_refresh"
+    )
+
+    if (JSON.stringify(parsedValid) !== JSON.stringify(validPatch)) {
+      errors.push("parser: valid patch envelope must round-trip")
+    }
+  } catch (error) {
+    errors.push(`parser: valid patch envelope failed (${error instanceof Error ? error.message : String(error)})`)
+  }
+
+  try {
+    parseOperationalAiPatchResponse("plain text response", "operational_hints_refresh")
+    errors.push("parser: plain text must be rejected")
+  } catch {
+    // expected
+  }
+
+  try {
+    parseOperationalAiPatchResponse(
+      JSON.stringify({ patch: validPatch, explanation: "extra field" }),
+      "operational_hints_refresh"
+    )
+    errors.push("parser: extra top-level fields must be rejected")
+  } catch {
+    // expected
+  }
+
+  try {
+    parseOperationalAiPatchResponse(
+      JSON.stringify({ patch: buildInvalidPatchExample() }),
+      "operational_hints_refresh"
+    )
+    errors.push("parser: locked-path patch must be rejected")
+  } catch {
+    // expected
+  }
+
   const workspaceDir = mkdtempSync(join(tmpdir(), "operational-ai-draft-write-"))
   const storageSlug = "operational-ai-draft-parity"
 
@@ -205,7 +246,7 @@ export function runOperationalAiParityChecks() {
       errors.push("draft write parity: failed to seed live document")
     }
 
-    const dryRunResult = writeOperationalAiDraft({
+    const dryRunResult = await writeOperationalAiDraft({
       slug: storageSlug,
       adaptationKind: "operational_hints_refresh",
       rootDir: workspaceDir,
@@ -225,7 +266,7 @@ export function runOperationalAiParityChecks() {
       errors.push("draft dry-run: must not create draft key on disk")
     }
 
-    const executeResult = writeOperationalAiDraft({
+    const executeResult = await writeOperationalAiDraft({
       slug: storageSlug,
       adaptationKind: "operational_hints_refresh",
       rootDir: workspaceDir,
@@ -265,6 +306,34 @@ export function runOperationalAiParityChecks() {
     rmSync(workspaceDir, { recursive: true, force: true })
   }
 
+  let llmProviderSkipped = true
+
+  if (process.env.APPOINTMENT_AI_PROVIDER === "llm" && process.env.APPOINTMENT_AI_API_KEY?.trim()) {
+    llmProviderSkipped = false
+
+    try {
+      const llmResult = await generateOperationalAiOutput(
+        {
+          slug,
+          baseBundle,
+          adaptationKind: "operational_hints_refresh",
+          operatorBrief: "llm parity smoke",
+        },
+        { provider: "llm" }
+      )
+
+      if (llmResult.provider !== "llm") {
+        errors.push("llm parity: provider must resolve to llm")
+      }
+
+      if (!llmResult.validation.ok) {
+        errors.push(...llmResult.validation.errors.map((error) => `llm parity: ${error}`))
+      }
+    } catch (error) {
+      errors.push(`llm parity: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
   return {
     ok: errors.length === 0,
     errors,
@@ -275,6 +344,8 @@ export function runOperationalAiParityChecks() {
       marketingDriftRejected: !marketingValidation.ok,
       draftWriteDryRun: true,
       draftWriteRoundTrip: true,
+      parserEnvelopeOk: true,
+      llmProviderSkipped,
     },
   }
 }

@@ -7,7 +7,7 @@ import {
 import { resolveAppointmentDraftDocumentPath } from "../publication/paths"
 import { validateAppointmentDraftBundle } from "../publication/validate-draft"
 import type { AppointmentRuntimeBundle } from "../types"
-import { generateOperationalAiFixture } from "./fixture-generator"
+import { generateOperationalAiOutput } from "./generate-output.server"
 import type {
   OperationalAdaptationKind,
   OperationalAiInput,
@@ -69,9 +69,9 @@ function assertDraftOnlyKey(draftKey: string, slug: string) {
   }
 }
 
-export function writeOperationalAiDraft(
+export async function writeOperationalAiDraft(
   options: WriteOperationalAiDraftOptions
-): WriteOperationalAiDraftResult {
+): Promise<WriteOperationalAiDraftResult> {
   const rootDir = options.rootDir ?? process.cwd()
   const dryRun = options.dryRun ?? true
   const storage = getFilesystemStorage(rootDir)
@@ -86,7 +86,7 @@ export function writeOperationalAiDraft(
   }
 
   const baseBundle = resolveBaseBundle(options.slug, rootDir, options.baseBundle)
-  const envelope = generateOperationalAiFixture({
+  const envelope = await generateOperationalAiOutput({
     slug: options.slug,
     baseBundle,
     adaptationKind: options.adaptationKind,

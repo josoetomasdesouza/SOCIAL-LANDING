@@ -1,5 +1,6 @@
 import { readExternalRealityFileCache } from "../../lib/runtime/appointment/external-reality/snapshot-cache"
 import { isOperationalAdaptationKind } from "../../lib/runtime/appointment/operational-ai/primitives"
+import { resolveOperationalAiProviderId } from "../../lib/runtime/appointment/operational-ai/resolve-provider.server"
 import { writeOperationalAiDraft } from "../../lib/runtime/appointment/operational-ai/write-draft.server"
 import { APPOINTMENT_PILOT_SLUG } from "../../lib/runtime/appointment/types"
 
@@ -12,12 +13,13 @@ function readArg(prefix: string) {
   return match?.slice(prefix.length + 1)
 }
 
-function main() {
+async function main() {
   const slug = readArg("--slug") ?? APPOINTMENT_PILOT_SLUG
   const adaptationKind = readArg("--kind") ?? "operational_hints_refresh"
   const dryRun = !hasFlag("--execute")
   const force = hasFlag("--force")
   const operatorBrief = readArg("--brief")
+  const provider = resolveOperationalAiProviderId()
 
   if (!isOperationalAdaptationKind(adaptationKind)) {
     console.error(`FAIL unknown adaptation kind: ${adaptationKind}`)
@@ -37,7 +39,7 @@ function main() {
   let result
 
   try {
-    result = writeOperationalAiDraft({
+    result = await writeOperationalAiDraft({
       slug,
       adaptationKind,
       dryRun,
@@ -64,6 +66,7 @@ function main() {
     JSON.stringify(
       {
         status: dryRun ? "dry-run" : "executed",
+        provider,
         slug: result.slug,
         adaptationKind: result.adaptationKind,
         primitiveId: result.primitiveId,
@@ -71,7 +74,7 @@ function main() {
         draftPath: result.draftPath,
         derivedFrom: result.derivedFrom,
         roundTripOk: result.roundTripOk,
-        provider: envelope?.provider ?? "fixture",
+        resolvedProvider: provider,
         patch: envelope?.patch ?? null,
         sample: envelope
           ? {
@@ -83,6 +86,10 @@ function main() {
         note: dryRun
           ? "Dry-run only. Pass --execute to write runtime/{slug}/draft via storage adapter."
           : "Draft written. Review before promote — IA pode propor draft mas nunca publicar.",
+        providerNote:
+          provider === "llm"
+            ? "LLM provider active via APPOINTMENT_AI_PROVIDER=llm"
+            : "Fixture provider default (set APPOINTMENT_AI_PROVIDER=llm to opt in)",
       },
       null,
       2
@@ -90,4 +97,4 @@ function main() {
   )
 }
 
-main()
+void main()

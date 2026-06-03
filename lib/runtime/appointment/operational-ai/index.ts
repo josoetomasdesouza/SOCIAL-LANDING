@@ -5,13 +5,16 @@ export type {
   OperationalAiInput,
   OperationalAiOutputEnvelope,
   OperationalAiPatch,
-  OperationalAiProvider,
+  OperationalAiProviderId,
   OperationalAiValidationResult,
 } from "./types"
+
+export type { OperationalAiProvider } from "./provider.interface"
 
 export {
   OPERATIONAL_ADAPTATION_KINDS,
   OPERATIONAL_AI_PROVIDER_FIXTURE,
+  OPERATIONAL_AI_PROVIDER_LLM,
   OPERATIONAL_PRIMITIVE_IDS,
 } from "./types"
 
@@ -31,7 +34,10 @@ export {
   isOperationalAdaptationKind,
 } from "./primitives"
 
-export { generateOperationalAiFixture } from "./fixture-generator"
+export { generateOperationalAiFixture, generateOperationalAiOutput } from "./generate-output.server"
+export { parseOperationalAiPatchResponse } from "./parse-output.server"
+export { resolveOperationalAiProviderId, isOperationalAiLlmEnabled } from "./resolve-provider.server"
+export { OPERATIONAL_AI_PROMPT_PACK_VERSION } from "./prompts/system"
 export { mergeOperationalPatch, attachOperationalDraftMeta } from "./merge-patch"
 
 export {

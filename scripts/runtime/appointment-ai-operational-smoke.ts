@@ -1,7 +1,7 @@
 import { runOperationalAiParityChecks } from "../../lib/runtime/appointment/operational-ai/parity"
 
-function main() {
-  const result = runOperationalAiParityChecks()
+async function main() {
+  const result = await runOperationalAiParityChecks()
 
   if (!result.ok) {
     console.error("FAIL appointment operational ai parity")
@@ -15,7 +15,13 @@ function main() {
   console.log("PASS appointment operational ai id preservation")
   console.log("PASS appointment operational ai drift rejection")
   console.log("PASS appointment operational ai draft write round-trip")
+  console.log("PASS appointment operational ai parser envelope")
+  if (result.snapshot.llmProviderSkipped) {
+    console.log("SKIP appointment operational ai llm provider — env not configured")
+  } else {
+    console.log("PASS appointment operational ai llm provider opt-in")
+  }
   console.log(JSON.stringify(result.snapshot))
 }
 
-main()
+void main()
