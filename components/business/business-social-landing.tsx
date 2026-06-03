@@ -893,8 +893,8 @@ export function BusinessSocialLanding({
         {/* Feed intro */}
         <BusinessFeedIntro config={config} onCartClick={onHeaderCartClick} cartCount={headerCartCount} />
 
-        {/* Leading content slot — before stories (pilot: appointment operational hero) */}
-        {leadingContent}
+        {/* Leading content slot — padded so -mx-4 bleed (e.g. operational hero) stays within main column */}
+        {leadingContent ? <div className="px-4 sm:px-5">{leadingContent}</div> : null}
 
         {/* Stories */}
         <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} className={storiesClassName} />
