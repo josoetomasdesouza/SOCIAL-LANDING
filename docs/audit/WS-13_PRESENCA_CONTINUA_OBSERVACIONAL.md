@@ -1,8 +1,9 @@
 # WS-13 — Presença Contínua (Etapa 1 Observacional)
 
 **Data de abertura:** 2026-05-31  
-**Baseline:** `main` @ `b88172c`  
-**M-01:** ✅ corrigido tecnicamente — revalidação perceptiva na Sessão B  
+**Baseline charter:** `39c7b12` · **validação humana:** `eaf5701` · **higiene pós-sessão:** `bf76278`  
+**Status Etapa 1:** ✅ **FECHADA** — Sessão B humana · ver [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md)  
+**M-01:** ✅ técnico @ `b88172c` · ✅ perceptivo confirmado na Sessão B humana  
 **Tipo:** Observação perceptiva — **zero feature · M-01 foi exceção mínima de contrato**  
 **Piloto:** Appointment / Barba Negra  
 **Relação:** sucessor observacional pós WS-10→12.1 · complementa [`CONTINUITY_HANDOFF_AUDIT.md`](CONTINUITY_HANDOFF_AUDIT.md)
@@ -249,7 +250,9 @@ sem anunciar que lembra?
 
 ## Sessão B humana (obrigatória)
 
-**Status:** ☐ Pendente  
+**Status:** ✅ **Concluída** — humana @ `eaf5701` · proxy arquivo @ `39c7b12`  
+**Fechamento oficial:** [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md)  
+**Relatório proxy:** [`WS-13_SESSION_B_OBSERVATION_REPORT.md`](WS-13_SESSION_B_OBSERVATION_REPORT.md)  
 **Guia de execução:** [`WS-13_SESSION_B_FACILITATOR.md`](WS-13_SESSION_B_FACILITATOR.md)  
 **Substitui / estende:** [`WS-11_HUMAN_CONTINUITY_VALIDATION.md`](WS-11_HUMAN_CONTINUITY_VALIDATION.md) §Sessão B — mesma sessão, lente WS-13 nos 5 pilares.
 
@@ -321,7 +324,20 @@ Os dois gestos parecem a mesma viagem física
 ou ainda há sensação de chip colocado no drawer?
 ```
 
-#### Fluxo 5 — Device real / 320
+#### Fluxo 5 — Composer smoke-fume + expansionProgress (@ `39c7b12`)
+
+Observar: peso visual · integração feed · barra fixa vs ambiente · materialidade · expansionProgress no drag
+
+**Pergunta gate:**
+
+```txt
+O composer ficou mais integrado
+ou começou a chamar atenção para si?
+```
+
+Rollback imediato se: “mais bonito/premium/moderno/parece iPhone”.
+
+#### Fluxo 6 — Device real / 320
 
 Navegação completa em viewport narrow ou telefone real.
 
@@ -361,72 +377,71 @@ ou parece um sistema tentando parecer vivo?
 
 ---
 
-## Registro — Sessão B (preencher após sessão)
+## Registro — Sessão B
 
-**Participante:** _anonimizado_  
-**Data:**  
-**Ambiente:** 320 / 390 / device real  
-**Facilitador:**
+**Proxy @ 2026-06-01 · baseline `39c7b12`:** ver [`WS-13_SESSION_B_OBSERVATION_REPORT.md`](WS-13_SESSION_B_OBSERVATION_REPORT.md)
+
+**Participante humano:** _anonimizado (externo)_ — ver [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md)  
+**Data humana:** 2026-06-03 (consolidação) · sessão @ `eaf5701`  
+**Ambiente humano:** iPhone Safari · `/demo` → Agendamento  
+**Ambiente proxy:** 390×844 + 320×568 · produção local `:3004` @ `39c7b12`  
+**Facilitador proxy:** capturas Playwright + revisão facilitador
 
 ### Fluxo 1 — exploração casual
 
-_Observações:_
+Smoke-fume integrado; feed editorial legível; composer ~62px compacto sem barra opaca pesada.
 
 ### Fluxo 2 — chegada contextual
 
-_Observações:_
+Drawer chegada coerente; composer oculto (`height: 0`).
 
 ### Fluxo 3 — retorno ao feed
 
-_Observações:_
+Scroll preservado; composer restaura smoke-fume.
 
 ### Fluxo 4 — booking rápido
 
-_Observações:_
+**Humano:** executado — booking transacional sem ruptura bloqueante (operador).  
+**Proxy:** não executado.
 
 ### Fluxo 4B — hipótese M-01 (feed hold vs drawer hold)
 
 | Campo | Feed | Drawer |
 |-------|------|--------|
-| Long-press espontâneo ou probe | | |
-| Viagem / teleport percebido | | |
-| Continuidade quebrada | | |
-| Artificial / colocado | | |
-| Hesitação | | |
+| Long-press espontâneo ou probe | probe | probe |
+| Viagem / teleport percebido | não (visual) | inconclusivo |
+| Continuidade quebrada | não | inconclusivo |
+| Artificial / colocado | não | inconclusivo |
+| Hesitação | n/a | n/a |
 
-_Veredicto M-01 (facilitador):_ ☐ paridade confirmada ☐ ruptura residual ☐ inconclusivo
+_Veredicto M-01 (proxy):_ ☐ paridade confirmada ☐ ruptura residual ☑ inconclusivo  
+_Veredicto M-01 (humano):_ ☑ paridade confirmada ☐ ruptura residual ☐ inconclusivo
 
-### Fluxo 5 — 320 / device real
+### Fluxo 5 — composer smoke-fume
 
-_Observações:_
+Integrado — não showcase. expansionProgress 62→554→745px. Gate anti-premium: **passou (proxy)**.
 
-### Respostas indiretas
+### Fluxo 6 — 320 / device real
 
-| Pergunta | Resposta |
-|----------|----------|
-| Conversa ou app? | |
-| Inteligente demais? | |
-| Continuidade sentida? | |
-| Feed = continuação? | |
-| Artificial? | |
-| Recomeçava? | |
-| Vivo ou montado? | |
-| Queria impressionar? | |
+**Proxy:** 320×568 OK. **Humano:** Safari real — cadência e composer presentes.
 
-### Perguntas M-01 (se fluxo 4B executado)
+### Achado adjacente (higiene — pós-sessão)
 
-- Algo apareceu de repente em algum momento?
-- Os dois gestos (feed vs agendamento) pareceram iguais ou diferentes?
-- Algo pareceu “pular” na tela?
+Hero overflow horizontal em Safari → corrigido @ `bf76278` · **não** falha de presença contínua.
+
+### Respostas indiretas (síntese humana — operador)
+
+Conversa > app · sem inteligência perceptível · continuidade sentida · não artificial · lugar vivo · feed = continuação · sem “querer impressionar”.
 
 ### Pergunta gate final
 
-```txt
-A experiência parece inevitável
-ou parece um sistema tentando parecer vivo?
-```
+**Inevitável** — não “sistema tentando parecer vivo” (operador).
 
-_Veredicto facilitador (1–2 frases):_
+---
+
+## Registro — Sessão B (humano)
+
+**Autoridade:** [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md) — template preenchido na consolidação @ `bf76278`.
 
 ---
 
@@ -447,19 +462,19 @@ Documento **completo** quando Sessão B preenchida:
 
 | Pilar | Veredicto | Evidência (1 linha) |
 |-------|-----------|---------------------|
-| 1 Continuidade temporal | ☐ GO ☐ NO-GO ☐ observar | |
-| 2 Ritmo contextual | ☐ GO ☐ NO-GO ☐ observar | |
-| 3 Feed orgânico | ☐ GO ☐ NO-GO ☐ observar | |
-| 4 Ambience social implícita | ☐ GO ☐ NO-GO ☐ observar | |
-| 5 Memória ambiental leve | ☐ GO ☐ NO-GO ☐ observar | |
+| 1 Continuidade temporal | ☑ GO ☐ NO-GO ☐ observar | Retorno feed sem recomeço (humano Safari) |
+| 2 Ritmo contextual | ☑ GO ☐ NO-GO ☐ observar | Hero → chegada → booking coerente (humano) |
+| 3 Feed orgânico | ☑ GO ☐ NO-GO ☐ observar | Editorial “casa” (humano) |
+| 4 Ambience social implícita | ☑ GO ☐ NO-GO ☐ observar | Presença sentida; composer integrado (humano) |
+| 5 Memória ambiental leve | ☑ GO ☐ NO-GO ☐ observar | Morph M-01 paridade device real (humano) |
 
 ### M-01 (morph feed vs drawer hold)
 
 | | |
 |---|---|
 | **Status técnico** | ✅ Corrigido @ `b88172c` |
-| **Status perceptivo** | ☐ Pendente Sessão B ☐ Paridade confirmada ☐ Ruptura residual ☐ Inconclusivo |
-| **Evidência** | |
+| **Status perceptivo** | ☑ **Paridade confirmada (humano)** ☐ Inconclusivo (proxy only) ☐ Ruptura residual |
+| **Evidência** | Sessão B Safari — feed ↔ drawer mesma viagem; proxy drawer inconclusivo superado |
 | **Abrir novo fix M-01?** | ☐ **NÃO** (default — fix aplicado) ☐ Sim — só com ruptura consciente documentada |
 
 ### M-05 (residual — observar, não fixar)
@@ -470,9 +485,9 @@ Composer `hidden` @ chegada → fallback rect pode land impreciso. Registrar se 
 
 | | |
 |---|---|
-| **Etapa 1 completa?** | ☐ Sim (Sessão B feita) ☐ Não |
-| **Abrir Etapa 2 (micro-cleanup)?** | ☐ Sim ☐ Não ☐ Condicionado |
-| **Abrir WS funcional?** | ☐ **NÃO** até evidência + gates |
+| **Etapa 1 completa?** | ☑ **Sim** (Sessão B humana fechada @ `eaf5701`) ☐ Não |
+| **Abrir Etapa 2 (micro-cleanup)?** | ☐ Sim ☑ **Não** (default) ☐ Condicionado |
+| **Abrir WS funcional?** | ☐ **NÃO** (default charter) |
 
 **Sem** backlog de feature. **Sem** novos sistemas.
 
@@ -521,14 +536,14 @@ presença inevitável
 
 ---
 
-## Próximo passo
+## Próximo passo (pós-Etapa 1)
 
-1. Executar **Sessão B humana** (5 pilares + Fluxo 4B revalidação M-01)
-2. Preencher §Registro e §Veredicto por pilar
-3. **Pausa curta**
-4. Só então decidir Etapa 2 micro — ou nenhum WS funcional
+1. ~~Sessão B humana~~ ✅ — ver [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md)
+2. **Pausa curta** antes de qualquer WS funcional
+3. **WS-17:** apenas deliberação — [`WS-17_CANDIDATE_COMPOSER_PAGE_PHYSICS.md`](WS-17_CANDIDATE_COMPOSER_PAGE_PHYSICS.md) · **NO-GO implementação** sem GO explícito
+4. Opcional: arquivar proxy (`session-b-captures/`, `ws13b-observation-log.json`) em commit docs separado
 
-**Não abrir novo fix.** M-05 permanece observação residual.
+**Não abrir novo fix M-01.** M-05 permanece observação residual.
 
 ---
 

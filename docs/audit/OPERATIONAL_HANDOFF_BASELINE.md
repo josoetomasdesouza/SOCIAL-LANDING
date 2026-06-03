@@ -1,6 +1,7 @@
 # Handoff Operacional — Social Landing
 
-**Data:** 2026-06-03 (atualizado pós WS-18A Etapa 4)  
+**Data:** 2026-06-03 (atualizado pós WS-13 Etapa 1 + WS-18A)
+**Baseline remoto:** `origin/main` @ `bf76278`  
 **Tipo:** Baseline consolidado · estado atual · sem propostas de feature  
 **Autoridade:** Registrar contexto para próxima conversa — não reabrir filosofia congelada  
 **WS-18A runbook canônico:** [`WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md`](WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md)
@@ -23,16 +24,13 @@
 | **Produto perceptivo freeze** | `1c92acc` | Tier 1 · feed/composer/morph/drawer — INTOCADOS por política operacional |
 | **Era 3 cognitiva (resolvers)** | `ca00dc7` (WS-08C) | Composer conversacional mock · camada separada |
 
-### Verificação remota vs briefing (crítico)
+### Estado remoto
 
 | Estado | Detalhe |
 |--------|---------|
-| **`origin/main` (fetch 2026-06-03)** | `23fec61` — último commit remoto = Etapa 2 draft write |
-| **WS-18A Etapa 3 (código)** | Briefing: publicada · **árvore local:** modified/untracked em `operational-ai/` — confirmar commit + push |
-| **WS-18A Etapa 4 (docs)** | Closure doc + charter + WORKSTREAMS — commit docs-only pendente |
-| Outros untracked | WS-13 Sessão B · `data/runtime/appointment/external/` — não misturar com WS-18A |
-
-**Regra:** assumir baseline `23fec61` + código Etapa 3 conforme operador; registar hash Etapa 3 em `WORKSTREAMS` após `git log origin/main`.
+| **`origin/main`** | `bf76278` — WS-18A fechada · hero higiene · WS-13 docs locais pendentes commit |
+| **Untracked opcional** | Proxy WS-13 (`session-b-captures/`, `ws13b-observation-log.json`, `WS-13_SESSION_B_OBSERVATION_REPORT.md`) |
+| **Não commitar** | `data/runtime/external/` · `.next/` · `next-env.d.ts` |
 
 ---
 
@@ -82,7 +80,7 @@
 |----|--------|
 | WS-03 Stack A Parity | 🔴 Blocked (gaps menores) |
 | WS-10 | 🟡 Observational hardening (macro) |
-| WS-13 Presença contínua | 🟡 Etapa 1 · proxy Sessão B · humano pendente |
+| WS-13 Presença contínua | ✅ **Etapa 1 FECHADA** · Sessão B humana @ `eaf5701` · [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md) |
 | WS-09 DB enterprise | 🔴 BLOCKED |
 
 ---
@@ -309,7 +307,7 @@ resolveOperationalAiProvider()
 |----|-------|------------|--------|
 | R-01 | Etapa 3 hash não confirmado em `origin/main` | Alta | Verificar push · registar hash |
 | R-02 | `WORKSTREAMS.md` WS-18A | Média | ✅ Fechado Etapa 4 |
-| R-03 | WS-13 Sessão B humana pendente — promoção overlay perceptiva | Média | Observacional |
+| R-03 | WS-13 Etapa 1 fechada — promoção overlay ainda condicionada WS-16A | Baixa | Sessão B ✅ |
 | R-04 | LLM nondeterminismo (Etapa 3) — mitigado por parser+validate | Média | Controlado se gated |
 | R-05 | Confundir WS-08C composer com WS-18A operational | Alta | Boundary documentado |
 | R-06 | `meta.ai` não persistido no JSON do draft | Baixa | Envelope-only |
@@ -340,7 +338,7 @@ resolveOperationalAiProvider()
 |---|---------|----------|
 | 1 | **Commit + push WS-18A Etapa 3** (se ainda local) | Gates locais · escopo `operational-ai/` isolado |
 | 2 | **Commit docs WS-18A Etapa 4** | `WS-18A_ETAPA_4_*` · charter · WORKSTREAMS · este handoff |
-| 3 | **WS-13 Sessão B humana** — fechar Etapa 1 observacional | Antes de promover overlay/default changes |
+| 3 | ~~WS-13 Sessão B~~ ✅ · deliberar **WS-17** (GO humano) | Não implementar WS-17 automaticamente |
 | 4 | **Promover draft IA/manual para live** (operador) | Após review · `promote --execute` |
 | 5 | **WS-17 vs continuação WS-18A** (editor vs mais primitives) | GO humano · não automático |
 | 6 | **WS-09 enterprise** | BLOCKED — GO humano explícito apenas |
@@ -388,7 +386,7 @@ resolveOperationalAiProvider()
 Produto perceptivo: maduro e congelado (@ 1c92acc)
 Infra Appointment: madura o suficiente para operação diária (runtime + publication + storage + external)
 IA operacional: WS-18A fechado (fixture + LLM opt-in + runbook)
-Próximo passo operacional típico: confirmar Etapa 3 em main → review humano de draft → promote manual · WS-13 Sessão B · WS-17 deliberado
+Próximo passo operacional típico: review/promote draft manual · **deliberar WS-17** (charter) · WS-09 enterprise BLOCKED
 ```
 
 ---
@@ -404,6 +402,8 @@ Próximo passo operacional típico: confirmar Etapa 3 em main → review humano 
 | WS-15A Publication | `docs/audit/WS-15A_PUBLICATION_PRIMITIVE.md` |
 | WS-16A External | `docs/audit/WS-16A_EXTERNAL_REALITY_MINIMUM.md` |
 | WS-18A Operational AI | `docs/audit/WS-18A_OPERATIONAL_AI_MINIMUM.md` · `docs/audit/WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md` |
+| WS-13 Presença contínua | `docs/audit/WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md` · `docs/audit/WS-13_ETAPA_1_HUMAN_CLOSURE.md` |
+| WS-17 candidato | `docs/audit/WS-17_CANDIDATE_COMPOSER_PAGE_PHYSICS.md` (sem implementação) |
 | Perceptual language | `docs/os/PERCEPTUAL_LANGUAGE_SYSTEM.md` |
 | CI strategy | `docs/audit/CI_MINIMUM_STRATEGY.md` |
 

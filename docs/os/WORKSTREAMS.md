@@ -345,8 +345,23 @@
 | **Entregáveis** | [`WS-09A_PERSISTENCE_PRIMITIVE.md`](../audit/WS-09A_PERSISTENCE_PRIMITIVE.md) · runbook §Runbook operacional |
 | **Gate de saída** | G1–G12 ✅ · `pnpm qa:appointment-storage` · publication + runtime gates |
 | **Decisão** | Persistência = infra silenciosa · writes CLI-only · SQLite optional **BLOCKED** até GO explícito |
-| **Próximo ciclo** | WS-13 Sessão B humana · WS-17 (editor) deliberado · WS-09 enterprise BLOCKED |
+| **Próximo ciclo** | WS-17 (editor) deliberado · WS-09 enterprise BLOCKED |
 | **Refs** | WS-14A runtime · WS-15A publication · WS-16A external · WS-18A ✅ · produto @ `1c92acc` |
+
+---
+
+### WS-13 — Presença Contínua (Etapa 1 Observacional)
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 4 — Presença contextual (piloto) |
+| **Status** | ✅ **Etapa 1 FECHADA** — Sessão B humana @ `eaf5701` · fechamento docs @ `bf76278` |
+| **Objetivo** | Observar presença contínua sem features — proteger continuidade mental |
+| **Escopo** | 5 pilares · fluxos 1–6 + 4B M-01 · zero código funcional na Etapa 1 |
+| **Entregáveis** | [`WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md`](../audit/WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md) · [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](../audit/WS-13_ETAPA_1_HUMAN_CLOSURE.md) |
+| **Gate de saída** | Sessão B humana GO · M-01 perceptivo confirmado · G1–G8 preservados |
+| **Decisão** | Não abrir WS funcional automaticamente · Etapa 2 micro **não** autorizada |
+| **Refs** | Proxy @ `39c7b12` · M-01 @ `b88172c` · higiene hero @ `bf76278` |
 
 ---
 
@@ -436,10 +451,10 @@ WS-01 ✅ → … → WS-08C ✅ — **Era 3 cognitiva consolidada**
 WS-09B → WS-09D.1 ✅ — **Era 4 piloto presença contextual** (Appointment)
 WS-10 ✅ — Etapas 1–3 concluídas · [`PERCEPTUAL_LANGUAGE_SYSTEM.md`](PERCEPTUAL_LANGUAGE_SYSTEM.md)
 WS-11 ✅ — Arrival return scroll continuity (gate §8 · piloto Appointment)
-  └──► Pós-WS-11 Human Continuity Validation — [`WS-11_HUMAN_CONTINUITY_VALIDATION.md`](../audit/WS-11_HUMAN_CONTINUITY_VALIDATION.md) (Proxy A ✅ · Sessão B humana pendente)
+  └──► Pós-WS-11 Human Continuity Validation — [`WS-11_HUMAN_CONTINUITY_VALIDATION.md`](../audit/WS-11_HUMAN_CONTINUITY_VALIDATION.md) (Proxy A ✅ · Sessão B via WS-13 ✅)
 WS-12 ✅ — Drawer physical continuity · [`WS-12_DRAWER_PHYSICAL_CONTINUITY.md`](../audit/WS-12_DRAWER_PHYSICAL_CONTINUITY.md)
   └──► WS-12.1 ✅ — Perceptual validation · [`WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md`](../audit/WS-12-1_DRAWER_PHYSICS_PERCEPTUAL_VALIDATION.md)
-WS-13 🟡 — Presença contínua · Etapa 1 observacional · [`WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md`](../audit/WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md) (M-01 ✅ @ `b88172c` · Sessão B pendente)
+WS-13 ✅ — Presença contínua Etapa 1 · [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](../audit/WS-13_ETAPA_1_HUMAN_CLOSURE.md) @ `eaf5701`/`bf76278` (Sessão B humana GO · M-01 perceptivo confirmado)
 WS-16A ✅ — External Reality Minimum · [`WS-16A_EXTERNAL_REALITY_MINIMUM.md`](../audit/WS-16A_EXTERNAL_REALITY_MINIMUM.md) @ `d9c4f3e` (overlay opt-in · default OFF · Sessão B antes de promoção)
 WS-15A ✅ — Publication Primitive · [`WS-15A_PUBLICATION_PRIMITIVE.md`](../audit/WS-15A_PUBLICATION_PRIMITIVE.md) @ `a837064` (draft/live CLI · preview OFF · auto-promote proibido)
 WS-09A ✅ — Persistence Primitive · [`WS-09A_PERSISTENCE_PRIMITIVE.md`](../audit/WS-09A_PERSISTENCE_PRIMITIVE.md) @ `67e41fe` (filesystem adapter · SQLite BLOCKED)
@@ -448,7 +463,7 @@ WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB enterprise) — BLOCKED, GO humano separado
 ```
 
-**Atual:** **Era 4 emergente** @ `67e41fe` — WS-09A · WS-15A · WS-16A · **WS-18A ✅ fechado**; WS-13 Etapa 1 ativa; **próximo ciclo deliberado:** WS-13 Sessão B humana · WS-17 (editor) · WS-09 enterprise permanece BLOCKED.
+**Atual:** **Era 4 emergente** @ `bf76278` — WS-09A · WS-15A · WS-16A · **WS-18A ✅** · **WS-13 Etapa 1 ✅**; **próximo ciclo deliberado:** WS-17 (editor — GO humano explícito) · WS-09 enterprise BLOCKED.
 
 ---
 

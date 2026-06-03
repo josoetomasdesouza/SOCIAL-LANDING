@@ -29,7 +29,7 @@ A experiência deve funcionar **silenciosamente**.
 | Sessão | Participante | Validade |
 |--------|--------------|----------|
 | **Proxy A** | Facilitador + walkthrough instrumentado | Baseline comportamental — **não substitui humano externo** |
-| **Sessão B** | Pessoa não envolvida no projeto | ☐ **Pendente** — protocolo unificado em [`WS-13`](WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md) §Sessão B |
+| **Sessão B** | Pessoa não envolvida no projeto | ✅ **Concluída** — [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md) |
 
 Esta entrega documenta **Proxy A** + protocolo pronto para **Sessão B**.
 
@@ -150,7 +150,7 @@ sem perceber que existe um sistema criando isso.
 | Avaliador | Veredicto |
 |-----------|-----------|
 | Proxy A | **Parcial GO** — continuidade sentida; sistema invisible no retorno scroll |
-| Sessão B humana | ☐ Pendente |
+| Sessão B humana | ✅ **Concluída** — protocolo unificado em WS-13 @ `eaf5701` · [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md) |
 
 ---
 
@@ -184,10 +184,10 @@ Não inteligente.
 
 | Item | Status |
 |------|--------|
-| Abrir WS imediato | **NÃO** — aguardar Sessão B humana |
+| Abrir WS imediato | **NÃO** — pausa pós Sessão B; WS funcional só com GO |
 | Proxy A baseline | ✅ documentado |
-| Protocolo Sessão B | ✅ pronto |
-| GO cultural pós-WS-11 | ✅ **condicionado** a 1 sessão externa |
+| Protocolo Sessão B | ✅ executado (WS-13) |
+| GO cultural pós-WS-11 | ✅ **confirmado** — continuidade sentida em sessão externa |
 
 ---
 
@@ -201,12 +201,17 @@ Não inteligente.
 
 ---
 
+## Sessão B — síntese (via WS-13)
+
+Continuidade contextual sentida em iPhone Safari sem explicação do sistema. Retorno ao feed preserva lugar; chegada e booking não quebram presença de forma bloqueante. M-01 morph feed ↔ drawer com paridade perceptiva confirmada. Único achado adjacente: hero overflow horizontal (higiene layout @ `bf76278`) — fora do escopo continuidade WS-11.
+
+**Fechamento:** [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md)
+
 ## Próximo passo
 
-1. Recrutar **1 participante externo** (5–8 min)
-2. Executar protocolo §Sessão B sem vocabulário de produto
-3. Atualizar este doc com **Sessão B** — 1 parágrafo por fluxo
-4. Só então considerar próximo WS funcional
+1. ~~Sessão B humana~~ ✅
+2. Pausa curta
+3. Deliberar WS-17 — **sem implementação automática**
 
 ---
 
