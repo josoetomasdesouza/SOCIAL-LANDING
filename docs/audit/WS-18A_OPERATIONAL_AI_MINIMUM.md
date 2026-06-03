@@ -1,11 +1,11 @@
 # WS-18A — Operational AI Minimum: Appointment First
 
-**Baseline técnico:** `origin/main` @ `0b14eb7`  
-**Pré-requisitos:** WS-14A ✅ runtime-backed · WS-15A ✅ publication · WS-16A ✅ external reality · WS-09A ✅ storage  
+**Baseline técnico publicado:** `origin/main` @ `23fec61` (Etapas 1–2) · Etapa 3 código — ver [`WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md`](WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md) §2  
+**Pré-requisitos:** WS-14A ✅ · WS-15A ✅ · WS-16A ✅ · WS-09A ✅  
 **Baseline produto perceptivo:** `1c92acc` (inalterado)  
 **Classificação:** camada operacional de adaptação server-side — **não** feature de chat · **não** agente autônomo  
-**Status:** 📋 Charter proposto (Etapa 0) — **sem implementação até GO explícito**  
-**Relação:** senta sobre runtime bundle + publication draft + storage adapter; **não substitui** WS-08C (composer resolver) · **não abre** WS-17 (editor) · **distinto de** chatbot / copiloto visual
+**Status:** ✅ **FECHADO** — Etapas 0–4 · runbook oficial em Etapa 4 closure doc  
+**Relação:** senta sobre runtime bundle + publication draft + storage adapter; **não substitui** WS-08C · **não abre** WS-17 · **distinto de** chatbot / copiloto visual
 
 ---
 
@@ -83,19 +83,19 @@ Depois deste WS (se gate cumprido):
 
 ---
 
-## Estado atual (pós WS-09A @ `0b14eb7`)
+## Estado atual (pós fechamento WS-18A)
 
 | Camada | Status | Relação com WS-18A |
 |--------|--------|-------------------|
-| Runtime bundle v1 | ✅ `barba-negra.v1.json` + projection | **Input base** |
+| Runtime bundle v1 | ✅ `barba-negra` + projection | **Input base** (live read) |
 | Publication draft/live | ✅ CLI promote/rollback · preview OFF | **Output sink** (draft only) |
-| Storage adapter | ✅ `getFilesystemStorage()` · keys namespace | **Write port** |
-| External snapshot | ✅ opt-in · default OFF | **Input opcional** (enrichment) |
-| Composer resolver | ✅ WS-08C mock · client-side | **Fora de escopo** — não confundir |
-| IA operacional server | ❌ inexistente | **Gap deste WS** |
-| Auto-promote / auto-publish | ❌ proibido (WS-15A) | **Permanece proibido** |
+| Storage adapter | ✅ `getFilesystemStorage()` · keys `runtime/*` | **Write port** |
+| External snapshot | ✅ opt-in · default OFF | **Input opcional** (P-05) |
+| Composer resolver | ✅ WS-08C mock · client-side | **Isolado** — não estendido |
+| IA operacional server | ✅ `lib/runtime/appointment/operational-ai/` | fixture default · LLM opt-in |
+| Auto-promote / auto-publish | ❌ proibido (WS-15A) | **Inalterado** |
 
-**Gap:** operador adapta copy manualmente ou via seed — não há pipeline de **variação assistida** que respeite bundle grammar + publication validate.
+**Entregue:** primitives P-01…P-07 · merge `merge-patch.ts` · draft write · provider fixture/LLM · parser `{ patch }` · CLI `runtime:appointment:ai-draft` · gate `qa:appointment-ai-operational`.
 
 ---
 
@@ -251,11 +251,12 @@ Primitives = **units of work** com prompt + validate + merge bounded:
    └─ operador decide: discard | edit manual | promote --execute
 ```
 
-**CLI proposto (Etapas futuras — não implementado):**
+**CLI (implementado @ `23fec61` + Etapa 3):**
 
 ```bash
-pnpm runtime:appointment:ai-draft -- --kind operational_hints_refresh [--dry-run]
-pnpm runtime:appointment:ai-validate   # re-validate draft pós-IA
+pnpm runtime:appointment:ai-draft --kind operational_hints_refresh --brief="..."
+pnpm runtime:appointment:ai-draft --kind operational_hints_refresh --brief="..." --execute [--force]
+pnpm runtime:appointment:draft-validate
 ```
 
 ---
@@ -364,51 +365,17 @@ pnpm qa:events                       # 8/8 passive events
 
 ---
 
-## Plano de implementação — micro-etapas
+## Plano de implementação — micro-etapas (realizado)
 
-### Etapa 0 — Charter ✅ (este documento)
+| Etapa | Entrega | Ref |
+|-------|---------|-----|
+| **0** Charter | Este documento | `31c9b78` |
+| **1** Types + primitives + fixture | `types.ts` · `primitives.ts` · `validate-output.ts` · `fixture-generator.ts` | `e64912c` |
+| **2** Merge + draft write | `merge-patch.ts` · `write-draft.server.ts` · CLI · parity | `23fec61` |
+| **3** Provider LLM opt-in + parser | `provider.*` · `parse-output.server.ts` · `prompts/` · `generate-output.server.ts` | commit Etapa 3 |
+| **4** Runbook + fechamento | [`WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md`](WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md) · `WORKSTREAMS.md` | docs-only |
 
-- [x] Objetivos e boundaries WS-18A
-- [x] Input/output model + adaptation primitives
-- [x] Pipeline mínimo + review gates
-- [x] Failure modes + rollback
-- [x] Gate principal + pergunta arquitetural
-- [ ] **GO humano explícito para código**
-
-### Etapa 1 — Types + primitives foundation
-
-- `operational-ai/types.ts` — `OperationalAdaptationKind`, I/O contracts
-- `operational-ai/primitives.ts` — allowedPaths per primitive
-- `operational-ai/validate-output.ts` — schema + ID lock + editorial gate
-- Fixture generator (deterministic, zero API)
-- **Zero wiring produto**
-
-### Etapa 2 — Merge + draft write
-
-- `operational-ai/merge-into-draft.ts` — bounded patch merge
-- Wire storage adapter draft key (WS-09A)
-- Extend `meta.publication.derivedFrom` with `"ai"` + `meta.ai` provenance
-- Dry-run default
-
-### Etapa 3 — Provider adapter (opt-in)
-
-- `operational-ai/provider.fixture.ts` — default gate mode
-- `operational-ai/provider.llm.server.ts` — env-gated (`APPOINTMENT_AI_PROVIDER`)
-- **Default fixture** — CI verde sem API key
-
-### Etapa 4 — CLI + parity gate
-
-- `scripts/runtime/generate-appointment-ai-draft.ts`
-- `pnpm qa:appointment-ai-operational` — fixture round-trip
-- Extend publication validate smoke
-
-### Etapa 5 — Runbook + gates + WORKSTREAMS
-
-- Runbook §IA operacional
-- Gate de saída G1–G14
-- WS-18A fechado
-
-**Estimativa:** 2–3 PRs — (1) types + fixture · (2) merge + CLI · (3) optional LLM + runbook
+**Nota de numeração:** CLI/parity foram entregues na Etapa 2; runbook do charter original (Etapa 5) = **Etapa 4** documental deste ciclo.
 
 ---
 
@@ -433,7 +400,9 @@ pnpm qa:events                       # 8/8 passive events
 
 ---
 
-## Runbook operacional (proposto)
+## Runbook operacional (oficial)
+
+**Autoridade detalhada:** [`WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md`](WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md) — arquitetura provider · parser · checklist humano · gates G1–G14.
 
 ### Política oficial
 
@@ -441,66 +410,38 @@ pnpm qa:events                       # 8/8 passive events
 |----------|-------|
 | **IA operacional** | Infra silenciosa — não superfície produto |
 | Default provider | `fixture` (deterministic) |
-| Write target | `runtime/{slug}/draft` only |
-| Promote | **Manual** — operador `promote --execute` |
-| Preview | Opt-in `APPOINTMENT_PUBLICATION_PREVIEW=draft` |
-| Composer WS-08C | **Não estender** neste WS |
+| LLM opt-in | `APPOINTMENT_AI_PROVIDER=llm` + API key |
+| Write target | `runtime/{slug}/draft` only · `derivedFrom: ai` |
+| Dry-run | **default** no código; CLI `--execute` para write |
+| Promote | **Manual** — `promote --execute` (WS-15A) |
+| Composer WS-08C | **Isolado** |
 
-### Variáveis (propostas)
+### Variáveis
 
 | Variável | Default | Função |
 |----------|---------|--------|
-| `APPOINTMENT_AI_PROVIDER` | `fixture` | `fixture` \| `openai` \| … |
-| `APPOINTMENT_AI_MODEL` | unset | model slug when provider ≠ fixture |
-| `APPOINTMENT_AI_DRY_RUN` | `1` | skip draft write unless `0` |
-| `APPOINTMENT_PUBLICATION_PREVIEW` | unset | WS-15A — independente |
-| `NEXT_PUBLIC_APPOINTMENT_EXTERNAL_REALITY` | OFF | WS-16A — independente |
-
-### Fluxo operador
-
-```bash
-# 1. Gerar draft (dry-run)
-pnpm runtime:appointment:ai-draft -- --kind operational_hints_refresh --dry-run
-
-# 2. Executar write draft
-pnpm runtime:appointment:ai-draft -- --kind operational_hints_refresh --execute
-
-# 3. Validar
-pnpm runtime:appointment:draft-validate
-
-# 4. Preview local (opt-in)
-APPOINTMENT_PUBLICATION_PREVIEW=draft pnpm dev
-
-# 5. Promote (manual, operador)
-pnpm runtime:appointment:promote -- --execute
-```
+| `APPOINTMENT_AI_PROVIDER` | `fixture` | `fixture` \| `llm` \| `openai` |
+| `APPOINTMENT_AI_API_KEY` / `OPENAI_API_KEY` | unset | obrigatório para LLM |
+| `APPOINTMENT_AI_MODEL` | `gpt-4o-mini` | model slug LLM |
+| `APPOINTMENT_AI_BASE_URL` | OpenAI v1 | endpoint compatível |
 
 ---
 
-## GO / NO-GO — começar código
+## GO / NO-GO — fechamento workstream
 
-### GO ✅ (recomendado — charter)
+### GO ✅ FECHADO (WS-18A)
 
 | Condição | Estado |
 |----------|--------|
-| WS-09A storage fechado | ✅ @ `67e41fe` |
-| WS-15A publication fechado | ✅ @ `a837064` |
-| WS-16A external fechado | ✅ default OFF |
-| WS-14A runtime wired | ✅ |
-| Produto @ `1c92acc` | ✅ frozen |
-| Gate substituição vs adaptação respondido | ✅ draft estruturado |
-| Escopo Appointment-only | ✅ este charter |
+| Etapas 1–3 código + gates locais | ✅ (briefing operador) |
+| Etapa 4 documentação | ✅ |
+| G1–G14 | ✅ ver closure doc §5 |
+| Tier 1 @ `1c92acc` | ✅ intocado |
+| WS-08C isolado | ✅ |
 
-**Veredicto:** **GO para implementação WS-18A** após aprovação explícita deste charter.
+**Condicionante operacional:** confirmar commit Etapa 3 em `origin/main` e registar hash em `WORKSTREAMS.md` (ver closure §2 I-08).
 
-**Condicionantes:**
-
-1. Etapa 1 = **fixture provider only** — LLM opt-in posterior
-2. **Zero** auto-promote · **zero** JSX · **zero** composer LLM
-3. Draft authenticity = passa validate + perceptual checklist
-4. WS-08C permanece isolado
-
-### NO-GO ❌ (se)
+### NO-GO ❌ (escopo futuro — não reabrir WS-18A mínimo)
 
 - Chatbot / agent loop / multi-agent
 - Auto-publish ou auto-promote
@@ -516,13 +457,11 @@ pnpm runtime:appointment:promote -- --execute
 ## Decisão estratégica adjacente
 
 ```txt
-WS-18A IA operacional mínima   →  (este charter) ⭐ recomendado pós-WS-09A
-WS-17 editor perceptivo        →  após ou paralelo — superfície, não infra
+WS-18A IA operacional mínima   →  ✅ FECHADO
+WS-17 editor perceptivo        →  próximo ciclo deliberado (não iniciado)
 WS-09 enterprise (DB)          →  BLOCKED
 WS-08C composer resolver       →  intacto — demo conversacional separada
 ```
-
-**Ordem recomendada pós-charter:** Etapa 1 fixture → Etapa 2 draft write → Etapa 4 gate → LLM opt-in só se fixture gate verde.
 
 ---
 
@@ -530,9 +469,12 @@ WS-08C composer resolver       →  intacto — demo conversacional separada
 
 | Campo | Valor |
 |-------|-------|
-| Charter autor | proposta @ `0b14eb7` |
+| Charter | `31c9b78` |
+| Etapa 1 | `e64912c` |
+| Etapa 2 | `23fec61` |
+| Etapa 3 | commit operador (LLM opt-in) |
+| Etapa 4 closure | `WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md` |
 | Pilot slug | `barba-negra` |
-| Modo | acelerado — server-only · draft-first |
-| Implementação | **aguardando GO explícito** |
+| Modo | server-only · draft-first · fixture default |
 
 *Operational AI Minimum — adaptação silenciosa, não substituição de produto.*

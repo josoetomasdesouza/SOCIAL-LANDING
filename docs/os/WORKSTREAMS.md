@@ -345,8 +345,8 @@
 | **Entregáveis** | [`WS-09A_PERSISTENCE_PRIMITIVE.md`](../audit/WS-09A_PERSISTENCE_PRIMITIVE.md) · runbook §Runbook operacional |
 | **Gate de saída** | G1–G12 ✅ · `pnpm qa:appointment-storage` · publication + runtime gates |
 | **Decisão** | Persistência = infra silenciosa · writes CLI-only · SQLite optional **BLOCKED** até GO explícito |
-| **Próximo ciclo** | **WS-18A** IA operacional mínima (recomendado) |
-| **Refs** | WS-14A runtime · WS-15A publication · WS-16A external · produto @ `1c92acc` |
+| **Próximo ciclo** | WS-13 Sessão B humana · WS-17 (editor) deliberado · WS-09 enterprise BLOCKED |
+| **Refs** | WS-14A runtime · WS-15A publication · WS-16A external · WS-18A ✅ · produto @ `1c92acc` |
 
 ---
 
@@ -397,6 +397,22 @@
 
 ---
 
+### WS-18A — Operational AI Minimum (Appointment)
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 4 — Runtime operacional |
+| **Status** | ✅ **FECHADO** — charter `31c9b78` · Etapa 1 `e64912c` · Etapa 2 `23fec61` · Etapa 3 LLM opt-in · Etapa 4 runbook |
+| **Objetivo** | Adaptação operacional server-only → draft JSON validado → review humano → promote manual |
+| **Escopo** | `lib/runtime/appointment/operational-ai/` · primitives P-01…P-07 · fixture default · LLM opt-in · parser `{ patch }` · CLI `runtime:appointment:ai-draft` |
+| **Fora de escopo** | UI IA · auto-promote · live write · WS-08C LLM · WS-17 editor · Tier 1 JSX · multi-vertical |
+| **Entregáveis** | [`WS-18A_OPERATIONAL_AI_MINIMUM.md`](../audit/WS-18A_OPERATIONAL_AI_MINIMUM.md) · [`WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md`](../audit/WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md) |
+| **Gate de saída** | G1–G14 ✅ · `pnpm qa:appointment-ai-operational` (+ appointment gates locais pré-merge) |
+| **Decisão** | IA = infra silenciosa · LLM = motor de patch · operador publica |
+| **Refs** | WS-09A storage · WS-15A publication · WS-16A external · produto @ `1c92acc` |
+
+---
+
 ### WS-15A — Publication Primitive (Appointment)
 
 | Campo | Valor |
@@ -427,12 +443,12 @@ WS-13 🟡 — Presença contínua · Etapa 1 observacional · [`WS-13_PRESENCA_
 WS-16A ✅ — External Reality Minimum · [`WS-16A_EXTERNAL_REALITY_MINIMUM.md`](../audit/WS-16A_EXTERNAL_REALITY_MINIMUM.md) @ `d9c4f3e` (overlay opt-in · default OFF · Sessão B antes de promoção)
 WS-15A ✅ — Publication Primitive · [`WS-15A_PUBLICATION_PRIMITIVE.md`](../audit/WS-15A_PUBLICATION_PRIMITIVE.md) @ `a837064` (draft/live CLI · preview OFF · auto-promote proibido)
 WS-09A ✅ — Persistence Primitive · [`WS-09A_PERSISTENCE_PRIMITIVE.md`](../audit/WS-09A_PERSISTENCE_PRIMITIVE.md) @ `67e41fe` (filesystem adapter · SQLite BLOCKED)
+WS-18A ✅ — Operational AI Minimum · [`WS-18A_OPERATIONAL_AI_MINIMUM.md`](../audit/WS-18A_OPERATIONAL_AI_MINIMUM.md) @ `31c9b78`/`e64912c`/`23fec61` + Etapa 3 LLM (fixture default · draft-only)
 WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB enterprise) — BLOCKED, GO humano separado
-WS-18A — ⭐ próximo ciclo recomendado (IA operacional mínima)
 ```
 
-**Atual:** **Era 4 emergente** @ `67e41fe` — WS-09A fechado; WS-15A + WS-16A concluídos; WS-13 Etapa 1 ativa; **próximo ciclo recomendado: WS-18A** (IA operacional mínima) · WS-17 (editor) alternativa deliberada · WS-09 enterprise permanece BLOCKED.
+**Atual:** **Era 4 emergente** @ `67e41fe` — WS-09A · WS-15A · WS-16A · **WS-18A ✅ fechado**; WS-13 Etapa 1 ativa; **próximo ciclo deliberado:** WS-13 Sessão B humana · WS-17 (editor) · WS-09 enterprise permanece BLOCKED.
 
 ---
 
