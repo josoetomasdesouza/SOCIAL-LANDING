@@ -4,7 +4,95 @@ Este log registra decisoes, recuperacoes, contratos e memorias operacionais do
 projeto. Ele deve ser atualizado sempre que uma mudanca alterar arquitetura,
 linguagem visual, protocolo ou risco sistemico.
 
-## 2026-05-20 - Criacao dos documentos mestres de memoria operacional
+## 2026-06-04 - WS-21 documentacao fechada (D1 / D2 / D2b) — G0 doc
+
+### Contexto
+
+A iniciativa **WS-21 — Composer Hybrid Architecture** definiu a direcao
+arquitetural **antes** de qualquer codigo Tier 1: sticky composer + thread
+in-flow, remocao do sheet expansivo (~90vh), preservacao feed-first e
+patrimonio WS-09→WS-13 (morph, modes, drawers, smoke-fume compact).
+
+Documentacao concluida em tres PRs doc-only apos PR #86 (ADR package).
+
+### Mudanca
+
+**Documentos registrados (sem runtime):**
+
+| Entrega | PR | Artefato principal |
+|---------|-----|-------------------|
+| **D1** | #86 | ADR, Challenge Review, Plano P0/P1 |
+| **D2** | #87 | `COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md`, continuity delta, P0 paper |
+| **D2b** | #88 | `PERCEPTUAL_INVARIANTS.md` — P-04, P-06a (C1/C2 Frozen Zone) |
+
+**Decisao arquitetural (ADR):**
+
+```txt
+Feed editorial → Thread in-flow → Composer sticky
+− sheet expansivo  ·  − inline puro ChatGPT
+```
+
+**Baseline main pos-D2b:** `a4c0d2b`
+
+### Impacto visual
+
+Nenhuma mudanca de runtime. Comportamento perceptivo **alvo** documentado:
+
+- first paint feed-first inalterado;
+- conversa como extensao do feed, nao painel assistente;
+- smoke-fume compact preservado; junction gradient no engajamento (v2 spec);
+- morph post→chip, modes hidden/overlay, drawers — congelados em principio.
+
+P0 paper @ 320/390: **GO** para direcao hibrida.
+
+### Impacto estrutural
+
+Nenhum codigo alterado. Runtime permanece **v1** (`COMPOSER_BEHAVIOR_SPEC.md`
+oficial; sheet expansivo ainda em producao).
+
+**R0 nao iniciado.** Flag `composer-layout=v2` nao implementada.
+
+Proxima fase permitida apos **G0 humano formal**: R0 (flag plumbing only).
+
+### Regressoes evitadas
+
+- Implementacao hibrida sem ADR ou spec v2;
+- Conflito P-06a / P-04 (sheet expand) vs arquitetura v2;
+- Drift entre continuity contract v1 e behavior spec v2;
+- Inicio de codigo Tier 1 antes de frozen zone review.
+
+### Novas regras derivadas
+
+- `COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md` e contrato de **comportamento** para R0+;
+- `composer-continuity-contract-v2-delta.md` aplica-se ao path v2 futuro;
+- `ai.surface.opened` = primeira visibilidade da thread in-flow (nao sheet);
+- `threadEngagedProgress` substitui `expansionProgress` sheet-based (P-06a);
+- Piloto runtime: Appointment only ate GO pos-P3.
+
+### Arquivos relacionados
+
+- `docs/audit/WS-21_COMPOSER_HYBRID_ARCHITECTURE_ADR.md`
+- `docs/audit/WS-21_ADR_CHALLENGE_REVIEW.md`
+- `docs/audit/WS-21_P0_P1_PROTOTYPE_PLAN.md`
+- `docs/audit/WS-21_P0_PAPER_PROTOTYPE.md`
+- `docs/runtime/COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md`
+- `docs/ai-handoffs/composer-continuity-contract-v2-delta.md`
+- `docs/runtime/PERCEPTUAL_INVARIANTS.md` (P-04, P-06a emendas)
+- `docs/runtime/COMPOSER_BEHAVIOR_SPEC.md` (v1 runtime — banner v2)
+
+### Status G0
+
+| Gate | Estado |
+|------|--------|
+| D1 + D2 + D2b merged | ✅ |
+| Frozen Zone Review | ✅ |
+| C1 + C2 (P-06a, P-04) | ✅ |
+| C3 (este log) | ✅ |
+| G0 humano explicito | Pendente declaracao formal |
+| R0 | **NO-GO** ate G0 |
+
+---
+
 
 ### Contexto
 
