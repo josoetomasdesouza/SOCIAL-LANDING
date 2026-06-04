@@ -1,5 +1,8 @@
 import { createAppointmentMockConversationResolver } from "@/lib/mock-data/appointment-conversational-search"
-import type { EstablishmentDialogueContext } from "@/lib/mock-data/appointment-establishment-dialogue-context"
+import {
+  createEstablishmentDialogueSession,
+  type EstablishmentDialogueContext,
+} from "@/lib/mock-data/appointment-establishment-dialogue-context"
 import {
   resolveEstablishmentDialogueV1,
   situatedFallbackV1,
@@ -10,6 +13,7 @@ export function createAppointmentConversationResolverWithDialogue(
   ctx: EstablishmentDialogueContext
 ): ConversationResponseResolver {
   const transactionalResolver = createAppointmentMockConversationResolver()
+  const session = createEstablishmentDialogueSession()
 
   return (input) => {
     const fromTransactional = transactionalResolver(input)
@@ -17,11 +21,11 @@ export function createAppointmentConversationResolverWithDialogue(
       return fromTransactional
     }
 
-    const fromDialogue = resolveEstablishmentDialogueV1(input, ctx)
+    const fromDialogue = resolveEstablishmentDialogueV1(input, ctx, session)
     if (fromDialogue) {
       return fromDialogue
     }
 
-    return situatedFallbackV1(input, ctx)
+    return situatedFallbackV1(input, ctx, session)
   }
 }

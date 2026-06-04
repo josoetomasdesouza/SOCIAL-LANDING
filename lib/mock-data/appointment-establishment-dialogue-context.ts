@@ -18,3 +18,13 @@ export interface EstablishmentDialogueContext {
   arrival: EstablishmentDialogueArrival
   serviceNames: string[]
 }
+
+/** Ephemeral per-feed resolver instance — not persisted (no CRM / no localStorage). */
+export interface EstablishmentDialogueSession {
+  discoveryTurns: number
+  awaitingFocus: boolean
+}
+
+export function createEstablishmentDialogueSession(): EstablishmentDialogueSession {
+  return { discoveryTurns: 0, awaitingFocus: false }
+}

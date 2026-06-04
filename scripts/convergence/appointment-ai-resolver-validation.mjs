@@ -263,6 +263,63 @@ async function main() {
     blockForbidden
   )
 
+  const situatedFallbackForbidden = /veja servicos e profissionais no feed quando quiser/i
+
+  await openAppointment(page)
+  await assertTextDialogue(
+    page,
+    results,
+    "18. AP-D09 insecurity beauty",
+    "Será que vou ficar bonito?",
+    /milagre|corte|barba|cabelo|dois/i,
+    situatedFallbackForbidden
+  )
+  await openAppointment(page)
+  await assertTextDialogue(
+    page,
+    results,
+    "19. AP-D10 opinion request",
+    "Quero uma opinião",
+    /opiniao|cabelo|barba|visual/i,
+    situatedFallbackForbidden
+  )
+  await openAppointment(page)
+  await assertTextDialogue(
+    page,
+    results,
+    "20. AP-D11 meta repetition",
+    "Você só fala isso?",
+    /razao|resolver|orientar|conta/i,
+    situatedFallbackForbidden
+  )
+  await openAppointment(page)
+  await assertTextDialogue(
+    page,
+    results,
+    "21. AP-D12 change visual",
+    "Quero mudar meu visual",
+    /discreto|moderno|marcante/i,
+    situatedFallbackForbidden
+  )
+  await openAppointment(page)
+  await assertTextDialogue(
+    page,
+    results,
+    "22. AP-D13 unsure haircut",
+    "Não sei qual corte fazer",
+    /social|degrad|comprimento|caminho|estilo/i,
+    situatedFallbackForbidden
+  )
+  await openAppointment(page)
+  await assertTextDialogue(
+    page,
+    results,
+    "23. AP-D14 modern style",
+    "Quero algo mais moderno",
+    /moderno|Degrade|feed|referencia/i,
+    situatedFallbackForbidden
+  )
+
   const criticalErrors = consoleErrors.filter(
     (e) =>
       !e.includes("favicon") &&
@@ -272,7 +329,7 @@ async function main() {
   )
   record(
     results,
-    "17. no critical console errors",
+    "24. no critical console errors",
     criticalErrors.length === 0,
     criticalErrors.slice(0, 3).join(" | ") || "none"
   )

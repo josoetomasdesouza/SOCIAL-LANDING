@@ -3,7 +3,10 @@ import type {
   ConversationResponseResolverResult,
 } from "@/lib/mock-data/conversational-search"
 import { normalizeSurfaceFlowText } from "@/lib/surface-flow/product-entity"
-import type { EstablishmentDialogueContext } from "@/lib/mock-data/appointment-establishment-dialogue-context"
+import type {
+  EstablishmentDialogueContext,
+  EstablishmentDialogueSession,
+} from "@/lib/mock-data/appointment-establishment-dialogue-context"
 
 function normalizeMessage(message: string) {
   return normalizeSurfaceFlowText(message).trim()
@@ -234,9 +237,197 @@ function buildSmallTalkReply(normalized: string, ctx: EstablishmentDialogueConte
   return "Tudo certo por aqui — obrigado por perguntar. A casa segue na Augusta se quiser explorar."
 }
 
+function pickServiceHints(ctx: EstablishmentDialogueContext, limit = 2) {
+  const names = ctx.serviceNames.filter(Boolean)
+  if (names.length === 0) return "servicos no feed"
+  if (names.length === 1) return names[0]
+  return `${names[0]} ou ${names[1]}`
+}
+
+function matchMetaRepetition(normalized: string) {
+  return (
+    normalized.includes("so fala isso") ||
+    normalized.includes("voce so fala") ||
+    normalized.includes("vc so fala") ||
+    normalized.includes("sempre fala") ||
+    normalized.includes("repete") ||
+    normalized.includes("mesma coisa") ||
+    normalized.includes("so diz isso")
+  )
+}
+
+function matchInsecurityBeauty(normalized: string) {
+  return (
+    normalized.includes("ficar bonito") ||
+    normalized.includes("ficar feio") ||
+    normalized.includes("vou ficar bonito") ||
+    normalized.includes("vai ficar bonito") ||
+    normalized.includes("sera que vou ficar")
+  )
+}
+
+function matchOpinionRequest(normalized: string) {
+  return (
+    normalized.includes("opiniao") ||
+    normalized.includes("uma opiniao") ||
+    normalized.includes("quero opiniao") ||
+    normalized.includes("preciso de opiniao") ||
+    (normalized.includes("o que acha") && !normalized.includes("agendar"))
+  )
+}
+
+function matchStyleDiscovery(normalized: string) {
+  if (
+    matchHours(normalized) ||
+    matchOutOfDomain(normalized) ||
+    matchArrivalText(normalized) ||
+    matchParking(normalized) ||
+    matchLocationAddress(normalized)
+  ) {
+    return false
+  }
+
+  const cues = [
+    "mudar meu visual",
+    "mudar o visual",
+    "mudar visual",
+    "nao sei qual corte",
+    "qual corte fazer",
+    "sem forma",
+    "cabelo sem forma",
+    "mais moderno",
+    "algo moderno",
+    "combina comigo",
+    "o que combina comigo",
+    "ficar mais bonito",
+    "quero ficar mais bonito",
+    "visual completo",
+    "estilo novo",
+    "novo visual",
+    "corte novo",
+  ]
+  return cues.some((cue) => normalized.includes(cue))
+}
+
+function parseDiscoveryFocus(normalized: string): "hair" | "beard" | "both" | "discreet" | "modern" | "bold" | null {
+  if (normalized.includes("os dois") || normalized.includes("visual completo") || normalized.includes("tudo")) {
+    return "both"
+  }
+  if (normalized.includes("barba") && !normalized.includes("cabelo")) return "beard"
+  if (normalized.includes("cabelo") || normalized.includes("corte")) return "hair"
+  if (normalized.includes("discreto")) return "discreet"
+  if (normalized.includes("moderno")) return "modern"
+  if (normalized.includes("marcante") || normalized.includes("ousad")) return "bold"
+  return null
+}
+
+function buildDiscoverySteerReply(ctx: EstablishmentDialogueContext, focus: "hair" | "beard" | "both" | "discreet" | "modern" | "bold") {
+  const services = pickServiceHints(ctx)
+  if (focus === "beard") {
+    return `Beleza — barba costuma comecar com ${services} no feed; segura um barbeiro e compara referencias.`
+  }
+  if (focus === "both") {
+    return `Combinado — olha ${services} no feed e escolhe um barbeiro com estilo parecido com o que voce imagina.`
+  }
+  if (focus === "modern") {
+    return `Fechado — Degrade ou ${services} costumam ser o ponto de partida; explora no feed e ve um barbeiro com referencias parecidas.`
+  }
+  if (focus === "discreet" || focus === "bold") {
+    return `Entendi — comeca por ${services} no feed e ve fotos de referencia antes de decidir o corte.`
+  }
+  return `Show — para cabelo, ${services} no feed ajudam a comecar; segura um barbeiro se quiser comparar estilos.`
+}
+
+function buildDiscoveryReply(
+  normalized: string,
+  ctx: EstablishmentDialogueContext,
+  session: EstablishmentDialogueSession
+): string | null {
+  if (matchMetaRepetition(normalized)) {
+    session.discoveryTurns = 1
+    session.awaitingFocus = true
+    return "Boa, voce tem razao 😄. Me conta o que voce quer resolver hoje que eu tento te orientar melhor."
+  }
+
+  const focusAnswer = parseDiscoveryFocus(normalized)
+  if (focusAnswer && (session.awaitingFocus || session.discoveryTurns > 0)) {
+    session.discoveryTurns = Math.min(session.discoveryTurns + 1, 3)
+    session.awaitingFocus = false
+    return buildDiscoverySteerReply(ctx, focusAnswer)
+  }
+
+  if (session.discoveryTurns >= 2) {
+    const services = pickServiceHints(ctx)
+    return `Pra fechar leve: olha ${services} no feed ou segura um barbeiro — sem prometer resultado, so caminho claro.`
+  }
+
+  if (matchInsecurityBeauty(normalized)) {
+    session.discoveryTurns = 1
+    session.awaitingFocus = true
+    return "A gente nao promete milagre 😄, mas um bom corte ajuda bastante. Voce esta pensando em mudar cabelo, barba ou os dois?"
+  }
+
+  if (matchOpinionRequest(normalized)) {
+    session.discoveryTurns = 1
+    session.awaitingFocus = true
+    return "Claro. Me diz uma coisa: voce quer opiniao sobre cabelo, barba ou visual completo?"
+  }
+
+  if (normalized.includes("mudar") && normalized.includes("visual")) {
+    session.discoveryTurns = 1
+    session.awaitingFocus = true
+    return "Boa. Voce quer algo mais discreto, mais moderno ou uma mudanca mais marcante?"
+  }
+
+  if (normalized.includes("nao sei qual corte") || normalized.includes("qual corte fazer")) {
+    session.discoveryTurns = 1
+    session.awaitingFocus = true
+    return "Normal — comeca pelo estilo: quer algo social, degrade ou manter comprimento? Qual caminho te parece mais proximo?"
+  }
+
+  if (normalized.includes("mais moderno") || normalized.includes("algo moderno")) {
+    session.discoveryTurns = 2
+    session.awaitingFocus = false
+    const anchor =
+      ctx.serviceNames.find((name) => /degrad/i.test(name)) ?? ctx.serviceNames[0] ?? "Degrade"
+    return `Fechado — ${anchor} costuma ser um bom ponto de partida; explora no feed e ve um barbeiro com referencias parecidas.`
+  }
+
+  if (matchStyleDiscovery(normalized)) {
+    session.discoveryTurns = 1
+    session.awaitingFocus = true
+    if (normalized.includes("combina comigo") || normalized.includes("ficar mais bonito")) {
+      return "Boa pergunta — sem adivinhar rosto 😄. Voce quer mexer em cabelo, barba ou os dois?"
+    }
+    if (normalized.includes("sem forma")) {
+      return "Entendo — cabelo sem forma e chato. Quer dar forma com corte social, degrade ou manter um pouco de comprimento?"
+    }
+    return "Boa. Voce quer algo mais discreto, mais moderno ou uma mudanca mais marcante?"
+  }
+
+  if (session.discoveryTurns === 1 && session.awaitingFocus) {
+    session.discoveryTurns = 2
+    return "Me ajuda com uma palavra: cabelo, barba ou visual completo?"
+  }
+
+  return null
+}
+
+function matchDiscoveryIntent(normalized: string, session: EstablishmentDialogueSession) {
+  if (matchMetaRepetition(normalized)) return true
+  if (matchInsecurityBeauty(normalized) || matchOpinionRequest(normalized) || matchStyleDiscovery(normalized)) {
+    return true
+  }
+  if (session.awaitingFocus || session.discoveryTurns > 0) {
+    return parseDiscoveryFocus(normalized) !== null
+  }
+  return false
+}
+
 export function resolveEstablishmentDialogueV1(
   input: ConversationResponseResolverInput,
-  ctx: EstablishmentDialogueContext
+  ctx: EstablishmentDialogueContext,
+  session: EstablishmentDialogueSession = { discoveryTurns: 0, awaitingFocus: false }
 ): ConversationResponseResolverResult | null {
   const normalized = normalizeMessage(input.message)
   if (!normalized) return null
@@ -261,6 +452,13 @@ export function resolveEstablishmentDialogueV1(
     return textOnly(buildFirstVisitReply(normalized, ctx))
   }
 
+  if (matchDiscoveryIntent(normalized, session)) {
+    const discoveryText = buildDiscoveryReply(normalized, ctx, session)
+    if (discoveryText) {
+      return textOnly(discoveryText)
+    }
+  }
+
   if (matchGreeting(normalized)) {
     return textOnly(buildGreetingReply(normalized, ctx))
   }
@@ -274,8 +472,15 @@ export function resolveEstablishmentDialogueV1(
 
 export function situatedFallbackV1(
   _input: ConversationResponseResolverInput,
-  ctx: EstablishmentDialogueContext
+  ctx: EstablishmentDialogueContext,
+  session?: EstablishmentDialogueSession
 ): ConversationResponseResolverResult {
+  if (session && (session.awaitingFocus || session.discoveryTurns > 0)) {
+    return {
+      text: "Me conta em uma linha: cabelo, barba ou visual completo? A gente te aponta pro feed sem enrolar.",
+    }
+  }
+
   const place = ctx.operational.placeHint
   return {
     text: `A ${ctx.brandName} fica ${place} — veja servicos e profissionais no feed quando quiser.`,
