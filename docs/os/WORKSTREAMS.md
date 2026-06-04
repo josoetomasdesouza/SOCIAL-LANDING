@@ -308,13 +308,15 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI (diálogo situado) |
-| **Status** | 🟡 **V1 GO autorizado** @ `dc4281b` — implementação V1-core na branch `workstream/ws-08d-v1-establishment-dialogue` |
-| **Objetivo** | Política de diálogo especializada do estabelecimento: situado + descoberta leve + handoff WS-08C |
-| **Escopo** | Charter; matriz; templates; GO + plano PR V1; código conforme plano de execução |
-| **Fora de escopo** | Tier 1; WS-18A; runtime/publication/storage/external; T-06/07/11/12; drawer composer; LLM/CRM |
-| **Gate de saída (charter)** | Charter + GO record + plano PR publicados |
-| **Gate de saída (implementação)** | [`WS-08D_V1_PR_EXECUTION_PLAN.md`](../audit/WS-08D_V1_PR_EXECUTION_PLAN.md) §4–6 · `qa:appointment` 16/16 · `qa:ai-regression` · observação copy |
-| **Refs** | [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](../audit/WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md) · [`WS-08D_CONVERSATIONAL_MATRIX_REAL.md`](../audit/WS-08D_CONVERSATIONAL_MATRIX_REAL.md) · [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](../audit/WS-08D_V1_CONVERSATIONAL_TEMPLATES.md) · [`WS-08D_V1_GO_RECORD.md`](../audit/WS-08D_V1_GO_RECORD.md) · [`WS-08D_V1_PR_EXECUTION_PLAN.md`](../audit/WS-08D_V1_PR_EXECUTION_PLAN.md) |
+| **Status** | ✅ **V1 publicada** @ `10b36c7` (PR #77) · 🟢 **V2 design GO** · 🔴 **V2 implementação NO-GO** |
+| **Objetivo** | Política de diálogo especializada do estabelecimento: situado + descoberta + handoff WS-08C; V2 = Conversation Kernel (direção futura) |
+| **Escopo V1** | Resolver composto `[2]→[1]→[3]` · AP-01…07 + AP-D01…14 |
+| **Escopo V2 (design)** | [`WS-08D_V2_CONVERSATION_KERNEL.md`](../audit/WS-08D_V2_CONVERSATION_KERNEL.md) — sem código até novo GO |
+| **Fora de escopo** | Tier 1 shell; WS-18A; runtime/publication/storage; drawer composer; CRM; agente autônomo; LLM no client |
+| **Integração V2 (recomendada)** | Opção B — extensão governada do contrato resolver · endpoint server obrigatório para LLM |
+| **Gate de saída (V1)** | `qa:appointment` 22/22 · `qa:ai-regression` 26/26 · observação em curso |
+| **Gate de saída (V2 código)** | Evals E-K01…E-K13 + GO humano explícito — ver doc V2 §13 |
+| **Refs** | Charter · matriz · templates · [`WS-08D_V1_GO_RECORD.md`](../audit/WS-08D_V1_GO_RECORD.md) · [`WS-08D_V2_CONVERSATION_KERNEL.md`](../audit/WS-08D_V2_CONVERSATION_KERNEL.md) |
 
 ---
 
@@ -479,7 +481,7 @@ WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB enterprise) — BLOCKED, GO humano separado
 ```
 
-**Atual:** **Era 4 emergente** @ `dc4281b` — **WS-08D 🟡 V1 GO** (branch técnica) · WS-18A ✅ · WS-13 ✅; **próximo:** PR `workstream/ws-08d-v1-establishment-dialogue` · WS-17 / WS-09 enterprise BLOCKED.
+**Atual:** @ `10b36c7` — **WS-08D V1 ✅** · **V2 Conversation Kernel design ✅ / implementação NO-GO** · observação uso real · WS-18A ✅ · WS-13 ✅; **próximo:** captura conversas reais · V1.1 copy opcional · WS-17 / WS-09 enterprise BLOCKED.
 
 ---
 
