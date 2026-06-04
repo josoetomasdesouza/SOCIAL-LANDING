@@ -1,4 +1,5 @@
 import { detectStrongTopic, resolveActiveTopic, shouldActiveTopicOverrideChip, normalizeKernelText } from "./active-topic"
+import { resolveBroadClarification } from "./broad-clarification"
 import { buildCatalogPriceHint } from "./catalog-hints"
 import { isInDomainMissingContext, resolveMissingContextClarification } from "./missing-context"
 import { isSocialFeedChip } from "./model-context-pack"
