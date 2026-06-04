@@ -4,48 +4,60 @@
 
 **Princípio:** estrutura determinística primeiro → corpus + métrica → LLM só redige (Fase B).
 
+**Ciclo:** 2026-06-04 · branch `workstream/ws-19a-phase1-5` · HEAD `b4b7e44`
+
 ---
 
-## Estado agora (2026-05-24)
+## Estado agora (2026-06-04)
 
 | Item | Status |
 |------|--------|
-| PR #79 Phase 1.5 base | ✅ CI verde (merge pendente decisão humana) |
-| Smoke vídeo (tendências, fade+mulheres) | ✅ Código local + E-G39, E-G40 |
-| `conversation-priority.ts` | 🟡 Fundação (este commit) |
-| `strategy-executor.ts` | ⏳ PR2b |
-| Escape Rate no runner | ⏳ PR4 |
+| **PR #79** | Phase 1.5 + anti-null + **priority foundation** (`b4b7e44`) |
+| CI `b4b7e44` | ✅ QA Minimum + Vercel |
+| E-G39 / E-G40 (vídeo smoke) | ✅ Incluídos no #79 — **não abrir novo escopo no #79** |
+| `conversation-priority.ts` + `topic-detection.ts` | ✅ Fundação no #79 |
+| `strategy-executor.ts` | ⏳ **PR2b** (após `main` alinhada) |
+| Escape Rate no runner | ⏳ **PR4** |
 | LLM visitante | 🔴 NO-GO até Escape &lt; 5% Top 40 |
 
 **Gates obrigatórios cada PR:** `pnpm ts:budget` · `pnpm qa:kernel-stub` · `pnpm qa:appointment`
+
+**Congelamento #79:** `GO` manter `b4b7e44` · `NO-GO` novos commits no PR #79 · `GO merge` somente com CI verde (atingido).
+
+---
+
+## Sequência de PRs (pós-merge)
+
+```txt
+#79  = WS-19A Phase 1.5 + priority foundation (+ E-G39/40, adapter guards)
+PR2b = strategy-executor
+PR3  = priority cleanup + multi-turn hardening
+PR4  = Escape Rate + WS-19B Top 40
+```
 
 ---
 
 ## Fases (ordem fixa — não pular)
 
-### Fase 0 — Fechar 1.5 (1–2 dias)
+### Fase 0 — Fechar 1.5 (agora)
 
 ```txt
+[x] Push b4b7e44 no PR #79 (E-G39/40 + conversation-priority + adapter guard)
+[x] CI verde (QA Minimum + Vercel) @ b4b7e44
 [ ] Merge PR #79
-[ ] Push commit: smoke E-G39/40 + conversation-priority + adapter guard
-[ ] Smoke manual §9 + 4 cenários (estacionamento, post Curitiba, ambiguidade, me fala aí)
+[ ] Smoke manual pós-merge (§9 WS-19A_PHASE1_5 + 6 cenários abaixo)
 [ ] Opcional: pnpm qa:ai-regression antes de tag
 ```
 
-**GO:** 41/41 kernel-stub · appointment 22/22 · zero Augusta no smoke.
+**GO pós-merge:** 41/41 kernel-stub · appointment 22/22 · zero Augusta no smoke.
 
-### Fase 1 — Prioridade única (PR2, ~2–3 dias)
+**Não fazer antes do merge:** novos commits no #79.
 
-**Entrega:** intenção vs chip em um só módulo; fim de colisão fade→Degrade por override.
+### Fase 1 — Prioridade (fundação no #79; cleanup no PR3)
 
-| Tarefa | Arquivo |
-|--------|---------|
-| Tabela `ConversationPriority` | `lib/conversation-kernel/conversation-priority.ts` |
-| `shouldIntentBeatChip()` usado no classifier | `answerability-classifier.ts` |
-| Remover duplicação em `active-topic` | `active-topic.ts` |
-| Evals regressão chip+keyword | E-G39, E-G40 + 2 casos “quero marcar fade” (delegate OK) |
+**Já no #79:** `conversation-priority.ts`, `topic-detection.ts`, `shouldIntentBeatChip`, E-G39/40, adapter transactional guard.
 
-**Não fazer:** refactor monolítico do stub; mudar Tier 1.
+**PR3 (restante):** remover duplicação residual classifier/stub · evals multi-turn de regressão chip+keyword · documentar tabela de pesos no charter 1.5.
 
 ### Fase 2 — Strategy executor (PR2b, ~3–4 dias)
 
@@ -89,6 +101,7 @@ Kernel **nunca** delega lane ao LLM.
 
 ## O que NÃO fazer (quebra ou mascara)
 
+- Novos commits no **#79** após `b4b7e44`
 - LLM no adapter para “consertar” null
 - Regex infinita sem `conversation-priority`
 - Broad clarify com chip editorial selecionado
@@ -109,7 +122,7 @@ Kernel **nunca** delega lane ao LLM.
 
 ---
 
-## Smoke manual mínimo (repita após cada PR)
+## Smoke manual mínimo (pós-merge #79)
 
 1. Vídeo tendências → mulheres? → resposta no clipe, sem broad loop  
 2. Vídeo fade → “esse fade em mulheres?” → sem cards Degrade  
@@ -120,6 +133,9 @@ Kernel **nunca** delega lane ao LLM.
 
 ---
 
-## Próximo commit esperado
+## Handoff pós-merge
 
-`feat(WS-19A): smoke evals E-G39/40, conversation-priority foundation, adapter guards`
+1. `git checkout main && git pull`  
+2. Abrir branch `workstream/ws-19a-pr2b-strategy-executor` a partir de `main`  
+3. Aplicar correção deste doc se ainda não estiver em `main` (commit docs-only permitido)  
+4. PR2b — sem misturar com fechamento do #79
