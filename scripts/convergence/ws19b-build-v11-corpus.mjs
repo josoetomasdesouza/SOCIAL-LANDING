@@ -9,6 +9,24 @@ import { fileURLToPath } from "node:url"
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const OUT = path.join(ROOT, "docs/audit/ws19b-conversational-coverage.json")
+const HARVEST_PATH = path.join(ROOT, "docs/audit/ws19b-reality-harvest.json")
+
+function applyRealityOrigin(list) {
+  const harvest = JSON.parse(readFileSync(HARVEST_PATH, "utf8"))
+  const corpusByRh = new Map()
+  for (const entry of harvest.entries) {
+    for (const corpusId of entry.promoted_to_corpus ?? []) {
+      corpusByRh.set(corpusId, entry.id)
+    }
+  }
+  return list.map((s) => {
+    const rh = corpusByRh.get(s.id)
+    if (rh) {
+      return { ...s, origin: "reality", realityRef: rh }
+    }
+    return { ...s, origin: "synthetic" }
+  })
+}
 
 const CORPUS_MIN = 60
 const HUMAN_MIN = 40
@@ -491,9 +509,13 @@ const byId = new Map()
 for (const s of merged) {
   if (s.id) byId.set(s.id, s)
 }
-const scenarios = [...byId.values()]
+const scenarios = applyRealityOrigin([...byId.values()])
 
 const humanCount = scenarios.filter((s) => s.calibration === "human").length
+const realityDerived = scenarios.filter((s) => s.origin === "reality").length
+const syntheticCount = scenarios.filter((s) => s.origin === "synthetic").length
+const harvestFile = JSON.parse(readFileSync(HARVEST_PATH, "utf8"))
+const realityBacklogOpen = harvestFile.entries.filter((e) => e.status === "backlog").length
 const probeCount = scenarios.filter((s) => s.calibration === "probe").length
 const adversarialCount = scenarios.filter((s) => s.adversarial === true || s.tags?.includes("adversarial")).length
 const negativeControlCount = scenarios.filter((s) => s.tags?.includes("negative_control")).length
@@ -507,11 +529,15 @@ if (humanCount < HUMAN_MIN) {
   process.exit(1)
 }
 
+const reality_percentage =
+  scenarios.length > 0 ? Math.round((realityDerived / scenarios.length) * 1000) / 10 : 0
+
 const out = {
-  version: "1.1.0",
+  version: "1.3.0",
   workstream: "WS-19B",
   charter: "docs/audit/WS-19B_CONVERSATIONAL_COVERAGE.md",
-  followup: "docs/audit/WS-19B_V1_1_FOLLOWUP.md",
+  followup: "docs/audit/WS-19B_REALITY_BACKLOG.md",
+  realityHarvest: "docs/audit/ws19b-reality-harvest.json",
   gate: {
     escapeRateMaxPercent: 5,
     criticalWrongLaneMax: 0,
@@ -519,6 +545,7 @@ const out = {
     wrongLaneScope: "human_critical_non_adversarial",
     corpusMin: CORPUS_MIN,
     humanCalibratedMin: HUMAN_MIN,
+    realityTargetMin: 10,
   },
   stats: {
     total: scenarios.length,
@@ -526,11 +553,17 @@ const out = {
     probeCalibrated: probeCount,
     adversarial: adversarialCount,
     negativeControls: negativeControlCount,
+    realityDerived,
+    synthetic: syntheticCount,
+    realityBacklogOpen,
+    reality_count: realityDerived,
+    synthetic_count: syntheticCount,
+    reality_percentage,
   },
   scenarios,
 }
 
 writeFileSync(OUT, JSON.stringify(out, null, 2) + "\n")
 console.log(
-  `WS-19B v1.1: ${scenarios.length} scenarios · human=${humanCount} · probe=${probeCount} · adversarial=${adversarialCount} · NC=${negativeControlCount}`
+  `WS-19B v1.3: ${scenarios.length} scenarios · human=${humanCount} · reality=${realityDerived} (${reality_percentage}%) · synthetic=${syntheticCount}`
 )

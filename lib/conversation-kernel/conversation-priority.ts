@@ -63,6 +63,7 @@ export function isVideoChipContentInquiry(message: string, chip: SelectedContext
     isFadeReferencedAsVideoContent(message) ||
     hasToken(
       m,
+      "fade",
       "tendencia",
       "tendência",
       "cacheado",
@@ -78,7 +79,27 @@ export function isVideoChipContentInquiry(message: string, chip: SelectedContext
       "perguntei",
       "comentei",
       "sobre o que estamos",
-      "estamos falando"
+      "estamos falando",
+      "o que e",
+      "o que é",
+      "oque é",
+      "isso",
+      "esse",
+      "como faz",
+      "serve pra mim",
+      "serve pra mim?",
+      "fale mais",
+      "fale do",
+      "tecnica",
+      "técnica",
+      "desse conteudo",
+      "desse conteúdo",
+      "esse conteudo",
+      "esse conteúdo",
+      "sobre o conteudo",
+      "sobre o conteúdo",
+      "do video",
+      "do vídeo"
     )
   )
 }

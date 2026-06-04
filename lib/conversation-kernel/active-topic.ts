@@ -153,6 +153,27 @@ export function resolveActiveTopic(
         "service"
       )
     case "arrival": {
+      const m = normalizeKernelText(message)
+      const hoursTurn =
+        /^(e\s+)?(ate|até)\s+que\s+horas/.test(m) ||
+        hasToken(m, "feriado", "feriados", "fecham", "horario", "horário", "funciona nos", "funciona no", "que horas")
+      if (hoursTurn) {
+        const hours = pack.operational?.openingHours ?? pack.operational?.hoursHint ?? "Seg-Sab: 9h-20h"
+        const holiday = hasToken(message, "feriado", "feriados", "natal", "ano novo")
+        const reply = holiday
+          ? `Em dias normais seguimos ${hours}. Em feriados o horário pode ser diferente — confirma no WhatsApp ou no balcão da ${pack.brandName} antes de vir.`
+          : `Funcionamos em geral ${hours}. Para um dia específico ou feriado, confirma no balcão ou no WhatsApp da casa.`
+        return baseActive(
+          {
+            reply,
+            intent: "operational",
+            topic: "hours_holidays",
+            action: { type: "text_only" },
+            grounding: { source: "operational", itemIds: [], confidence: "high" },
+          },
+          "arrival"
+        )
+      }
       const addr = pack.operational?.addressLine
       return baseActive(
         {

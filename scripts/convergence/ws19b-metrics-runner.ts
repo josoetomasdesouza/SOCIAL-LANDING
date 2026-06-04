@@ -23,6 +23,23 @@ import {
   type SelectedContextItem,
 } from "@/lib/conversation-kernel/types"
 import { barberShopArrivalContext, barberShopConfig, barberShopHeroOperationalContext } from "@/lib/mock-data/appointment-data"
+import {
+  assertCorpusRealityLinks,
+  buildRealityMetrics,
+  buildRealityTargetDashboard,
+  countScenarioOrigins,
+  formatRealityTargetDashboard,
+  listTopRealityScenarios,
+  loadRealityHarvest,
+  REALITY_CORPUS_TARGET,
+  realityAccelerationWarnings,
+  summarizeRealityPromotionDashboard,
+  validateRealityHarvest,
+  type RealityMetrics,
+  type RealityPromotionDashboard,
+  type RealityTargetDashboard,
+  type TopRealityScenario,
+} from "./ws19b-reality-harvest"
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const WS19B_PATH = path.join(ROOT, "docs/audit/ws19b-conversational-coverage.json")
@@ -52,6 +69,8 @@ export type Ws19bScenario = {
   adversarial?: boolean
   known_product_gap?: boolean
   control_fixture?: Ws19bControlFixture
+  origin?: "reality" | "synthetic"
+  realityRef?: string
 }
 
 export type Ws19bCoverageFile = {
@@ -63,6 +82,7 @@ export type Ws19bCoverageFile = {
     wrongLaneScope?: string
     corpusMin?: number
     humanCalibratedMin?: number
+    realityTargetMin?: number
   }
   stats?: {
     total: number
@@ -70,7 +90,14 @@ export type Ws19bCoverageFile = {
     probeCalibrated?: number
     adversarial: number
     negativeControls: number
+    realityDerived?: number
+    synthetic?: number
+    realityBacklogOpen?: number
+    reality_count?: number
+    synthetic_count?: number
+    reality_percentage?: number
   }
+  realityHarvest?: string
   scenarios: Ws19bScenario[]
 }
 
@@ -191,6 +218,11 @@ export type Ws19bMetricsResult = {
   summary: ReturnType<typeof summarizeMetrics>
   gateSummary: ReturnType<typeof summarizeMetrics>
   calibration: { human: number; probe: number }
+  reality: RealityMetrics
+  realityTarget: RealityTargetDashboard
+  realityDashboard: RealityPromotionDashboard
+  topRealityScenarios: TopRealityScenario[]
+  realityWarnings: string[]
   gateOk: boolean
   failures: string[]
 }
@@ -287,18 +319,56 @@ export function runWs19bMetrics(): Ws19bMetricsResult {
     failures.push(`corpus size ${scenarios.length} < ${corpusMin} required`)
   }
 
+  const corpusIds = new Set(scenarios.map((s) => s.id))
+  const harvestValidation = validateRealityHarvest(corpusIds)
+  if (!harvestValidation.ok) {
+    for (const e of harvestValidation.errors) failures.push(`reality-harvest: ${e}`)
+  }
+  for (const e of assertCorpusRealityLinks(scenarios, harvestValidation.promotedCorpusIds)) {
+    failures.push(`reality-harvest: ${e}`)
+  }
+
+  const origins = countScenarioOrigins(scenarios)
+  const realityDerived = file.stats?.realityDerived ?? origins.reality
+  const syntheticCount = file.stats?.synthetic ?? origins.synthetic
+  const reality = buildRealityMetrics(realityDerived, syntheticCount)
+  const realityTargetMin = file.gate.realityTargetMin ?? REALITY_CORPUS_TARGET
+  const realityTarget = buildRealityTargetDashboard(realityDerived, realityTargetMin)
+  const realityWarnings = realityAccelerationWarnings(reality, realityTargetMin)
+
+  let realityDashboard: RealityPromotionDashboard = {
+    backlog: 0,
+    promoted: 0,
+    fixed: 0,
+    pending: 0,
+  }
+  let topRealityScenarios: TopRealityScenario[] = []
+  try {
+    const harvest = loadRealityHarvest()
+    realityDashboard = summarizeRealityPromotionDashboard(harvest.entries)
+    topRealityScenarios = listTopRealityScenarios(harvest.entries)
+  } catch {
+    realityWarnings.push("reality-harvest: could not load promotion dashboard")
+  }
+
   return {
     records,
     summary,
     gateSummary,
     calibration: { human: humanCount, probe: probeCount },
+    reality,
+    realityTarget,
+    realityDashboard,
+    topRealityScenarios,
+    realityWarnings,
     gateOk,
     failures,
   }
 }
 
 export function printWs19bReport(result: Ws19bMetricsResult, file?: Ws19bCoverageFile): void {
-  const { records, summary, gateSummary, calibration } = result
+  const { records, summary, gateSummary, calibration, reality, realityTarget, realityDashboard, topRealityScenarios, realityWarnings } =
+    result
   const stats = file?.stats
   const adversarial =
     stats?.adversarial ??
@@ -308,13 +378,46 @@ export function printWs19bReport(result: Ws19bMetricsResult, file?: Ws19bCoverag
     }).length
   const negativeControls =
     stats?.negativeControls ?? file?.scenarios.filter((s) => s.tags?.includes("negative_control")).length ?? 0
+  const origins = file?.scenarios
+    ? countScenarioOrigins(file.scenarios)
+    : { reality: 0, synthetic: records.length, realityRefs: [] as string[] }
 
   console.log("\n--- WS-19B coverage metrics ---")
   console.log(`Total scenarios: ${records.length}`)
   console.log(`Human calibrated: ${calibration.human}`)
   console.log(`Probe calibrated: ${calibration.probe}`)
+  console.log("\n--- Reality dashboard (corpus target) ---")
+  console.log(formatRealityTargetDashboard(realityTarget))
+  console.log(`reality_count: ${reality.reality_count}`)
+  console.log(`synthetic_count: ${reality.synthetic_count}`)
+  console.log(`reality_percentage: ${reality.reality_percentage}%`)
+  if (origins.realityRefs.length) {
+    console.log(`  corpus links: ${origins.realityRefs.join(", ")}`)
+  }
   console.log(`Adversarial: ${adversarial}`)
   console.log(`Negative controls: ${negativeControls}`)
+
+  console.log("\n--- Reality promotion dashboard (harvest) ---")
+  console.log(`RH backlog: ${realityDashboard.backlog}`)
+  console.log(`RH promoted: ${realityDashboard.promoted}`)
+  console.log(`RH fixed: ${realityDashboard.fixed}`)
+  console.log(`RH pending: ${realityDashboard.pending}`)
+
+  if (topRealityScenarios.length > 0) {
+    console.log("\n--- Top Reality Scenarios (promoted) ---")
+    for (const row of topRealityScenarios) {
+      const corpus = row.corpus_ids.length ? row.corpus_ids.join(", ") : "—"
+      console.log(`  ${row.rh_id} · eval ${row.eval_id ?? "—"} · corpus ${corpus}`)
+    }
+  } else {
+    console.log("\n--- Top Reality Scenarios (promoted) ---")
+    console.log("  (none yet)")
+  }
+
+  if (realityWarnings.length > 0) {
+    console.log("\n--- Reality gate (advisory) ---")
+    for (const w of realityWarnings) console.log(`  WARN ${w}`)
+  }
 
   for (const r of records) {
     const flags = [

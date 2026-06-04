@@ -2,6 +2,7 @@ import { detectStrongTopic, resolveActiveTopic, updateActiveTopicFromMessage } f
 import { isWeakOperationalFollowUp, shouldIntentBeatChip } from "./topic-ownership"
 import { resolveAnswerFirstGate } from "./strategy-executor"
 import { isSocialFeedChip } from "./model-context-pack"
+import { resolveChipTurn } from "./resolve-chip-turn"
 import type {
   KernelResponse,
   KernelSession,
@@ -124,18 +125,34 @@ function resolveSelectedContextGrounding(
     })
   }
 
-  if (
-    hasToken(m, "ficar em mim", "combina comigo", "sera que vai", "será que vai", "fica em mim") ||
-    (primary.kind === "video" && hasToken(m, "fade", "tutorial"))
-  ) {
-    return baseResponse({
-      reply: `O vídeo "${primary.title}" mostra a técnica de fade — o resultado depende do seu cabelo e rosto. Não prometo milagre aqui; o melhor é ver com um barbeiro no feed e marcar um horário para avaliar ao vivo.`,
-      intent: "context_grounded",
-      topic: "video_fade_fit",
-      confidence: "medium",
-      source: "selected_context",
-      grounding: groundingFromItem(primary, "medium"),
-    })
+  const skipChipTurn =
+    hasToken(
+      m,
+      "estacionamento",
+      "estacionar",
+      "curitiba",
+      "fecham",
+      "feriado",
+      "feriados",
+      "horario",
+      "horário",
+      "como chego",
+      "onde fica",
+      "endereco",
+      "endereço",
+      "como funciona nos",
+      "tem essa",
+      "essa barbearia",
+      "unidade",
+      "ate que horas",
+      "até que horas"
+    ) ||
+    (primary.kind === "service" &&
+      hasToken(m, "estacionamento", "horario", "horário", "fecham", "aberto", "funciona"))
+
+  if (!skipChipTurn) {
+    const chipGrounded = resolveChipTurn(message, pack, primary)
+    if (chipGrounded) return chipGrounded
   }
 
   if (hasToken(m, "cacheado", "crespo", "ondulado") && primary.kind === "video") {
@@ -146,6 +163,59 @@ function resolveSelectedContextGrounding(
       confidence: "medium",
       source: "selected_context",
       grounding: groundingFromItem(primary, "medium"),
+    })
+  }
+
+  if (primary.kind === "video" && hasToken(m, "o que e", "o que é", "oque é") && hasToken(m, "fade", "tutorial")) {
+    return baseResponse({
+      reply: `O vídeo "${primary.title}" mostra a técnica de fade — o resultado depende do seu cabelo e rosto. Não prometo milagre aqui; o melhor é ver com um barbeiro no feed e marcar um horário para avaliar ao vivo.`,
+      intent: "context_grounded",
+      topic: "video_fade_fit",
+      confidence: "medium",
+      source: "selected_context",
+      grounding: groundingFromItem(primary, "medium"),
+    })
+  }
+
+  if (primary.kind === "video" && hasToken(m, "tecnica", "técnica")) {
+    const detail =
+      primary.summary ??
+      primary.knownFacts.find((f) => f.startsWith("tema:"))?.replace(/^tema:\s*/i, "").trim() ??
+      "fade degradê com máquina e tesoura"
+    return baseResponse({
+      reply: `No "${primary.title}" a técnica é ${detail}. Em resumo: alturas na máquina, transição suave e acabamento na tesoura no topo.`,
+      intent: "context_grounded",
+      topic: "video_technique",
+      confidence: "high",
+      source: "selected_context",
+      grounding: groundingFromItem(primary, "high"),
+    })
+  }
+
+  if (
+    primary.kind === "video" &&
+    hasToken(
+      m,
+      "desse conteudo",
+      "desse conteúdo",
+      "esse conteudo",
+      "esse conteúdo",
+      "sobre o conteudo",
+      "sobre o conteúdo",
+      "do video",
+      "do vídeo",
+      "desse video",
+      "desse vídeo"
+    )
+  ) {
+    const detail = primary.summary ?? "tutorial de fade no feed da casa"
+    return baseResponse({
+      reply: `Isso, do vídeo "${primary.title}": ${detail}. Quer saber se combina com você ou já marcar com um barbeiro para fazer ao vivo?`,
+      intent: "context_grounded",
+      topic: "video_content_anchor",
+      confidence: "high",
+      source: "selected_context",
+      grounding: groundingFromItem(primary, "high"),
     })
   }
 
@@ -396,7 +466,7 @@ function resolveMetaComplaint(message: string): KernelResponse | null {
   if (!hasToken(message, "só fala", "so fala", "sempre a mesma", "repete")) return null
   return baseResponse({
     reply:
-      "Faz sentido — posso orientar melhor se você me contar em uma frase o que quer resolver (horário, serviço, preço ou como chegar).",
+      "Faz sentido. Me diz o que quer resolver: horário, serviço, preço ou como chegar.",
     intent: "meta_complaint",
     topic: "meta",
     action: { type: "ack_meta_complaint" },

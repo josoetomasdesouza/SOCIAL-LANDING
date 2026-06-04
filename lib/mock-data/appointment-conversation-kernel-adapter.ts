@@ -2,11 +2,15 @@ import {
   buildAppointmentModelContextPack,
   type AppointmentPackBuildInput,
 } from "@/lib/conversation-kernel/appointment/build-appointment-model-context-pack"
-import { isVideoChipContentInquiry } from "@/lib/conversation-kernel/conversation-priority"
 import { resolveBroadClarification } from "@/lib/conversation-kernel/broad-clarification"
+import { polishAppointmentReply } from "@/lib/conversation-kernel/augusta-guard"
+import { isEditorialChipAnchoredTurn } from "@/lib/conversation-kernel/conversation-priority"
+import { normalizeUserMessageForKernel } from "@/lib/conversation-kernel/user-message-normalize"
 import { kernelResponseToResolverResult } from "@/lib/conversation-kernel/kernel-response-to-resolver"
 import { resolveRuleKernelStub, touchKernelSessionFromMessage } from "@/lib/conversation-kernel/rule-kernel-stub"
 import { createKernelSession, type KernelSession } from "@/lib/conversation-kernel/types"
+import type { ModelContextPack } from "@/lib/conversation-kernel/types"
+import { resolveAppointmentComposerFallback } from "@/lib/mock-data/appointment-composer-fallback"
 import type {
   ConversationResponseResolver,
   ConversationResponseResolverInput,
@@ -25,65 +29,59 @@ export function createAppointmentConversationResolverWithKernel(
   const kernelSession: KernelSession = createKernelSession()
   const { transactionalResolver, dialogueResolver, fallbackResolver } = options
 
-  return (input: ConversationResponseResolverInput): ConversationResponseResolverResult | null => {
+  const resolveMaybeAsync = (
+    value: ConversationResponseResolverResult | null | Promise<ConversationResponseResolverResult | null>
+  ) => Promise.resolve(value)
+
+  return async (input: ConversationResponseResolverInput): Promise<ConversationResponseResolverResult | null> => {
+    const message = normalizeUserMessageForKernel(input.message)
+    const resolvedInput = { ...input, message }
+    const hasChip = resolvedInput.contextItems.length > 0
+
+    const guardResult = (result: ConversationResponseResolverResult | null): ConversationResponseResolverResult | null => {
+      if (!result?.text) return result
+      return { ...result, text: polishAppointmentReply(result.text, hasChip) }
+    }
+
     const pack = buildAppointmentModelContextPack({
       ...options,
-      contextItems: input.contextItems,
+      contextItems: resolvedInput.contextItems,
     })
 
-    const runKernel = (): ConversationResponseResolverResult | null => {
-      const kernelResponse = resolveRuleKernelStub({
-        message: input.message,
-        pack,
-        session: kernelSession,
-        contextItems: input.contextItems,
-      })
-      if (!kernelResponse) return null
-      return kernelResponseToResolverResult(kernelResponse, pack)
+    const kernelResponse = resolveRuleKernelStub({
+      message,
+      pack,
+      session: kernelSession,
+      contextItems: resolvedInput.contextItems,
+    })
+    let result: ConversationResponseResolverResult | null = guardResult(
+      kernelResponse ? kernelResponseToResolverResult(kernelResponse, pack) : null
+    )
+
+    if (!result && !isEditorialChipAnchoredTurn(message, pack)) {
+      result = guardResult(await resolveMaybeAsync(transactionalResolver(resolvedInput)))
     }
 
-    let result: ConversationResponseResolverResult | null = null
+    if (!result && !hasChip) {
+      result = guardResult(await resolveMaybeAsync(dialogueResolver(resolvedInput)))
+    }
 
-    if (input.contextItems.length > 0) {
-      result = runKernel()
+    if (!result && !hasChip) {
+      const broad = resolveBroadClarification(pack, kernelSession)
+      result = guardResult(kernelResponseToResolverResult(broad, pack))
+    }
+
+    if (!result && !hasChip) {
+      result = guardResult(await resolveMaybeAsync(fallbackResolver(resolvedInput)))
     }
 
     if (!result) {
-      const chip0 = pack.selectedContextItems[0]
-      const skipTransactional = chip0 && isVideoChipContentInquiry(input.message, chip0)
-      if (!skipTransactional) {
-        result = transactionalResolver(input)
+      result = {
+        text: polishAppointmentReply(resolveAppointmentComposerFallback(message, pack), hasChip),
       }
     }
 
-    if (!result) {
-      result = runKernel()
-    }
-
-    if (!result) {
-      result = dialogueResolver(input)
-    }
-
-    if (!result) {
-      const m = input.message
-        .normalize("NFD")
-        .replace(/\p{M}/gu, "")
-        .toLowerCase()
-        .trim()
-      const vagueOnly =
-        pack.selectedContextItems.length === 0 ||
-        (/\b(me fala|fala ai|nao entendi|não entendi)\b/.test(m) && m.length < 28)
-      if (vagueOnly) {
-        const broad = resolveBroadClarification(pack)
-        result = kernelResponseToResolverResult(broad, pack)
-      }
-    }
-
-    if (!result) {
-      result = fallbackResolver(input)
-    }
-
-    touchKernelSessionFromMessage(input.message, kernelSession, pack)
-    return result
+    touchKernelSessionFromMessage(message, kernelSession, pack)
+    return guardResult(result)
   }
 }

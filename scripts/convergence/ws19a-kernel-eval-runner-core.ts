@@ -791,9 +791,14 @@ function main() {
     process.exit(1)
   }
 
+  for (const w of ws19b.realityWarnings) {
+    console.warn(`\n${w}`)
+  }
+
   const st = ws19bFile.stats
+  const rm = ws19b.reality
   console.log(
-    `\nWS-19B gate: PASS (Escape < 5% on gate scope, critical wrong lane = 0 · total=${st?.total ?? ws19b.records.length} human=${ws19b.calibration.human} probe=${ws19b.calibration.probe} adversarial=${st?.adversarial ?? "?"} NC=${st?.negativeControls ?? "?"})`
+    `\nWS-19B gate: PASS (Escape < 5% on gate scope, critical wrong lane = 0 · total=${st?.total ?? ws19b.records.length} human=${ws19b.calibration.human} probe=${ws19b.calibration.probe} reality_count=${rm.reality_count} (${rm.reality_percentage}%) synthetic_count=${rm.synthetic_count} adversarial=${st?.adversarial ?? "?"} NC=${st?.negativeControls ?? "?"})`
   )
 }
 

@@ -506,8 +506,7 @@ export function situatedFallbackV1(
     }
   }
 
-  const place = ctx.operational.placeHint
   return {
-    text: `A ${ctx.brandName} fica ${place} — veja servicos e profissionais no feed quando quiser.`,
+    text: "Não captei o foco. É horário, como chegar, preço, um item do feed ou agendar?",
   }
 }

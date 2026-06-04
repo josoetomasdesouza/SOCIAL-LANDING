@@ -1,4 +1,5 @@
 import { normalizeKernelText } from "./active-topic"
+import { isFadeReferencedAsVideoContent } from "./topic-detection"
 import {
   isWeakOperationalFollowUp,
   resolvePendingClarificationTurn,
@@ -63,7 +64,7 @@ function isCapacityOrFacilityQuestion(message: string): boolean {
   )
 }
 
-function messageReferencesChip(message: string, item: SelectedContextItem): boolean {
+export function messageReferencesChip(message: string, item: SelectedContextItem): boolean {
   const m = normalize(message)
   if (isCapacityOrFacilityQuestion(message)) return false
 
@@ -91,6 +92,9 @@ function messageReferencesChip(message: string, item: SelectedContextItem): bool
   }
 
   if (item.kind === "video") {
+    if (/^(carecas|mulheres|cacheado|crespo|preco|preço|horario|horário|isso|esse)$/.test(m)) {
+      return true
+    }
     if (
       hasToken(
         m,
@@ -103,7 +107,15 @@ function messageReferencesChip(message: string, item: SelectedContextItem): bool
         "crespo",
         "mulher",
         "mulheres",
-        "feminino"
+        "feminino",
+        "tecnica",
+        "técnica",
+        "desse conteudo",
+        "desse conteúdo",
+        "esse conteudo",
+        "esse conteúdo",
+        "sobre o conteudo",
+        "sobre o conteúdo"
       )
     ) {
       return true
@@ -121,6 +133,7 @@ function messageReferencesChip(message: string, item: SelectedContextItem): bool
         "tendência",
         "fade",
         "esse",
+        "isso",
         "feito",
         "tambem",
         "também",
@@ -131,9 +144,16 @@ function messageReferencesChip(message: string, item: SelectedContextItem): bool
         "corte",
         "comente",
         "perguntei",
+        "como faz",
+        "serve pra mim",
+        "fale mais",
+        "o que e",
+        "o que é",
         "sobre o que",
         "estamos falando",
-        "do que estamos"
+        "do que estamos",
+        "do video",
+        "do vídeo"
       )
     ) {
       if (hasToken(m, "sobre o que", "estamos falando", "do que estamos", "perguntei", "comentei", "card")) {
@@ -199,7 +219,7 @@ function isAboutSelectedFeedPost(message: string, chip: SelectedContextItem): bo
   )
 }
 
-function isLocationBranchQuestion(message: string): boolean {
+export function isLocationBranchQuestion(message: string): boolean {
   return hasToken(
     message,
     "curitiba",
@@ -238,8 +258,16 @@ function isVagueWithoutTarget(message: string, pack: ModelContextPack): boolean 
   return false
 }
 
-function isTransactionalIntent(message: string): boolean {
+function isTransactionalIntent(message: string, pack?: ModelContextPack): boolean {
   const m = normalize(message)
+  const chip = pack?.selectedContextItems[0]
+  if (chip?.kind === "video") {
+    if (hasToken(m, "degrade", "fade") && m.length < 20) return false
+    if (isFadeReferencedAsVideoContent(message)) return false
+  }
+  if (chip && hasToken(m, "me fala", "fala ai", "fala aí", "isso", "essa", "oi") && m.length < 24) {
+    return false
+  }
   return (
     hasToken(
       m,
@@ -292,6 +320,75 @@ function resetStaleOperationalSession(
   }
 }
 
+function classifyChipAnswerability(
+  message: string,
+  pack: ModelContextPack,
+  session: KernelSession
+): AnswerabilityDecision | null {
+  const chip = pack.selectedContextItems[0]
+  if (!chip) return null
+  const m = normalize(message)
+
+  if (isInDomainMissingContext(message, chip)) {
+    return { class: "in_domain_missing_context", reason: "ambiguous_referent" }
+  }
+
+  if (isSocialFeedChip(chip) && isLocationBranchQuestion(message)) {
+    return { class: "in_domain_missing_context", reason: "ambiguous_referent" }
+  }
+
+  if (shouldIntentBeatChip(message, session, pack)) return null
+
+  if (isAboutSelectedFeedPost(message, chip)) {
+    return { class: "answerable_from_selected_context", reason: "feed_post_inquiry" }
+  }
+
+  if (
+    chip.kind === "video" &&
+    (isFadeReferencedAsVideoContent(message) ||
+      hasToken(
+        m,
+        "tecnica",
+        "técnica",
+        "tendencia",
+        "tendência",
+        "careca",
+        "carecas",
+        "cacheado",
+        "combina",
+        "comigo",
+        "em mim",
+        "ficar em mim",
+        "serve pra mim",
+        "vai ficar"
+      ) ||
+      messageReferencesChip(message, chip))
+  ) {
+    return { class: "answerable_from_selected_context", reason: "video_chip" }
+  }
+
+  if (hasToken(m, "me fala", "fala ai", "fala aí") && m.length < 28) {
+    return { class: "answerable_from_selected_context", reason: "chip_vague_anchor" }
+  }
+
+  if (/^(isso|essa|oi)$/i.test(m.trim())) {
+    return { class: "answerable_from_selected_context", reason: "chip_short_anchor" }
+  }
+
+  if (chip.kind === "service" && hasToken(m, "fale mais", "sobre esse", "corte", "servico", "serviço")) {
+    return { class: "answerable_from_selected_context", reason: "service_inquiry" }
+  }
+
+  if (
+    messageReferencesChip(message, chip) ||
+    hasToken(m, "combina", "comigo", "ficar em mim", "fale mais", "sobre isso", "e isso", "sobre esse")
+  ) {
+    return { class: "answerable_from_selected_context", reason: "direct_about_chip" }
+  }
+
+  return null
+}
+
 export function classifyAnswerability(
   message: string,
   pack: ModelContextPack,
@@ -304,16 +401,56 @@ export function classifyAnswerability(
     return { class: "blocked", reason: "clinical" }
   }
 
-  if (isTransactionalIntent(message)) {
-    return { class: "should_delegate_transactional", reason: "booking_or_catalog_search" }
+  if (hasToken(m, "estacionamento", "estacionar", "vaga no estacionamento")) {
+    return { class: "answerable_from_operational_context", reason: "parking" }
   }
+
+  if (
+    hasToken(m, "me fala", "fala ai", "fala aí", "nao entendi", "não entendi") &&
+    m.length < 28 &&
+    (session.sessionLane === "parking" || session.sessionLane === "hours")
+  ) {
+    return { class: "needs_clarification", reason: "contextual_broad" }
+  }
+
+  const chipEarly = pack.selectedContextItems[0]
+
+  const chipLane = classifyChipAnswerability(message, pack, session)
+  if (chipLane) return chipLane
 
   const pending = resolvePendingClarificationTurn(message, session)
   if (pending) {
     return pending as AnswerabilityDecision
   }
 
-  if (hasToken(m, "me fala", "fala ai", "fala aí", "nao entendi", "não entendi") && m.length < 28) {
+  if (isTransactionalIntent(message, pack)) {
+    return { class: "should_delegate_transactional", reason: "booking_or_catalog_search" }
+  }
+
+  if (isOperationalHoursQuestion(message)) {
+    return { class: "answerable_from_operational_context", reason: "hours_or_holidays" }
+  }
+
+  if (
+    isLocationBranchQuestion(message) &&
+    !(chipEarly && isSocialFeedChip(chipEarly) && isInDomainMissingContext(message, chipEarly))
+  ) {
+    return { class: "answerable_from_operational_context", reason: "branch_or_city" }
+  }
+
+  if (chipEarly && shouldIntentBeatChip(message, session, pack)) {
+    if (
+      isWeakOperationalFollowUp(message) &&
+      (session.sessionLane === "hours" ||
+        isOperationalHoursQuestion(message) ||
+        /horas/.test(m))
+    ) {
+      return { class: "answerable_from_operational_context", reason: "hours_followup_over_session" }
+    }
+    return { class: "answerable_from_active_topic", reason: "topic_overrides_chip" }
+  }
+
+  if (!chipEarly && hasToken(m, "me fala", "fala ai", "fala aí", "nao entendi", "não entendi") && m.length < 28) {
     if (session.sessionLane === "parking" || session.sessionLane === "hours") {
       return { class: "needs_clarification", reason: "contextual_broad" }
     }
@@ -324,18 +461,8 @@ export function classifyAnswerability(
     return { class: "needs_clarification", reason: "missing_target" }
   }
 
-  const chipEarly = pack.selectedContextItems[0]
-
-  if (chipEarly && isInDomainMissingContext(message, chipEarly)) {
-    return { class: "in_domain_missing_context", reason: "ambiguous_referent" }
-  }
-
   if (!chipEarly && isInDomainMissingContext(message)) {
     return { class: "in_domain_missing_context", reason: "ambiguous_referent_no_chip" }
-  }
-
-  if (hasToken(m, "estacionamento", "estacionar", "vaga no estacionamento")) {
-    return { class: "answerable_from_operational_context", reason: "parking" }
   }
 
   if (isLocationBranchQuestion(message)) {
@@ -356,10 +483,6 @@ export function classifyAnswerability(
     return { class: "needs_clarification", reason: "defer_to_legacy" }
   }
 
-  if (shouldIntentBeatChip(message, session, pack)) {
-    return { class: "answerable_from_active_topic", reason: "topic_overrides_chip" }
-  }
-
   if (chip && isPricingQuestion(message)) {
     if (chip.kind === "service" || chip.relatedEntityIds?.length) {
       return { class: "answerable_from_catalog", reason: "service_price" }
@@ -371,6 +494,10 @@ export function classifyAnswerability(
     return { class: "answerable_from_selected_context", reason: "feed_post_inquiry" }
   }
 
+  if (chip && isOperationalHoursQuestion(message)) {
+    return { class: "answerable_from_operational_context", reason: "hours_with_chip" }
+  }
+
   if (chip && isDirectQuestion(message, chip) && !isOperationalHoursQuestion(message)) {
     if (isBeforeAfterChip(chip) || messageReferencesChip(message, chip)) {
       return { class: "answerable_from_selected_context", reason: "direct_about_chip" }
@@ -380,6 +507,15 @@ export function classifyAnswerability(
     }
     if (chip.kind === "video" && hasToken(m, "como", "faz", "funciona", "mostra")) {
       return { class: "answerable_from_selected_context", reason: "video_how" }
+    }
+    if (chip.kind === "video" && hasToken(m, "tecnica", "técnica")) {
+      return { class: "answerable_from_selected_context", reason: "video_technique" }
+    }
+    if (
+      chip.kind === "video" &&
+      hasToken(m, "desse conteudo", "desse conteúdo", "esse conteudo", "esse conteúdo", "sobre o conteudo", "sobre o conteúdo", "do video", "do vídeo")
+    ) {
+      return { class: "answerable_from_selected_context", reason: "video_content_anchor" }
     }
     if (chip.kind === "product" || chip.kind === "menu_item") {
       return { class: "answerable_from_selected_context", reason: "catalog_item_question" }
@@ -528,7 +664,7 @@ function replySocialPost(item: SelectedContextItem, pack: ModelContextPack): Ker
   const body = item.summary && item.summary !== item.title ? item.summary : item.title
   return baseAnswer(
     {
-      reply: `"${item.title}" é um post da ${pack.brandName} no feed — ${body}. Não é um serviço do catálogo; para preços ou horários, use Agendar ou os cards de serviço no feed.`,
+      reply: `"${item.title}" é um post da ${pack.brandName}: ${body}. Quer saber horário, preço ou agendar?`,
       intent: "context_grounded",
       topic: "social_post",
       source: "selected_context",
@@ -536,6 +672,15 @@ function replySocialPost(item: SelectedContextItem, pack: ModelContextPack): Ker
     },
     "answerable_from_selected_context"
   )
+}
+
+/** Single source for chip-grounded replies (classifier, stub, adapter fallback). */
+export function resolveChipTurn(
+  message: string,
+  pack: ModelContextPack,
+  item: SelectedContextItem
+): KernelResponse {
+  return replyFromSelectedContext(message, pack, item)
 }
 
 export function replyFromSelectedContext(message: string, pack: ModelContextPack, item: SelectedContextItem): KernelResponse {
@@ -606,12 +751,71 @@ export function replyFromSelectedContext(message: string, pack: ModelContextPack
     )
   }
 
+  if (item.kind === "video" && hasToken(m, "o que e", "o que é", "oque é") && hasToken(m, "fade", "tutorial")) {
+    return baseAnswer(
+      {
+        reply: `O vídeo "${item.title}" mostra a técnica de fade — o resultado depende do seu cabelo e rosto. O melhor é ver com um barbeiro no feed e marcar um horário para avaliar ao vivo.`,
+        intent: "context_grounded",
+        topic: "video_fade_fit",
+        source: "selected_context",
+        grounding: groundingFromItem(item, "medium"),
+      },
+      "answerable_from_selected_context"
+    )
+  }
+
   if (item.kind === "video" && hasToken(m, "como", "faz", "funciona", "mostra")) {
     return baseAnswer(
       {
         reply: `No "${item.title}" o foco é o passo a passo no vídeo do feed${item.summary ? ` (${item.summary})` : ""}. Para reproduzir na prática, marque com um profissional da casa em Agendar.`,
         intent: "context_grounded",
         topic: "video_how",
+        source: "selected_context",
+        grounding: groundingFromItem(item, "high"),
+      },
+      "answerable_from_selected_context"
+    )
+  }
+
+  if (item.kind === "video" && hasToken(m, "tecnica", "técnica")) {
+    const detail =
+      item.summary ??
+      item.knownFacts.find((f) => f.startsWith("tema:"))?.replace(/^tema:\s*/i, "").trim() ??
+      "fade degradê com máquina e tesoura"
+    return baseAnswer(
+      {
+        reply: `No "${item.title}" a técnica é ${detail}. Em resumo: alturas na máquina, transição suave e acabamento na tesoura no topo.`,
+        intent: "context_grounded",
+        topic: "video_technique",
+        source: "selected_context",
+        grounding: groundingFromItem(item, "high"),
+      },
+      "answerable_from_selected_context"
+    )
+  }
+
+  if (
+    item.kind === "video" &&
+    hasToken(
+      m,
+      "desse conteudo",
+      "desse conteúdo",
+      "esse conteudo",
+      "esse conteúdo",
+      "sobre o conteudo",
+      "sobre o conteúdo",
+      "do video",
+      "do vídeo",
+      "desse video",
+      "desse vídeo"
+    )
+  ) {
+    const detail = item.summary ?? "tutorial de fade no feed da casa"
+    return baseAnswer(
+      {
+        reply: `Isso, do vídeo "${item.title}": ${detail}. Quer saber se combina com você ou já marcar com um barbeiro para fazer ao vivo?`,
+        intent: "context_grounded",
+        topic: "video_content_anchor",
         source: "selected_context",
         grounding: groundingFromItem(item, "high"),
       },

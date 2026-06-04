@@ -1,8 +1,9 @@
-# WS-19B — Conversational Coverage (v1.1)
+# WS-19B — Conversational Coverage (v1.3)
 
 **Workstream:** WS-19A Fase 3 / PR4 + v1.1 corpus hardening  
 **Objetivo:** Corpus calibrado e adversarial **antes** da fase LLM — observabilidade apenas (sem mudar kernel).  
-**Corpus:** `docs/audit/ws19b-conversational-coverage.json` (v1.1.0)  
+**Corpus:** `docs/audit/ws19b-conversational-coverage.json` (v1.3.0)  
+**Reality harvest:** `docs/audit/ws19b-reality-harvest.json` · backlog `docs/audit/WS-19B_REALITY_BACKLOG.md`  
 **Builder:** `node scripts/convergence/ws19b-build-v11-corpus.mjs`  
 **Runner:** `pnpm qa:kernel-stub` (Phase 1 + relatório WS-19B)
 
@@ -64,16 +65,79 @@ Adversarial: wrong_lane / escape **reportados**, não falham CI.
 
 ---
 
+## v1.2 — Reality Harvest
+
+| Origem | Campo corpus | Fonte |
+|--------|--------------|-------|
+| Smoke humano | `origin: "reality"` + `realityRef: "RH-###"` | `ws19b-reality-harvest.json` |
+| Matrix / adversarial / probe | `origin: "synthetic"` | builder v1.1 |
+
+Promoção: **Reality Backlog → Eval → Corpus → `pnpm qa:kernel-stub`**
+
+## v1.3 — Reality Acceleration
+
+### Reality metrics (corpus)
+
+| Campo | Significado |
+|-------|-------------|
+| `reality_count` | Cenários com `origin: "reality"` |
+| `synthetic_count` | Cenários `origin: "synthetic"` |
+| `reality_percentage` | `reality_count / total × 100` |
+
+### Promotion dashboard (harvest)
+
+| Métrica | Significado |
+|---------|-------------|
+| **RH backlog** | `status: backlog` — bug registrado, sem fix |
+| **RH fixed** | `status: fixed` — corrigido, ainda não promovido |
+| **RH promoted** | `status: promoted` — eval + corpus ligados |
+| **RH pending** | backlog + fixed (aguardando promoção completa) |
+
+### Reality gate (advisory)
+
+Se `reality_count < 10` (`gate.realityTargetMin`), o runner emite **WARN** — **não falha** o build.
+
+Meta: aumentar participação real sem reduzir cobertura synthetic.
+
+---
+
+## Reality Review — Top Reality Scenarios
+
+Cenários promovidos do harvest (fonte: `ws19b-reality-harvest.json`, status `promoted`):
+
+| RH id | Eval associado | Corpus associado |
+|-------|----------------|------------------|
+| RH-001 | E-G46 | B-51 |
+| RH-002 | E-G47 | B-61 |
+| RH-003 | E-G48 | B-62 |
+| RH-004 | E-G49 | B-63 |
+| RH-005 | E-G50 | B-64 |
+| RH-006 | E-G51 | B-65 |
+| RH-007 | E-G52 | B-66 |
+| RH-008 | E-G53 | B-67 |
+| RH-009 | E-G54 | B-68 |
+| RH-010 | E-G55 | B-69 |
+
+---
+
 ## Relatório (`pnpm qa:kernel-stub`)
 
 ```txt
 Total scenarios
-Human calibrated
-Probe calibrated
-Adversarial
-Negative controls
-Escape rate (full + gate scope)
-Wrong lane rate (full + gate scope)
+Human calibrated · Probe calibrated
+Reality: <count> / <target> · remaining: <n>
+reality_count · synthetic_count · reality_percentage
+Reality promotion dashboard (RH backlog / promoted / fixed / pending)
+Top Reality Scenarios (promoted)
+Reality gate (advisory) — se reality_count < 10
+Adversarial · Negative controls
+Escape rate · Wrong lane rate (full + gate scope)
+```
+
+Validar links harvest:
+
+```bash
+pnpm qa:reality-harvest
 ```
 
 ---

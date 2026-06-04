@@ -1,10 +1,10 @@
 import type { KernelResponse, KernelSession, ModelContextPack } from "./types"
 
 export const BROAD_CLARIFICATION_REPLY =
-  "Não captei o foco — é sobre horário, como chegar, preços, um item do feed ou agendar?"
+  "Posso ajudar com horário, como chegar, preço ou agendar. O que você quer saber?"
 
 const CONTEXTUAL_OPERATIONAL_REPLY =
-  "Continuando no que falamos — quer estacionamento, horário de funcionamento ou o endereço no mapa?"
+  "Continuando no que falamos. Quer estacionamento, horário de funcionamento ou o endereço no mapa?"
 
 /** Last-resort lane when stub + legacy return null — never Augusta copy (WS-19A Fase 1.5). */
 export function resolveBroadClarification(pack: ModelContextPack, session?: KernelSession): KernelResponse {
@@ -24,7 +24,7 @@ export function resolveBroadClarification(pack: ModelContextPack, session?: Kern
       answered: false,
       followUpQuestion: contextual
         ? "estacionamento, horário ou endereço?"
-        : "horário, como chegar, preços, item do feed ou agendar?",
+        : "horário, como chegar, preço ou agendar?",
     },
     confidence: "medium",
     action: { type: "text_only" },

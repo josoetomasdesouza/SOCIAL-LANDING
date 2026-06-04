@@ -1,22 +1,29 @@
 {
-  "version": "1.1.0",
+  "version": "1.4.0",
   "workstream": "WS-19B",
   "charter": "docs/audit/WS-19B_CONVERSATIONAL_COVERAGE.md",
-  "followup": "docs/audit/WS-19B_V1_1_FOLLOWUP.md",
+  "followup": "docs/audit/WS-19B_REALITY_BACKLOG.md",
   "gate": {
     "escapeRateMaxPercent": 5,
     "criticalWrongLaneMax": 0,
     "escapeRateScope": "escape_expected_false",
     "wrongLaneScope": "human_critical_non_adversarial",
     "corpusMin": 60,
-    "humanCalibratedMin": 40
+    "humanCalibratedMin": 40,
+    "realityTargetMin": 10
   },
   "stats": {
-    "total": 61,
+    "total": 70,
     "humanCalibrated": 45,
     "probeCalibrated": 16,
     "adversarial": 16,
-    "negativeControls": 3
+    "negativeControls": 3,
+    "realityDerived": 10,
+    "synthetic": 60,
+    "realityBacklogOpen": 0,
+    "reality_count": 10,
+    "synthetic_count": 60,
+    "reality_percentage": 14.3
   },
   "scenarios": [
     {
@@ -35,7 +42,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-02",
@@ -55,7 +63,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-03",
@@ -73,7 +82,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-04",
@@ -91,7 +101,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-05",
@@ -109,7 +120,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-06",
@@ -127,7 +139,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-07",
@@ -147,7 +160,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-08",
@@ -168,7 +182,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-09",
@@ -186,7 +201,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-10",
@@ -204,7 +220,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-11",
@@ -225,7 +242,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-12",
@@ -248,7 +266,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": true
+      "known_product_gap": true,
+      "origin": "synthetic"
     },
     {
       "id": "B-14",
@@ -269,7 +288,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-15",
@@ -290,7 +310,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-16",
@@ -314,7 +335,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-17",
@@ -338,7 +360,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-18",
@@ -362,7 +385,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-19",
@@ -385,7 +409,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-20",
@@ -406,7 +431,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-21",
@@ -427,7 +453,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-22",
@@ -448,7 +475,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-23",
@@ -466,7 +494,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-24",
@@ -487,7 +516,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-25",
@@ -508,7 +538,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-26",
@@ -531,7 +562,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-27",
@@ -552,7 +584,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-28",
@@ -573,7 +606,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-29",
@@ -594,7 +628,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-30",
@@ -612,7 +647,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": true
+      "known_product_gap": true,
+      "origin": "synthetic"
     },
     {
       "id": "B-31",
@@ -633,7 +669,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-32",
@@ -654,7 +691,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-33",
@@ -677,7 +715,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-34",
@@ -700,7 +739,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-35",
@@ -723,7 +763,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-36",
@@ -744,7 +785,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-37",
@@ -767,7 +809,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-38",
@@ -788,7 +831,8 @@
       "calibration": "human",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": true
+      "known_product_gap": true,
+      "origin": "synthetic"
     },
     {
       "id": "B-39",
@@ -797,10 +841,13 @@
       "prior_turns": [],
       "chip": {
         "kind": "video",
-        "title": "Tendências de Corte Masculino 2024"
+        "title": "Tendencias de Corte Masculino 2024",
+        "knownFacts": [
+          "tema: tendencias corte masculino"
+        ]
       },
-      "expected_lane": "needs_clarification",
-      "expected_strategy": "defer_legacy",
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
       "forbidden_patterns": [
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
@@ -809,7 +856,8 @@
       "calibration": "probe",
       "tags": [],
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-41",
@@ -838,7 +886,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-42",
@@ -862,7 +911,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-43",
@@ -888,7 +938,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-44",
@@ -913,7 +964,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-45",
@@ -937,7 +989,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-46",
@@ -960,7 +1013,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-47",
@@ -989,7 +1043,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-48",
@@ -1015,7 +1070,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-49",
@@ -1042,7 +1098,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-50",
@@ -1071,7 +1128,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "NC-01",
@@ -1089,7 +1147,8 @@
       "calibration": "human",
       "critical": false,
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "NC-02",
@@ -1113,7 +1172,8 @@
       "prior_turns": [],
       "chip": null,
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "NC-03",
@@ -1137,7 +1197,8 @@
       "prior_turns": [],
       "chip": null,
       "adversarial": false,
-      "known_product_gap": false
+      "known_product_gap": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-51",
@@ -1168,7 +1229,9 @@
       "critical": true,
       "adversarial": false,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "reality",
+      "realityRef": "RH-001"
     },
     {
       "id": "B-52",
@@ -1195,7 +1258,8 @@
       "critical": true,
       "adversarial": false,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-53",
@@ -1219,7 +1283,8 @@
       "known_product_gap": true,
       "tags": [],
       "adversarial": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-54",
@@ -1246,7 +1311,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-55",
@@ -1275,7 +1341,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-56",
@@ -1301,7 +1368,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-57",
@@ -1325,7 +1393,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-58",
@@ -1349,7 +1418,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-59",
@@ -1373,7 +1443,8 @@
       "critical": true,
       "adversarial": true,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
     },
     {
       "id": "B-60",
@@ -1398,7 +1469,293 @@
       "tags": [],
       "adversarial": false,
       "known_product_gap": false,
-      "escape_expected": false
+      "escape_expected": false,
+      "origin": "synthetic"
+    },
+    {
+      "id": "B-61",
+      "realityRef": "RH-002",
+      "matrixRef": "E-G47",
+      "tags": [
+        "reality_sprint",
+        "adversarial",
+        "broad_indevido",
+        "smoke_videos"
+      ],
+      "prompt": "me fala ai",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "não captei o foco|nao captei o foco"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "origin": "reality",
+      "escape_expected": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "B-62",
+      "realityRef": "RH-003",
+      "matrixRef": "E-G48",
+      "tags": [
+        "reality_sprint",
+        "adversarial",
+        "transactional_indevido",
+        "smoke_videos"
+      ],
+      "prompt": "degrade",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ]
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser"
+      ],
+      "forbidden_action_types": [
+        "delegate_transactional_resolver"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "origin": "reality",
+      "escape_expected": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "B-63",
+      "realityRef": "RH-004",
+      "matrixRef": "E-G49",
+      "tags": [
+        "reality_sprint",
+        "adversarial",
+        "chip_trap",
+        "smoke_services"
+      ],
+      "prompt": "Tem estacionamento?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "30 min",
+        "tradicional com máquina"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "origin": "reality",
+      "escape_expected": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "B-64",
+      "realityRef": "RH-005",
+      "matrixRef": "E-G50",
+      "tags": [
+        "reality_sprint",
+        "adversarial",
+        "ambiguity",
+        "smoke_posts"
+      ],
+      "prompt": "e isso?",
+      "prior_turns": [
+        "fale mais sobre esse post"
+      ],
+      "chip": {
+        "kind": "social_post",
+        "title": "Sabado de casa cheia! Obrigado pela confianca."
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "origin": "reality",
+      "escape_expected": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "B-65",
+      "realityRef": "RH-006",
+      "matrixRef": "E-G51",
+      "tags": [
+        "reality_sprint",
+        "adversarial",
+        "ambiguity",
+        "smoke_posts"
+      ],
+      "prompt": "tem essa barbearia la em Curitiba?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "social_post",
+        "title": "Novo lounge na Augusta"
+      },
+      "expected_lane": "in_domain_missing_context",
+      "expected_strategy": "clarify_target",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "augusta, 1500"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "origin": "reality",
+      "escape_expected": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "B-66",
+      "realityRef": "RH-007",
+      "matrixRef": "E-G52",
+      "tags": [
+        "reality_sprint",
+        "adversarial",
+        "topic_drift",
+        "smoke_preco"
+      ],
+      "prompt": "e quanto custa?",
+      "prior_turns": [
+        "esse fade é feito tambem em mulheres?"
+      ],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ]
+      },
+      "expected_lane": "answerable_from_active_topic",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "mulher|feminino|clipe ensina"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "origin": "reality",
+      "escape_expected": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "B-67",
+      "realityRef": "RH-008",
+      "matrixRef": "E-G53",
+      "tags": [
+        "reality_sprint",
+        "adversarial",
+        "topic_drift",
+        "smoke_horarios"
+      ],
+      "prompt": "e funciona no domingo?",
+      "prior_turns": [
+        "qual o preco do degrade?"
+      ],
+      "chip": {
+        "kind": "service",
+        "title": "Degrade"
+      },
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "R\\$ 55|catálogo"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "origin": "reality",
+      "escape_expected": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "B-68",
+      "realityRef": "RH-009",
+      "matrixRef": "E-G54",
+      "tags": [
+        "reality_sprint",
+        "adversarial",
+        "topic_drift",
+        "smoke_agendamento"
+      ],
+      "prompt": "quero marcar um horario",
+      "prior_turns": [
+        "tem estacionamento?",
+        "e até que horas?"
+      ],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "expected_lane": "should_delegate_transactional",
+      "expected_strategy": "delegate_08c",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "estacionamento conveniado"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "origin": "reality",
+      "escape_expected": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "B-69",
+      "realityRef": "RH-010",
+      "matrixRef": "E-G55",
+      "tags": [
+        "reality_sprint",
+        "adversarial",
+        "transactional_indevido",
+        "smoke_videos"
+      ],
+      "prompt": "mostra a tecnica do fade neste clipe",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ]
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser"
+      ],
+      "forbidden_action_types": [
+        "delegate_transactional_resolver"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "origin": "reality",
+      "escape_expected": false,
+      "known_product_gap": false
     }
-  ]
+  ],
+  "realityHarvest": "docs/audit/ws19b-reality-harvest.json",
+  "ws19cSprint": "docs/audit/ws19c-reality-sprint.json"
 }
