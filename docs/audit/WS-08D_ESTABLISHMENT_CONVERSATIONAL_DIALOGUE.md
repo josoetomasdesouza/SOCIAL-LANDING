@@ -376,6 +376,7 @@ Em [`AI_ALLOWED_EVOLUTION.md`](../ai/AI_ALLOWED_EVOLUTION.md) §8, **“WS-08D�
 | Fase | Entregável | Status |
 |------|------------|--------|
 | **0 — Charter** | Este documento | ✅ |
+| **0.5 — Matriz real** | [`WS-08D_CONVERSATIONAL_MATRIX_REAL.md`](./WS-08D_CONVERSATIONAL_MATRIX_REAL.md) — evidência comportamental (75 exemplos) | ✅ publicação institucional |
 | **1 — Implementação** | Código + harness + relatório | ⏸ NO-GO até §11 |
 | **2 — Observação** | Notas pós Sessão humana (copy) | ⏸ |
 
@@ -383,6 +384,7 @@ Em [`AI_ALLOWED_EVOLUTION.md`](../ai/AI_ALLOWED_EVOLUTION.md) §8, **“WS-08D�
 
 ## Related
 
+- [`WS-08D_CONVERSATIONAL_MATRIX_REAL.md`](./WS-08D_CONVERSATIONAL_MATRIX_REAL.md) — matriz conversacional real (Appointment · Barba Negra)
 - [`WS-08C_APPOINTMENT_AI_REPORT.md`](./WS-08C_APPOINTMENT_AI_REPORT.md)
 - [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](./WS-13_ETAPA_1_HUMAN_CLOSURE.md)
 - [`WS-18A_OPERATIONAL_AI_MINIMUM.md`](./WS-18A_OPERATIONAL_AI_MINIMUM.md)

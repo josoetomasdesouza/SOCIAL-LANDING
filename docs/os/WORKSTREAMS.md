@@ -314,7 +314,7 @@
 | **Fora de escopo** | Código; Tier 1; WS-18A; runtime/publication/storage/external; chatbot/CRM/agente/memória/IA protagonista |
 | **Gate de saída (charter)** | Charter merged · GO humano explícito para implementação (§11 charter) |
 | **Gate de saída (implementação)** | Matriz V1 + `qa:appointment` + `qa:events` + `qa:ai-regression` + observação humana |
-| **Refs** | [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](../audit/WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md) |
+| **Refs** | [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](../audit/WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md) · [`WS-08D_CONVERSATIONAL_MATRIX_REAL.md`](../audit/WS-08D_CONVERSATIONAL_MATRIX_REAL.md) |
 
 ---
 
