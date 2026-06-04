@@ -1,9 +1,10 @@
 # Handoff Operacional — Social Landing
 
-**Data:** 2026-06-04 (atualizado pós WS-19A Fase 1)
-**Baseline remoto:** `origin/main` @ `72d49ad` (WS-19A Fase 1 merged · PR #78)  
+**Data:** 2026-06-04 (atualizado pós Appointment P0/P1 · PR #84)
+**Baseline remoto:** `origin/main` @ `fc799d2` (Merge PR #84 · Appointment anti-robot P0/P1)  
 **Tipo:** Baseline consolidado · estado atual · sem propostas de feature  
 **Autoridade:** Registrar contexto para próxima conversa — não reabrir filosofia congelada  
+**Handoff conversacional:** [`CONTINUATION_AUDIT_2026-06-04.md`](CONTINUATION_AUDIT_2026-06-04.md)  
 **WS-18A runbook canônico:** [`WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md`](WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md)
 
 ---
@@ -12,7 +13,9 @@
 
 | Âncora | Hash | Significado |
 |--------|------|-------------|
-| **`origin/main` (publicado)** | `72d49ad` | HEAD remoto · WS-19A Fase 1 · CI verde (QA Minimum) |
+| **`origin/main` (publicado)** | `fc799d2` | HEAD remoto · Appointment P0/P1 · PR #84 · CI verde |
+| **Appointment P0/P1 anti-robô** | `7783eba` | Kernel + adapter + eval + smoke + Playwright (`7783eba`…`ce526cd` em PR #84) |
+| **WS-19B v1.1 corpus** | `a7ef95f` | 61→70 cenários · reality harvest · incluído no merge #84 |
 | **WS-19A Fase 1 feature** | `1de7113` | Kernel stub + Appointment adapter (PR #78) |
 | **CI fix client bundle** | `fdb9e68` | `node:fs` leak corrigido · dev server `/demo` OK |
 | **WS-18A Etapa 1** | `e64912c` | Operational AI primitives (fixture-only) |
@@ -29,9 +32,10 @@
 
 | Estado | Detalhe |
 |--------|---------|
-| **`origin/main`** | `bf76278` — WS-18A fechada · hero higiene · WS-13 docs locais pendentes commit |
-| **Untracked opcional** | Proxy WS-13 (`session-b-captures/`, `ws13b-observation-log.json`, `WS-13_SESSION_B_OBSERVATION_REPORT.md`) |
-| **Não commitar** | `data/runtime/external/` · `.next/` · `next-env.d.ts` |
+| **`origin/main`** | `fc799d2` — Appointment P0/P1 mergeado · PR #84 · gates CI verdes |
+| **Local experimental (fora baseline)** | WS-20 LLM bounded (`lib/conversation-kernel/llm-bounded/`, `app/api/appointment/bounded-rewrite/`, docs `WS-20*`, scripts `ws20*`) — **não mergeado · NO-GO produção** |
+| **Untracked opcional** | Proxy WS-13 (`session-b-captures/`, `ws13b-observation-log.json`) · WS-19C capture kit |
+| **Não commitar** | `data/runtime/external/` · `.env.local` · `.next/` · `next-env.d.ts` |
 
 ---
 
@@ -65,7 +69,10 @@
 | WS-08D V1 establishment dialogue | ✅ | `10b36c7` — PR #77 · `[2]→[1]→[3]` · AP-D01…14 |
 | WS-08D V1.1 zona cinza | 🟢 spec · 🔴 estratégia | [`WS-08D_V1_1_GRAY_ZONE_SPEC.md`](WS-08D_V1_1_GRAY_ZONE_SPEC.md) — local = experimento/baseline |
 | WS-08D V2 Conversation Kernel | 🟢 design / 🔴 código | Perfil Appointment → WS-19A |
-| **WS-19A** Conversation Kernel | ✅ **Fase 1 FECHADA** @ `72d49ad` / 🔴 **Fase 2 NÃO ABERTA** | Stub + `qa:kernel-stub` 22/22 · grounding prints · ver [`WS-19A_PHASE1_CLOSURE.md`](WS-19A_PHASE1_CLOSURE.md) |
+| **WS-19A** Conversation Kernel | ✅ **Fase 1 FECHADA** · ✅ **Fase 1.5 P0/P1 FECHADA** @ `fc799d2` · 🔴 **Fase 2 NÃO ABERTA** | Stub + `qa:kernel-stub` **47/47** · WS-19B gate PASS · ver [`WS-19A_PHASE1_CLOSURE.md`](WS-19A_PHASE1_CLOSURE.md) · [`CONTINUATION_AUDIT_2026-06-04.md`](CONTINUATION_AUDIT_2026-06-04.md) |
+| **WS-19B** Conversational coverage | ✅ **gate scope PASS** @ `fc799d2` | Corpus 70 · escape gate 0% (42 cen.) · full corpus escape 7.1% (meta &lt;5% **P1 aberta**) |
+| **Appointment P0/P1 anti-robô** | ✅ **FECHADO** @ `fc799d2` · PR #84 | `resolveChipTurn` unificado · `disableHostMockFallback` · `augusta-guard` · `qa:appointment` **28/28** |
+| **WS-20** LLM bounded rewrite | 🔴 **LOCAL / EXPERIMENTAL** | Fora do baseline · opt-in `ENABLE_LLM_BOUNDED` · frente separada pós-doc |
 
 ### Era 4 — Appointment operacional (server)
 | WS | Status | Hash ref |
@@ -87,7 +94,9 @@
 | WS-10 | 🟡 Observational hardening (macro) |
 | WS-13 Presença contínua | ✅ **Etapa 1 FECHADA** · Sessão B humana @ `eaf5701` · [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md) |
 | WS-08D | ✅ V1 @ `4172f2d` · V1.1 spec only · **sucessor: WS-19A** |
-| WS-19A | ✅ **Fase 1 FECHADA** @ `72d49ad` · **Fase 2 NÃO ABERTA** · LLM/endpoint **NO-GO** · [`WS-19A_PHASE1_CLOSURE.md`](WS-19A_PHASE1_CLOSURE.md) |
+| WS-19A | ✅ **Fase 1 + 1.5 P0/P1 FECHADAS** @ `fc799d2` · **Fase 2 NÃO ABERTA** · LLM composer **NO-GO** (WS-20 local) · [`WS-19A_PHASE1_CLOSURE.md`](WS-19A_PHASE1_CLOSURE.md) |
+| WS-19B | ✅ **gate PASS** · corpus full escape 7.1% (P1) · [`WS-19B_CONVERSATIONAL_COVERAGE.md`](WS-19B_CONVERSATIONAL_COVERAGE.md) |
+| WS-20 LLM bounded | 🔴 **LOCAL ONLY** — fora baseline · charter untracked `WS-20_LLM_BOUNDED_PILOT.md` |
 | WS-09 DB enterprise | 🔴 BLOCKED |
 
 ---
@@ -247,7 +256,16 @@ resolveOperationalAiProvider()
 |----------|----------|
 | `qa-minimum.yml` | `pnpm build` · `pnpm ts:budget` · dev server · `pnpm qa:events` 8/8 |
 
-**Não no CI:** `qa:appointment*` · `qa:appointment-runtime` · publication · storage · operational AI — rodar localmente pré-commit.
+**Validado @ `fc799d2` (PR #84):** `ts:budget` PASS · Vercel PASS · `build + qa:events` PASS.
+
+**Não no CI:** `qa:appointment*` · `qa:kernel-stub` · `emergency-demo-smoke` — rodar localmente pré-merge conversacional.
+
+### Appointment conversacional (local · obrigatório pós P0/P1)
+| Script | Função | Estado @ `fc799d2` |
+|--------|--------|-------------------|
+| `pnpm qa:kernel-stub` | Matrix 47/47 + WS-19B gate | ✅ PASS |
+| `npx tsx scripts/convergence/emergency-demo-smoke.ts` | 9 cenários resolver (sem browser) | ✅ 9/9 |
+| `pnpm qa:appointment` | Playwright `/demo` Appointment | ✅ 28/28 (dev :3000) |
 
 ### Appointment operacional (local obrigatório pré-merge WS-18A+)
 | Script | Função |
@@ -257,7 +275,7 @@ resolveOperationalAiProvider()
 | `pnpm qa:appointment-storage` | adapter + publication integration |
 | `pnpm qa:appointment-publication` | draft/live parity |
 | `pnpm qa:appointment-runtime` | external + overlay + runtime store |
-| `pnpm qa:appointment` | perceptual 8/8 (dev server) |
+| `pnpm qa:appointment` | perceptual + AP-CHAT + AP-D01…14 (dev server) | ✅ 28/28 |
 | `pnpm qa:events` | passive events 8/8 (dev server) |
 
 ### Resolvers multi-vertical (Era 3 · separados)
@@ -304,6 +322,7 @@ resolveOperationalAiProvider()
 | **Client bundle server modules** | `node:fs` leak class · corrigido @ `fdb9e68` |
 | **Default-on external overlay** | WS-16A até evidência humana |
 | **Chatbot / agent loop / multi-agent** | Fora charter WS-18A |
+| **WS-20 LLM bounded em produção** | LOCAL ONLY @ `fc799d2` — frente separada · não misturar com P0/P1 |
 | **Layout generation / new section kinds** | Quebra projection + morph |
 
 ---
@@ -319,7 +338,8 @@ resolveOperationalAiProvider()
 | R-05 | Confundir WS-08C composer com WS-18A operational | Alta | Boundary documentado |
 | R-06 | `meta.ai` não persistido no JSON do draft | Baixa | Envelope-only |
 | R-07 | Untracked `data/runtime/appointment/external/` local | Baixa | Não commitar acidentalmente |
-| R-08 | CI não cobre gates appointment — regressão silenciosa possível | Média | Aceito · protocolo local |
+| R-08 | CI não cobre gates appointment conversacional — regressão silenciosa possível | Média | Aceito · protocolo local · kernel-stub 47/47 manual |
+| R-10 | WS-20 local pode quebrar `ts:budget` na máquina do dev | Baixa | Arquivos untracked · fora baseline · CI limpo @ `fc799d2` |
 | R-09 | WS-03 parity gaps outras verticais | Baixa | Paralelo |
 
 ---
@@ -343,14 +363,12 @@ resolveOperationalAiProvider()
 
 | # | Decisão | Condição |
 |---|---------|----------|
-| 1 | **Commit + push WS-18A Etapa 3** (se ainda local) | Gates locais · escopo `operational-ai/` isolado |
-| 2 | **Commit docs WS-18A Etapa 4** | `WS-18A_ETAPA_4_*` · charter · WORKSTREAMS · este handoff |
-| 3 | ~~WS-13 Sessão B~~ ✅ · deliberar **WS-17** (GO humano) | Não implementar WS-17 automaticamente |
-| 4 | **Promover draft IA/manual para live** (operador) | Após review · `promote --execute` |
-| 5 | **WS-17 vs continuação WS-18A** (editor vs mais primitives) | GO humano · não automático |
-| 6 | **WS-09 enterprise** | BLOCKED — GO humano explícito apenas |
-| 7 | **WS-03 Stack A parity** | Paralelo · baixa prioridade Appointment |
-| 8 | **Expandir CI com appointment gates** | WS dedicado · não ad-hoc |
+| 1 | **WS-20 LLM bounded — frente separada** | Branch isolada · charter WS-20 · não misturar com P0/P1 |
+| 2 | **Corpus 70 escape global 7.1% → &lt;5%** | P1 pós-merge #84 · fora gate scope |
+| 3 | **Promover draft IA/manual para live** (operador) | Após review · `promote --execute` |
+| 4 | **Deliberar WS-17** (GO humano) | Não implementar automaticamente |
+| 5 | **WS-09 enterprise** | BLOCKED — GO humano explícito apenas |
+| 6 | **Expandir CI com appointment/kernel gates** | WS dedicado · não ad-hoc |
 
 ---
 
@@ -377,7 +395,7 @@ resolveOperationalAiProvider()
 |----------|------------|------|
 | **Percepção / presença (Tier 1)** | Alta · congelada | @ `1c92acc` · WS-10/11/12/13 observação |
 | **Convergência drawers (Era 2)** | Alta | Stack A instrumentado · influencer/institutional ✅ |
-| **AI demo conversacional (Era 3)** | Média-alta | 4 verticais + appointment 8/8 · mock only |
+| **AI demo conversacional (Era 3)** | Alta · P0/P1 fechado | Appointment **28/28** · kernel **47/47** · mock determinístico @ `fc799d2` |
 | **Runtime vivo Appointment (Era 4)** | Média-alta | Wire + seed + modes · piloto único |
 | **Publication operacional** | Alta | CLI completo · gates verdes |
 | **Persistência operacional** | Alta · fechada | WS-09A ✅ · enterprise BLOCKED |
@@ -392,8 +410,10 @@ resolveOperationalAiProvider()
 ```txt
 Produto perceptivo: maduro e congelado (@ 1c92acc)
 Infra Appointment: madura o suficiente para operação diária (runtime + publication + storage + external)
+Conversação Appointment: P0/P1 anti-robô FECHADO @ fc799d2 (PR #84) — kernel stub + adapter + eval verdes
 IA operacional: WS-18A fechado (fixture + LLM opt-in + runbook)
-Próximo passo operacional típico: review/promote draft manual · **deliberar WS-17** (charter) · WS-09 enterprise BLOCKED
+WS-20 LLM bounded: LOCAL ONLY — frente separada, fora do baseline
+Próximo passo operacional típico: WS-20 branch isolada OU corpus escape P1 · review/promote draft manual · deliberar WS-17
 ```
 
 ---
@@ -411,9 +431,11 @@ Próximo passo operacional típico: review/promote draft manual · **deliberar W
 | WS-18A Operational AI | `docs/audit/WS-18A_OPERATIONAL_AI_MINIMUM.md` · `docs/audit/WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md` |
 | WS-13 Presença contínua | `docs/audit/WS-13_PRESENCA_CONTINUA_OBSERVACIONAL.md` · `docs/audit/WS-13_ETAPA_1_HUMAN_CLOSURE.md` |
 | WS-17 candidato | `docs/audit/WS-17_CANDIDATE_COMPOSER_PAGE_PHYSICS.md` (sem implementação) |
-| Perceptual language | `docs/os/PERCEPTUAL_LANGUAGE_SYSTEM.md` |
+| WS-19A Kernel eval | `docs/audit/WS-19A_CONVERSATION_KERNEL_EVAL_MATRIX.md` · [`CONTINUATION_AUDIT_2026-06-04.md`](CONTINUATION_AUDIT_2026-06-04.md) |
+| WS-19B Coverage | `docs/audit/WS-19B_CONVERSATIONAL_COVERAGE.md` |
+| WS-20 LLM bounded (local) | `docs/audit/WS-20_LLM_BOUNDED_PILOT.md` — **fora baseline** |
 | CI strategy | `docs/audit/CI_MINIMUM_STRATEGY.md` |
 
 ---
 
-*Handoff atualizado pós WS-18A Etapa 4 (docs). Baseline remoto `23fec61`; confirmar push Etapa 3 código. Não propõe features. Não reavalia filosofia.*
+*Handoff atualizado pós merge PR #84 @ `fc799d2`. Appointment P0/P1 fechado. WS-20 local/experimental fora do baseline. Não propõe features. Não reavalia filosofia.*
