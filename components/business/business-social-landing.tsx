@@ -786,6 +786,7 @@ export function BusinessSocialLanding({
     isConversationSelected,
     composerMode,
     composerOffsetClassName,
+    composerLayoutVersion,
     setComposerMode,
   } = conversationSelection
   const toggleConversationContextItemWithMorph = hasSharedMorph
@@ -887,6 +888,7 @@ export function BusinessSocialLanding({
     <div
       className="min-h-screen bg-background"
       style={{ paddingBottom: pageScrollPaddingBottom }}
+      data-composer-layout-version={composerLayoutVersion}
     >
       {/* Main Content - Centralizado estilo rede social */}
       <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">

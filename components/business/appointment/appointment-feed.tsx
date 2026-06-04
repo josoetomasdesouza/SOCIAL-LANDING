@@ -25,6 +25,11 @@ import { createAppointmentConversationResolverWithDialogue } from "@/lib/mock-da
 import { createAppointmentConversationalVisualBlockRenderer } from "./appointment-conversational-visual-block"
 import { AppointmentOperationalHero } from "./appointment-operational-hero"
 import { AppointmentArrivalDrawer } from "./appointment-arrival-drawer"
+import {
+  DEFAULT_COMPOSER_LAYOUT_VERSION,
+  resolveComposerLayoutVersion,
+  type ComposerLayoutVersion,
+} from "@/lib/ui/composer-layout"
 import type { Professional, Service, StyleExample } from "@/lib/business-types"
 
 type BookingStep = "service" | "professional" | "datetime" | "confirmation" | null
@@ -578,8 +583,22 @@ function ConfirmationDrawer({
 // COMPONENTE PRINCIPAL
 // ========================================
 export function AppointmentFeed() {
-  const conversationSelection = useConversationSelectionState()
+  const baseConversationSelection = useConversationSelectionState()
+  const [composerLayoutVersion, setComposerLayoutVersion] = useState<ComposerLayoutVersion>(
+    DEFAULT_COMPOSER_LAYOUT_VERSION
+  )
+  const conversationSelection = useMemo(
+    () => ({
+      ...baseConversationSelection,
+      composerLayoutVersion,
+    }),
+    [baseConversationSelection, composerLayoutVersion]
+  )
   const { setComposerMode, setComposerOffsetClassName } = conversationSelection
+
+  useEffect(() => {
+    setComposerLayoutVersion(resolveComposerLayoutVersion())
+  }, [])
   const [selectedBarber, setSelectedBarber] = useState<Professional | null>(null)
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [bookingStep, setBookingStep] = useState<BookingStep>(null)
