@@ -322,15 +322,40 @@ function parseDiscoveryFocus(normalized: string): "hair" | "beard" | "both" | "d
 }
 
 function buildDiscoverySteerReply(ctx: EstablishmentDialogueContext, focus: "hair" | "beard" | "both" | "discreet" | "modern" | "bold") {
-  const services = pickServiceHints(ctx)
+  const uniqueServices: string[] = []
+  const seen = new Set<string>()
+  for (const name of ctx.serviceNames) {
+    const trimmed = name?.trim()
+    if (!trimmed) continue
+    const key = trimmed.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    uniqueServices.push(trimmed)
+  }
+
+  const servicePairLabel = () => {
+    if (uniqueServices.length === 0) return "servicos no feed"
+    if (uniqueServices.length === 1) return uniqueServices[0]
+    return `${uniqueServices[0]} ou ${uniqueServices[1]}`
+  }
+
+  const services = servicePairLabel()
+
+  if (focus === "modern") {
+    const anchor = uniqueServices.find((name) => /degrad/i.test(name)) ?? uniqueServices[0]
+    if (!anchor) {
+      return "Fechado — explora o feed e ve um barbeiro com referencias parecidas."
+    }
+    const companion = uniqueServices.find((name) => name !== anchor)
+    const hint = companion ? `${anchor} ou ${companion}` : anchor
+    return `Fechado — ${hint} costuma ser um bom ponto de partida; explora no feed e ve um barbeiro com referencias parecidas.`
+  }
+
   if (focus === "beard") {
     return `Beleza — barba costuma comecar com ${services} no feed; segura um barbeiro e compara referencias.`
   }
   if (focus === "both") {
     return `Combinado — olha ${services} no feed e escolhe um barbeiro com estilo parecido com o que voce imagina.`
-  }
-  if (focus === "modern") {
-    return `Fechado — Degrade ou ${services} costumam ser o ponto de partida; explora no feed e ve um barbeiro com referencias parecidas.`
   }
   if (focus === "discreet" || focus === "bold") {
     return `Entendi — comeca por ${services} no feed e ve fotos de referencia antes de decidir o corte.`
