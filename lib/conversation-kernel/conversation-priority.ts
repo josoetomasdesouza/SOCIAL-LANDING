@@ -43,7 +43,20 @@ function hasToken(message: string, ...tokens: string[]): boolean {
 export function isVideoChipContentInquiry(message: string, chip: SelectedContextItem): boolean {
   if (chip.kind !== "video") return false
   const m = normalizeKernelText(message)
-  if (hasToken(m, "quero marcar", "quero agendar", "marcar um horario", "marcar um horário", "vaga hoje", "tem vaga")) {
+  if (
+    hasToken(
+      m,
+      "quero marcar",
+      "quero agendar",
+      "quero marcar esse",
+      "marcar esse",
+      "agendar esse",
+      "marcar um horario",
+      "marcar um horário",
+      "vaga hoje",
+      "tem vaga"
+    )
+  ) {
     return false
   }
   return (
@@ -68,7 +81,7 @@ export function isVideoChipContentInquiry(message: string, chip: SelectedContext
 export function isSocialPostContentInquiry(message: string, chip: SelectedContextItem): boolean {
   if (chip.kind !== "social_post" && chip.kind !== "news") return false
   const m = normalizeKernelText(message)
-  if (hasToken(m, "quero marcar", "quero agendar", "vaga hoje")) return false
+  if (hasToken(m, "quero marcar", "quero agendar", "quero marcar esse", "marcar esse", "vaga hoje")) return false
   return hasToken(
     m,
     "sobre o que",
@@ -93,7 +106,8 @@ export function isEditorialChipAnchoredTurn(message: string, pack: ModelContextP
   return false
 }
 
-function resolveIntentCategory(message: string, session: KernelSession): string | null {
+/** Intenção detectada na mensagem (sem pesos) — usado por topic-ownership. */
+export function resolveIntentCategory(message: string, session: KernelSession): string | null {
   const topic = detectStrongTopic(message)
   if (topic === "arrival") return "arrival"
   if (topic === "schedule") return "schedule"
@@ -103,14 +117,28 @@ function resolveIntentCategory(message: string, session: KernelSession): string 
   if (topic === "news_editorial") return "news_editorial"
 
   const m = normalizeKernelText(message)
-  if (hasToken(m, "feriado", "fecham", "horario", "horário", "aberto agora", "funciona nos")) {
+  if (
+    hasToken(m, "feriado", "fecham", "horario", "horário", "aberto agora", "funciona nos") ||
+    /^(e\s+)?(ate|até)\s+que\s+horas/.test(m) ||
+    hasToken(m, "e ate que horas", "e até que horas", "e o horario", "e o horário")
+  ) {
     return "hours"
   }
   if (hasToken(m, "estacionamento", "curitiba", "filial", "unidade em", "capacidade", "lotacao", "lotação")) {
     return "operational"
   }
 
-  if (session.activeTopic) {
+  if (session.sessionLane === "hours" && /^(e\s+)?(ate|até)\s+que\s+horas/.test(m)) {
+    return "hours"
+  }
+
+  const weakSessionContinuation =
+    /^(e\s+)?(ate|até)\s+que\s+horas/.test(m) ||
+    hasToken(m, "e ate que horas", "e até que horas", "e o horario", "e o horário", "e quanto custa") ||
+    (hasToken(m, "me fala", "fala ai", "fala aí", "nao entendi", "não entendi") && m.length < 28) ||
+    hasToken(m, "unidade", "esta unidade", "essa unidade")
+
+  if (session.activeTopic && weakSessionContinuation) {
     const map: Record<ActiveTopic, string> = {
       schedule: "schedule",
       arrival: "arrival",
@@ -119,81 +147,21 @@ function resolveIntentCategory(message: string, session: KernelSession): string 
       service: "service",
       news_editorial: "news_editorial",
     }
+    if (hasToken(m, "preco", "preço", "pix", "pagamento", "valor", "quanto custa", "e quanto custa")) {
+      return "pricing"
+    }
+    if (session.sessionLane === "hours") return "hours"
     return map[session.activeTopic] ?? null
   }
 
   return null
 }
 
-function chipAnchorWeight(chip: SelectedContextItem): number {
+export function chipAnchorWeight(chip: SelectedContextItem): number {
   return CHIP_ANCHOR_WEIGHT[chip.kind] ?? CHIP_ANCHOR_WEIGHT.unknown
 }
 
-function intentWeight(category: string | null): number {
+export function intentWeight(category: string | null): number {
   if (!category) return 0
   return INTENT_PRIORITY_WEIGHT[category] ?? 0
-}
-
-/**
- * True quando a intenção da mensagem atual deve vencer o chip selecionado.
- * Fonte única para classifier + active-topic (WS-19A fast track).
- */
-export function shouldIntentBeatChip(
-  message: string,
-  session: KernelSession,
-  pack: ModelContextPack
-): boolean {
-  if (pack.selectedContextItems.length === 0) return false
-
-  const chip = pack.selectedContextItems[0]
-
-  if (isEditorialChipAnchoredTurn(message, pack)) {
-    return false
-  }
-
-  if (chip.isExternalOrEditorial && resolveIntentCategory(message, session) === "arrival") {
-    return false
-  }
-
-  const intentCat = resolveIntentCategory(message, session)
-  const intentW = intentWeight(intentCat)
-  const chipW = chipAnchorWeight(chip)
-
-  if (intentCat === "pricing" && chip.kind === "video" && !session.activeTopic) {
-    return false
-  }
-
-  if (intentCat === "pricing" && chip.kind === "service") {
-    if (!session.activeTopic || session.activeTopic === "service") return false
-  }
-
-  if (intentCat === "pricing" && chip.kind === "professional") {
-    if (!session.activeTopic) return false
-  }
-
-  if (intentCat === "service" && chip.kind === "service" && !session.activeTopic) {
-    return false
-  }
-
-  if (intentW === 0) {
-    if (
-      session.activeTopic &&
-      session.activeTopic !== "news_editorial" &&
-      hasToken(message, "preco", "preço", "pix", "pagamento", "valor", "quanto")
-    ) {
-      return true
-    }
-    if (session.activeTopic && hasToken(message, "horario", "horário", "vaga", "agendar", "marcar")) {
-      return true
-    }
-    return false
-  }
-
-  if (intentW > chipW) return true
-
-  if (session.activeTopic && intentCat && intentCat !== session.activeTopic && intentW >= chipW) {
-    return true
-  }
-
-  return false
 }

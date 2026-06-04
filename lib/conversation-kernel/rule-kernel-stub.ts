@@ -1,9 +1,5 @@
-import {
-  detectStrongTopic,
-  resolveActiveTopic,
-  shouldActiveTopicOverrideChip,
-  updateActiveTopicFromMessage,
-} from "./active-topic"
+import { detectStrongTopic, resolveActiveTopic, updateActiveTopicFromMessage } from "./active-topic"
+import { isWeakOperationalFollowUp, shouldIntentBeatChip } from "./topic-ownership"
 import { resolveAnswerFirstGate } from "./strategy-executor"
 import { isSocialFeedChip } from "./model-context-pack"
 import type {
@@ -508,7 +504,7 @@ export function resolveRuleKernelStub(input: RuleKernelInput): KernelResponse | 
     const chip = pack.selectedContextItems[0]
     const detected = detectStrongTopic(message)
 
-    if (shouldActiveTopicOverrideChip(message, session, pack)) {
+    if (shouldIntentBeatChip(message, session, pack)) {
       const active = resolveActiveTopic(message, pack, session)
       if (active && !augustaForbidden(active.reply)) return active
     }
@@ -561,17 +557,51 @@ export function touchKernelSessionFromMessage(
   session: KernelSession,
   pack?: ModelContextPack
 ): void {
-  updateActiveTopicFromMessage(message, session, pack)
   const m = normalize(message)
+  const vague =
+    hasToken(m, "me fala", "fala ai", "fala aí", "nao entendi", "não entendi") && m.length < 28
+  const retainsOperationalSession =
+    isWeakOperationalFollowUp(message) ||
+    hasToken(m, "estacionamento", "estacionar", "horario", "horário", "fecham", "curitiba", "unidade") ||
+    (vague && (session.sessionLane === "parking" || session.sessionLane === "hours")) ||
+    Boolean(session.pendingClarification)
+  if (!pack?.selectedContextItems.length && vague) {
+    session.sessionLane = undefined
+    session.activeTopic = undefined
+    session.topicOwner = undefined
+    session.pendingClarification = undefined
+  } else if (!retainsOperationalSession && (session.sessionLane || session.activeTopic === "arrival")) {
+    session.sessionLane = undefined
+    session.activeTopic = undefined
+    session.topicOwner = undefined
+  }
+
+  updateActiveTopicFromMessage(message, session, pack)
   if (hasToken(m, "mudar meu visual", "mudar visual")) {
     session.lastTopic = "discovery"
     session.awaitingFocus = true
     session.discoveryTurns += 1
     session.activeTopic = undefined
+    session.sessionLane = undefined
+    session.pendingClarification = undefined
   }
-  if (hasToken(m, "estacionamento")) {
+  if (hasToken(m, "estacionamento", "estacionar")) {
     session.lastTopic = "parking"
     session.awaitingFocus = false
     session.activeTopic = "arrival"
+    session.sessionLane = "parking"
+    session.topicOwner = "intent"
+  }
+  if (hasToken(m, "horario", "horário", "fecham", "ate que horas", "até que horas", "horas")) {
+    session.sessionLane = "hours"
+    session.activeTopic = session.activeTopic ?? "arrival"
+  }
+  if (pack && hasToken(m, "curitiba", "tem essa", "essa barbearia") && pack.selectedContextItems[0]) {
+    session.pendingClarification = "branch_unit"
+  }
+  if (hasToken(m, "unidade") && session.pendingClarification === "branch_unit") {
+    session.pendingClarification = undefined
+    session.activeTopic = "arrival"
+    session.sessionLane = "arrival"
   }
 }

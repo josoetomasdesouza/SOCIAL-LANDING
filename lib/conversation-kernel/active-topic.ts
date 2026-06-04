@@ -1,5 +1,6 @@
 import { buildCatalogPriceHint } from "./catalog-hints"
-import { isVideoChipContentInquiry, shouldIntentBeatChip } from "./conversation-priority"
+import { isVideoChipContentInquiry } from "./conversation-priority"
+import { shouldIntentBeatChip } from "./topic-ownership"
 import { detectStrongTopic, normalizeKernelText } from "./topic-detection"
 import type { ActiveTopic, KernelResponse, KernelSession, ModelContextPack } from "./types"
 

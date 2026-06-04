@@ -51,8 +51,9 @@ export function detectStrongTopic(message: string): ActiveTopic | null {
   const m = normalizeKernelText(message)
 
   if (
-    hasToken(m, "quero agendar", "quero marcar", "marcar um horario", "marcar um horário", "agendar um horario", "agendar um horário") ||
-    (hasToken(m, "agendar", "marcar", "reservar") && hasToken(m, "horario", "horário")) ||
+    hasToken(m, "quero agendar", "quero marcar", "quero marcar esse", "marcar esse", "agendar esse") ||
+    hasToken(m, "marcar um horario", "marcar um horário", "agendar um horario", "agendar um horário") ||
+    (hasToken(m, "agendar", "marcar", "reservar") && hasToken(m, "horario", "horário", "esse")) ||
     hasToken(m, "vaga hoje", "tem vaga", "tem horario", "tem horário", "encaixe")
   ) {
     return "schedule"

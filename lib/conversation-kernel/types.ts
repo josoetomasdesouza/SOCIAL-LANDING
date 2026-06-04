@@ -139,10 +139,22 @@ export interface KernelResponse {
   }
 }
 
+export type TopicOwner = "intent" | "session" | "chip"
+
+/** Pending clarify from prior turn (WS-19A PR3 multi-turn). */
+export type PendingClarification = "branch_unit" | "feed_scope"
+
+export type SessionOperationalLane = "parking" | "hours" | "arrival"
+
 export interface KernelSession {
   lastTopic?: string
   /** Strong topic lane — overrides chip when user shifts (GK active topic resolution). */
   activeTopic?: ActiveTopic
+  /** Who won the last turn: intent > session > chip (PR3). */
+  topicOwner?: TopicOwner
+  pendingClarification?: PendingClarification
+  /** Operational thread after parking/hours (PR3). */
+  sessionLane?: SessionOperationalLane
   discoveryTurns: number
   awaitingFocus: boolean
 }

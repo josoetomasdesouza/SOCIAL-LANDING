@@ -1,4 +1,9 @@
-import { shouldActiveTopicOverrideChip, normalizeKernelText } from "./active-topic"
+import { normalizeKernelText } from "./active-topic"
+import {
+  isWeakOperationalFollowUp,
+  resolvePendingClarificationTurn,
+  shouldIntentBeatChip,
+} from "./topic-ownership"
 import { buildCatalogPriceHint } from "./catalog-hints"
 import { isInDomainMissingContext } from "./missing-context"
 import { isSocialFeedChip } from "./model-context-pack"
@@ -135,26 +140,31 @@ function isPricingQuestion(message: string): boolean {
 }
 
 function isOperationalHoursQuestion(message: string): boolean {
-  return hasToken(
-    message,
-    "feriado",
-    "feriados",
-    "natal",
-    "ano novo",
-    "reveillon",
-    "fecham",
-    "fecha hoje",
-    "horario",
-    "horário",
-    "que horas",
-    "funciona nos",
-    "funciona no",
-    "aberto agora",
-    "abertos agora",
-    "todo sabado",
-    "todo sábado",
-    "domingo",
-    "segunda feira"
+  const m = normalize(message)
+  return (
+    hasToken(
+      message,
+      "feriado",
+      "feriados",
+      "natal",
+      "ano novo",
+      "reveillon",
+      "fecham",
+      "fecha hoje",
+      "horario",
+      "horário",
+      "que horas",
+      "funciona nos",
+      "funciona no",
+      "aberto agora",
+      "abertos agora",
+      "todo sabado",
+      "todo sábado",
+      "domingo",
+      "segunda feira"
+    ) ||
+    /^(e\s+)?(ate|até)\s+que\s+horas/.test(m) ||
+    hasToken(m, "e ate que horas", "e até que horas", "e o horario", "e o horário")
   )
 }
 
@@ -216,11 +226,55 @@ function isVagueWithoutTarget(message: string, pack: ModelContextPack): boolean 
 function isTransactionalIntent(message: string): boolean {
   const m = normalize(message)
   return (
-    hasToken(m, "quero marcar", "quero agendar", "marcar um horario", "marcar um horário", "agendar um horario", "agendar um horário") ||
-    (hasToken(m, "marcar", "agendar", "reservar") && hasToken(m, "horario", "horário")) ||
+    hasToken(
+      m,
+      "quero marcar",
+      "quero agendar",
+      "quero marcar esse",
+      "marcar esse",
+      "agendar esse",
+      "marcar um horario",
+      "marcar um horário",
+      "agendar um horario",
+      "agendar um horário"
+    ) ||
+    (hasToken(m, "marcar", "agendar", "reservar") && hasToken(m, "horario", "horário", "esse")) ||
     hasToken(m, "quais servicos", "quais serviços", "tem algo a tarde", "vaga hoje", "tem vaga") ||
     (hasToken(m, "degrade") && !isPricingQuestion(message) && m.length < 18)
   )
+}
+
+function isVagueRephrase(message: string): boolean {
+  const m = normalize(message)
+  return hasToken(m, "me fala", "fala ai", "fala aí", "nao entendi", "não entendi") && m.length < 28
+}
+
+function resetStaleOperationalSession(
+  message: string,
+  session: KernelSession,
+  pack: ModelContextPack
+): void {
+  const m = normalize(message)
+  const vague = isVagueRephrase(message)
+  const retains =
+    isWeakOperationalFollowUp(message) ||
+    hasToken(m, "estacionamento", "estacionar", "horario", "horário", "fecham", "curitiba", "unidade") ||
+    (vague && (session.sessionLane === "parking" || session.sessionLane === "hours")) ||
+    Boolean(session.pendingClarification)
+
+  if (pack.selectedContextItems.length === 0 && vague) {
+    session.sessionLane = undefined
+    session.activeTopic = undefined
+    session.topicOwner = undefined
+    session.pendingClarification = undefined
+    return
+  }
+
+  if (!retains && (session.sessionLane || session.activeTopic === "arrival")) {
+    session.sessionLane = undefined
+    session.activeTopic = undefined
+    session.topicOwner = undefined
+  }
 }
 
 export function classifyAnswerability(
@@ -228,6 +282,7 @@ export function classifyAnswerability(
   pack: ModelContextPack,
   session: KernelSession
 ): AnswerabilityDecision {
+  resetStaleOperationalSession(message, session, pack)
   const m = normalize(message)
 
   if (hasToken(m, "diagnostica", "mancha", "sintoma", "doença", "doenca")) {
@@ -238,7 +293,15 @@ export function classifyAnswerability(
     return { class: "should_delegate_transactional", reason: "booking_or_catalog_search" }
   }
 
-  if (hasToken(m, "me fala", "fala ai", "nao entendi", "não entendi") && m.length < 28) {
+  const pending = resolvePendingClarificationTurn(message, session)
+  if (pending) {
+    return pending as AnswerabilityDecision
+  }
+
+  if (hasToken(m, "me fala", "fala ai", "fala aí", "nao entendi", "não entendi") && m.length < 28) {
+    if (session.sessionLane === "parking" || session.sessionLane === "hours") {
+      return { class: "needs_clarification", reason: "contextual_broad" }
+    }
     return { class: "needs_clarification", reason: "broad_clarify" }
   }
 
@@ -278,7 +341,7 @@ export function classifyAnswerability(
     return { class: "needs_clarification", reason: "defer_to_legacy" }
   }
 
-  if (shouldActiveTopicOverrideChip(message, session, pack)) {
+  if (shouldIntentBeatChip(message, session, pack)) {
     return { class: "answerable_from_active_topic", reason: "topic_overrides_chip" }
   }
 
@@ -319,7 +382,7 @@ export function classifyAnswerability(
   if (
     chip &&
     hasToken(m, "pix", "pagamento", "cartao", "cartão", "debito", "débito") &&
-    !shouldActiveTopicOverrideChip(message, session, pack)
+    !shouldIntentBeatChip(message, session, pack)
   ) {
     return { class: "needs_clarification", reason: "defer_to_legacy" }
   }
@@ -538,6 +601,22 @@ export function replyFromOperational(message: string, pack: ModelContextPack): K
   const place = pack.operational?.placeHint ?? "na Augusta"
   const address = pack.operational?.addressLine ?? pack.brandName
   const m = normalize(message)
+
+  if (
+    hasToken(m, "unidade", "esta unidade", "essa unidade") &&
+    !hasToken(m, "curitiba", "outra cidade", "outro estado", "filial em")
+  ) {
+    return baseAnswer(
+      {
+        reply: `A ${pack.brandName} desta página fica ${place} (${address}). Para agendar aqui, use o mapa no topo ou os serviços no feed.`,
+        intent: "practical_question",
+        topic: "branch_this_unit",
+        domainZone: "in_domain",
+        grounding: { source: "operational", itemIds: [], confidence: "high" },
+      },
+      "answerable_from_operational_context"
+    )
+  }
 
   if (isLocationBranchQuestion(message)) {
     const cityMatch = m.match(/\b(em|na)\s+([a-z]+)\b/)
