@@ -19,6 +19,7 @@ import {
   resolveComposerScrollClearancePx,
   setComposerScrollClearanceCssVar,
 } from "@/lib/ui/composer-scroll-clearance"
+import { ComposerFeedThreadJunction } from "./composer-feed-thread-junction"
 import {
   COMPOSER_SURFACE_BASELINE,
   COMPOSER_SURFACE_OVERRIDE_STORAGE_KEY,
@@ -30,6 +31,7 @@ import {
   resolveComposerPageMaskBackground,
   resolveComposerSurfaceIntensity,
   resolveComposerSurfaceMaterial,
+  resolveThreadEngagedProgress,
   type ComposerSurfaceIntensity,
 } from "@/lib/ui/composer-surface-material"
 import {
@@ -310,6 +312,34 @@ export function ConversationalAI({
   const isStickyShellCompactOnly = shouldUseStickyShellCompactOnly(composerLayoutVersion)
   const isThreadAnchorVisible = composerMode === "default"
   const shouldPortalThread = isLayoutV2 && isThreadAnchorVisible && hasEngagedConversation
+  const conversationTurnCount = useMemo(
+    () => messages.filter((message) => message.role === "user" || message.role === "ai").length,
+    [messages]
+  )
+  const targetThreadEngagedProgress = useMemo(
+    () =>
+      resolveThreadEngagedProgress({
+        isLayoutV2,
+        composerMode,
+        hasEngagedConversation,
+        conversationTurnCount,
+      }),
+    [composerMode, conversationTurnCount, hasEngagedConversation, isLayoutV2]
+  )
+  const [threadEngagedProgress, setThreadEngagedProgress] = useState(0)
+
+  useEffect(() => {
+    if (targetThreadEngagedProgress <= 0) {
+      setThreadEngagedProgress(0)
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setThreadEngagedProgress(targetThreadEngagedProgress)
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [targetThreadEngagedProgress])
   const shellContextRowItems = useMemo(
     () => (isLayoutV2 ? contextItems.filter((item) => !hiddenContextIdSet.has(item.id)) : contextRowItems),
     [contextItems, contextRowItems, hiddenContextIdSet, isLayoutV2]
@@ -1391,18 +1421,21 @@ export function ConversationalAI({
 
   const threadPortalContent =
     shouldPortalThread && threadPortalTarget ? (
-      <div className="py-4">
-        <div ref={messagesMeasureRef}>
-          {displayedMessages.map((message, index) =>
-            renderConversationMessage(message, index, displayedMessages, { inFlowThread: true })
-          )}
+      <div data-composer-thread-engaged-progress={threadEngagedProgress.toFixed(2)}>
+        <ComposerFeedThreadJunction progress={threadEngagedProgress} />
+        <div className="py-4">
+          <div ref={messagesMeasureRef}>
+            {displayedMessages.map((message, index) =>
+              renderConversationMessage(message, index, displayedMessages, { inFlowThread: true })
+            )}
 
-          {isTyping ? renderTypingIndicator(displayedMessages.length > 0, true) : null}
+            {isTyping ? renderTypingIndicator(displayedMessages.length > 0, true) : null}
 
-          <div
-            ref={messagesEndRef}
-            style={{ scrollMarginBottom: `var(${COMPOSER_SCROLL_CLEARANCE_CSS_VAR}, 0px)` }}
-          />
+            <div
+              ref={messagesEndRef}
+              style={{ scrollMarginBottom: `var(${COMPOSER_SCROLL_CLEARANCE_CSS_VAR}, 0px)` }}
+            />
+          </div>
         </div>
       </div>
     ) : null
@@ -1426,6 +1459,10 @@ export function ConversationalAI({
             data-conversation-composer="true"
             data-composer-surface={
               isComposerSmokeSurfaceActive(surfaceIntensity) ? surfaceIntensity : undefined
+            }
+            data-composer-layout-version={composerLayoutVersion}
+            data-composer-thread-engaged-progress={
+              isLayoutV2 ? threadEngagedProgress.toFixed(2) : undefined
             }
             onPointerDownCapture={handleCompactComposerPress}
             className={cn(
