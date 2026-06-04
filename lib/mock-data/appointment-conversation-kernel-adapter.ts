@@ -2,6 +2,7 @@ import {
   buildAppointmentModelContextPack,
   type AppointmentPackBuildInput,
 } from "@/lib/conversation-kernel/appointment/build-appointment-model-context-pack"
+import { resolveBroadClarification } from "@/lib/conversation-kernel/broad-clarification"
 import { kernelResponseToResolverResult } from "@/lib/conversation-kernel/kernel-response-to-resolver"
 import { resolveRuleKernelStub, touchKernelSessionFromMessage } from "@/lib/conversation-kernel/rule-kernel-stub"
 import { createKernelSession, type KernelSession } from "@/lib/conversation-kernel/types"
@@ -40,33 +41,34 @@ export function createAppointmentConversationResolverWithKernel(
       return kernelResponseToResolverResult(kernelResponse, pack)
     }
 
+    let result: ConversationResponseResolverResult | null = null
+
     if (input.contextItems.length > 0) {
-      const fromKernelFirst = runKernel()
-      if (fromKernelFirst) {
-        touchKernelSessionFromMessage(input.message, kernelSession)
-        return fromKernelFirst
-      }
+      result = runKernel()
     }
 
-    const fromTransactional = transactionalResolver(input)
-    if (fromTransactional) {
-      touchKernelSessionFromMessage(input.message, kernelSession)
-      return fromTransactional
+    if (!result) {
+      result = transactionalResolver(input)
     }
 
-    const fromKernel = runKernel()
-    if (fromKernel) {
-      touchKernelSessionFromMessage(input.message, kernelSession)
-      return fromKernel
+    if (!result) {
+      result = runKernel()
     }
 
-    const fromDialogue = dialogueResolver(input)
-    if (fromDialogue) {
-      touchKernelSessionFromMessage(input.message, kernelSession)
-      return fromDialogue
+    if (!result) {
+      result = dialogueResolver(input)
     }
 
-    touchKernelSessionFromMessage(input.message, kernelSession)
-    return fallbackResolver(input)
+    if (!result) {
+      const broad = resolveBroadClarification(pack)
+      result = kernelResponseToResolverResult(broad, pack)
+    }
+
+    if (!result) {
+      result = fallbackResolver(input)
+    }
+
+    touchKernelSessionFromMessage(input.message, kernelSession, pack)
+    return result
   }
 }

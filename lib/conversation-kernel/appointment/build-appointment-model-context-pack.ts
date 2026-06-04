@@ -29,6 +29,24 @@ function enrichSelectedFromFeed(
       if (post.title.toLowerCase().includes("tendência") || post.title.toLowerCase().includes("tendencia")) {
         knownFacts.push("tema: tendencias corte masculino")
       }
+      if (post.id === "apt-vid-3" || post.title.toLowerCase().includes("antes e depois")) {
+        knownFacts.push("formato: antes e depois")
+        knownFacts.push("tema: transformacao visual")
+        return {
+          ...item,
+          knownFacts,
+          summary: post.description ?? "transformacao antes/depois do visual na cadeira",
+        }
+      }
+    }
+    if (post.type === "social") {
+      knownFacts.push("formato: publicacao social")
+      return {
+        ...item,
+        kind: "social_post" as const,
+        knownFacts,
+        summary: post.description ?? item.summary ?? post.title,
+      }
     }
     if (post.type === "news" && post.title.toLowerCase().includes("dom corleone")) {
       knownFacts.push("entidade: Dom Corleone")

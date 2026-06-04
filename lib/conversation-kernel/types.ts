@@ -1,4 +1,5 @@
 import type { ConversationContextPayload } from "@/lib/business-types"
+import type { AnswerabilityClass } from "./answerability-classifier"
 
 export type ModelId = "ecommerce" | "restaurant" | "health" | "appointment"
 
@@ -11,6 +12,7 @@ export type SelectedContextItemKind =
   | "news"
   | "style"
   | "review"
+  | "social_post"
   | "unknown"
 
 export interface SelectedContextItem {
@@ -88,10 +90,20 @@ export type KernelDomainZone = "in_domain" | "in_domain_unknown" | "off_domain_l
 
 export type KernelGroundingSource =
   | "selected_context"
+  | "active_topic"
   | "catalog"
   | "operational"
   | "data_gap"
   | "none"
+
+/** Strong topic lane — overrides stale selectedContextItem (WS-19A active topic resolution). */
+export type ActiveTopic =
+  | "schedule"
+  | "service"
+  | "professional"
+  | "arrival"
+  | "pricing"
+  | "news_editorial"
 
 export type KernelAction =
   | { type: "text_only" }
@@ -107,6 +119,10 @@ export interface KernelResponse {
   intent: KernelIntent
   domainZone: KernelDomainZone
   topic: string
+  /** Set when reply follows active topic lane instead of chip. */
+  activeTopic?: ActiveTopic
+  /** Answer-first gate classification (WS-19A). */
+  answerability?: AnswerabilityClass
   topicShift: boolean
   structure: {
     acknowledged: boolean
@@ -125,6 +141,8 @@ export interface KernelResponse {
 
 export interface KernelSession {
   lastTopic?: string
+  /** Strong topic lane — overrides chip when user shifts (GK active topic resolution). */
+  activeTopic?: ActiveTopic
   discoveryTurns: number
   awaitingFocus: boolean
 }
