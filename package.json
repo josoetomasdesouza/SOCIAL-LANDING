@@ -17,6 +17,7 @@
     "qa:restaurant": "node scripts/convergence/restaurant-ai-resolver-validation.mjs",
     "qa:health": "node scripts/convergence/health-ai-resolver-validation.mjs",
     "qa:appointment": "node scripts/convergence/appointment-ai-resolver-validation.mjs",
+    "qa:kernel-stub": "node scripts/convergence/ws19a-kernel-eval-runner.mjs",
     "qa:appointment-runtime": "node scripts/runtime/appointment-runtime-smoke.mjs",
     "runtime:appointment:seed": "npx --yes tsx scripts/runtime/generate-appointment-runtime-seed.ts",
     "runtime:appointment:sync-external": "npx --yes tsx scripts/runtime/sync-appointment-external-reality.ts",
