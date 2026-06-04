@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import Image from "next/image"
 import { Loader2, Send, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -14,6 +15,7 @@ import { observeAiSurfaceOpened } from "@/lib/events/instrumentation"
 import { useConversationSelectionContext } from "./conversation-selection-context"
 import {
   clearComposerScrollClearanceCssVar,
+  COMPOSER_SCROLL_CLEARANCE_CSS_VAR,
   resolveComposerScrollClearancePx,
   setComposerScrollClearanceCssVar,
 } from "@/lib/ui/composer-scroll-clearance"
@@ -30,6 +32,11 @@ import {
   resolveComposerSurfaceMaterial,
   type ComposerSurfaceIntensity,
 } from "@/lib/ui/composer-surface-material"
+import {
+  DEFAULT_COMPOSER_LAYOUT_VERSION,
+  shouldRenderThreadInFlow,
+  shouldUseStickyShellCompactOnly,
+} from "@/lib/ui/composer-layout"
 
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
 const COMPOSER_MASK_TOP_OFFSET_PX = 8
@@ -101,6 +108,8 @@ interface ConversationalAIProps {
   trackCompactFootprint?: boolean
   /** Appointment: never fall back to generic host mock rotation. */
   disableHostMockFallback?: boolean
+  /** WS-21 v2: in-flow thread portal mount target from BusinessSocialLanding. */
+  threadPortalTarget?: HTMLElement | null
 }
 
 type ConversationRuntimeMessage = ConversationMessage & {
@@ -198,6 +207,7 @@ export function ConversationalAI({
   renderVisualBlock,
   trackCompactFootprint = true,
   disableHostMockFallback = false,
+  threadPortalTarget = null,
 }: ConversationalAIProps) {
   const conversationSelectionContext = useConversationSelectionContext()
   const conversationHistoryStorageKey = useMemo(
@@ -293,6 +303,25 @@ export function ConversationalAI({
   const hasSheetBody = shouldRenderConversationBody || showContextRow
   const shouldApplySheetHeight = shouldShowTopArea || hasSheetBody
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
+  const composerLayoutVersion =
+    conversationSelectionContext?.composerLayoutVersion ?? DEFAULT_COMPOSER_LAYOUT_VERSION
+  const composerMode = conversationSelectionContext?.composerMode ?? "default"
+  const isLayoutV2 = shouldRenderThreadInFlow(composerLayoutVersion)
+  const isStickyShellCompactOnly = shouldUseStickyShellCompactOnly(composerLayoutVersion)
+  const isThreadAnchorVisible = composerMode === "default"
+  const shouldPortalThread = isLayoutV2 && isThreadAnchorVisible && hasEngagedConversation
+  const shellContextRowItems = useMemo(
+    () => (isLayoutV2 ? contextItems.filter((item) => !hiddenContextIdSet.has(item.id)) : contextRowItems),
+    [contextItems, contextRowItems, hiddenContextIdSet, isLayoutV2]
+  )
+  const showContextRowOnShell = isLayoutV2
+    ? shellContextRowItems.length > 0
+    : showContextRow
+  const measureShowContextRow = isLayoutV2 ? showContextRowOnShell : showContextRow
+  const shellShouldShowConversationBody = isStickyShellCompactOnly ? false : shouldShowConversationBody
+  const shellShouldRenderConversationBody = isStickyShellCompactOnly ? false : shouldRenderConversationBody
+  const shellShouldShowTopArea = isStickyShellCompactOnly ? false : shouldShowTopArea
+  const shellShouldApplySheetHeight = isStickyShellCompactOnly ? true : shouldApplySheetHeight
   const isResumeAutoGrowActive = resumeSessionStartIndex !== null
   const autoGrowMessages = useMemo(() => {
     if (resumeSessionStartIndex === null) {
@@ -346,11 +375,81 @@ export function ConversationalAI({
     window.localStorage.setItem(conversationHistoryStorageKey, JSON.stringify(messages))
   }, [conversationHistoryStorageKey, isHistoryHydrated, messages])
 
+  const scrollInFlowThreadToLatestTurn = useCallback(() => {
+    const endElement = messagesEndRef.current
+    if (!endElement || typeof window === "undefined") {
+      return
+    }
+
+    const contextClearancePx = conversationSelectionContext?.composerScrollClearancePx ?? 0
+    const cssClearancePx = Number.parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue(COMPOSER_SCROLL_CLEARANCE_CSS_VAR)
+    )
+    const clearancePx = Math.max(
+      0,
+      contextClearancePx > 0 ? contextClearancePx : Number.isFinite(cssClearancePx) ? cssClearancePx : 0
+    )
+
+    endElement.style.scrollMarginBottom = `${clearancePx}px`
+
+    const shellElement = composerShellRef.current?.querySelector<HTMLElement>(
+      '[data-conversation-composer="true"]'
+    )
+    const endRect = endElement.getBoundingClientRect()
+    const shellTop = shellElement?.getBoundingClientRect().top
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const visibleTopLimit = (shellTop ?? viewportHeight - clearancePx) - 8
+    const overlapPx = endRect.bottom - visibleTopLimit
+
+    if (overlapPx > 0) {
+      window.scrollTo({
+        top: window.scrollY + overlapPx,
+        behavior: "smooth",
+      })
+      window.setTimeout(() => {
+        const followEnd = messagesEndRef.current
+        const followShell = composerShellRef.current?.querySelector<HTMLElement>(
+          '[data-conversation-composer="true"]'
+        )
+        if (!followEnd || !followShell) {
+          return
+        }
+
+        const followRect = followEnd.getBoundingClientRect()
+        const followShellTop = followShell.getBoundingClientRect().top
+        const followOverlap = followRect.bottom - (followShellTop - 8)
+
+        if (followOverlap > 0) {
+          window.scrollTo({
+            top: window.scrollY + followOverlap,
+            behavior: "auto",
+          })
+        }
+      }, 400)
+      return
+    }
+
+    endElement.scrollIntoView({ behavior: "smooth", block: "end" })
+  }, [conversationSelectionContext?.composerScrollClearancePx])
+
   useEffect(() => {
-    if (shouldShowConversationBody) {
+    if (shouldPortalThread) {
+      const frame = window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(scrollInFlowThreadToLatestTurn)
+      })
+      return () => window.cancelAnimationFrame(frame)
+    }
+
+    if (shellShouldShowConversationBody) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [shouldShowConversationBody, messages, isTyping])
+  }, [
+    scrollInFlowThreadToLatestTurn,
+    shellShouldShowConversationBody,
+    shouldPortalThread,
+    messages,
+    isTyping,
+  ])
 
   useLayoutEffect(() => {
     if (isCompactResumePreview) {
@@ -398,8 +497,8 @@ export function ConversationalAI({
     const bottomOffset = Math.max(0, viewportHeight - shellBottom)
     const availableViewportHeight = Math.max(0, viewportHeight - bottomOffset - SHEET_TOP_SAFE_MARGIN_PX)
     const expanded = Math.round(availableViewportHeight * SHEET_MAX_VIEWPORT_RATIO)
-    const topAreaHeight = shouldShowTopArea ? topAreaRef.current?.offsetHeight ?? 0 : 0
-    const contextHeight = showContextRow ? contextRailRef.current?.offsetHeight ?? 0 : 0
+    const topAreaHeight = shellShouldShowTopArea ? topAreaRef.current?.offsetHeight ?? 0 : 0
+    const contextHeight = measureShowContextRow ? contextRailRef.current?.offsetHeight ?? 0 : 0
     const formHeight = composerFormRef.current?.offsetHeight ?? 0
     const chromeHeight = topAreaHeight + contextHeight + formHeight
     const messagesContentElement = messagesContentRef.current
@@ -407,15 +506,15 @@ export function ConversationalAI({
     const messagesContentPaddingY = messagesContentStyle
       ? parseFloat(messagesContentStyle.paddingTop) + parseFloat(messagesContentStyle.paddingBottom)
       : 0
-    const measuredConversationContentHeight = shouldShowConversationBody
+    const measuredConversationContentHeight = shellShouldShowConversationBody
       ? isResumeAutoGrowActive
         ? autoGrowMeasureRef.current?.offsetHeight ?? 0
         : messagesMeasureRef.current?.offsetHeight ?? messagesContentRef.current?.scrollHeight ?? 0
       : 0
-    const conversationContentHeight = shouldShowConversationBody
+    const conversationContentHeight = shellShouldShowConversationBody
       ? measuredConversationContentHeight + (isCompactResumePreview ? messagesContentPaddingY : 0)
       : 0
-    const compactBodyHeight = shouldShowConversationBody
+    const compactBodyHeight = shellShouldShowConversationBody
       ? isCompactResumePreview
         ? conversationContentHeight
         : Math.min(
@@ -423,8 +522,8 @@ export function ConversationalAI({
             Math.max(COMPACT_BODY_MIN_PX, Math.round(availableViewportHeight * COMPACT_BODY_MIN_RATIO))
           )
       : 0
-    const compact = Math.min(expanded, shouldShowConversationBody ? chromeHeight + compactBodyHeight : chromeHeight)
-    const auto = shouldShowConversationBody
+    const compact = Math.min(expanded, shellShouldShowConversationBody ? chromeHeight + compactBodyHeight : chromeHeight)
+    const auto = shellShouldShowConversationBody
       ? Math.min(expanded, Math.max(compact, chromeHeight + conversationContentHeight))
       : compact
     const medium = Math.min(
@@ -454,9 +553,9 @@ export function ConversationalAI({
     })
   }, [
     isResumeAutoGrowActive,
-    shouldShowConversationBody,
-    shouldShowTopArea,
-    showContextRow,
+    measureShowContextRow,
+    shellShouldShowConversationBody,
+    shellShouldShowTopArea,
   ])
 
   useEffect(() => {
@@ -507,7 +606,7 @@ export function ConversationalAI({
     return () => {
       resizeObserver.disconnect()
     }
-  }, [measureSheetLayout, hasEngagedConversation, showContextRow])
+  }, [measureSheetLayout, hasEngagedConversation, measureShowContextRow])
 
   useLayoutEffect(() => {
     measureSheetLayout()
@@ -550,23 +649,30 @@ export function ConversationalAI({
     sheetMetrics.expanded || Number.POSITIVE_INFINITY,
     Math.max(sheetMetrics.compact || 0, Math.max(sheetMetrics.auto, manualSnapHeight ?? 0))
   )
-  const resolvedSheetHeight = dragHeight ?? resolvedAutoHeight
-  const forceCompactShell = !shouldShowConversationBody
-  const expansionProgress = resolveComposerExpansionProgress(
-    sheetMetrics.compact,
-    sheetMetrics.expanded,
-    resolvedSheetHeight
-  )
+  const resolvedSheetHeight = isStickyShellCompactOnly
+    ? sheetMetrics.compact
+    : dragHeight ?? resolvedAutoHeight
+  const forceCompactShell = isStickyShellCompactOnly || !shellShouldShowConversationBody
+  const expansionProgress = isStickyShellCompactOnly
+    ? 0
+    : resolveComposerExpansionProgress(
+        sheetMetrics.compact,
+        sheetMetrics.expanded,
+        resolvedSheetHeight
+      )
   const composerSectionStyle = resolveComposerExpansionSectionStyle(
     surfaceIntensity,
     expansionProgress,
     forceCompactShell
   )
-  const composerPageMaskBackground = resolveComposerPageMaskBackground(
-    surfaceIntensity,
-    forceCompactShell ? 0 : expansionProgress,
-    hasEngagedConversation
-  )
+  const composerPageMaskBackground =
+    isLayoutV2 && hasEngagedConversation
+      ? "transparent"
+      : resolveComposerPageMaskBackground(
+          surfaceIntensity,
+          forceCompactShell ? 0 : expansionProgress,
+          hasEngagedConversation
+        )
   const composerHandleVisuals = resolveComposerHandleVisuals(
     forceCompactShell ? 0 : expansionProgress,
     hasEngagedConversation,
@@ -632,16 +738,26 @@ export function ConversationalAI({
     clearComposerScrollClearanceCssVar()
   }, [conversationSelectionContext, trackCompactFootprint])
 
+  const setComposerScrollMetricsRef = useRef(conversationSelectionContext?.setComposerScrollMetrics)
+  setComposerScrollMetricsRef.current = conversationSelectionContext?.setComposerScrollMetrics
+
   useEffect(() => {
     return () => {
-      conversationSelectionContext?.setComposerScrollMetrics({
+      setComposerScrollMetricsRef.current?.({
         footprintPx: 0,
         bottomInsetPx: 0,
         clearancePx: 0,
       })
       clearComposerScrollClearanceCssVar()
     }
-  }, [conversationSelectionContext])
+  }, [])
+
+  useEffect(() => {
+    const clearancePx = conversationSelectionContext?.composerScrollClearancePx ?? 0
+    if (clearancePx > 0) {
+      setComposerScrollClearanceCssVar(clearancePx)
+    }
+  }, [conversationSelectionContext?.composerScrollClearancePx])
 
   useLayoutEffect(() => {
     publishComposerScrollMetrics()
@@ -654,7 +770,30 @@ export function ConversationalAI({
     contextItems.length,
     hiddenContextIds.length,
     hasEngagedConversation,
-    showContextRow,
+    measureShowContextRow,
+    trackCompactFootprint,
+    isStickyShellCompactOnly,
+    shouldPortalThread,
+  ])
+
+  useEffect(() => {
+    if (!shouldPortalThread) {
+      return
+    }
+
+    publishComposerScrollMetrics()
+    const frame = window.requestAnimationFrame(() => {
+      publishComposerScrollMetrics()
+      window.requestAnimationFrame(scrollInFlowThreadToLatestTurn)
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [
+    publishComposerScrollMetrics,
+    scrollInFlowThreadToLatestTurn,
+    shouldPortalThread,
+    messages,
+    isTyping,
   ])
 
   const getNearestSnapHeight = useCallback(
@@ -705,7 +844,7 @@ export function ConversationalAI({
       resizeObserver?.disconnect()
       window.removeEventListener("resize", updateMaskBounds)
     }
-  }, [className, contextItems.length, hasEngagedConversation, publishComposerScrollMetrics, resolvedSheetHeight, showContextRow])
+  }, [className, contextItems.length, hasEngagedConversation, measureShowContextRow, publishComposerScrollMetrics, resolvedSheetHeight])
 
   const buildContextEvent = useCallback((items: ConversationContextItem[]): ConversationRuntimeMessage => ({
     id: `context-${Date.now()}`,
@@ -1158,8 +1297,10 @@ export function ConversationalAI({
     messageList: ConversationRuntimeMessage[],
     options?: {
       measurementOnly?: boolean
+      inFlowThread?: boolean
     }
   ) => {
+    const inFlowThread = options?.inFlowThread === true
     const previousMessage = messageList[index - 1]
     const sharesGroupWithPrevious =
       previousMessage?.role === message.role && message.role !== "context_event"
@@ -1200,7 +1341,9 @@ export function ConversationalAI({
                 "inline-block text-[15px] leading-[1.45] align-top",
                 message.role === "user"
                   ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
-                  : "px-0 py-0.5 text-left text-white/[0.94]"
+                  : inFlowThread
+                    ? "px-0 py-0.5 text-left text-foreground/90"
+                    : "px-0 py-0.5 text-left text-white/[0.94]"
               )}
               style={messageTextBubbleStyle}
             >
@@ -1216,15 +1359,53 @@ export function ConversationalAI({
     )
   }
 
-  const renderTypingIndicator = (hasPreviousMessages: boolean) => (
+  const renderTypingIndicator = (hasPreviousMessages: boolean, inFlowThread = false) => (
     <div className={cn(hasPreviousMessages && "mt-5", "flex justify-start")}>
-      <div className="flex max-w-[82%] items-center gap-1 px-0 py-0.5 text-white/[0.74]">
-        <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)] [animation-delay:-0.2s]" />
-        <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)] [animation-delay:-0.1s]" />
-        <span className="h-2 w-2 animate-bounce rounded-full bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]" />
+      <div
+        className={cn(
+          "flex max-w-[82%] items-center gap-1 px-0 py-0.5",
+          inFlowThread ? "text-foreground/55" : "text-white/[0.74]"
+        )}
+      >
+        <span
+          className={cn(
+            "h-2 w-2 animate-bounce rounded-full [animation-delay:-0.2s]",
+            inFlowThread ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
+          )}
+        />
+        <span
+          className={cn(
+            "h-2 w-2 animate-bounce rounded-full [animation-delay:-0.1s]",
+            inFlowThread ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
+          )}
+        />
+        <span
+          className={cn(
+            "h-2 w-2 animate-bounce rounded-full",
+            inFlowThread ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
+          )}
+        />
       </div>
     </div>
   )
+
+  const threadPortalContent =
+    shouldPortalThread && threadPortalTarget ? (
+      <div className="py-4">
+        <div ref={messagesMeasureRef}>
+          {displayedMessages.map((message, index) =>
+            renderConversationMessage(message, index, displayedMessages, { inFlowThread: true })
+          )}
+
+          {isTyping ? renderTypingIndicator(displayedMessages.length > 0, true) : null}
+
+          <div
+            ref={messagesEndRef}
+            style={{ scrollMarginBottom: `var(${COMPOSER_SCROLL_CLEARANCE_CSS_VAR}, 0px)` }}
+          />
+        </div>
+      </div>
+    ) : null
 
   return (
     <>
@@ -1254,10 +1435,12 @@ export function ConversationalAI({
             )}
             style={{
               ...composerSectionStyle,
-              ...(shouldApplySheetHeight && resolvedSheetHeight > 0 ? { height: `${resolvedSheetHeight}px` } : {}),
+              ...(shellShouldApplySheetHeight && resolvedSheetHeight > 0
+                ? { height: `${resolvedSheetHeight}px` }
+                : {}),
             }}
           >
-            {shouldShowTopArea && !isCompactComposer ? (
+            {shellShouldShowTopArea && !isCompactComposer ? (
               <div
                 ref={topAreaRef}
                 className={cn(
@@ -1291,11 +1474,11 @@ export function ConversationalAI({
               </div>
             ) : null}
 
-            {shouldRenderConversationBody ? (
+            {shellShouldRenderConversationBody ? (
               <div
                 className={cn(
                   "relative min-h-0 flex-1 overflow-hidden",
-                  shouldShowConversationBody && "border-t border-white/[0.035]"
+                  shellShouldShowConversationBody && "border-t border-white/[0.035]"
                 )}
                 style={composerInnerSurfaceStyle}
               >
@@ -1309,14 +1492,14 @@ export function ConversationalAI({
                 ) : null}
                 <div
                   aria-hidden="true"
-                  className={cn("pointer-events-none absolute inset-0", !shouldShowConversationBody && "opacity-0")}
+                  className={cn("pointer-events-none absolute inset-0", !shellShouldShowConversationBody && "opacity-0")}
                   style={conversationPanelPatternStyle}
                 />
                 <div
                   ref={messagesContentRef}
                   className={cn(
                     "relative z-10 h-full overflow-y-auto px-4 py-4 overscroll-contain",
-                    !shouldShowConversationBody && "pointer-events-none opacity-0"
+                    !shellShouldShowConversationBody && "pointer-events-none opacity-0"
                   )}
                 >
                   <div ref={messagesMeasureRef}>
@@ -1345,14 +1528,14 @@ export function ConversationalAI({
               </div>
             ) : null}
 
-            {!hasEngagedConversation && showContextRow && (
+            {(isLayoutV2 ? showContextRowOnShell : !hasEngagedConversation && showContextRow) && (
               <div
                 ref={contextRailRef}
                 className="shrink-0 px-4 py-2.5"
                 style={composerInnerSurfaceStyle}
               >
                 <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
-                  {contextRowItems.map((item) => renderContextChip(item))}
+                  {(isLayoutV2 ? shellContextRowItems : contextRowItems).map((item) => renderContextChip(item))}
                 </div>
               </div>
             )}
@@ -1397,6 +1580,9 @@ export function ConversationalAI({
           </section>
         </div>
       </div>
+      {threadPortalContent && threadPortalTarget
+        ? createPortal(threadPortalContent, threadPortalTarget)
+        : null}
     </>
   )
 }

@@ -17,7 +17,8 @@ import {
   type ConversationComposerMode,
 } from "./conversation-selection-context"
 import { useConversationContextMorph } from "./conversation-context-morph"
-import { useComposerScrollPaddingBottom } from "@/lib/ui/composer-scroll-clearance"
+import { useComposerScrollPaddingBottom, COMPOSER_SCROLL_CLEARANCE_CSS_VAR } from "@/lib/ui/composer-scroll-clearance"
+import { shouldRenderThreadInFlow } from "@/lib/ui/composer-layout"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
@@ -796,6 +797,8 @@ export function BusinessSocialLanding({
     ? sharedConversationSelection.hiddenContextIds
     : localMorph.hiddenContextIds
   const pageScrollPaddingBottom = useComposerScrollPaddingBottom()
+  const isLayoutV2 = shouldRenderThreadInFlow(composerLayoutVersion)
+  const [threadPortalTarget, setThreadPortalTarget] = useState<HTMLDivElement | null>(null)
   const shouldTrackComposerFootprint =
     composerMode !== "hidden" && !(drawerOpen && !feedDrawerOpen)
   const composerModeBeforeFeedDrawerRef = useRef<ConversationComposerMode>("default")
@@ -919,6 +922,16 @@ export function BusinessSocialLanding({
             />
           ))}
         </div>
+
+        {isLayoutV2 ? (
+          <div
+            ref={setThreadPortalTarget}
+            data-conversation-thread-anchor="true"
+            className={cn("px-4 sm:px-5", composerMode !== "default" && "hidden")}
+            style={{ paddingBottom: `var(${COMPOSER_SCROLL_CLEARANCE_CSS_VAR}, 0px)` }}
+            aria-hidden={composerMode !== "default" ? true : undefined}
+          />
+        ) : null}
         
       </main>
       
@@ -944,6 +957,7 @@ export function BusinessSocialLanding({
           renderVisualBlock={renderConversationVisualBlock}
           trackCompactFootprint={shouldTrackComposerFootprint}
           disableHostMockFallback={Boolean(conversationResponseResolver)}
+          threadPortalTarget={isLayoutV2 ? threadPortalTarget : null}
         />
       )}
 
