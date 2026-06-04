@@ -1,7 +1,8 @@
 # Perceptual Invariants — Tier 1 Runtime
 
-**Status:** ✅ Official post–WS-02.5  
-**Baseline:** `673395d`
+**Status:** ✅ Official post–WS-02.5 (runtime v1) · **WS-21 emendas** P-04, P-06a abaixo  
+**Baseline:** `673395d`  
+**WS-21:** Alinhado a [`COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md`](COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md) · ADR [`WS-21`](../audit/WS-21_COMPOSER_HYBRID_ARCHITECTURE_ADR.md)
 
 These are **non-negotiable perceptual truths** of Social Landing Tier 1. Violating any invariant is a product regression even if tests pass.
 
@@ -89,9 +90,9 @@ These are **non-negotiable perceptual truths** of Social Landing Tier 1. Violati
 | P-01 | Header cart badge updates immediately on add (restaurant, e-commerce) |
 | P-02 | Feed drawer backdrop does not wash out immersive feed sheet |
 | P-03 | Escape closes drawer without side effects on composer |
-| P-04 | First AI message opens surface once — not on every send |
+| P-04 | First AI message opens conversation thread in-flow once (`ai.surface.opened`) — not on every send; **not** composer sheet expansion |
 | P-05 | Vertical switch on `/demo` emits `feed.vertical.changed` |
-| P-06 | Composer smoke surface: compact flat glass, expanded gradient, inner transparent, open page mask |
+| P-06 | Composer smoke surface: compact flat glass on sticky shell; engaged junction gradient (WS-21); inner transparent; minimal page mask when thread active |
 
 ---
 
@@ -99,23 +100,49 @@ These are **non-negotiable perceptual truths** of Social Landing Tier 1. Violati
 
 Production default: **vidro fumê escuro** (`smoke-fume`). Tokens: `lib/ui/composer-surface-material.ts`.
 
+### P-04 — Conversation thread opens once per session
+
+**Event:** `ai.surface.opened` (name unchanged — semantics updated WS-21)
+
+| | v1 runtime (deprecated path) | v2 spec (WS-21 hybrid) |
+|---|------------------------------|-------------------------|
+| **Trigger** | First message; often coincided with composer sheet expand | **First time thread in-flow becomes visible** after user send |
+| **Means** | “AI surface opened” | “Conversation thread opened in feed column” |
+| **Must not trigger on** | Every subsequent send | Shell height change or sheet snap |
+
+- Fires **once** per conversation session when the thread zone first renders with engagement — not on every AI reply  
+- Morph alone does **not** open the thread and must **not** fire this event  
+- Implementations on `composer-layout=v2` MUST NOT fire on composer sheet expansion (deprecated)
+
+**Test:** send first message → single `ai.surface.opened`; send second → no duplicate. On v2: event correlates with thread in-flow visible, not sticky shell growing.
+
+---
+
 ### P-06 — Material lives on the shell only
 
-- Outer `<section>` carries blur + tint; **inner surfaces stay transparent** when smoke is active  
+- Outer sticky `<section>` carries blur + tint; **inner surfaces stay transparent** when smoke is active  
 - No opaque layers inside the composer that kill the glass read  
-- Page mask uses an **open white fade** so feed content remains visible behind the composer  
+- Page mask: **open fade** at idle; **minimal or off** when thread in-flow is engaged (feed must remain readable — WS-21 feed-first)
 
-**Test:** scroll feed behind composer on `/demo` — content should read through the glass, not behind a solid bar.
+**Test:** scroll feed behind composer on `/demo` — content reads through compact glass. When thread engaged (v2): feed above thread stays legible; no full-page dim.
 
-### P-06a — Compact vs expanded shell
+### P-06a — Compact shell vs engaged thread (WS-21)
+
+Supersedes v1 “compact vs expanded **sheet**” semantics. See [`COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md`](COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md) §9.
 
 | State | When | Material |
 |-------|------|----------|
-| **Compact** | Pill default, collapsed, chips without chat body (`!shouldShowConversationBody`) | Flat dark glass `rgba(10,14,20,0.82)`, blur 18px — **no gradient** |
-| **Expanded** | Conversation body open, sheet at max height | Smoke gradient `rgba(30,34,40,0.78) → rgba(8,12,18,0.92)`, blur 26px |
-| **During drag / auto-grow** | `expansionProgress` 0→1 between compact and expanded | Blur, máscara e material interpolam continuamente — não saltam |
+| **Compact** | Sticky shell idle or with chip rail; **no** thread in-flow visible | Flat dark glass `rgba(10,14,20,0.82)`, blur ~18–22px — **no gradient** on shell |
+| **Engaged junction** | Thread in-flow visible (`threadEngagedProgress` > 0) | **Local** smoke gradient (~80–120px) at feed↔thread junction — not on 90vh panel |
+| **Progress signal** | `threadEngagedProgress` 0→1 as thread appears / first turns render | Junction blur and gradient interpolate — **not** `expansionProgress` from sheet height |
 
-**Test:** open chat — gradient appears; collapse to pill — flattens to compact glass without layout jump.
+**Deprecated v1 (composer-layout=v1 only until G3):** expanded sheet at max height; `expansionProgress` from snap/drag/auto-grow; full-page mask intensifying with sheet height.
+
+**Preserved perceptual intent:** compact = integrated pill; engaged = material drama at the **boundary** between editorial feed and conversation — without turning the composer into a chat app panel.
+
+**Test (v2):** first send → thread appears after editorial sections; junction gradient may appear; sticky shell stays compact (~124px with chip). Scroll up → feed editorial still reachable. No 90vh sheet; no scroll-in-scroll.
+
+**Test (v1 path, until removed):** open chat — gradient on shell expand; collapse to pill — compact glass. v1 tests sunset at G3.
 
 ### P-06b — Opt-out is explicit, not silent
 
@@ -210,6 +237,7 @@ If an invariant must change, require:
 
 ## Related
 
+- [`COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md`](COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md) — WS-21 hybrid behavior (draft)  
 - [`RUNTIME_CONSTITUTION.md`](./RUNTIME_CONSTITUTION.md)  
 - [`DRAWER_BEHAVIOR_SPEC.md`](./DRAWER_BEHAVIOR_SPEC.md)  
 - [`INFLUENCER_BEHAVIOR_SPEC.md`](./INFLUENCER_BEHAVIOR_SPEC.md)  
