@@ -1,7 +1,9 @@
 # Composer Behavior Spec — Official Tier 1
 
-**Status:** ✅ Official post–WS-02.5  
+**Status:** ✅ Official post–WS-02.5 (runtime v1)  
 **Baseline:** `673395d` (PR #52)
+
+> **WS-21:** v2 draft (sticky + thread in-flow) — [`COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md`](COMPOSER_BEHAVIOR_SPEC_v2_DRAFT.md) · ADR [`WS-21`](../audit/WS-21_COMPOSER_HYBRID_ARCHITECTURE_ADR.md). Runtime remains v1 until G3.
 
 ---
 
