@@ -1,7 +1,7 @@
 # Handoff Operacional — Social Landing
 
 **Data:** 2026-06-03 (atualizado pós WS-13 Etapa 1 + WS-18A)
-**Baseline remoto:** `origin/main` @ `10b36c7` (WS-08D V1 · PR #77)  
+**Baseline remoto:** `origin/main` @ `702d00c` (WS-08D V1 + V2/Detour design · V1.1 spec)  
 **Tipo:** Baseline consolidado · estado atual · sem propostas de feature  
 **Autoridade:** Registrar contexto para próxima conversa — não reabrir filosofia congelada  
 **WS-18A runbook canônico:** [`WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md`](WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md)
@@ -62,7 +62,8 @@
 | WS-08.5–08.8 Governance/Regression | ✅ | `9bc2a6c` … `ecc93dc` |
 | WS-08C Appointment resolver | ✅ | `ca00dc7` — **congelado · transacional** |
 | WS-08D V1 establishment dialogue | ✅ | `10b36c7` — PR #77 · `[2]→[1]→[3]` · AP-D01…14 |
-| WS-08D V2 Conversation Kernel | 🟢 design / 🔴 código | [`WS-08D_V2_CONVERSATION_KERNEL.md`](WS-08D_V2_CONVERSATION_KERNEL.md) — observação antes de GO V2 |
+| WS-08D V1.1 zona cinza | 🟢 spec / 🟡 impl. | [`WS-08D_V1_1_GRAY_ZONE_SPEC.md`](WS-08D_V1_1_GRAY_ZONE_SPEC.md) — AP-D15…25 · sem código até GO explícito |
+| WS-08D V2 Conversation Kernel | 🟢 design / 🔴 código | [`WS-08D_V2_CONVERSATION_KERNEL.md`](WS-08D_V2_CONVERSATION_KERNEL.md) — após V1.1 recomendado |
 
 ### Era 4 — Appointment operacional (server)
 | WS | Status | Hash ref |
@@ -83,7 +84,7 @@
 | WS-03 Stack A Parity | 🔴 Blocked (gaps menores) |
 | WS-10 | 🟡 Observational hardening (macro) |
 | WS-13 Presença contínua | ✅ **Etapa 1 FECHADA** · Sessão B humana @ `eaf5701` · [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md) |
-| WS-08D | ✅ V1 @ `10b36c7` · observação uso real · V2 design publicado · **implementação V2 NO-GO** |
+| WS-08D | ✅ V1 · 🟢 V1.1 spec · V2 design · **V2 impl. NO-GO** · próximo: `GO implementação V1.1` |
 | WS-09 DB enterprise | 🔴 BLOCKED |
 
 ---

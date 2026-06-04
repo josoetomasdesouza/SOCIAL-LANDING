@@ -1,10 +1,10 @@
 # WS-08D — Establishment Conversational Dialogue (Appointment Pilot)
 
-**Baseline técnico:** `origin/main` @ `10b36c7` (V1-core merged · PR #77)  
+**Baseline técnico:** `origin/main` @ `702d00c` (V1-core + polish + V2/Detour design)  
 **Pré-requisitos:** WS-08C ✅ · WS-08.5–08.8 ✅ · WS-13 Etapa 1 ✅ · WS-18A ✅ (fechada — **isolada**)  
 **Baseline produto perceptivo:** `1c92acc` (Tier 1 frozen — shell/composer/morph/drawer)  
 **Classificação:** política de diálogo client-side no piloto Appointment — **não** chatbot genérico · **não** IA operacional server  
-**Status:** ✅ **V1 publicada** · 🟢 **V2 Conversation Kernel + Contextual Detour — GO design** · 🔴 **V2 implementação — NO-GO** — ver [`WS-08D_V2_CONVERSATION_KERNEL.md`](./WS-08D_V2_CONVERSATION_KERNEL.md) §16  
+**Status:** ✅ **V1 publicada** · 🟢 **V1.1 zona cinza — GO especificação** · 🟡 **V1.1 implementação — GO condicional** · 🟢 **V2 Conversation Kernel + Contextual Detour — GO design** · 🔴 **V2 implementação — NO-GO** — ver [`WS-08D_V1_1_GRAY_ZONE_SPEC.md`](./WS-08D_V1_1_GRAY_ZONE_SPEC.md) · [`WS-08D_V2_CONVERSATION_KERNEL.md`](./WS-08D_V2_CONVERSATION_KERNEL.md) §16  
 **Branch sugerida (futura):** `workstream/ws-08d-establishment-dialogue`  
 **Autoridade:** Este documento é o charter oficial da WS-08D. Nenhuma implementação pode precedê-lo.
 
@@ -383,7 +383,10 @@ Em [`AI_ALLOWED_EVOLUTION.md`](../ai/AI_ALLOWED_EVOLUTION.md) §8, **“WS-08D�
 | **1 — Implementação V1** | Código + harness · PR #77 @ `10b36c7` | ✅ |
 | **2 — Observação** | Uso real · matriz de falhas · sem nova WS | 🟡 em curso |
 | **0.9 — V2 design** | [`WS-08D_V2_CONVERSATION_KERNEL.md`](./WS-08D_V2_CONVERSATION_KERNEL.md) | ✅ |
-| **3 — V2 implementação** | Kernel + endpoint server + evals E-K* | 🔴 **NO-GO** |
+| **0.10 — Contextual Detour** | [`WS-08D_V2_CONVERSATION_KERNEL.md`](./WS-08D_V2_CONVERSATION_KERNEL.md) §16 | ✅ |
+| **0.11 — V1.1 zona cinza** | [`WS-08D_V1_1_GRAY_ZONE_SPEC.md`](./WS-08D_V1_1_GRAY_ZONE_SPEC.md) — T-09/T-11/T-12/T-13 + AP-D15…25 | ✅ spec · 🟡 impl. condicional |
+| **1.1 — Implementação V1.1** | Regras honestas sem LLM · harness 33/33 alvo | ⏸ aguarda `GO implementação V1.1` |
+| **3 — V2 implementação** | Kernel + endpoint + evals E-K* + detour E-K23…27 | 🔴 **NO-GO** |
 
 ---
 
@@ -393,7 +396,8 @@ Em [`AI_ALLOWED_EVOLUTION.md`](../ai/AI_ALLOWED_EVOLUTION.md) §8, **“WS-08D�
 - [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_CONVERSATIONAL_TEMPLATES.md) — templates e guardrails copy V1
 - [`WS-08D_V1_GO_RECORD.md`](./WS-08D_V1_GO_RECORD.md) — GO implementação V1-core
 - [`WS-08D_V1_PR_EXECUTION_PLAN.md`](./WS-08D_V1_PR_EXECUTION_PLAN.md) — plano da primeira PR técnica
-- [`WS-08D_V2_CONVERSATION_KERNEL.md`](./WS-08D_V2_CONVERSATION_KERNEL.md) — Conversation Kernel (design institucional · implementação NO-GO)
+- [`WS-08D_V1_1_GRAY_ZONE_SPEC.md`](./WS-08D_V1_1_GRAY_ZONE_SPEC.md) — V1.1 zona cinza + práticas (spec · implementação condicional)
+- [`WS-08D_V2_CONVERSATION_KERNEL.md`](./WS-08D_V2_CONVERSATION_KERNEL.md) — Conversation Kernel + Contextual Detour §16 (design · implementação NO-GO)
 - [`WS-08C_APPOINTMENT_AI_REPORT.md`](./WS-08C_APPOINTMENT_AI_REPORT.md)
 - [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](./WS-13_ETAPA_1_HUMAN_CLOSURE.md)
 - [`WS-18A_OPERATIONAL_AI_MINIMUM.md`](./WS-18A_OPERATIONAL_AI_MINIMUM.md)
