@@ -17,7 +17,7 @@ import {
   type ConversationComposerMode,
 } from "./conversation-selection-context"
 import { useConversationContextMorph } from "./conversation-context-morph"
-import { useComposerScrollPaddingBottom } from "@/lib/ui/composer-scroll-clearance"
+import { useComposerScrollPaddingBottom, COMPOSER_SCROLL_CLEARANCE_CSS_VAR } from "@/lib/ui/composer-scroll-clearance"
 import { shouldRenderThreadInFlow } from "@/lib/ui/composer-layout"
 import type {
   ConversationResponseResolver,
@@ -928,6 +928,7 @@ export function BusinessSocialLanding({
             ref={setThreadPortalTarget}
             data-conversation-thread-anchor="true"
             className={cn("px-4 sm:px-5", composerMode !== "default" && "hidden")}
+            style={{ paddingBottom: `var(${COMPOSER_SCROLL_CLEARANCE_CSS_VAR}, 0px)` }}
             aria-hidden={composerMode !== "default" ? true : undefined}
           />
         ) : null}

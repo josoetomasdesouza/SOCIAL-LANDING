@@ -15,6 +15,7 @@ import { observeAiSurfaceOpened } from "@/lib/events/instrumentation"
 import { useConversationSelectionContext } from "./conversation-selection-context"
 import {
   clearComposerScrollClearanceCssVar,
+  COMPOSER_SCROLL_CLEARANCE_CSS_VAR,
   resolveComposerScrollClearancePx,
   setComposerScrollClearanceCssVar,
 } from "@/lib/ui/composer-scroll-clearance"
@@ -374,16 +375,81 @@ export function ConversationalAI({
     window.localStorage.setItem(conversationHistoryStorageKey, JSON.stringify(messages))
   }, [conversationHistoryStorageKey, isHistoryHydrated, messages])
 
+  const scrollInFlowThreadToLatestTurn = useCallback(() => {
+    const endElement = messagesEndRef.current
+    if (!endElement || typeof window === "undefined") {
+      return
+    }
+
+    const contextClearancePx = conversationSelectionContext?.composerScrollClearancePx ?? 0
+    const cssClearancePx = Number.parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue(COMPOSER_SCROLL_CLEARANCE_CSS_VAR)
+    )
+    const clearancePx = Math.max(
+      0,
+      contextClearancePx > 0 ? contextClearancePx : Number.isFinite(cssClearancePx) ? cssClearancePx : 0
+    )
+
+    endElement.style.scrollMarginBottom = `${clearancePx}px`
+
+    const shellElement = composerShellRef.current?.querySelector<HTMLElement>(
+      '[data-conversation-composer="true"]'
+    )
+    const endRect = endElement.getBoundingClientRect()
+    const shellTop = shellElement?.getBoundingClientRect().top
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const visibleTopLimit = (shellTop ?? viewportHeight - clearancePx) - 8
+    const overlapPx = endRect.bottom - visibleTopLimit
+
+    if (overlapPx > 0) {
+      window.scrollTo({
+        top: window.scrollY + overlapPx,
+        behavior: "smooth",
+      })
+      window.setTimeout(() => {
+        const followEnd = messagesEndRef.current
+        const followShell = composerShellRef.current?.querySelector<HTMLElement>(
+          '[data-conversation-composer="true"]'
+        )
+        if (!followEnd || !followShell) {
+          return
+        }
+
+        const followRect = followEnd.getBoundingClientRect()
+        const followShellTop = followShell.getBoundingClientRect().top
+        const followOverlap = followRect.bottom - (followShellTop - 8)
+
+        if (followOverlap > 0) {
+          window.scrollTo({
+            top: window.scrollY + followOverlap,
+            behavior: "auto",
+          })
+        }
+      }, 400)
+      return
+    }
+
+    endElement.scrollIntoView({ behavior: "smooth", block: "end" })
+  }, [conversationSelectionContext?.composerScrollClearancePx])
+
   useEffect(() => {
     if (shouldPortalThread) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
-      return
+      const frame = window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(scrollInFlowThreadToLatestTurn)
+      })
+      return () => window.cancelAnimationFrame(frame)
     }
 
     if (shellShouldShowConversationBody) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [shellShouldShowConversationBody, shouldPortalThread, messages, isTyping])
+  }, [
+    scrollInFlowThreadToLatestTurn,
+    shellShouldShowConversationBody,
+    shouldPortalThread,
+    messages,
+    isTyping,
+  ])
 
   useLayoutEffect(() => {
     if (isCompactResumePreview) {
@@ -1300,7 +1366,10 @@ export function ConversationalAI({
 
           {isTyping ? renderTypingIndicator(displayedMessages.length > 0, true) : null}
 
-          <div ref={messagesEndRef} />
+          <div
+            ref={messagesEndRef}
+            style={{ scrollMarginBottom: `var(${COMPOSER_SCROLL_CLEARANCE_CSS_VAR}, 0px)` }}
+          />
         </div>
       </div>
     ) : null
