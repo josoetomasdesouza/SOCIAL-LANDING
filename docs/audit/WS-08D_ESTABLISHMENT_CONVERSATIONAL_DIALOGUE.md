@@ -377,7 +377,8 @@ Em [`AI_ALLOWED_EVOLUTION.md`](../ai/AI_ALLOWED_EVOLUTION.md) §8, **“WS-08D�
 |------|------------|--------|
 | **0 — Charter** | Este documento | ✅ |
 | **0.5 — Matriz real** | [`WS-08D_CONVERSATIONAL_MATRIX_REAL.md`](./WS-08D_CONVERSATIONAL_MATRIX_REAL.md) — evidência comportamental (75 exemplos) | ✅ publicação institucional |
-| **1 — Implementação** | Código + harness + relatório | ⏸ NO-GO até §11 |
+| **0.6 — Templates V1** | [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_CONVERSATIONAL_TEMPLATES.md) — biblioteca copy oficial (T-01…T-05, T-13, P-FB01) | ✅ publicação institucional |
+| **1 — Implementação** | Código + harness + relatório | ⏸ NO-GO até §11 + AC-C01…C06 templates |
 | **2 — Observação** | Notas pós Sessão humana (copy) | ⏸ |
 
 ---
@@ -385,6 +386,7 @@ Em [`AI_ALLOWED_EVOLUTION.md`](../ai/AI_ALLOWED_EVOLUTION.md) §8, **“WS-08D�
 ## Related
 
 - [`WS-08D_CONVERSATIONAL_MATRIX_REAL.md`](./WS-08D_CONVERSATIONAL_MATRIX_REAL.md) — matriz conversacional real (Appointment · Barba Negra)
+- [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_CONVERSATIONAL_TEMPLATES.md) — templates e guardrails copy V1
 - [`WS-08C_APPOINTMENT_AI_REPORT.md`](./WS-08C_APPOINTMENT_AI_REPORT.md)
 - [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](./WS-13_ETAPA_1_HUMAN_CLOSURE.md)
 - [`WS-18A_OPERATIONAL_AI_MINIMUM.md`](./WS-18A_OPERATIONAL_AI_MINIMUM.md)

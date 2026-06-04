@@ -221,9 +221,9 @@ Legenda de ação: **Responder** = texto situado · **Perguntar** = ≤1 clarifi
 Antes de liberar código (charter §11), a organização deve ter:
 
 1. ✅ Esta matriz como evidência comportamental (75 exemplos · 13 categorias).
-2. ☐ Priorização V1: T-01–T-05 + T-13 + fallback (maior FAIL-MOCK).
+2. ✅ Priorização V1: T-01–T-05 + T-13 + P-FB01 (escopo congelado; ver templates §Matriz resumo).
 3. ☐ Casos R existentes congelados como regressão (AP-01–07 + E-29–E-45, E-72–E-74).
-4. ☐ Copy bounds documentados por política P-D* / P-H*.
+4. ✅ Copy bounds: [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_CONVERSATIONAL_TEMPLATES.md) (GC-01…12, AC-C01…06).
 5. ☐ Decisão humana explícita GO implementação.
 
 **Pergunta operacional atual:**
@@ -238,6 +238,7 @@ Quais evidências e guardrails precisam existir para liberar a implementação?
 ## Related
 
 - [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](./WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md) — §10 matriz normativa (V1-01…16)
+- [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_CONVERSATIONAL_TEMPLATES.md) — biblioteca copy V1
 - [`WS-08C_APPOINTMENT_AI_REPORT.md`](./WS-08C_APPOINTMENT_AI_REPORT.md)
 - [`AI_FALLBACK_BEHAVIOR.md`](../ai/AI_FALLBACK_BEHAVIOR.md)
 - [`scripts/qa/fixtures/ai-canonical-flows.json`](../../scripts/qa/fixtures/ai-canonical-flows.json) — AP-01…07
