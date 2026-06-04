@@ -1,0 +1,268 @@
+{
+  "version": "1.2.0",
+  "workstream": "WS-19B / WS-19C",
+  "charter": "docs/audit/WS-19B_REALITY_BACKLOG.md",
+  "targets": {
+    "corpusRealityMin": 10
+  },
+  "captureFields": [
+    "id",
+    "timestamp",
+    "vertical",
+    "source",
+    "chip",
+    "prior_turns",
+    "prompt",
+    "actual_behavior",
+    "expected_behavior",
+    "root_cause",
+    "promoted_to_eval",
+    "promoted_to_corpus",
+    "status"
+  ],
+  "entries": [
+    {
+      "id": "RH-001",
+      "date": "2026-05-24",
+      "source": "human_smoke_appointment_ui",
+      "chip": {
+        "kind": "video",
+        "title": "Tendencias de Corte Masculino 2024",
+        "knownFacts": [
+          "tema: tendencias corte masculino"
+        ]
+      },
+      "prior_turns": [
+        "qual a tendencia para carecas?"
+      ],
+      "prompt": "carecas",
+      "actual_behavior": "T1 ok (tendências no vídeo). T2: «A Barba Negra fica na Augusta — veja servicos e profissionais no feed quando quiser.» (augusta_generic / situated escape).",
+      "expected_behavior": "T1/T2: honest gap carecas/calvos no contexto do vídeo masculino — grounded selected_context, sem Augusta nem broad clarify.",
+      "root_cause": "Token «carecas» não ancorava chip de vídeo; classifyTurn → defer_legacy; resolveRuleKernelStub null → dialogueResolver Augusta.",
+      "promoted_to_eval": "E-G46",
+      "promoted_to_corpus": [
+        "B-51"
+      ],
+      "status": "promoted",
+      "timestamp": "2026-05-24T12:00:00Z",
+      "vertical": "appointment",
+      "smoke_axis": "videos"
+    },
+    {
+      "id": "RH-002",
+      "date": "2026-05-24",
+      "timestamp": "2026-05-24T14:00:00Z",
+      "vertical": "appointment",
+      "source": "human_smoke_capture_kit_videos",
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "prior_turns": [],
+      "prompt": "me fala ai",
+      "actual_behavior": "Broad clarify operacional («Não captei o foco…») com chip de vídeo ativo.",
+      "expected_behavior": "Resposta grounded no vídeo — sem broad clarify genérico.",
+      "root_cause": "Vague phrase não classificada como video content inquiry.",
+      "promoted_to_eval": "E-G47",
+      "promoted_to_corpus": [
+        "B-61"
+      ],
+      "status": "promoted",
+      "smoke_axis": "videos"
+    },
+    {
+      "id": "RH-003",
+      "date": "2026-05-24",
+      "timestamp": "2026-05-24T14:05:00Z",
+      "vertical": "appointment",
+      "source": "human_smoke_capture_kit_videos",
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ]
+      },
+      "prior_turns": [],
+      "prompt": "degrade",
+      "actual_behavior": "Delegate agendamento / cards Degrade com chip de vídeo.",
+      "expected_behavior": "Conteúdo do clipe — direct, sem delegate_transactional.",
+      "root_cause": "Keyword degrade vence chip editorial.",
+      "promoted_to_eval": "E-G48",
+      "promoted_to_corpus": [
+        "B-62"
+      ],
+      "status": "promoted",
+      "smoke_axis": "videos"
+    },
+    {
+      "id": "RH-004",
+      "date": "2026-05-24",
+      "timestamp": "2026-05-24T14:10:00Z",
+      "vertical": "appointment",
+      "source": "human_smoke_capture_kit_services",
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "prior_turns": [],
+      "prompt": "Tem estacionamento?",
+      "actual_behavior": "Às vezes copy de serviço (30 min / tradicional) em vez de operacional.",
+      "expected_behavior": "Estacionamento operacional — intent vence chip serviço.",
+      "root_cause": "Chip trap serviço vs pergunta operacional.",
+      "promoted_to_eval": "E-G49",
+      "promoted_to_corpus": [
+        "B-63"
+      ],
+      "status": "promoted",
+      "smoke_axis": "services"
+    },
+    {
+      "id": "RH-005",
+      "date": "2026-05-24",
+      "timestamp": "2026-05-24T14:15:00Z",
+      "vertical": "appointment",
+      "source": "human_smoke_capture_kit_posts",
+      "chip": {
+        "kind": "social_post",
+        "title": "Sabado de casa cheia! Obrigado pela confianca."
+      },
+      "prior_turns": [
+        "fale mais sobre esse post"
+      ],
+      "prompt": "e isso?",
+      "actual_behavior": "Defer legacy ou Augusta em vez de clarificar referente ao post.",
+      "expected_behavior": "Clarify target ou resposta no post — sem Augusta.",
+      "root_cause": "Pronome «isso» sem messageReferencesChip forte.",
+      "promoted_to_eval": "E-G50",
+      "promoted_to_corpus": [
+        "B-64"
+      ],
+      "status": "promoted",
+      "smoke_axis": "posts"
+    },
+    {
+      "id": "RH-006",
+      "date": "2026-05-24",
+      "timestamp": "2026-05-24T14:20:00Z",
+      "vertical": "appointment",
+      "source": "human_smoke_capture_kit_posts",
+      "chip": {
+        "kind": "social_post",
+        "title": "Novo lounge na Augusta"
+      },
+      "prior_turns": [],
+      "prompt": "tem essa barbearia la em Curitiba?",
+      "actual_behavior": "Clarify unidade ou loop genérico.",
+      "expected_behavior": "Clarify target cidade/unidade — sem endereço Augusta como resposta final errada.",
+      "root_cause": "Ambiguidade geográfica com chip editorial.",
+      "promoted_to_eval": "E-G51",
+      "promoted_to_corpus": [
+        "B-65"
+      ],
+      "status": "promoted",
+      "smoke_axis": "posts"
+    },
+    {
+      "id": "RH-007",
+      "date": "2026-05-24",
+      "timestamp": "2026-05-24T14:25:00Z",
+      "vertical": "appointment",
+      "source": "human_smoke_capture_kit_videos",
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ]
+      },
+      "prior_turns": [
+        "esse fade é feito tambem em mulheres?"
+      ],
+      "prompt": "e quanto custa?",
+      "actual_behavior": "Resposta ainda no vídeo ou defer; preço de catálogo tardio.",
+      "expected_behavior": "Active topic pricing após turno de vídeo.",
+      "root_cause": "Topic drift vídeo → preço.",
+      "promoted_to_eval": "E-G52",
+      "promoted_to_corpus": [
+        "B-66"
+      ],
+      "status": "promoted",
+      "smoke_axis": "preco"
+    },
+    {
+      "id": "RH-008",
+      "date": "2026-05-24",
+      "timestamp": "2026-05-24T14:30:00Z",
+      "vertical": "appointment",
+      "source": "human_smoke_capture_kit_services",
+      "chip": {
+        "kind": "service",
+        "title": "Degrade"
+      },
+      "prior_turns": [
+        "qual o preco do degrade?"
+      ],
+      "prompt": "e funciona no domingo?",
+      "actual_behavior": "Catálogo/preço repetido em vez de horário operacional.",
+      "expected_behavior": "Horário/fechamento domingo — operational context.",
+      "root_cause": "Topic drift preço → horário.",
+      "promoted_to_eval": "E-G53",
+      "promoted_to_corpus": [
+        "B-67"
+      ],
+      "status": "promoted",
+      "smoke_axis": "horarios"
+    },
+    {
+      "id": "RH-009",
+      "date": "2026-05-24",
+      "timestamp": "2026-05-24T14:35:00Z",
+      "vertical": "appointment",
+      "source": "human_smoke_capture_kit_agendamento",
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "prior_turns": [
+        "tem estacionamento?",
+        "e até que horas?"
+      ],
+      "prompt": "quero marcar um horario",
+      "actual_behavior": "Resposta operacional misturada antes de delegate limpo.",
+      "expected_behavior": "delegate_08c após sessão arrival/hours.",
+      "root_cause": "Topic drift operacional → agendamento.",
+      "promoted_to_eval": "E-G54",
+      "promoted_to_corpus": [
+        "B-68"
+      ],
+      "status": "promoted",
+      "smoke_axis": "agendamento"
+    },
+    {
+      "id": "RH-010",
+      "date": "2026-05-24",
+      "timestamp": "2026-05-24T14:40:00Z",
+      "vertical": "appointment",
+      "source": "human_smoke_capture_kit_videos",
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ]
+      },
+      "prior_turns": [],
+      "prompt": "mostra a tecnica do fade neste clipe",
+      "actual_behavior": "Delegate ou empty handoff em pergunta de conteúdo do clipe.",
+      "expected_behavior": "direct selected_context sobre técnica do vídeo.",
+      "root_cause": "Transactional keyword no título/prompt com chip vídeo.",
+      "promoted_to_eval": "E-G55",
+      "promoted_to_corpus": [
+        "B-69"
+      ],
+      "status": "promoted",
+      "smoke_axis": "videos"
+    }
+  ]
+}
