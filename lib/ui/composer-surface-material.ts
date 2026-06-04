@@ -330,4 +330,93 @@ export function resolveComposerPageMaskBackground(
   }
 }
 
+/** WS-21 R2 — local feed↔thread junction band height (smoke-fume v2). */
+export const COMPOSER_FEED_THREAD_JUNCTION_HEIGHT_PX = 96
+
+export interface ThreadEngagedProgressInput {
+  isLayoutV2: boolean
+  composerMode: "default" | "overlay" | "hidden"
+  hasEngagedConversation: boolean
+  /** User + AI turns in session — excludes context_event (morph chips). */
+  conversationTurnCount: number
+}
+
+/**
+ * v2 engaged signal — replaces sheet-height expansionProgress for material drama.
+ * Morph-only (chip, no turns) and hidden/overlay modes stay at 0.
+ */
+export function resolveThreadEngagedProgress({
+  isLayoutV2,
+  composerMode,
+  hasEngagedConversation,
+  conversationTurnCount,
+}: ThreadEngagedProgressInput): number {
+  if (!isLayoutV2) {
+    return 0
+  }
+
+  if (composerMode !== "default") {
+    return 0
+  }
+
+  if (!hasEngagedConversation || conversationTurnCount < 1) {
+    return 0
+  }
+
+  return 1
+}
+
+/** Local junction gradient at feed↔thread boundary (P-06a WS-21 R2). */
+export function resolveComposerFeedThreadJunctionStyle(
+  intensity: ComposerSurfaceIntensity,
+  progress: number
+): CSSProperties {
+  const normalizedProgress = clampNumber(progress, 0, 1)
+
+  if (normalizedProgress <= 0.001) {
+    return {
+      height: 0,
+      opacity: 0,
+      overflow: "hidden",
+    }
+  }
+
+  const heightPx = Math.round(COMPOSER_FEED_THREAD_JUNCTION_HEIGHT_PX * normalizedProgress)
+  const bleedPx = Math.round(heightPx * 0.35)
+
+  if (intensity === "off") {
+    return {
+      height: `${heightPx}px`,
+      marginTop: `-${bleedPx}px`,
+      marginBottom: `${Math.round(6 * normalizedProgress)}px`,
+      opacity: normalizedProgress,
+      background: `linear-gradient(to bottom, rgba(245,243,238,0) 0%, rgba(45,50,58,${(0.08 * normalizedProgress).toFixed(3)}) 100%)`,
+    }
+  }
+
+  if (intensity === "smoke-subtle") {
+    return {
+      height: `${heightPx}px`,
+      marginTop: `-${bleedPx}px`,
+      marginBottom: `${Math.round(6 * normalizedProgress)}px`,
+      opacity: normalizedProgress,
+      background: `linear-gradient(to bottom, rgba(250,248,244,0) 0%, rgba(255,255,255,${(0.28 * normalizedProgress).toFixed(3)}) 18%, rgba(40,44,50,${(0.1 * normalizedProgress).toFixed(3)}) 100%)`,
+      backdropFilter: normalizedProgress > 0.2 ? `blur(${Math.round(4 * normalizedProgress)}px)` : undefined,
+      WebkitBackdropFilter: normalizedProgress > 0.2 ? `blur(${Math.round(4 * normalizedProgress)}px)` : undefined,
+    }
+  }
+
+  return {
+    height: `${heightPx}px`,
+    marginTop: `-${bleedPx}px`,
+    marginBottom: `${Math.round(8 * normalizedProgress)}px`,
+    opacity: normalizedProgress,
+    background: `linear-gradient(to bottom, rgba(250,248,244,0) 0%, rgba(255,255,255,${(0.32 * normalizedProgress).toFixed(3)}) 14%, rgba(15,23,42,${(0.05 * normalizedProgress).toFixed(3)}) 42%, rgba(8,12,18,${(0.14 * normalizedProgress).toFixed(3)}) 100%)`,
+    backdropFilter: normalizedProgress > 0.2 ? `blur(${Math.round(6 * normalizedProgress)}px)` : undefined,
+    WebkitBackdropFilter: normalizedProgress > 0.2 ? `blur(${Math.round(6 * normalizedProgress)}px)` : undefined,
+    maskImage: "linear-gradient(to bottom, black 0%, black 82%, transparent 100%)",
+    WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 82%, transparent 100%)",
+  }
+}
+
 export const COMPOSER_SURFACE_OVERRIDE_STORAGE_KEY = OVERRIDE_STORAGE_KEY
