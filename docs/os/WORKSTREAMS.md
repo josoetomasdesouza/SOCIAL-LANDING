@@ -303,6 +303,21 @@
 
 ---
 
+### WS-08D — Establishment Conversational Dialogue (Appointment Pilot)
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 5 — Multi-Vertical AI (diálogo situado) |
+| **Status** | 🟢 **ABERTA (charter)** @ `3d75600` — implementação **NO-GO** |
+| **Objetivo** | Política de diálogo especializada do estabelecimento: situado + descoberta leve + handoff WS-08C |
+| **Escopo** | Charter; matriz V1; camadas L1–L3; guardrails; critérios aceite/rollback |
+| **Fora de escopo** | Código; Tier 1; WS-18A; runtime/publication/storage/external; chatbot/CRM/agente/memória/IA protagonista |
+| **Gate de saída (charter)** | Charter merged · GO humano explícito para implementação (§11 charter) |
+| **Gate de saída (implementação)** | Matriz V1 + `qa:appointment` + `qa:events` + `qa:ai-regression` + observação humana |
+| **Refs** | [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](../audit/WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md) |
+
+---
+
 ### WS-08 — AI Resolver Expansion
 
 | Campo | Valor |
@@ -313,7 +328,7 @@
 | **Escopo** | Novos módulos em `lib/mock-data/`; wire por feed |
 | **Fora de escopo** | Alterar `ecommerceMockConversationResolver`; Tier 1 frozen |
 | **Gate de saída** | Resolver dedicado + smoke conversacional + harness |
-| **Ordem sugerida** | ~~WS-08A~~ ✅ → ~~WS-08B~~ ✅ → ~~WS-08.5~~ ✅ → ~~WS-08.6~~ ✅ → ~~WS-08.7~~ ✅ → ~~WS-08.8~~ ✅ → ~~WS-08C~~ ✅ |
+| **Ordem sugerida** | ~~WS-08A~~ ✅ → ~~WS-08B~~ ✅ → ~~WS-08.5~~ ✅ → ~~WS-08.6~~ ✅ → ~~WS-08.7~~ ✅ → ~~WS-08.8~~ ✅ → ~~WS-08C~~ ✅ → **WS-08D** 🟢 charter |
 
 ---
 
@@ -459,11 +474,12 @@ WS-16A ✅ — External Reality Minimum · [`WS-16A_EXTERNAL_REALITY_MINIMUM.md`
 WS-15A ✅ — Publication Primitive · [`WS-15A_PUBLICATION_PRIMITIVE.md`](../audit/WS-15A_PUBLICATION_PRIMITIVE.md) @ `a837064` (draft/live CLI · preview OFF · auto-promote proibido)
 WS-09A ✅ — Persistence Primitive · [`WS-09A_PERSISTENCE_PRIMITIVE.md`](../audit/WS-09A_PERSISTENCE_PRIMITIVE.md) @ `67e41fe` (filesystem adapter · SQLite BLOCKED)
 WS-18A ✅ — Operational AI Minimum · [`WS-18A_OPERATIONAL_AI_MINIMUM.md`](../audit/WS-18A_OPERATIONAL_AI_MINIMUM.md) @ `31c9b78`/`e64912c`/`23fec61` + Etapa 3 LLM (fixture default · draft-only)
+WS-08D 🟢 — Establishment Conversational Dialogue · [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](../audit/WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md) (charter · implementação NO-GO)
 WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB enterprise) — BLOCKED, GO humano separado
 ```
 
-**Atual:** **Era 4 emergente** @ `bf76278` — WS-09A · WS-15A · WS-16A · **WS-18A ✅** · **WS-13 Etapa 1 ✅**; **próximo ciclo deliberado:** WS-17 (editor — GO humano explícito) · WS-09 enterprise BLOCKED.
+**Atual:** **Era 4 emergente** @ `3d75600` — WS-09A · WS-15A · WS-16A · **WS-18A ✅** · **WS-13 Etapa 1 ✅** · **WS-08D 🟢 charter**; **próximo ciclo deliberado:** GO implementação WS-08D (humano) · WS-17 (editor — GO humano explícito) · WS-09 enterprise BLOCKED.
 
 ---
 
