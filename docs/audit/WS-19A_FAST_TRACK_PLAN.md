@@ -17,7 +17,7 @@
 | E-G39 / E-G40 (vídeo smoke) | ✅ Incluídos no #79 — **não abrir novo escopo no #79** |
 | `conversation-priority.ts` + `topic-detection.ts` | ✅ Fundação no #79 |
 | `strategy-executor.ts` | ⏳ **PR2b** (após `main` alinhada) |
-| Escape Rate no runner | ⏳ **PR4** |
+| Escape Rate no runner | ✅ **PR4** (`eval-metrics.ts`, WS-19B Top 40) |
 | LLM visitante | 🔴 NO-GO até Escape &lt; 5% Top 40 |
 
 **Gates obrigatórios cada PR:** `pnpm ts:budget` · `pnpm qa:kernel-stub` · `pnpm qa:appointment`
@@ -32,7 +32,7 @@
 #79  = WS-19A Phase 1.5 + priority foundation (+ E-G39/40, adapter guards)
 PR2b = strategy-executor
 PR3  = priority cleanup + multi-turn hardening
-PR4  = Escape Rate + WS-19B Top 40
+PR4  = Escape Rate + WS-19B Top 40 (branch `workstream/ws-19a-pr4-escape-coverage`)
 ```
 
 ---

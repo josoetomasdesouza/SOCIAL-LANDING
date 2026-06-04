@@ -1,0 +1,685 @@
+{
+  "version": "1.0.0",
+  "workstream": "WS-19B",
+  "charter": "docs/audit/WS-19B_CONVERSATIONAL_COVERAGE.md",
+  "gate": {
+    "escapeRateMaxPercent": 5,
+    "criticalWrongLaneMax": 0
+  },
+  "scenarios": [
+    {
+      "id": "B-01",
+      "matrixRef": "E-G01",
+      "prompt": "Estão abertos agora?",
+      "prior_turns": [],
+      "chip": null,
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-02",
+      "matrixRef": "E-G02",
+      "prompt": "vocês tem estacionamento?",
+      "prior_turns": [
+        "Quero mudar meu visual"
+      ],
+      "chip": null,
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-03",
+      "matrixRef": "E-G03",
+      "prompt": "Você só fala isso?",
+      "prior_turns": [],
+      "chip": null,
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "defer_legacy",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-04",
+      "matrixRef": "E-G04",
+      "prompt": "aceita pix?",
+      "prior_turns": [],
+      "chip": null,
+      "expected_lane": "answerable_from_active_topic",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-05",
+      "matrixRef": "E-G05",
+      "prompt": "Quem é o Silvio Santos?",
+      "prior_turns": [],
+      "chip": null,
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "defer_legacy",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-06",
+      "matrixRef": "E-G06",
+      "prompt": "Me diagnostica essa mancha",
+      "prior_turns": [],
+      "chip": null,
+      "expected_lane": "blocked",
+      "expected_strategy": "blocked",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-07",
+      "matrixRef": "E-G07",
+      "prompt": "Que horas vocês fecham hoje?",
+      "prior_turns": [
+        "horário"
+      ],
+      "chip": null,
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-08",
+      "matrixRef": "E-G08",
+      "prompt": "degrade",
+      "prior_turns": [
+        "Olá",
+        "Quero algo moderno"
+      ],
+      "chip": null,
+      "expected_lane": "should_delegate_transactional",
+      "expected_strategy": "delegate_08c",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-09",
+      "matrixRef": "E-G09",
+      "prompt": "quero marcar um horário",
+      "prior_turns": [],
+      "chip": null,
+      "expected_lane": "should_delegate_transactional",
+      "expected_strategy": "delegate_08c",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-10",
+      "matrixRef": "E-G10",
+      "prompt": "me ajuda",
+      "prior_turns": [],
+      "chip": null,
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "defer_legacy",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-11",
+      "matrixRef": "E-G18",
+      "prompt": "fale mais sobre esse serviço",
+      "prior_turns": [],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "defer_legacy",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-12",
+      "matrixRef": "E-G19",
+      "prompt": "isso combina comigo?",
+      "prior_turns": [
+        "sera que vai ficar em mim?"
+      ],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "defer_legacy",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-13",
+      "matrixRef": "E-G20",
+      "prompt": "Onde fica a barbearia Dom Corleone?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "news",
+        "title": "Barbearia Dom Corleone abre unidade em Pinheiros"
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-14",
+      "matrixRef": "E-G21",
+      "prompt": "qual o CNPJ de vocês?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "defer_legacy",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-15",
+      "matrixRef": "E-G22",
+      "prompt": "aceita pix?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "expected_lane": "answerable_from_active_topic",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-16",
+      "matrixRef": "E-G23",
+      "prompt": "qual o preco do degrade",
+      "prior_turns": [
+        "sera que vai ficar em mim?",
+        "quero agendar"
+      ],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "expected_lane": "answerable_from_active_topic",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-17",
+      "matrixRef": "E-G24",
+      "prompt": "quanto custa",
+      "prior_turns": [
+        "fale mais sobre esse servico",
+        "qual barbeiro faz degrade"
+      ],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "expected_lane": "answerable_from_active_topic",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-18",
+      "matrixRef": "E-G25",
+      "prompt": "aceita pix?",
+      "prior_turns": [
+        "o carlos corta bem?",
+        "tem horario hoje"
+      ],
+      "chip": {
+        "kind": "professional",
+        "title": "Carlos Silva"
+      },
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "defer_legacy",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-19",
+      "matrixRef": "E-G26",
+      "prompt": "quero agendar um horario",
+      "prior_turns": [
+        "o que diz essa noticia?"
+      ],
+      "chip": {
+        "kind": "news",
+        "title": "Barbearia Dom Corleone abre unidade em Pinheiros"
+      },
+      "expected_lane": "should_delegate_transactional",
+      "expected_strategy": "delegate_08c",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-20",
+      "matrixRef": "E-G27",
+      "prompt": "como faz o antes e depois?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Antes e Depois: Transformacao completa"
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-21",
+      "matrixRef": "E-G28",
+      "prompt": "Tem essa barbearia em Curitiba?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Antes e Depois: Transformacao completa"
+      },
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-22",
+      "matrixRef": "E-G29",
+      "prompt": "qual o preço?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "expected_lane": "answerable_from_active_topic",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-23",
+      "matrixRef": "E-G30",
+      "prompt": "qual o preço?",
+      "prior_turns": [],
+      "chip": null,
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "clarify_target",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-24",
+      "matrixRef": "E-G31",
+      "prompt": "qual o preço?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "service",
+        "title": "Degrade"
+      },
+      "expected_lane": "answerable_from_catalog",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-25",
+      "matrixRef": "E-G33",
+      "prompt": "como funciona nos feriados?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "social_post",
+        "title": "Sabado de casa cheia! Obrigado pela confianca de sempre."
+      },
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-26",
+      "matrixRef": "E-G34",
+      "prompt": "quantas pessoas cabem no espaco?",
+      "prior_turns": [
+        "Onde fica esse espaco?"
+      ],
+      "chip": {
+        "kind": "social_post",
+        "title": "Nosso espaco foi renovado! Vem conhecer o novo lounge."
+      },
+      "expected_lane": "answerable_with_honest_gap",
+      "expected_strategy": "honest_gap",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-27",
+      "matrixRef": "E-G35",
+      "prompt": "Tem estacionamento?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-28",
+      "matrixRef": "E-G36",
+      "prompt": "Tem essa barbearia em Curitiba?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "social_post",
+        "title": "Nosso espaco foi renovado! Vem conhecer o novo lounge."
+      },
+      "expected_lane": "in_domain_missing_context",
+      "expected_strategy": "clarify_target",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-29",
+      "matrixRef": "E-G37",
+      "prompt": "o que significa isso pra minha cidade?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "social_post",
+        "title": "Sabado de casa cheia! Obrigado pela confianca de sempre."
+      },
+      "expected_lane": "in_domain_missing_context",
+      "expected_strategy": "clarify_target",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-30",
+      "matrixRef": "E-G38",
+      "prompt": "me fala ai",
+      "prior_turns": [],
+      "chip": null,
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "clarify_broad",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-31",
+      "matrixRef": "E-G39",
+      "prompt": "tem tendencias para mulheres?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tendencias de Corte Masculino 2024"
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-32",
+      "matrixRef": "E-G40",
+      "prompt": "esse fade é feito tambem em mulheres?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-33",
+      "matrixRef": "E-G41",
+      "prompt": "e até que horas?",
+      "prior_turns": [
+        "tem estacionamento?"
+      ],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-34",
+      "matrixRef": "E-G42",
+      "prompt": "unidade",
+      "prior_turns": [
+        "tem essa barbearia em Curitiba?"
+      ],
+      "chip": {
+        "kind": "social_post",
+        "title": "Novo lounge na Augusta"
+      },
+      "expected_lane": "answerable_from_active_topic",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-35",
+      "matrixRef": "E-G43",
+      "prompt": "e quanto custa?",
+      "prior_turns": [
+        "esse fade é feito tambem em mulheres?"
+      ],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "expected_lane": "answerable_from_active_topic",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-36",
+      "matrixRef": "E-G44",
+      "prompt": "quero marcar esse",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "expected_lane": "should_delegate_transactional",
+      "expected_strategy": "delegate_08c",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-37",
+      "matrixRef": "E-G45",
+      "prompt": "me fala aí",
+      "prior_turns": [
+        "tem estacionamento?"
+      ],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "clarify_broad",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-38",
+      "matrixRef": "E-M-APT-15",
+      "prompt": "sera que vai ficar em mim?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "defer_legacy",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-39",
+      "matrixRef": "E-M-APT-16",
+      "prompt": "qual tendencia para cabelo cacheado?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tendências de Corte Masculino 2024"
+      },
+      "expected_lane": "needs_clarification",
+      "expected_strategy": "defer_legacy",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    },
+    {
+      "id": "B-40",
+      "matrixRef": "E-M-APT-17",
+      "prompt": "Onde fica a barbearia Dom Corleone?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "news",
+        "title": "Barbearia Dom Corleone abre unidade em Pinheiros"
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi(c|o)s e profissionais no feed quando quiser"
+      ],
+      "escape_expected": false,
+      "critical": true
+    }
+  ]
+}

@@ -4,6 +4,10 @@ import { fileURLToPath } from "node:url"
 import { buildAppointmentModelContextPack } from "@/lib/conversation-kernel/appointment/build-appointment-model-context-pack"
 import { isKernelResponseValid } from "@/lib/conversation-kernel/types"
 import {
+  printWs19bReport,
+  runWs19bMetrics,
+} from "./ws19b-metrics-runner"
+import {
   resolveRuleKernelStub,
   touchKernelSessionFromMessage,
 } from "@/lib/conversation-kernel/rule-kernel-stub"
@@ -731,6 +735,29 @@ function main() {
 
   console.log(`\nWS-19A Phase 1 kernel stub: ${pass}/${results.length} passed`)
   if (fail > 0) process.exit(1)
+
+  const ws19b = runWs19bMetrics()
+  printWs19bReport(ws19b.records, ws19b.summary)
+
+  const escapePct =
+    ws19b.summary.total > 0
+      ? (ws19b.summary.escapeCount / ws19b.summary.total) * 100
+      : 0
+  const escapeGateOk = escapePct < 5 && ws19b.summary.criticalWrongLaneCount === 0
+
+  if (!escapeGateOk) {
+    console.error("\nWS-19B gate FAILED")
+    for (const f of ws19b.failures) console.error(`  ${f}`)
+    process.exit(1)
+  }
+
+  if (ws19b.failures.length > 0) {
+    console.error("\nWS-19B scenario failures:")
+    for (const f of ws19b.failures) console.error(`  ${f}`)
+    process.exit(1)
+  }
+
+  console.log("\nWS-19B gate: PASS (Escape < 5%, critical wrong lane = 0)")
 }
 
 main()
