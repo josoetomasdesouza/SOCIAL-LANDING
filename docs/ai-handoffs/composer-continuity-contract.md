@@ -4,6 +4,8 @@
 **Versão**: 1.0 — baseada em auditoria de 19/05/2026  
 **Escopo**: `/workspace` — Next.js App Router + React 19 + Tailwind CSS
 
+> **WS-21 v2 delta (draft):** [`composer-continuity-contract-v2-delta.md`](composer-continuity-contract-v2-delta.md) — applies when `composer-layout=v2`; v1.0 remains authoritative for current runtime.
+
 ---
 
 ## SEÇÃO 1 — ARQUITETURA ATUAL RESUMIDA
