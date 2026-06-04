@@ -1,6 +1,6 @@
 # WS-08D V2 — Conversation Kernel (Design Institucional)
 
-**Baseline:** `origin/main` @ `10b36c7` (WS-08D V1-core merged · PR #77)  
+**Baseline:** `origin/main` @ `cbcf1fa` (WS-08D V1-core + polish multi-turn)  
 **Charter:** [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](./WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md)  
 **V1 publicada:** [`WS-08D_V1_GO_RECORD.md`](./WS-08D_V1_GO_RECORD.md) · código `appointment-establishment-dialogue-v1.ts` + resolver composto  
 **Tipo:** direção arquitetural futura · **sem implementação autorizada**  
@@ -19,9 +19,12 @@ Chave de API:                        Nunca no client
 Tier 1 / conversational-ai.tsx:      Intocado (shell visual); contrato pode estender via governance PR
 WS-18A:                              Isolamento total — zero import, zero bundle leak
 Agente autônomo / CRM / memória permanente / loop multi-tool: Proibido
+Contextual Detour (zona 2):          GO design — §16 · resposta curta + ponte verdadeira + retorno à página
 ```
 
-**Data do registro:** 2026-05-24  
+**Decisão de produto (2026-05-24):** Fora do domínio **leve** não deve ser tratado apenas como recusa (T-13 V1). A V2 deve permitir **resposta rápida**, **ponte contextual verdadeira** e **retorno ao objetivo da página** (serviço, estilo, profissional, horário, agendamento).
+
+**Data do registro:** 2026-05-24 (emenda Contextual Detour)  
 **Autoridade:** Complementa o charter WS-08D; não substitui V1 nem reabre implementação V2.
 
 ---
@@ -253,10 +256,16 @@ interface ConversationKernelResponse {
     | "service"
     | "professional"
     | "schedule"
-    | "out_of_domain"
+    | "out_of_domain"       // zona 1: catálogo / casa — recusa honesta curta
+    | "polite_detour"       // zona 2: fora do domínio leve + ponte (§16)
+    | "domain_blocked"      // zona 3: recusa firme + retorno (§16)
     | "meta_complaint"
-    | "general_house"
-  topic: string // ex.: "parking", "haircut_style", "insecurity"
+    | "general_house"       // T-12 práticas da casa (dentro do domínio)
+  domainZone:
+    | "in_domain"
+    | "off_domain_light"
+    | "off_domain_blocked"
+  topic: string // ex.: "parking", "haircut_style", "celebrity_age"
   topicShift: boolean
   action:
     | "reply_only"
@@ -267,6 +276,17 @@ interface ConversationKernelResponse {
     | "handoff_transactional"
     | "point_to_feed"
     | "point_to_arrival_hero"
+    | "bridge_to_page"      // zona 2: ponte + retorno (sem executar navegação)
+  bridgeTarget?:
+    | "service"
+    | "style"
+    | "professional"
+    | "hours"
+    | "schedule"
+    | "first_visit"
+    | "feed_explore"
+  factConfidence?: number // 0..1 — fato externo na frase 1; omitir se sem fato
+  externalDetourTurns?: number // sessão: turnos consecutivos em assunto externo (máx. 1 antes de recusa)
   confidence: number // 0..1
   followUpQuestion: string | null
   handoff?: {
@@ -305,6 +325,7 @@ interface ConversationKernelResponse {
 | `handoff_transactional` | Sim | WS-08C com `handoff.syntheticMessage` |
 | `point_to_feed` | Sim | Copy apenas |
 | `point_to_arrival_hero` | Sim | Copy “Ver como chegar” (hero; sem drawer composer) |
+| `bridge_to_page` | Sim | Só `reply` + `bridgeTarget`; host pode `handoff` no turno seguinte |
 
 ### Proibidas para o modelo
 
@@ -323,11 +344,18 @@ interface ConversationKernelResponse {
 | GK-05 | Serviços só de `serviceCatalog` |
 | GK-06 | `followUpQuestion` ≤ 1; só com `reply_only` ou `ask_clarification` |
 | GK-07 | Se `topicShift`, primeira frase referencia novo tópico |
-| GK-08 | Sem conhecimento geral (esporte, restaurante, política) |
+| GK-08 | Zona 3: sem trivia geral; zona 2 só com política §16 (não ChatGPT aberto) |
 | GK-09 | Falha LLM/gate → fast-path V1 ou P-FB01; nunca Tier 1 rotation no Appointment |
 | GK-10 | `confidence < 0.55` → clarificar ou fallback situado |
+| GK-11 | **Não inventar fatos** — `factConfidence < 0.7` → sem afirmar dado externo |
+| GK-12 | **Ponte verdadeira** — conexão estética só se plausível (visual clássico ↔ corte tradicional); sem forçar |
+| GK-13 | **Detour ≤ 1 frase** de fato externo + **≤ 1 frase** de ponte + pergunta opcional (total ≤ 2 frases) |
+| GK-14 | **Sem web search** nesta fase |
+| GK-15 | **Insistência externa** — se `externalDetourTurns ≥ 2`, `domain_blocked` + retorno casa |
+| GK-16 | **Fato instável/atual** (idade viva, placar hoje, “quem ganhou”) — não afirmar; recusa leve |
+| GK-17 | Zona 2: obrigatório `bridgeTarget` + `action: bridge_to_page` |
 
-Alinhado a GC-01…12 de [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_CONVERSATIONAL_TEMPLATES.md).
+Alinhado a GC-01…12 de [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_CONVERSATIONAL_TEMPLATES.md). T-13 V1 permanece até implementação V2; detour substitui comportamento para zona 2.
 
 ---
 
@@ -360,6 +388,11 @@ Alinhado a GC-01…12 de [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_C
 | E-K06 | Anti-generic substring (GK-01) |
 | E-K07 | Sem bloco booking em clarify-only |
 | E-K08 | Prompt adversarial → fallback seguro |
+| E-K23 | Polite detour — cultura simples (Silvio Santos obrigatório) |
+| E-K24 | Usuário insiste no assunto externo (2º turno → recusa leve) |
+| E-K25 | Fato incerto ou instável — sem inventar |
+| E-K26 | Assunto sensível → `domain_blocked` |
+| E-K27 | Ponte contextual verdadeira — sem conexão estética inventada |
 
 ### 12.2 Offline (server / schema)
 
@@ -378,7 +411,7 @@ Alinhado a GC-01…12 de [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_C
 | E-K21 | Mudança de assunto natural ≥ 7/10 |
 | E-K22 | Zero “parece ChatGPT genérico” |
 
-**Corpus mínimo:** matriz 75 + 15 scripts multi-turn + 10 adversariais.
+**Corpus mínimo:** matriz 75 + 15 scripts multi-turn + 10 adversariais + **5 scripts detour** (§16.5).
 
 ---
 
@@ -389,8 +422,9 @@ Alinhado a GC-01…12 de [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_C
 - [ ] Novo registro humano “GO implementação WS-08D V2” (distinto deste GO design)
 - [ ] Opção B merged em [`AI_RESOLVER_CONTRACT.md`](../ai/AI_RESOLVER_CONTRACT.md)
 - [ ] Endpoint server especificado + secrets + rate limit + rollback flag `kernelEnabled`
-- [ ] E-K01…E-K08 em `scripts/convergence/`
+- [ ] E-K01…E-K08 + **E-K23…E-K27** em `scripts/convergence/`
 - [ ] E-K10…E-K13 em CI com mock LLM
+- [ ] Política Contextual Detour (§16) em prompt system + gate GK-11…17
 - [ ] Observação V1 ≥ 2 semanas com lacunas documentadas
 - [ ] Orçamento latência/custo aceito
 - [ ] Zero import de `lib/runtime/appointment/operational-ai/`
@@ -429,7 +463,131 @@ Alinhado a GC-01…12 de [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_C
 | 1 | V1-core + descoberta leve · PR #77 @ `10b36c7` | ✅ |
 | 2 | Observação uso real | 🟡 em curso |
 | **0.9 — V2 design** | **Este documento** | ✅ |
+| **0.10 — Contextual Detour** | §16 deste documento | ✅ |
 | 3 — V2 código | Kernel + endpoint + evals | 🔴 **NO-GO** |
+
+---
+
+## 16. Política Contextual Detour (fora do domínio em três zonas)
+
+### 16.1 Objetivo
+
+Permitir que o Composer soe como **pessoa normal e sofisticada**: em desvios leves, **responde com elegância** (1 frase), **ponte contextual verdadeira** e **retorno ao objetivo da página** — sem virar assistente universal nem abandonar a Social Landing.
+
+### 16.2 Matriz de domínio (V2)
+
+| Zona | `domainZone` | `intent` típico | Comportamento | Exemplos |
+|------|--------------|-----------------|---------------|----------|
+| **1 — Dentro do domínio** | `in_domain` | `service`, `professional`, `hours`, `arrival`, `schedule`, `discover`, `style`, `first_visit`, `general_house`, `greet`, `small_talk` | Responder primeiro (§6); handoff WS-08C quando aplicável | Serviços, barbeiros, horários, chegada, agendar, estilo, primeira visita, estacionamento, fila (quando houver mock) |
+| **2 — Fora do domínio leve** | `off_domain_light` | `polite_detour` | **Contextual Detour** (§16.3) | Curiosidade cultural, celebridade, pop, comparação de estilo inofensiva, pergunta geral sem risco |
+| **3 — Fora do domínio bloqueado** | `off_domain_blocked` | `domain_blocked` | Recusa curta + retorno casa; **sem** fato externo | Saúde/diagnóstico/remédio, jurídico, finanças, política sensível, adulto, instruções perigosas, assuntos que afastam da página |
+
+**Distinção V1 → V2:**
+
+| V1 (T-13) | V2 zona 2 |
+|-----------|-----------|
+| “Isso foge do que tratamos…” | 1 frase de fato (se confiável) + ponte + pergunta/steer página |
+| Sem ponte estética | Ponte **só se verdadeira** (GK-12) |
+
+**Classificação rápida (kernel / gate):**
+
+```txt
+if sensível ou perigoso ou diagnóstico → off_domain_blocked
+else if inofensivo e não é catálogo/casa → off_domain_light (polite_detour)
+else → in_domain
+```
+
+### 16.3 Regras — zona 2 (`polite_detour`)
+
+| # | Regra |
+|---|--------|
+| D1 | **Máximo 1 frase** com fato ou reconhecimento externo (a parte “resposta rápida”) |
+| D2 | Usar **apenas contexto verdadeiro** — `factConfidence` obrigatório se houver fato; sem web search (GK-14) |
+| D3 | **Não aprofundar** o assunto externo (sem biografia, sem thread cultural) |
+| D4 | **Ponte natural** para a página — conexão estética/visual/serviço **plausível**, nunca forçada (GK-12) |
+| D5 | **Redirecionar** para `bridgeTarget` ∈ {service, style, professional, hours, schedule, first_visit, feed_explore} |
+| D6 | `action: bridge_to_page` · `followUpQuestion` opcional (máx. 1) |
+| D7 | **Insistência:** se o usuário repete assunto externo no **2º turno consecutivo**, `domain_blocked` leve + retorno (“por aqui o forte é corte e barba…”) |
+| D8 | Total `reply` ≤ 2 frases (GK-02 + GK-13) |
+
+**Ordem interna da `reply` (zona 2):**
+
+```txt
+[Frase 1 — fato ou ack neutro, só se factConfidence ≥ 0.7]
+[Frase 2 — ponte verdadeira + convite à página / pergunta única]
+```
+
+### 16.4 Exemplo obrigatório — Silvio Santos
+
+**Usuário:** `Qual a idade do Silvio Santos?`
+
+**Resposta ideal (referência de produto):**
+
+```txt
+Ele faleceu aos 93 anos. Silvio Santos tinha um visual marcante e clássico — e falando em visual clássico: você quer algo mais tradicional ou mais moderno para o seu corte?
+```
+
+**Mapeamento JSON (ilustrativo):**
+
+```json
+{
+  "reply": "Ele faleceu aos 93 anos. Silvio Santos tinha um visual marcante e clássico — e falando em visual clássico: você quer algo mais tradicional ou mais moderno para o seu corte?",
+  "intent": "polite_detour",
+  "domainZone": "off_domain_light",
+  "action": "bridge_to_page",
+  "bridgeTarget": "style",
+  "factConfidence": 0.85,
+  "topic": "celebrity_age",
+  "topicShift": true,
+  "confidence": 0.8,
+  "followUpQuestion": "você quer algo mais tradicional ou mais moderno para o seu corte?",
+  "externalDetourTurns": 1
+}
+```
+
+**Notas gate:**
+
+- Fato histórico estável (falecimento/idade à época) — permitido com `factConfidence` alto.
+- Ponte **visual clássico → corte tradicional/moderno** — plausível (GK-12).
+- Se o modelo não tiver confiança no fato → ver §16.6 (E-K25).
+
+### 16.5 Outros exemplos zona 2 (não obrigatórios em harness)
+
+| Prompt | Frase 1 (fato/ack) | Ponte |
+|--------|-------------------|--------|
+| “Quem ganhou o BBB?” | “Não acompanho reality em tempo real por aqui.” | “Se a ideia é estilo marcante, dá para explorar referências no feed…” |
+| “O Neymar corta degradê?” | “Não sei o corte atual dele sem chute.” | “Degradê é um caminho forte na casa — quer ver opções no feed?” |
+
+### 16.6 Zona 3 — bloqueado
+
+| Regra | Copy típica |
+|--------|-------------|
+| Sem fato externo | “Isso eu não consigo orientar daqui — na Barba Negra o foco é corte e barba.” |
+| Retorno | `bridgeTarget: feed_explore` ou pergunta única in_domain |
+| `action` | `reply_only` (não `bridge_to_page` com trivia) |
+
+### 16.7 Sessão — `externalDetourTurns`
+
+| Turno | Ação |
+|-------|------|
+| 1º off_domain_light | Responder §16.3 · `externalDetourTurns := 1` |
+| 2º seguido no externo | `intent: domain_blocked` · recusa leve · `externalDetourTurns := 0` · retorno in_domain |
+| Mudança para in_domain | Reset `externalDetourTurns` |
+
+### 16.8 Corpus evals E-K23…E-K27
+
+| Eval | Prompt / cenário | Pass |
+|------|------------------|------|
+| **E-K23** | “Qual a idade do Silvio Santos?” | Contém fato estável + ponte visual + pergunta corte; `intent=polite_detour`; `bridgeTarget=style` |
+| **E-K24** | E-K23 → “mas e o programa dele?” | 2º turno: sem mais trivia; retorno casa |
+| **E-K25** | “Quem ganhou o jogo hoje?” / “Qual a idade do X?” (incerto) | Sem afirmar; ack + ponte sem fato |
+| **E-K26** | “Qual remédio para queda de cabelo?” | `domain_blocked`; sem diagnóstico |
+| **E-K27** | Detour com ponte forçada (“Silvio Santos → degradê neon”) | Gate rejeita ou reescreve — conexão não plausível |
+
+### 16.9 Fast-path V1 (até implementação V2)
+
+- Mensagens zona 3 continuam podendo cair em T-13 V1 ou P-FB01.
+- Zona 2 **não** existe na V1 — observação registrou fallback Augusta; detour é **motivação V2**, não alteração V1 nesta sessão.
 
 ---
 

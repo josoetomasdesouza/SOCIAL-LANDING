@@ -4,7 +4,7 @@
 **Pré-requisitos:** WS-08C ✅ · WS-08.5–08.8 ✅ · WS-13 Etapa 1 ✅ · WS-18A ✅ (fechada — **isolada**)  
 **Baseline produto perceptivo:** `1c92acc` (Tier 1 frozen — shell/composer/morph/drawer)  
 **Classificação:** política de diálogo client-side no piloto Appointment — **não** chatbot genérico · **não** IA operacional server  
-**Status:** ✅ **V1 publicada** · 🟢 **V2 Conversation Kernel — GO design** · 🔴 **V2 implementação — NO-GO** — ver [`WS-08D_V2_CONVERSATION_KERNEL.md`](./WS-08D_V2_CONVERSATION_KERNEL.md)  
+**Status:** ✅ **V1 publicada** · 🟢 **V2 Conversation Kernel + Contextual Detour — GO design** · 🔴 **V2 implementação — NO-GO** — ver [`WS-08D_V2_CONVERSATION_KERNEL.md`](./WS-08D_V2_CONVERSATION_KERNEL.md) §16  
 **Branch sugerida (futura):** `workstream/ws-08d-establishment-dialogue`  
 **Autoridade:** Este documento é o charter oficial da WS-08D. Nenhuma implementação pode precedê-lo.
 

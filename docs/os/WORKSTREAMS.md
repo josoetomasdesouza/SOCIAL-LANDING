@@ -311,7 +311,7 @@
 | **Status** | ✅ **V1 publicada** @ `10b36c7` (PR #77) · 🟢 **V2 design GO** · 🔴 **V2 implementação NO-GO** |
 | **Objetivo** | Política de diálogo especializada do estabelecimento: situado + descoberta + handoff WS-08C; V2 = Conversation Kernel (direção futura) |
 | **Escopo V1** | Resolver composto `[2]→[1]→[3]` · AP-01…07 + AP-D01…14 |
-| **Escopo V2 (design)** | [`WS-08D_V2_CONVERSATION_KERNEL.md`](../audit/WS-08D_V2_CONVERSATION_KERNEL.md) — sem código até novo GO |
+| **Escopo V2 (design)** | [`WS-08D_V2_CONVERSATION_KERNEL.md`](../audit/WS-08D_V2_CONVERSATION_KERNEL.md) — Kernel + **Contextual Detour** (§16) · sem código até novo GO |
 | **Fora de escopo** | Tier 1 shell; WS-18A; runtime/publication/storage; drawer composer; CRM; agente autônomo; LLM no client |
 | **Integração V2 (recomendada)** | Opção B — extensão governada do contrato resolver · endpoint server obrigatório para LLM |
 | **Gate de saída (V1)** | `qa:appointment` 22/22 · `qa:ai-regression` 26/26 · observação em curso |
