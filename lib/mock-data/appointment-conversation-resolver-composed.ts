@@ -8,24 +8,33 @@ import {
   situatedFallbackV1,
 } from "@/lib/mock-data/appointment-establishment-dialogue-v1"
 import type { ConversationResponseResolver } from "@/lib/mock-data/conversational-search"
+import {
+  createAppointmentConversationResolverWithKernel,
+  type AppointmentKernelAdapterOptions,
+} from "@/lib/mock-data/appointment-conversation-kernel-adapter"
+
+export type AppointmentComposedResolverOptions = EstablishmentDialogueContext &
+  Pick<AppointmentKernelAdapterOptions, "services" | "professionals" | "feedPosts">
 
 export function createAppointmentConversationResolverWithDialogue(
-  ctx: EstablishmentDialogueContext
+  ctx: AppointmentComposedResolverOptions
 ): ConversationResponseResolver {
   const transactionalResolver = createAppointmentMockConversationResolver()
   const session = createEstablishmentDialogueSession()
 
-  return (input) => {
-    const fromTransactional = transactionalResolver(input)
-    if (fromTransactional) {
-      return fromTransactional
-    }
+  const dialogueResolver: ConversationResponseResolver = (input) =>
+    resolveEstablishmentDialogueV1(input, ctx, session)
 
-    const fromDialogue = resolveEstablishmentDialogueV1(input, ctx, session)
-    if (fromDialogue) {
-      return fromDialogue
-    }
+  const fallbackResolver: ConversationResponseResolver = (input) =>
+    situatedFallbackV1(input, ctx, session)
 
-    return situatedFallbackV1(input, ctx, session)
-  }
+  return createAppointmentConversationResolverWithKernel({
+    ctx,
+    services: ctx.services,
+    professionals: ctx.professionals,
+    feedPosts: ctx.feedPosts,
+    transactionalResolver,
+    dialogueResolver,
+    fallbackResolver,
+  })
 }
