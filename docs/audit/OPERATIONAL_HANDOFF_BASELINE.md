@@ -64,7 +64,7 @@
 | WS-08D V1 establishment dialogue | ✅ | `10b36c7` — PR #77 · `[2]→[1]→[3]` · AP-D01…14 |
 | WS-08D V1.1 zona cinza | 🟢 spec · 🔴 estratégia | [`WS-08D_V1_1_GRAY_ZONE_SPEC.md`](WS-08D_V1_1_GRAY_ZONE_SPEC.md) — local = experimento/baseline |
 | WS-08D V2 Conversation Kernel | 🟢 design / 🔴 código | Perfil Appointment → WS-19A |
-| **WS-19A** Conversation Kernel | 🟢 **charter** / 🔴 **código** | [`WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md`](WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md) — cross-model · fase 1 = contratos + evals + stub |
+| **WS-19A** Conversation Kernel | 🟢 **charter + eval matrix** / 🔴 **código** | + **Selected Context Grounding** (prints fade/Dom Corleone/corte) · E-G22/E-M-APT-15…18 |
 
 ### Era 4 — Appointment operacional (server)
 | WS | Status | Hash ref |
@@ -86,7 +86,7 @@
 | WS-10 | 🟡 Observational hardening (macro) |
 | WS-13 Presença contínua | ✅ **Etapa 1 FECHADA** · Sessão B humana @ `eaf5701` · [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md) |
 | WS-08D | ✅ V1 @ `4172f2d` · V1.1 spec only · **sucessor: WS-19A** |
-| WS-19A | 🟢 charter publicado · **impl. NO-GO** · próximo: evals E-G* + fase 1 stub |
+| WS-19A | 🟢 charter + matriz eval · **impl./LLM/endpoint NO-GO** · próximo: fase 1 stub |
 | WS-09 DB enterprise | 🔴 BLOCKED |
 
 ---

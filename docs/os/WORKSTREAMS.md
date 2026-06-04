@@ -332,8 +332,10 @@
 | **Fase 1 futura** | Contratos + evals E-G* + rule-kernel stub (Appointment) · sem LLM · sem Tier 1 diff |
 | **Fora de escopo** | WS-18A operacional; CRM; memória permanente; agente autônomo; V1.1 rules como produto final |
 | **V1.1 local** | Baseline comparativo / branch experimento — **não** promover a `main` |
-| **Gate saída fase 1** | E-G00…E-G10 verdes + stub + `qa:ai-regression` 26/26 + `qa:appointment` preservado |
-| **Refs** | [`WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md`](../audit/WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md) |
+| **Eval matrix** | MD + JSON — **68 evals** · dimensão **Selected Context Grounding** (E-G18…22, E-M-APT-15…18, E-X11…12) |
+| **Gate saída fase 1** | Stub verde em E-G00…10, **E-G18…22**, E-X01…05, **E-X11…12** + regressão 26/26 |
+| **Fase 1 obrigatório** | `selectedContextItems` + `grounding` no pack/response |
+| **Refs** | Charter · matriz evals (acima) |
 
 ---
 
@@ -498,7 +500,7 @@ WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB enterprise) — BLOCKED, GO humano separado
 ```
 
-**Atual:** @ `4172f2d` + WS-19A charter (push pendente) — **WS-08D V1 ✅** · **WS-19A ✅ charter** · V1.1 rules **NO-GO** · WS-18A ✅; **próximo:** `GO WS-19A fase 1` (contratos + evals + stub).
+**Atual:** @ `8743087` — **WS-19A ✅ charter + eval matrix** · WS-08D V1 produção · V1.1 rules **NO-GO** · impl. 19A **NO-GO**; **próximo:** `GO WS-19A fase 1` (stub + harness matriz).
 
 ---
 

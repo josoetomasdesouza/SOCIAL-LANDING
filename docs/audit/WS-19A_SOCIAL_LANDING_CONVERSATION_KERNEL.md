@@ -29,8 +29,8 @@ WS-18A:                               isolamento total — zero overlap
 
 | # | Entregável | LLM | Tier 1 |
 |---|------------|-----|--------|
-| 1 | Contratos `ModelContextPack` + `KernelResponse` (types-only ou docs fixture) | ❌ | ❌ diff |
-| 2 | Matriz evals E-G00…E-G16 + fixture `conversation-kernel-eval-matrix.json` | ❌ | ❌ |
+| 1 | Contratos + **selectedContextItems** + **grounding** (types-only) | ❌ | ❌ diff |
+| 2 | Matriz evals incl. **Selected Context Grounding** (fixture JSON) | ❌ | ❌ |
 | 3 | Rule-kernel stub (determinístico) | ❌ | ❌ |
 | 4 | Adapter piloto Appointment + `buildModelContextPack` | ❌ | ❌ |
 | 5 | Comparativo V1.1 experimento vs stub (AP-D15…25) | ❌ | ❌ |
@@ -170,6 +170,8 @@ Fast-path rules = dados, não labirinto de if/else por frase.
 | Evals E-G* cross-model | Fast-path tables (YAML/JSON), não TS espalhado |
 | turnWindow / session tab-scoped | Deferral para transactional resolver |
 | domainZone (in / off_light / blocked) | Visual block kinds existentes |
+| **Selected Context Grounding** | Projeção `selectedContextItems` por feed |
+| GK-17…19 | Regras chip vs fallback / entidade externa |
 
 ---
 
@@ -232,10 +234,47 @@ interface ModelContextPack {
     topic: string // payment, wifi, queue, reschedule_policy, ...
     honestReply: string
   }>
+
+  /**
+   * Itens selecionados no Composer (long-press / chips) — grounding obrigatório.
+   * Projeção de ConversationContextPayload + metadados do post/mock.
+   */
+  selectedContextItems: Array<SelectedContextItem>
+}
+
+type SelectedContextItemKind =
+  | "service"
+  | "professional"
+  | "product"
+  | "menu_item"
+  | "video"
+  | "news"
+  | "style"
+  | "review"
+  | "unknown"
+
+interface SelectedContextItem {
+  /** id do chip (ex.: appointment-service-service-1, post id editorial) */
+  id: string
+  kind: SelectedContextItemKind
+  title: string
+  summary?: string
+  /** Fatos permitidos no reply (catálogo, duração, tema do vídeo, etc.) */
+  knownFacts: string[]
+  /** Pertence à casa operacional atual (Barba Negra mock) */
+  belongsToCurrentHouse: boolean
+  /** Conteúdo editorial/externo (notícia sobre outra barbearia, tendência genérica) */
+  isExternalOrEditorial: boolean
+  /** Ligação ao catálogo quando aplicável */
+  relatedEntityIds?: string[]
+  /** Prefixo legacy Tier 1 (appointment-barber-, ecommerce-product-, …) */
+  sourcePrefix?: string
 }
 ```
 
 **Regra:** o pack é **dados + declarações**; o feed só **mapeia** mock/runtime projection → pack. Sem `if (message.includes("pix"))` no feed.
+
+**Regra Selected Context (GK-17):** se `selectedContextItems.length > 0`, o Kernel **deve** tentar grounding antes de `situated_fallback`, bloco transacional genérico ou roster da casa errada.
 
 ---
 
@@ -271,7 +310,17 @@ interface KernelResponse {
   action: KernelAction
 
   /** Fast-path ou futuro LLM — auditoria */
-  source: "rule_table" | "transactional_delegate" | "llm_bounded"
+  source: "rule_table" | "transactional_delegate" | "llm_bounded" | "selected_context"
+
+  /**
+   * Proveniência da resposta — obrigatório quando há chip selecionado.
+   * Evidência: prints com fallback Augusta ignorando vídeo/serviço/notícia.
+   */
+  grounding: {
+    source: "selected_context" | "catalog" | "operational" | "data_gap" | "none"
+    itemIds: string[]
+    confidence: "high" | "medium" | "low"
+  }
 }
 
 type KernelAction =
@@ -314,6 +363,9 @@ type KernelAction =
 | GK-08 | Action deve ∈ registry do `modelId` |
 | GK-09 | Health: defer humano em sintoma/diagnóstico |
 | GK-10 | Ecommerce frozen baseline intocado sem eval |
+| GK-17 | `selectedContextItems.length > 0` → grounding antes de fallback/bloco genérico |
+| GK-18 | Item `isExternalOrEditorial` → não listar profissionais/serviços da casa atual |
+| GK-19 | Reply deve citar ou espelhar `title`/`knownFacts` do item selecionado quando `confidence ≥ medium` |
 
 ---
 
@@ -360,11 +412,18 @@ type KernelAction =
 | **Regression** | `pnpm qa:ai-regression` | 26/26 preservado + extensão opt-in |
 | **Anti-chatbot** | E-G16 | Lista negra de frases proibidas |
 
+### Matriz publicada (evals)
+
+- **Documento:** [`WS-19A_CONVERSATION_KERNEL_EVAL_MATRIX.md`](./WS-19A_CONVERSATION_KERNEL_EVAL_MATRIX.md)  
+- **Fixture:** [`ws19a-conversation-kernel-eval-matrix.json`](./ws19a-conversation-kernel-eval-matrix.json)  
+- **Cobertura:** E-G **22** · E-M **39** (APT 18, …) · E-X **14** · dimensão **Selected Context Grounding**
+
 ### Mínimo para GO implementação
 
-- E-G00, E-G01…E-G10, E-X01…E-X05 documentados em fixture  
-- Baseline comparativo V1.1 vs Kernel stub (mesmos AP-D15…25)  
-- **Sem** GO de LLM até E-G + stub rule-kernel verdes
+- Matriz acima ✅ (docs @ `8743087`+)  
+- Rule-kernel stub passa E-G00…E-G10 + E-X01…E-X05  
+- Baseline comparativo V1.1 experimento vs stub (mapeamento AP-D15…25 na matriz)  
+- **Sem** GO de LLM até evals + stub verdes
 
 ---
 
@@ -417,7 +476,7 @@ type KernelAction =
 | **Implementar V2 Appointment isolado** | **NO-GO** — subordinar a WS-19A |
 | **LLM / endpoint** | **NO-GO** (fase atual) |
 
-**Próximo passo institucional:** fixture evals (docs-only) · depois `GO implementação WS-19A fase 1` para stub.
+**Próximo passo institucional:** `GO implementação WS-19A fase 1` (contratos types-only + rule-kernel stub + harness leitura da matriz).
 
 ---
 
@@ -455,6 +514,8 @@ type KernelAction =
 
 ## Related
 
+- [`WS-19A_CONVERSATION_KERNEL_EVAL_MATRIX.md`](./WS-19A_CONVERSATION_KERNEL_EVAL_MATRIX.md)
+- [`ws19a-conversation-kernel-eval-matrix.json`](./ws19a-conversation-kernel-eval-matrix.json)
 - [`docs/os/WORKSTREAMS.md`](../os/WORKSTREAMS.md)
 - [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](./WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md)
 - [`AI_RESOLVER_CONTRACT.md`](../ai/AI_RESOLVER_CONTRACT.md) — emenda futura Opção B
