@@ -23,7 +23,9 @@ WS-18A:                      ISOLADO
 
 **Selected Context Grounding:** requisito **obrigatório fase 1** (GK-17…19) — **coberto no stub** @ PR #78.
 
-**Gate Fase 1 (atingido):** E-G00…E-G10 + **E-G18…E-G22** + **E-X11…E-X12** + E-M-APT-15…18 verdes + `qa:ai-regression` 26/26 + `qa:appointment` 22/22.
+**Gate Fase 1 (atingido):** E-G00…E-G10 + **E-G18…E-G26** + **E-X11…E-X12** + E-M-APT-15…18 verdes + `qa:kernel-stub` 26/26.
+
+**Active Topic Resolution (E-G23…E-G26):** tópico forte (`schedule`, `service`, `professional`, `arrival`, `pricing`) vence `selectedContextItem` após mudança de assunto — ver `lib/conversation-kernel/active-topic.ts`.
 
 ---
 

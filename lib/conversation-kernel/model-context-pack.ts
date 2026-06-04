@@ -16,6 +16,15 @@ export function inferSelectedContextKind(id: string, subtitle?: string): Selecte
     return "news"
   }
   if (id.includes("rev")) return "review"
+  if (
+    id.includes("-soc-") ||
+    id.includes("-post-") ||
+    subtitle?.toLowerCase() === "post" ||
+    subtitle?.toLowerCase() === "publicação" ||
+    subtitle?.toLowerCase() === "publicacao"
+  ) {
+    return "social_post"
+  }
   return "unknown"
 }
 
@@ -32,6 +41,12 @@ export function isExternalEditorialContext(
     }
   }
   return false
+}
+
+export function isSocialFeedChip(item: { kind: string; id: string; knownFacts: string[] }): boolean {
+  if (item.kind === "social_post") return true
+  if (item.id.includes("-soc-") || item.id.includes("-post-")) return true
+  return item.knownFacts.some((f) => /^subtitle:(post|publicação|publicacao)$/i.test(f.trim()))
 }
 
 export function mapContextPayloadToSelectedItem(

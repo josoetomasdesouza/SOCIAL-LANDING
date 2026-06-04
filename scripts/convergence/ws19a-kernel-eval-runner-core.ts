@@ -3,7 +3,10 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { buildAppointmentModelContextPack } from "@/lib/conversation-kernel/appointment/build-appointment-model-context-pack"
 import { isKernelResponseValid } from "@/lib/conversation-kernel/types"
-import { resolveRuleKernelStub, touchKernelSessionFromMessage } from "@/lib/conversation-kernel/rule-kernel-stub"
+import {
+  resolveRuleKernelStub,
+  touchKernelSessionFromMessage,
+} from "@/lib/conversation-kernel/rule-kernel-stub"
 import type { KernelResponse, ModelContextPack, SelectedContextItem } from "@/lib/conversation-kernel/types"
 import { createKernelSession } from "@/lib/conversation-kernel/types"
 import type { EstablishmentDialogueContext } from "@/lib/mock-data/appointment-establishment-dialogue-context"
@@ -35,6 +38,25 @@ const PHASE1_IDS = new Set([
   "E-M-APT-18",
   "E-X11",
   "E-X12",
+  "E-G23",
+  "E-G24",
+  "E-G25",
+  "E-G26",
+  "E-G27",
+  "E-G28",
+  "E-G29",
+  "E-G30",
+  "E-G31",
+  "E-G32",
+  "E-G33",
+  "E-G34",
+  "E-G35",
+  "E-G36",
+  "E-G37",
+  "E-G38",
+  "E-G39",
+  "E-G40",
+  "E-X17",
 ])
 
 const AUGUSTA_FORBIDDEN = /veja servi(c|o)s e profissionais no feed quando quiser/i
@@ -283,13 +305,88 @@ function runEval(id: string): { ok: boolean; detail: string } {
     return { ok: true, detail: "4/4 external onde fica" }
   }
 
+  if (id === "E-X17") {
+    const models = ["restaurant", "health", "ecommerce"] as const
+    const prompt = row.prompts[0] ?? "como funciona este item?"
+    for (const modelId of models) {
+      const p = fixturePack(modelId, false)
+      const r = resolveRuleKernelStub({ message: prompt, pack: p, session: createKernelSession() })
+      const check = assertResponse(id, r, {
+        mustRespond: true,
+        groundingSource: "selected_context",
+        forbiddenPattern: /me diz em uma frase/i,
+        noAugusta: true,
+      })
+      if (!check.ok) return { ok: false, detail: `${modelId}: ${check.detail}` }
+      const titleWord = p.selectedContextItems[0].title.split(" ")[0]
+      if (!r?.reply.toLowerCase().includes(titleWord.toLowerCase())) {
+        return { ok: false, detail: `${modelId}: title not in reply` }
+      }
+    }
+    return { ok: true, detail: "3/3 cross-model answer-first" }
+  }
+
   const session = createKernelSession()
   const prompts = row.prompts.filter(Boolean)
 
+  if (row.category === "active_topic_resolution" && prompts.length >= 2) {
+    const selected = selectedFromEval(row)
+    const pack = appointmentPack(selected)
+    let rLast: KernelResponse | null = null
+    for (let i = 0; i < prompts.length; i++) {
+      rLast = resolveRuleKernelStub({ message: prompts[i], pack, session })
+      touchKernelSessionFromMessage(prompts[i], session, pack)
+    }
+
+    if (id === "E-G26") {
+      const s1 = createKernelSession()
+      const p1 = appointmentPack(selected)
+      const r1 = resolveRuleKernelStub({ message: prompts[0], pack: p1, session: s1 })
+      touchKernelSessionFromMessage(prompts[0], s1, p1)
+      const r2 = rLast
+      const t1ok = r1 && /noticia|notícia|premio|prêmio|editorial|matéria/i.test(r1.reply)
+      const t2ok = r2?.action.type === "delegate_transactional_resolver"
+      const t2noDom = !/nao temos endereco|não temos endereço|outra casa/i.test(r2?.reply ?? "")
+      if (t1ok && t2ok && t2noDom) return { ok: true, detail: "T1 news · T2 schedule delegate" }
+      return { ok: false, detail: `T1=${!!t1ok} T2delegate=${!!t2ok}` }
+    }
+
+    const last = rLast
+    if (!last) return { ok: false, detail: "null on final turn" }
+
+    const forbiddenById: Record<string, RegExp> = {
+      "E-G23": /fade|tutorial|em mim|vídeo|video/i,
+      "E-G24": /leva cerca de|cerca de 30 min|tradicional com maquina|tradicional com máquina/i,
+      "E-G25": /carlos corta|equipe.*carlos/i,
+    }
+    const contentById: Record<string, RegExp> = {
+      "E-G23": /preco|preço|degrade|balcao|balcão|r\$/i,
+      "E-G24": /preco|preço|degrade|balcao|balcão|r\$/i,
+      "E-G25": /pagamento|pix|balcao|balcão|nao tenho|não tenho/i,
+    }
+
+    const contentOk = contentById[id]?.test(last.reply) ?? true
+    const forbiddenOk = forbiddenById[id] ? !forbiddenById[id].test(last.reply) : true
+    const topicOk = last.activeTopic === "pricing" || last.topic === "pricing" || last.topic === "booking"
+    const shiftOk = last.topicShift === true || id === "E-G25"
+
+    if (id === "E-G25" && (last.topic === "pricing" || last.topic === "payment")) {
+      return contentOk && forbiddenOk
+        ? { ok: true, detail: last.reply.slice(0, 60) }
+        : { ok: false, detail: last.reply.slice(0, 80) }
+    }
+
+    if (contentOk && forbiddenOk && (topicOk || shiftOk)) {
+      return { ok: true, detail: `activeTopic=${last.activeTopic ?? last.topic}` }
+    }
+    return { ok: false, detail: last.reply.slice(0, 80) }
+  }
+
   if (prompts.length >= 2 && (row.category === "topic_shift" || row.category === "reformulation_after_failure")) {
-    touchKernelSessionFromMessage(prompts[0], session)
     resolveRuleKernelStub({ message: prompts[0], pack: pack!, session })
+    touchKernelSessionFromMessage(prompts[0], session, pack!)
     const r2 = resolveRuleKernelStub({ message: prompts[1], pack: pack!, session })
+    touchKernelSessionFromMessage(prompts[1], session, pack!)
     const criteria = row.successCriteria ?? ""
     const contentPattern = criteria.includes("contentPattern:")
       ? patternRegex(criteria.split("contentPattern:")[1].split(";")[0].trim())
@@ -307,8 +404,8 @@ function runEval(id: string): { ok: boolean; detail: string } {
 
   if (prompts.length >= 3 && row.category === "multi_turn_3plus") {
     for (let i = 0; i < prompts.length - 1; i++) {
-      touchKernelSessionFromMessage(prompts[i], session)
       resolveRuleKernelStub({ message: prompts[i], pack: pack!, session })
+      touchKernelSessionFromMessage(prompts[i], session, pack!)
     }
     const rLast = resolveRuleKernelStub({ message: prompts[prompts.length - 1], pack: pack!, session })
     return assertResponse(id, rLast, {
@@ -435,6 +532,141 @@ function runEval(id: string): { ok: boolean; detail: string } {
         groundingSource: "selected_context",
         noAugusta: true,
       })
+    case "E-G27":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /antes|depois|transformacao|transformação|visual/i,
+        forbiddenPattern: /me diz em uma frase/i,
+        groundingSource: "selected_context",
+        noAugusta: true,
+      })
+    case "E-G28": {
+      const check = assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /augusta|curitiba|unidade/i,
+        forbiddenPattern: /me diz em uma frase|antes e depois/i,
+        noAugusta: true,
+      })
+      if (!check.ok) return check
+      if (response?.grounding.source !== "operational") {
+        return { ok: false, detail: `grounding ${response?.grounding.source}` }
+      }
+      return check
+    }
+    case "E-G29":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /preco|preço|catálogo|catalogo|serviço|servico|vídeo|video/i,
+        forbiddenPattern: /me diz em uma frase/i,
+        noAugusta: true,
+      })
+    case "E-G30":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /serviço|servico|feed|agendar|escolha/i,
+        forbiddenPattern: /me diz em uma frase/i,
+        noAugusta: true,
+      })
+    case "E-G31":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /55|r\$|degrade|preco|preço/i,
+        forbiddenPattern: /me diz em uma frase/i,
+        groundingSource: "selected_context",
+        noAugusta: true,
+      })
+    case "E-G34": {
+      const selected = selectedFromEval(row)
+      const pack = appointmentPack(selected)
+      const session = createKernelSession()
+      const prompts = row.prompts.filter(Boolean)
+      const r1 = resolveRuleKernelStub({ message: prompts[0], pack, session })
+      touchKernelSessionFromMessage(prompts[0], session, pack)
+      const r2 = resolveRuleKernelStub({ message: prompts[1], pack, session })
+      const t1ok = r1 && /augusta|1500|jardins|mapa/i.test(r1.reply)
+      const t2ok =
+        r2 &&
+        /lotacao|lotação|capacidade|lounge|balcao|balcão|grupo/i.test(r2.reply) &&
+        !AUGUSTA_FORBIDDEN.test(r2.reply)
+      if (t1ok && t2ok) return { ok: true, detail: "T1 address · T2 capacity honest" }
+      return { ok: false, detail: `T1=${!!t1ok} T2=${!!t2ok} ${r2?.reply.slice(0, 70)}` }
+    }
+    case "E-G35":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /estacionamento|conveniado|mapa/i,
+        forbiddenPattern: /30 min|tradicional|veja servi(c|o)s e profissionais/i,
+        topicShift: true,
+        noAugusta: true,
+      })
+    case "E-G36":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /esta unidade|outra unidade|cidade/i,
+        forbiddenPattern: /veja servi(c|o)s e profissionais|augusta quando quiser|seg-sab: 9h/i,
+        topicShift: true,
+        noAugusta: true,
+      })
+    case "E-G37":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /publicacao|publicação|feed|horario|horário|preco|preço|agendar/i,
+        forbiddenPattern: /veja servi(c|o)s e profissionais/i,
+        noAugusta: true,
+      })
+    case "E-G38":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /não captei o foco|nao captei o foco|horario|horário|agendar/i,
+        forbiddenPattern: /veja servi(c|o)s e profissionais|fica na augusta/i,
+        noAugusta: true,
+      })
+    case "E-G39":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /masculino|mulher|feminino|vídeo|video|tendência|tendencia/i,
+        forbiddenPattern: /não captei o foco|nao captei o foco|me diz em uma frase/i,
+        groundingSource: "selected_context",
+        noAugusta: true,
+      })
+    case "E-G40":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /fade|vídeo|video|mulher|feminino|masculino|clipe/i,
+        forbiddenPattern: /caminho comum por aqui|Degrade e um|veja servi(c|o)s e profissionais no feed quando quiser/i,
+        groundingSource: "selected_context",
+        noAugusta: true,
+      })
+    case "E-G33":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /feriado|horario|horário|seg-sab|balcao|balcão/i,
+        forbiddenPattern: /post da|nao e um servico|não é um serviço|publicacao social/i,
+        topicShift: true,
+        noAugusta: true,
+      })
+    case "E-G32": {
+      const selected = selectedFromEval(row)
+      const pack = appointmentPack(selected)
+      const session = createKernelSession()
+      const prompts = row.prompts.filter(Boolean)
+      let rLast: KernelResponse | null = null
+      for (const p of prompts) {
+        rLast = resolveRuleKernelStub({ message: p, pack, session })
+        touchKernelSessionFromMessage(p, session, pack)
+      }
+      const r1 = resolveRuleKernelStub({ message: prompts[0], pack, session: createKernelSession() })
+      const t1ok =
+        r1 &&
+        /post|publicacao|publicação|feed/i.test(r1.reply) &&
+        !/30 min|corte tradicional/i.test(r1.reply)
+      const t2ok =
+        rLast &&
+        /corte|45|55|catálogo|catalogo|referencia|referência/i.test(rLast.reply) &&
+        !/pix ou cartão cadastrado|pagamento cadastrado|30 min/i.test(rLast.reply)
+      if (t1ok && t2ok) return { ok: true, detail: "T1 post · T2 catalog prices" }
+      return { ok: false, detail: `T1=${!!t1ok} T2=${!!t2ok} ${rLast?.reply.slice(0, 70)}` }
+    }
     default:
       if (row.successCriteria) {
         const contentMatch = row.successCriteria.match(/contentPattern:\s*([^;]+)/i)

@@ -1,6 +1,12 @@
+import {
+  detectStrongTopic,
+  resolveActiveTopic,
+  shouldActiveTopicOverrideChip,
+  updateActiveTopicFromMessage,
+} from "./active-topic"
+import { resolveAnswerFirstGate } from "./answerability-classifier"
+import { isSocialFeedChip } from "./model-context-pack"
 import type {
-  KernelDomainZone,
-  KernelGroundingSource,
   KernelResponse,
   KernelSession,
   ModelContextPack,
@@ -19,7 +25,13 @@ function normalize(text: string): string {
 
 function hasToken(message: string, ...tokens: string[]): boolean {
   const m = normalize(message)
-  return tokens.some((t) => m.includes(normalize(t)))
+  return tokens.some((t) => {
+    const token = normalize(t)
+    if (token.length <= 5) {
+      return new RegExp(`\\b${token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(m)
+    }
+    return m.includes(token)
+  })
 }
 
 function augustaForbidden(reply: string): boolean {
@@ -142,28 +154,98 @@ function resolveSelectedContextGrounding(
   }
 
   if (
-    hasToken(m, "fale mais", "esse servico", "esse serviço", "esse corte", "sobre isso", "sobre esse") ||
-    (primary.kind === "service" && hasToken(m, "corte", "servico", "serviço"))
+    primary.kind === "video" &&
+    hasToken(m, "sobre o que estamos", "estamos falando", "do que estamos", "sobre o que", "falando disso")
   ) {
-    const entity = pack.catalog.entities.find(
-      (e) =>
-        primary.relatedEntityIds?.includes(e.id) ||
-        e.name.toLowerCase() === primary.title.toLowerCase()
-    )
-    const duration = entity?.attributes?.duration
-    const desc = entity?.attributes?.description ?? "corte tradicional com máquina e tesoura"
+    const tema =
+      primary.knownFacts.find((f) => f.startsWith("tema:"))?.replace(/^tema:\s*/i, "").trim() ??
+      primary.summary ??
+      "conteúdo do feed"
     return baseResponse({
-      reply: `O ${primary.title} leva cerca de ${duration ?? 30} min — ${desc}. Você pode ver barbeiros e horários no bloco Agendar ou no feed.`,
+      reply: `Estamos no vídeo "${primary.title}" — ${tema}. Diga se quer falar do estilo do clipe, de outro público (ex.: feminino) ou de agendar na ${pack.brandName}.`,
       intent: "context_grounded",
-      topic: "service_detail",
+      topic: "video_thread_recap",
       source: "selected_context",
       grounding: groundingFromItem(primary, "high"),
     })
   }
 
-  if (hasToken(m, "fale mais", "sobre isso", "isso")) {
+  if (primary.kind === "video" && hasToken(m, "fade") && hasToken(m, "mulher", "mulheres", "feminino")) {
     return baseResponse({
-      reply: `Sobre "${primary.title}": ${primary.knownFacts.join("; ") || "é um item do feed da casa"}. Se quiser agendar ou ver opções parecidas, use o feed abaixo.`,
+      reply: `O vídeo "${primary.title}" ensina fade em corte masculino — o passo a passo do clipe não é o mesmo para mulheres. Para feminino, veja outros posts no feed ou combine com o barbeiro em Agendar.`,
+      intent: "context_grounded",
+      topic: "video_fade_gender",
+      confidence: "medium",
+      source: "selected_context",
+      grounding: groundingFromItem(primary, "medium"),
+    })
+  }
+
+  if (primary.kind === "video" && hasToken(m, "mulher", "mulheres", "feminino")) {
+    const masc = /masculino|homem|homens/i.test(`${primary.title} ${primary.knownFacts.join(" ")}`)
+    if (masc) {
+      return baseResponse({
+        reply: `O "${primary.title}" traz tendências de corte masculino — o clipe não cobre tendências femininas. Para mulheres, veja outros posts no feed ou agende e peça ao barbeiro o estilo que você quer.`,
+        intent: "context_grounded",
+        topic: "video_trends_gender_gap",
+        confidence: "medium",
+        source: "selected_context",
+        grounding: groundingFromItem(primary, "medium"),
+      })
+    }
+  }
+
+  if (primary.kind === "video" && hasToken(m, "tendencia", "tendência", "homens", "homem", "comente", "card")) {
+    const desc = primary.summary ? ` — ${primary.summary}` : ""
+    return baseResponse({
+      reply: `No "${primary.title}" a linha é tendência de corte masculino${desc}. Se sua dúvida é outro público ou estilo, diga qual.`,
+      intent: "context_grounded",
+      topic: "video_trends_scope",
+      confidence: "medium",
+      source: "selected_context",
+      grounding: groundingFromItem(primary, "medium"),
+    })
+  }
+
+  if (isSocialFeedChip(primary) && hasToken(m, "fale mais", "o que e", "o que é", "sobre isso", "sobre esse", "isso")) {
+    const body = primary.summary && primary.summary !== primary.title ? primary.summary : primary.title
+    return baseResponse({
+      reply: `"${primary.title}" é um post da ${pack.brandName} no feed — ${body}. Para preços ou agendar, use os serviços em Agendar no feed.`,
+      intent: "context_grounded",
+      topic: "social_post",
+      source: "selected_context",
+      grounding: groundingFromItem(primary, "high"),
+    })
+  }
+
+  if (
+    primary.kind === "service" ||
+    primary.relatedEntityIds?.length ||
+    hasToken(m, "esse servico", "esse serviço", "esse corte")
+  ) {
+    if (hasToken(m, "fale mais", "sobre isso", "sobre esse", "corte", "servico", "serviço")) {
+      const entity = pack.catalog.entities.find(
+        (e) =>
+          primary.relatedEntityIds?.includes(e.id) ||
+          e.name.toLowerCase() === primary.title.toLowerCase()
+      )
+      if (entity) {
+        const duration = entity.attributes?.duration
+        const desc = entity.attributes?.description ?? "serviço da casa"
+        return baseResponse({
+          reply: `O ${entity.name} leva cerca de ${duration ?? 30} min — ${desc}. Você pode ver barbeiros e horários no bloco Agendar ou no feed.`,
+          intent: "context_grounded",
+          topic: "service_detail",
+          source: "selected_context",
+          grounding: groundingFromItem(primary, "high"),
+        })
+      }
+    }
+  }
+
+  if (hasToken(m, "fale mais", "sobre isso", "sobre esse", "isso")) {
+    return baseResponse({
+      reply: `Sobre "${primary.title}": ${primary.summary ?? (primary.knownFacts.join("; ") || "é um item do feed da casa")}. Se quiser agendar ou ver preços, use os serviços no feed ou Agendar.`,
       intent: "context_grounded",
       topic: "generic_item",
       confidence: "medium",
@@ -172,14 +254,7 @@ function resolveSelectedContextGrounding(
     })
   }
 
-  return baseResponse({
-    reply: `Com "${primary.title}" selecionado no composer: me diz em uma frase o que você quer saber — preço, duração, combina comigo ou como chegar — que eu respondo em cima disso.`,
-    intent: "context_grounded",
-    topic: "selected_ack",
-    confidence: "medium",
-    source: "selected_context",
-    grounding: groundingFromItem(primary, "medium"),
-  })
+  return null
 }
 
 function resolveOperational(message: string, pack: ModelContextPack): KernelResponse | null {
@@ -322,7 +397,7 @@ function resolveMetaComplaint(message: string): KernelResponse | null {
 function resolveTransactionalDelegate(message: string): KernelResponse | null {
   const m = normalize(message)
   if (
-    hasToken(m, "quero marcar", "marcar um horario", "marcar um horário", "agendar um horario", "agendar um horário") ||
+    hasToken(m, "quero marcar", "quero agendar", "marcar um horario", "marcar um horário", "agendar um horario", "agendar um horário") ||
     (hasToken(m, "marcar", "agendar", "reservar") && hasToken(m, "horario", "horário"))
   ) {
     return baseResponse({
@@ -333,7 +408,10 @@ function resolveTransactionalDelegate(message: string): KernelResponse | null {
       confidence: "high",
     })
   }
-  if (m === "degrade" || (m.includes("degrade") && m.length < 24)) {
+  if (
+    (m === "degrade" || /^degrade[!.?]*$/.test(m)) &&
+    !hasToken(m, "preco", "preço", "quanto", "valor", "custa")
+  ) {
     return baseResponse({
       reply: "",
       intent: "transactional",
@@ -404,8 +482,6 @@ function isTransactionalClearMessage(message: string): boolean {
     hasToken(m, "quero marcar", "marcar um horario", "marcar um horário", "agendar um horario", "agendar um horário") ||
     (hasToken(m, "marcar", "agendar", "reservar") && hasToken(m, "horario", "horário")) ||
     hasToken(m, "quero agendar", "quais servicos", "quais serviços", "tem algo a tarde", "tem algo de tarde") ||
-    m === "degrade" ||
-    (m.includes("degrade") && m.length < 24) ||
     hasToken(m, "vaga hoje", "tem vaga")
   )
 }
@@ -416,10 +492,32 @@ export function resolveRuleKernelStub(input: RuleKernelInput): KernelResponse | 
 
   if (!message.trim()) return null
 
-  const transactional = resolveTransactionalDelegate(message)
-  if (transactional) return transactional
+  const gated = resolveAnswerFirstGate(message, pack, session)
+  if (gated && !augustaForbidden(gated.reply)) {
+    if (gated.action.type === "delegate_transactional_resolver") {
+      return {
+        ...gated,
+        activeTopic: detectStrongTopic(message) ?? session.activeTopic ?? "schedule",
+        topicShift: Boolean(session.activeTopic),
+      }
+    }
+    return gated
+  }
 
   if (pack.selectedContextItems.length > 0 && !isTransactionalClearMessage(message)) {
+    const chip = pack.selectedContextItems[0]
+    const detected = detectStrongTopic(message)
+
+    if (shouldActiveTopicOverrideChip(message, session, pack)) {
+      const active = resolveActiveTopic(message, pack, session)
+      if (active && !augustaForbidden(active.reply)) return active
+    }
+
+    if (detected === "news_editorial" && chip.kind === "news") {
+      const news = resolveActiveTopic(message, pack, session)
+      if (news && !augustaForbidden(news.reply)) return news
+    }
+
     const grounded = resolveSelectedContextGrounding(message, pack)
     if (grounded && !augustaForbidden(grounded.reply)) return grounded
   }
@@ -458,15 +556,22 @@ export function resolveRuleKernelStub(input: RuleKernelInput): KernelResponse | 
   return null
 }
 
-export function touchKernelSessionFromMessage(message: string, session: KernelSession): void {
+export function touchKernelSessionFromMessage(
+  message: string,
+  session: KernelSession,
+  pack?: ModelContextPack
+): void {
+  updateActiveTopicFromMessage(message, session, pack)
   const m = normalize(message)
   if (hasToken(m, "mudar meu visual", "mudar visual")) {
     session.lastTopic = "discovery"
     session.awaitingFocus = true
     session.discoveryTurns += 1
+    session.activeTopic = undefined
   }
   if (hasToken(m, "estacionamento")) {
     session.lastTopic = "parking"
     session.awaitingFocus = false
+    session.activeTopic = "arrival"
   }
 }
