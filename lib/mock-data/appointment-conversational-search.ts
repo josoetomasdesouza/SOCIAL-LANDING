@@ -341,6 +341,28 @@ function matchesRecommendationIntent(message: string) {
   return RECOMMENDATION_CUES.some((cue) => normalized.includes(normalizeText(cue)))
 }
 
+/** WS-08D discovery — defer to establishment dialogue (no booking block). */
+function matchesEstablishmentDialogueDeferral(message: string) {
+  const normalized = normalizeText(message)
+  const cues = [
+    "nao sei qual corte",
+    "qual corte fazer",
+    "vai ficar bonito",
+    "ficar bonito",
+    "uma opiniao",
+    "quero opiniao",
+    "so fala isso",
+    "mudar meu visual",
+    "mudar visual",
+    "algo moderno",
+    "mais moderno",
+    "combina comigo",
+    "cabelo sem forma",
+    "ficar mais bonito",
+  ]
+  return cues.some((cue) => normalized.includes(cue))
+}
+
 function defaultServiceForBarber(barber: Professional) {
   const related = getRelatedServicesForBarber(barber, 1)
   return related[0] ?? barberServices.find((service) => service.popular) ?? barberServices[0]
@@ -348,6 +370,10 @@ function defaultServiceForBarber(barber: Professional) {
 
 export function createAppointmentMockConversationResolver(): ConversationResponseResolver {
   return ({ message, contextItems }) => {
+    if (matchesEstablishmentDialogueDeferral(message)) {
+      return null
+    }
+
     const contextBarbers = getContextBarbers(contextItems)
     const contextServices = getContextServices(contextItems)
     const styleHints = getStyleCategoryHints(contextItems)

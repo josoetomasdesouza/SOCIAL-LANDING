@@ -1,0 +1,53 @@
+{
+  "version": "1.0.0",
+  "baselineCommit": "bd5f2c1",
+  "workstream": "WS-08D-V1-core",
+  "flows": [
+    { "id": "AP-D01", "prompt": "Olá", "expect": { "visualBlock": false, "contentPattern": "Augusta|bem-vindo|Barba Negra|vontade" } },
+    { "id": "AP-D02", "prompt": "Bom dia", "expect": { "visualBlock": false, "contentPattern": "Bom dia|Augusta" } },
+    { "id": "AP-D03", "prompt": "Estão atendendo hoje?", "expect": { "visualBlock": false, "contentPattern": "Aberto|Augusta|20h" } },
+    { "id": "AP-D04", "prompt": "Que horas fecham?", "expect": { "visualBlock": false, "contentPattern": "20h|Seg|Augusta" } },
+    {
+      "id": "AP-D05",
+      "prompt": "vocês tem estacionamento",
+      "expect": { "visualBlock": false, "contentPattern": "estacionamento|conveniado|Augusta" }
+    },
+    {
+      "id": "AP-D06",
+      "prompt": "Qual produto para limpeza do rosto",
+      "expect": { "visualBlock": false, "contentPattern": "nao|hidrat|rosto|fazemos" }
+    },
+    { "id": "AP-D07", "prompt": "Nunca fui aí", "expect": { "visualBlock": false, "contentPattern": "primeira|servico|barbeiro|Bem-vindo" } },
+    { "id": "AP-D08", "prompt": "Como eu chego aí?", "expect": { "visualBlock": false, "contentPattern": "Augusta|chegar|Paulista|Ver como" } },
+    {
+      "id": "AP-D09",
+      "prompt": "Será que vou ficar bonito?",
+      "expect": { "visualBlock": false, "contentPattern": "milagre|corte|barba|cabelo|dois" }
+    },
+    {
+      "id": "AP-D10",
+      "prompt": "Quero uma opinião",
+      "expect": { "visualBlock": false, "contentPattern": "opiniao|cabelo|barba|visual" }
+    },
+    {
+      "id": "AP-D11",
+      "prompt": "Você só fala isso?",
+      "expect": { "visualBlock": false, "contentPattern": "razao|resolver|orientar|conta" }
+    },
+    {
+      "id": "AP-D12",
+      "prompt": "Quero mudar meu visual",
+      "expect": { "visualBlock": false, "contentPattern": "discreto|moderno|marcante" }
+    },
+    {
+      "id": "AP-D13",
+      "prompt": "Não sei qual corte fazer",
+      "expect": { "visualBlock": false, "contentPattern": "social|degrad|comprimento|caminho|estilo" }
+    },
+    {
+      "id": "AP-D14",
+      "prompt": "Quero algo mais moderno",
+      "expect": { "visualBlock": false, "contentPattern": "moderno|Degrade|feed|referencia" }
+    }
+  ]
+}
