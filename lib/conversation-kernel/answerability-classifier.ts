@@ -1,9 +1,8 @@
-import { detectStrongTopic, resolveActiveTopic, shouldActiveTopicOverrideChip, normalizeKernelText } from "./active-topic"
-import { resolveBroadClarification } from "./broad-clarification"
+import { shouldActiveTopicOverrideChip, normalizeKernelText } from "./active-topic"
 import { buildCatalogPriceHint } from "./catalog-hints"
-import { isInDomainMissingContext, resolveMissingContextClarification } from "./missing-context"
+import { isInDomainMissingContext } from "./missing-context"
 import { isSocialFeedChip } from "./model-context-pack"
-import type { ActiveTopic, KernelResponse, KernelSession, ModelContextPack, SelectedContextItem } from "./types"
+import type { KernelResponse, KernelSession, ModelContextPack, SelectedContextItem } from "./types"
 
 export type AnswerabilityClass =
   | "answerable_from_selected_context"
@@ -437,7 +436,7 @@ function replySocialPost(item: SelectedContextItem, pack: ModelContextPack): Ker
   )
 }
 
-function replyFromSelectedContext(message: string, pack: ModelContextPack, item: SelectedContextItem): KernelResponse {
+export function replyFromSelectedContext(message: string, pack: ModelContextPack, item: SelectedContextItem): KernelResponse {
   const m = normalize(message)
 
   if (isSocialFeedChip(item)) {
@@ -535,7 +534,7 @@ function replyFromSelectedContext(message: string, pack: ModelContextPack, item:
   )
 }
 
-function replyFromOperational(message: string, pack: ModelContextPack): KernelResponse | null {
+export function replyFromOperational(message: string, pack: ModelContextPack): KernelResponse | null {
   const place = pack.operational?.placeHint ?? "na Augusta"
   const address = pack.operational?.addressLine ?? pack.brandName
   const m = normalize(message)
@@ -627,7 +626,7 @@ function replyCapacityGap(pack: ModelContextPack, chip?: SelectedContextItem): K
   )
 }
 
-function replyHonestGap(message: string, pack: ModelContextPack, item?: SelectedContextItem): KernelResponse {
+export function replyHonestGap(message: string, pack: ModelContextPack, item?: SelectedContextItem): KernelResponse {
   const chip = item ?? pack.selectedContextItems[0]
   const ack = chip ? `Sobre "${chip.title}" no feed: ` : ""
   const catalogHint = buildCatalogPriceHint(pack, message)
@@ -675,7 +674,7 @@ function replyHonestGap(message: string, pack: ModelContextPack, item?: Selected
   )
 }
 
-function replyNeedsClarification(message: string, pack: ModelContextPack): KernelResponse {
+export function replyNeedsClarification(message: string, pack: ModelContextPack): KernelResponse {
   const catalogHint = isPricingQuestion(message) ? buildCatalogPriceHint(pack, message) : null
   const steer = catalogHint
     ? ` ${catalogHint}`
@@ -692,102 +691,3 @@ function replyNeedsClarification(message: string, pack: ModelContextPack): Kerne
   )
 }
 
-const AUGUSTA_FORBIDDEN = /veja servi(c|o)s e profissionais no feed quando quiser/i
-
-export function resolveAnswerFirstGate(
-  message: string,
-  pack: ModelContextPack,
-  session: KernelSession
-): KernelResponse | null {
-  const decision = classifyAnswerability(message, pack, session)
-
-  switch (decision.class) {
-    case "blocked":
-      return baseAnswer(
-        {
-          reply: "Não posso diagnosticar condição de saúde aqui — procure um profissional de saúde ou o balcão da casa.",
-          intent: "domain_blocked",
-          topic: "clinical",
-          domainZone: "off_domain_blocked",
-        },
-        "blocked"
-      )
-
-    case "should_delegate_transactional":
-      return baseAnswer(
-        {
-          reply: "",
-          intent: "transactional",
-          topic: "booking",
-          action: { type: "delegate_transactional_resolver" },
-          activeTopic: detectStrongTopic(message) ?? session.activeTopic ?? "schedule",
-        },
-        "should_delegate_transactional"
-      )
-
-    case "answerable_from_active_topic": {
-      const active = resolveActiveTopic(message, pack, session)
-      if (active && !AUGUSTA_FORBIDDEN.test(active.reply)) {
-        return { ...active, answerability: "answerable_from_active_topic" }
-      }
-      return null
-    }
-
-    case "answerable_from_operational_context": {
-      const op = replyFromOperational(message, pack)
-      if (op && !AUGUSTA_FORBIDDEN.test(op.reply)) {
-        const shifted =
-          pack.selectedContextItems.length > 0 ||
-          session.awaitingFocus ||
-          session.discoveryTurns > 0 ||
-          session.lastTopic === "discovery"
-        return shifted ? { ...op, topicShift: true } : op
-      }
-      return null
-    }
-
-    case "answerable_from_catalog": {
-      const chip = pack.selectedContextItems[0]
-      if (chip) {
-        const r = replyFromSelectedContext(message, pack, chip)
-        if (!AUGUSTA_FORBIDDEN.test(r.reply)) return r
-      }
-      return null
-    }
-
-    case "answerable_with_honest_gap": {
-      const r = replyHonestGap(message, pack)
-      if (!AUGUSTA_FORBIDDEN.test(r.reply)) return r
-      return null
-    }
-
-    case "answerable_from_selected_context": {
-      const chip = pack.selectedContextItems[0]
-      if (!chip) return null
-      const r = replyFromSelectedContext(message, pack, chip)
-      if (!AUGUSTA_FORBIDDEN.test(r.reply)) return r
-      return null
-    }
-
-    case "in_domain_missing_context": {
-      const chip = pack.selectedContextItems[0]
-      const r = resolveMissingContextClarification(pack, message, chip)
-      if (!AUGUSTA_FORBIDDEN.test(r.reply)) {
-        return { ...r, answerability: "in_domain_missing_context" }
-      }
-      return null
-    }
-
-    case "needs_clarification":
-      if (decision.reason === "broad_clarify") {
-        const broad = resolveBroadClarification(pack)
-        if (!AUGUSTA_FORBIDDEN.test(broad.reply)) return broad
-        return null
-      }
-      if (decision.reason === "defer_to_legacy") return null
-      return replyNeedsClarification(message, pack)
-
-    default:
-      return null
-  }
-}
