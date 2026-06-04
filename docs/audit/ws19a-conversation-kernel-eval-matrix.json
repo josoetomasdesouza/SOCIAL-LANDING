@@ -690,6 +690,95 @@
       "forbiddenActions": [{ "type": "delegate_transactional_resolver" }],
       "successCriteria": "contentPattern: fade|vídeo|video|mulher|feminino|masculino|clipe; forbiddenPattern: caminho comum por aqui|Degrade e um|appointment-booking",
       "riskIfFails": "fade no texto vira keyword de serviço Degrade com cards"
+    },
+    {
+      "id": "E-G41",
+      "model": "appointment",
+      "category": "active_topic_resolution",
+      "prompts": ["tem estacionamento?", "e até que horas?"],
+      "selectedContext": {
+        "kind": "service",
+        "title": "Corte Masculino",
+        "relatedEntityIds": ["service-1"],
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": true,
+      "idealReply": "T2: horário operacional — sessão mantém chegada após estacionamento",
+      "expectedAction": { "type": "text_only" },
+      "successCriteria": "T2: horario|horário|9h|20h|fecham|funcionamos; forbidden 30 min|tradicional|corte masculino leva",
+      "riskIfFails": "Chip serviço vence follow-up operacional de horas"
+    },
+    {
+      "id": "E-G42",
+      "model": "appointment",
+      "category": "active_topic_resolution",
+      "prompts": ["tem essa barbearia em Curitiba?", "unidade"],
+      "selectedContext": {
+        "kind": "social_post",
+        "title": "Novo lounge na Augusta",
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": true,
+      "idealReply": "T1 clarify unidade · T2 responde operacional desta unidade",
+      "expectedAction": { "type": "text_only" },
+      "successCriteria": "T2: augusta|1500|mapa|desta página; forbidden esta unidade ou outra unidade",
+      "riskIfFails": "Pending clarify não resolve para operacional"
+    },
+    {
+      "id": "E-G43",
+      "model": "appointment",
+      "category": "active_topic_resolution",
+      "prompts": ["esse fade é feito tambem em mulheres?", "e quanto custa?"],
+      "selectedContext": {
+        "id": "apt-vid-1",
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": ["tema: fade"],
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": true,
+      "idealReply": "T2: preço — não volta ao vídeo editorial",
+      "expectedAction": { "type": "text_only", "topic": "pricing" },
+      "successCriteria": "T2: preco|preço|R\\$|balcao|degrade; forbidden fade|mulher|feminino|clipe",
+      "riskIfFails": "Sessão presa no chip vídeo após pergunta de preço"
+    },
+    {
+      "id": "E-G44",
+      "model": "appointment",
+      "category": "answer_first_gate",
+      "prompts": ["quero marcar esse"],
+      "selectedContext": {
+        "id": "apt-vid-1",
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": false,
+      "idealReply": "Delega agendamento — não conteúdo do vídeo",
+      "expectedAction": { "type": "delegate_transactional_resolver" },
+      "successCriteria": "actionType: delegate_transactional_resolver; forbiddenPattern: fade|mulher|tendência|vídeo ensina",
+      "riskIfFails": "Chip vídeo vence intenção de marcar"
+    },
+    {
+      "id": "E-G45",
+      "model": "appointment",
+      "category": "active_topic_resolution",
+      "prompts": ["tem estacionamento?", "me fala aí"],
+      "selectedContext": {
+        "kind": "service",
+        "title": "Corte Masculino",
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": true,
+      "idealReply": "T2: broad clarify com contexto operacional — não Augusta genérica",
+      "expectedAction": { "type": "text_only" },
+      "successCriteria": "T2: estacionamento|horário|horario|endereço|endereco|Continuando; forbidden Não captei o foco — é sobre horário, como chegar|veja serviços e profissionais",
+      "riskIfFails": "Vague follow-up perde sessão operacional"
     }
   ],
   "perModel": {

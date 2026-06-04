@@ -10,6 +10,7 @@ import {
 } from "./answerability-classifier"
 import { resolveBroadClarification } from "./broad-clarification"
 import { resolveMissingContextClarification } from "./missing-context"
+import { syncTopicOwnershipFromResponse } from "./topic-ownership"
 import type { KernelResponse, KernelSession, ModelContextPack } from "./types"
 
 /** Executor strategy — WS-19A Phase 1.5 §3.3 */
@@ -46,7 +47,7 @@ export function resolveStrategyFromDecision(decision: AnswerabilityDecision): Re
     case "in_domain_missing_context":
       return "clarify_target"
     case "needs_clarification":
-      if (decision.reason === "broad_clarify") return "clarify_broad"
+      if (decision.reason === "broad_clarify" || decision.reason === "contextual_broad") return "clarify_broad"
       if (decision.reason === "defer_to_legacy") return "defer_legacy"
       return "clarify_target"
     default:
@@ -159,8 +160,8 @@ export function executeStrategy(
     }
 
     case "needs_clarification":
-      if (decision.reason === "broad_clarify") {
-        const broad = resolveBroadClarification(pack)
+      if (decision.reason === "broad_clarify" || decision.reason === "contextual_broad") {
+        const broad = resolveBroadClarification(pack, session)
         if (!AUGUSTA_FORBIDDEN.test(broad.reply)) return broad
         return null
       }
@@ -179,5 +180,7 @@ export function resolveAnswerFirstGate(
   session: KernelSession
 ): KernelResponse | null {
   const decision = classifyAnswerability(message, pack, session)
-  return executeStrategy(message, pack, session, decision)
+  const response = executeStrategy(message, pack, session, decision)
+  syncTopicOwnershipFromResponse(message, session, pack, response, decision)
+  return response
 }

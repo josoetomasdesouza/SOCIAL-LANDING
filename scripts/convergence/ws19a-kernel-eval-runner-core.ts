@@ -56,6 +56,11 @@ const PHASE1_IDS = new Set([
   "E-G38",
   "E-G39",
   "E-G40",
+  "E-G41",
+  "E-G42",
+  "E-G43",
+  "E-G44",
+  "E-G45",
   "E-X17",
 ])
 
@@ -358,11 +363,19 @@ function runEval(id: string): { ok: boolean; detail: string } {
       "E-G23": /fade|tutorial|em mim|vídeo|video/i,
       "E-G24": /leva cerca de|cerca de 30 min|tradicional com maquina|tradicional com máquina/i,
       "E-G25": /carlos corta|equipe.*carlos/i,
+      "E-G41": /30 min|tradicional com maquina|tradicional com máquina|leva cerca de/i,
+      "E-G42": /esta unidade ou outra unidade|você quer saber se esta unidade/i,
+      "E-G43": /fade|mulher|feminino|clipe|vídeo ensina/i,
+      "E-G45": /não captei o foco — é sobre horário, como chegar|nao captei o foco — é sobre horario, como chegar/i,
     }
     const contentById: Record<string, RegExp> = {
       "E-G23": /preco|preço|degrade|balcao|balcão|r\$/i,
       "E-G24": /preco|preço|degrade|balcao|balcão|r\$/i,
       "E-G25": /pagamento|pix|balcao|balcão|nao tenho|não tenho/i,
+      "E-G41": /horario|horário|9h|20h|fecham|funcionamos|seg-sab/i,
+      "E-G42": /augusta|1500|mapa|desta página|desta pagina/i,
+      "E-G43": /preco|preço|degrade|balcao|balcão|r\$/i,
+      "E-G45": /estacionamento|horário|horario|endereço|endereco|continuando/i,
     }
 
     const contentOk = contentById[id]?.test(last.reply) ?? true
@@ -376,7 +389,21 @@ function runEval(id: string): { ok: boolean; detail: string } {
         : { ok: false, detail: last.reply.slice(0, 80) }
     }
 
-    if (contentOk && forbiddenOk && (topicOk || shiftOk)) {
+    if (id === "E-G42") {
+      const r1 = resolveRuleKernelStub({ message: prompts[0], pack, session: createKernelSession() })
+      const t1ok = r1 && /esta unidade|outra unidade|cidade/i.test(r1.reply)
+      if (t1ok && contentOk && forbiddenOk) return { ok: true, detail: "T1 clarify · T2 unit operational" }
+      return { ok: false, detail: `T1=${!!t1ok} T2=${last.reply.slice(0, 70)}` }
+    }
+
+    if (id === "E-G45") {
+      if (contentOk && forbiddenOk && !AUGUSTA_FORBIDDEN.test(last.reply)) {
+        return { ok: true, detail: last.reply.slice(0, 60) }
+      }
+      return { ok: false, detail: last.reply.slice(0, 80) }
+    }
+
+    if (contentOk && forbiddenOk && (topicOk || shiftOk || id === "E-G41" || id === "E-G43")) {
       return { ok: true, detail: `activeTopic=${last.activeTopic ?? last.topic}` }
     }
     return { ok: false, detail: last.reply.slice(0, 80) }
@@ -635,6 +662,13 @@ function runEval(id: string): { ok: boolean; detail: string } {
         contentPattern: /fade|vídeo|video|mulher|feminino|masculino|clipe/i,
         forbiddenPattern: /caminho comum por aqui|Degrade e um|veja servi(c|o)s e profissionais no feed quando quiser/i,
         groundingSource: "selected_context",
+        noAugusta: true,
+      })
+    case "E-G44":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        actionType: "delegate_transactional_resolver",
+        forbiddenPattern: /fade|mulher|tendência|tendencia|vídeo ensina|clipe ensina/i,
         noAugusta: true,
       })
     case "E-G33":
