@@ -308,16 +308,32 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI (diálogo situado) |
-| **Status** | ✅ **V1** @ `702d00c` · 🟢 **V1.1 spec GO** · 🟡 **V1.1 impl. condicional** · 🟢 **V2 design** · 🔴 **V2 impl. NO-GO** |
-| **Objetivo** | Política de diálogo especializada do estabelecimento: situado + descoberta + handoff WS-08C; V1.1 = zona cinza sem LLM; V2 = Kernel |
+| **Status** | ✅ **V1** @ `4172f2d` · V1.1 spec (sintomas) · 🔴 **V1.1 rules NO-GO** · V2 → perfil **WS-19A** |
+| **Objetivo** | Piloto Appointment estabelecimento · handoff WS-08C · **não** kernel cross-model (ver WS-19A) |
 | **Escopo V1** | Resolver composto `[2]→[1]→[3]` · AP-01…07 + AP-D01…14 |
-| **Escopo V1.1 (spec)** | [`WS-08D_V1_1_GRAY_ZONE_SPEC.md`](../audit/WS-08D_V1_1_GRAY_ZONE_SPEC.md) — T-09/T-11/T-12/T-13 + cues + reset · AP-D15…25 |
-| **Escopo V2 (design)** | [`WS-08D_V2_CONVERSATION_KERNEL.md`](../audit/WS-08D_V2_CONVERSATION_KERNEL.md) — Kernel + **Contextual Detour** (§16) · sem código até novo GO |
+| **Escopo V1.1 (spec)** | [`WS-08D_V1_1_GRAY_ZONE_SPEC.md`](../audit/WS-08D_V1_1_GRAY_ZONE_SPEC.md) — sintomas · **não** solução final cross-model |
+| **Escopo V2 (design)** | [`WS-08D_V2_CONVERSATION_KERNEL.md`](../audit/WS-08D_V2_CONVERSATION_KERNEL.md) — perfil Appointment · subordinado a WS-19A |
+| **Sucessor estratégico** | [**WS-19A**](../audit/WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md) — Conversation Kernel cross-model · GO charter |
 | **Fora de escopo** | Tier 1 shell; WS-18A; runtime/publication/storage; drawer composer; CRM; agente autônomo; LLM no client |
 | **Integração V2 (recomendada)** | Opção B — extensão governada do contrato resolver · endpoint server obrigatório para LLM |
 | **Gate de saída (V1)** | `qa:appointment` 22/22 · `qa:ai-regression` 26/26 · observação em curso |
 | **Gate de saída (V2 código)** | Evals E-K01…E-K13 + GO humano explícito — ver doc V2 §13 |
 | **Refs** | Charter · matriz · templates · [`WS-08D_V1_1_GRAY_ZONE_SPEC.md`](../audit/WS-08D_V1_1_GRAY_ZONE_SPEC.md) · [`WS-08D_V1_GO_RECORD.md`](../audit/WS-08D_V1_GO_RECORD.md) · [`WS-08D_V2_CONVERSATION_KERNEL.md`](../audit/WS-08D_V2_CONVERSATION_KERNEL.md) |
+
+---
+
+### WS-19A — Social Landing Conversation Kernel (Cross-Model)
+
+| Campo | Valor |
+|-------|-------|
+| **Era** | 5 — Plataforma conversacional (todos os modelos) |
+| **Status** | ✅ **Charter publicado** · 🔴 **implementação NO-GO** · 🔴 **LLM/endpoint NO-GO** |
+| **Objetivo** | Composer natural em **ecommerce, restaurant, health, appointment** — anfitrião da página, não ChatGPT |
+| **Fase 1 futura** | Contratos + evals E-G* + rule-kernel stub (Appointment) · sem LLM · sem Tier 1 diff |
+| **Fora de escopo** | WS-18A operacional; CRM; memória permanente; agente autônomo; V1.1 rules como produto final |
+| **V1.1 local** | Baseline comparativo / branch experimento — **não** promover a `main` |
+| **Gate saída fase 1** | E-G00…E-G10 verdes + stub + `qa:ai-regression` 26/26 + `qa:appointment` preservado |
+| **Refs** | [`WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md`](../audit/WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md) |
 
 ---
 
@@ -482,7 +498,7 @@ WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB enterprise) — BLOCKED, GO humano separado
 ```
 
-**Atual:** @ `702d00c` — **WS-08D V1 ✅** · **V1.1 spec ✅** · **V2 design / impl. NO-GO** · WS-18A ✅ · WS-13 ✅; **próximo:** `GO implementação V1.1` (regras zona cinza) · observação · WS-17 / WS-09 enterprise BLOCKED.
+**Atual:** @ `4172f2d` + WS-19A charter (push pendente) — **WS-08D V1 ✅** · **WS-19A ✅ charter** · V1.1 rules **NO-GO** · WS-18A ✅; **próximo:** `GO WS-19A fase 1` (contratos + evals + stub).
 
 ---
 

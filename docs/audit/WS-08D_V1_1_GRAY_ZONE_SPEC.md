@@ -4,7 +4,7 @@
 **Pré-requisitos:** WS-08D V1-core ✅ (`cbcf1fa`) · observação rodadas 1–2 · V2 design + Contextual Detour (implementação V2 **NO-GO**)  
 **Charter:** [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](./WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md)  
 **Tipo:** camada de regras honestas client-side · **sem LLM** · **sem Conversation Kernel**  
-**Status:** 🟢 **GO especificação** · 🟡 **GO implementação condicional** (após aprovação humana explícita)
+**Status:** 🟢 **GO especificação (histórica)** · 🔴 **NO-GO estratégia final** — sucessor: [`WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md`](./WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md)
 
 ---
 
