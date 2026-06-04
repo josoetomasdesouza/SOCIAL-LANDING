@@ -54,6 +54,8 @@ const PHASE1_IDS = new Set([
   "E-G36",
   "E-G37",
   "E-G38",
+  "E-G39",
+  "E-G40",
   "E-X17",
 ])
 
@@ -617,6 +619,22 @@ function runEval(id: string): { ok: boolean; detail: string } {
         mustRespond: true,
         contentPattern: /não captei o foco|nao captei o foco|horario|horário|agendar/i,
         forbiddenPattern: /veja servi(c|o)s e profissionais|fica na augusta/i,
+        noAugusta: true,
+      })
+    case "E-G39":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /masculino|mulher|feminino|vídeo|video|tendência|tendencia/i,
+        forbiddenPattern: /não captei o foco|nao captei o foco|me diz em uma frase/i,
+        groundingSource: "selected_context",
+        noAugusta: true,
+      })
+    case "E-G40":
+      return assertResponse(id, response, {
+        mustRespond: true,
+        contentPattern: /fade|vídeo|video|mulher|feminino|masculino|clipe/i,
+        forbiddenPattern: /caminho comum por aqui|Degrade e um|veja servi(c|o)s e profissionais no feed quando quiser/i,
+        groundingSource: "selected_context",
         noAugusta: true,
       })
     case "E-G33":

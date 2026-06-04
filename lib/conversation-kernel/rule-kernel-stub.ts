@@ -153,6 +153,60 @@ function resolveSelectedContextGrounding(
     })
   }
 
+  if (
+    primary.kind === "video" &&
+    hasToken(m, "sobre o que estamos", "estamos falando", "do que estamos", "sobre o que", "falando disso")
+  ) {
+    const tema =
+      primary.knownFacts.find((f) => f.startsWith("tema:"))?.replace(/^tema:\s*/i, "").trim() ??
+      primary.summary ??
+      "conteúdo do feed"
+    return baseResponse({
+      reply: `Estamos no vídeo "${primary.title}" — ${tema}. Diga se quer falar do estilo do clipe, de outro público (ex.: feminino) ou de agendar na ${pack.brandName}.`,
+      intent: "context_grounded",
+      topic: "video_thread_recap",
+      source: "selected_context",
+      grounding: groundingFromItem(primary, "high"),
+    })
+  }
+
+  if (primary.kind === "video" && hasToken(m, "fade") && hasToken(m, "mulher", "mulheres", "feminino")) {
+    return baseResponse({
+      reply: `O vídeo "${primary.title}" ensina fade em corte masculino — o passo a passo do clipe não é o mesmo para mulheres. Para feminino, veja outros posts no feed ou combine com o barbeiro em Agendar.`,
+      intent: "context_grounded",
+      topic: "video_fade_gender",
+      confidence: "medium",
+      source: "selected_context",
+      grounding: groundingFromItem(primary, "medium"),
+    })
+  }
+
+  if (primary.kind === "video" && hasToken(m, "mulher", "mulheres", "feminino")) {
+    const masc = /masculino|homem|homens/i.test(`${primary.title} ${primary.knownFacts.join(" ")}`)
+    if (masc) {
+      return baseResponse({
+        reply: `O "${primary.title}" traz tendências de corte masculino — o clipe não cobre tendências femininas. Para mulheres, veja outros posts no feed ou agende e peça ao barbeiro o estilo que você quer.`,
+        intent: "context_grounded",
+        topic: "video_trends_gender_gap",
+        confidence: "medium",
+        source: "selected_context",
+        grounding: groundingFromItem(primary, "medium"),
+      })
+    }
+  }
+
+  if (primary.kind === "video" && hasToken(m, "tendencia", "tendência", "homens", "homem", "comente", "card")) {
+    const desc = primary.summary ? ` — ${primary.summary}` : ""
+    return baseResponse({
+      reply: `No "${primary.title}" a linha é tendência de corte masculino${desc}. Se sua dúvida é outro público ou estilo, diga qual.`,
+      intent: "context_grounded",
+      topic: "video_trends_scope",
+      confidence: "medium",
+      source: "selected_context",
+      grounding: groundingFromItem(primary, "medium"),
+    })
+  }
+
   if (isSocialFeedChip(primary) && hasToken(m, "fale mais", "o que e", "o que é", "sobre isso", "sobre esse", "isso")) {
     const body = primary.summary && primary.summary !== primary.title ? primary.summary : primary.title
     return baseResponse({

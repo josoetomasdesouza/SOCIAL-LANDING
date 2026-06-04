@@ -86,7 +86,41 @@ function messageReferencesChip(message: string, item: SelectedContextItem): bool
     )
   }
 
-  if (item.kind === "video" && hasToken(m, "antes", "depois", "transformacao", "transformação", "video", "vídeo")) {
+  if (
+    item.kind === "video" &&
+    hasToken(
+      m,
+      "antes",
+      "depois",
+      "transformacao",
+      "transformação",
+      "video",
+      "vídeo",
+      "tendencia",
+      "tendência",
+      "fade",
+      "esse",
+      "feito",
+      "tambem",
+      "também",
+      "mulher",
+      "mulheres",
+      "feminino",
+      "homem",
+      "homens",
+      "card",
+      "estilo",
+      "corte",
+      "comente",
+      "perguntei",
+      "sobre o que",
+      "estamos falando",
+      "do que estamos"
+    )
+  ) {
+    if (hasToken(m, "sobre o que", "estamos falando", "do que estamos", "perguntei", "comentei", "card")) {
+      return true
+    }
     return /antes|depois|transformacao|transformação/.test(m) || hits.length >= 1
   }
   return hits.length >= 1 && hasToken(m, "como", "qual", "oque", "o que", "fale", "sobre", "isso", "esse")
@@ -315,6 +349,80 @@ function groundingFromItem(item: SelectedContextItem, confidence: "high" | "medi
   return { source: "selected_context", itemIds: [item.id], confidence }
 }
 
+function videoFocusesOnMasculineTrends(item: SelectedContextItem): boolean {
+  const blob = normalize(`${item.title} ${item.summary ?? ""} ${item.knownFacts.join(" ")}`)
+  return /masculino|homem|homens/.test(blob)
+}
+
+function replyVideoTrendsInquiry(
+  message: string,
+  item: SelectedContextItem,
+  pack: ModelContextPack
+): KernelResponse | null {
+  const m = normalize(message)
+
+  if (
+    hasToken(m, "sobre o que estamos", "estamos falando", "do que estamos", "sobre o que", "falando disso")
+  ) {
+    const tema =
+      item.knownFacts.find((f) => f.startsWith("tema:"))?.replace(/^tema:\s*/i, "").trim() ??
+      item.summary ??
+      "conteúdo do feed"
+    return baseAnswer(
+      {
+        reply: `Estamos no vídeo "${item.title}" — ${tema}. Diga se quer falar do estilo do clipe, de outro público (ex.: feminino) ou de agendar na ${pack.brandName}.`,
+        intent: "context_grounded",
+        topic: "video_thread_recap",
+        source: "selected_context",
+        grounding: groundingFromItem(item, "high"),
+      },
+      "answerable_from_selected_context"
+    )
+  }
+
+  if (item.kind === "video" && hasToken(m, "fade") && hasToken(m, "mulher", "mulheres", "feminino")) {
+    return baseAnswer(
+      {
+        reply: `O vídeo "${item.title}" ensina fade em corte masculino — o passo a passo do clipe não é o mesmo para mulheres. Para feminino, veja outros posts no feed ou combine com o barbeiro em Agendar.`,
+        intent: "context_grounded",
+        topic: "video_fade_gender",
+        source: "selected_context",
+        grounding: groundingFromItem(item, "medium"),
+      },
+      "answerable_from_selected_context"
+    )
+  }
+
+  if (hasToken(m, "mulher", "mulheres", "feminino") && videoFocusesOnMasculineTrends(item)) {
+    return baseAnswer(
+      {
+        reply: `O "${item.title}" traz tendências de corte masculino — o clipe não cobre tendências femininas. Para mulheres, veja outros posts no feed ou agende e peça ao barbeiro o estilo que você quer.`,
+        intent: "context_grounded",
+        topic: "video_trends_gender_gap",
+        source: "selected_context",
+        grounding: groundingFromItem(item, "medium"),
+      },
+      "answerable_from_selected_context"
+    )
+  }
+
+  if (hasToken(m, "tendencia", "tendência", "homens", "homem", "comente", "card")) {
+    const desc = item.summary ? ` — ${item.summary}` : ""
+    return baseAnswer(
+      {
+        reply: `No "${item.title}" a linha é tendência de corte masculino${desc}. Se sua dúvida é outro público ou estilo, diga qual.`,
+        intent: "context_grounded",
+        topic: "video_trends_scope",
+        source: "selected_context",
+        grounding: groundingFromItem(item, "medium"),
+      },
+      "answerable_from_selected_context"
+    )
+  }
+
+  return null
+}
+
 function replySocialPost(item: SelectedContextItem, pack: ModelContextPack): KernelResponse {
   const body = item.summary && item.summary !== item.title ? item.summary : item.title
   return baseAnswer(
@@ -408,6 +516,11 @@ function replyFromSelectedContext(message: string, pack: ModelContextPack, item:
       },
       "answerable_from_selected_context"
     )
+  }
+
+  if (item.kind === "video") {
+    const videoTrends = replyVideoTrendsInquiry(message, item, pack)
+    if (videoTrends) return videoTrends
   }
 
   return baseAnswer(

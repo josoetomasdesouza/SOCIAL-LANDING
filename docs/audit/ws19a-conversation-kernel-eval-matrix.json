@@ -648,6 +648,48 @@
       "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
       "successCriteria": "contentPattern: Não captei o foco|horario|agendar; forbiddenPattern: veja servicos e profissionais|fica na Augusta",
       "riskIfFails": "Null vira fallback Augusta"
+    },
+    {
+      "id": "E-G39",
+      "model": "appointment",
+      "category": "answer_first_gate",
+      "prompts": ["tem tendencias para mulheres?"],
+      "selectedContext": {
+        "id": "apt-vid-2",
+        "kind": "video",
+        "title": "Tendencias de Corte Masculino 2024",
+        "knownFacts": ["tema: tendencias corte masculino"],
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": false,
+      "idealReply": "Responde sobre o vídeo masculino; honesto sobre linha feminina — sem broad clarify operacional",
+      "expectedAction": { "type": "text_only" },
+      "groundingExpected": { "source": "selected_context", "confidence": "medium" },
+      "forbiddenActions": [{ "type": "generic_chip_clarification" }],
+      "successCriteria": "contentPattern: masculino|mulher|feminino|vídeo|video|tendência|tendencia; forbiddenPattern: Não captei o foco|me diz em uma frase",
+      "riskIfFails": "Chip de vídeo + pergunta de conteúdo vira loop broad_clarify"
+    },
+    {
+      "id": "E-G40",
+      "model": "appointment",
+      "category": "answer_first_gate",
+      "prompts": ["esse fade é feito tambem em mulheres?"],
+      "selectedContext": {
+        "id": "apt-vid-1",
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": ["tema: fade", "formato: video tutorial"],
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": false,
+      "idealReply": "Responde sobre o vídeo de fade; honesto sobre feminino — sem cards Degrade",
+      "expectedAction": { "type": "text_only" },
+      "groundingExpected": { "source": "selected_context", "confidence": "medium" },
+      "forbiddenActions": [{ "type": "delegate_transactional_resolver" }],
+      "successCriteria": "contentPattern: fade|vídeo|video|mulher|feminino|masculino|clipe; forbiddenPattern: caminho comum por aqui|Degrade e um|appointment-booking",
+      "riskIfFails": "fade no texto vira keyword de serviço Degrade com cards"
     }
   ],
   "perModel": {
@@ -1474,7 +1516,7 @@
     }
   },
   "counts": {
-    "global": 39,
+    "global": 41,
     "perModel": {
       "appointment": 18,
       "restaurant": 7,

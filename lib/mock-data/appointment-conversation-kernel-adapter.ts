@@ -2,6 +2,7 @@ import {
   buildAppointmentModelContextPack,
   type AppointmentPackBuildInput,
 } from "@/lib/conversation-kernel/appointment/build-appointment-model-context-pack"
+import { isVideoChipContentInquiry } from "@/lib/conversation-kernel/conversation-priority"
 import { resolveBroadClarification } from "@/lib/conversation-kernel/broad-clarification"
 import { kernelResponseToResolverResult } from "@/lib/conversation-kernel/kernel-response-to-resolver"
 import { resolveRuleKernelStub, touchKernelSessionFromMessage } from "@/lib/conversation-kernel/rule-kernel-stub"
@@ -48,7 +49,11 @@ export function createAppointmentConversationResolverWithKernel(
     }
 
     if (!result) {
-      result = transactionalResolver(input)
+      const chip0 = pack.selectedContextItems[0]
+      const skipTransactional = chip0 && isVideoChipContentInquiry(input.message, chip0)
+      if (!skipTransactional) {
+        result = transactionalResolver(input)
+      }
     }
 
     if (!result) {
@@ -60,8 +65,18 @@ export function createAppointmentConversationResolverWithKernel(
     }
 
     if (!result) {
-      const broad = resolveBroadClarification(pack)
-      result = kernelResponseToResolverResult(broad, pack)
+      const m = input.message
+        .normalize("NFD")
+        .replace(/\p{M}/gu, "")
+        .toLowerCase()
+        .trim()
+      const vagueOnly =
+        pack.selectedContextItems.length === 0 ||
+        (/\b(me fala|fala ai|nao entendi|não entendi)\b/.test(m) && m.length < 28)
+      if (vagueOnly) {
+        const broad = resolveBroadClarification(pack)
+        result = kernelResponseToResolverResult(broad, pack)
+      }
     }
 
     if (!result) {
