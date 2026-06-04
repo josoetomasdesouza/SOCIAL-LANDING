@@ -7,7 +7,7 @@ import { barberShopConfig, barberShopArrivalContext, barberShopHeroOperationalCo
 import { createAppointmentConversationResolverWithDialogue } from "@/lib/mock-data/appointment-conversation-resolver-composed"
 import type { ConversationContextPayload } from "@/lib/business-types"
 
-const AUGUSTA = /veja servi(c|o)s e profissionais no feed quando quiser/i
+const AUGUSTA = /veja servi[cç]os e profissionais no feed quando quiser/i
 const DEGRADE_BOOKING = /caminho comum por aqui|appointment-booking/i
 const BROAD = /não captei o foco|nao captei o foco/i
 
@@ -40,13 +40,13 @@ function chip(id: string, title: string, subtitle?: string): ConversationContext
   return [{ id, title, image: "", subtitle: subtitle ?? "video" }]
 }
 
-function run(
+async function run(
   id: string,
   message: string,
   contextItems: ConversationContextPayload[],
   expect: { forbid?: RegExp[]; require?: RegExp[]; noBooking?: boolean }
-): boolean {
-  const result = resolver({ message, brandName: ctx.brandName, contextItems })
+): Promise<boolean> {
+  const result = await Promise.resolve(resolver({ message, brandName: ctx.brandName, contextItems }))
   const text = result?.text ?? ""
   const booking = result && typeof result === "object" && "kind" in result
 
@@ -82,37 +82,57 @@ function run(
 }
 
 const cases = [
-  () =>
+  async () =>
     run("1-video-tendencias-mulheres", "tem tendencias para mulheres?", chip("apt-vid-2", "Tendencias de Corte Masculino 2024"), {
       forbid: [BROAD, DEGRADE_BOOKING],
       require: [/masculino|mulher|feminino|tend/i],
       noBooking: true,
     }),
-  () =>
+  async () => {
+    const items = chip("apt-vid-2", "Tendencias de Corte Masculino 2024")
+    const t1 = await Promise.resolve(
+      resolver({ message: "qual a tendencia para carecas?", brandName: ctx.brandName, contextItems: items })
+    )
+    const t2 = await Promise.resolve(
+      resolver({ message: "carecas", brandName: ctx.brandName, contextItems: items })
+    )
+    const text = t2?.text ?? ""
+    const ok =
+      !AUGUSTA.test(text) &&
+      !BROAD.test(text) &&
+      /careca|calvo|masculino|tend/i.test(text) &&
+      !(t2 && typeof t2 === "object" && "kind" in t2)
+    console.log(`${ok ? "PASS" : "FAIL"} 1b-video-tendencias-carecas-followup`)
+    console.log(`  T1: ${(t1?.text ?? "").slice(0, 100)}…`)
+    console.log(`  T2: ${text.slice(0, 140)}`)
+    if (!ok) console.log("  → Augusta or missing bald-gap copy on follow-up")
+    return ok
+  },
+  async () =>
     run("2-video-fade-mulheres", "esse fade é feito tambem em mulheres?", chip("apt-vid-1", "Tutorial: Fade Perfeito em 5 Minutos"), {
       forbid: [BROAD, DEGRADE_BOOKING],
       require: [/fade|mulher|feminino|vídeo|video|masculino/i],
       noBooking: true,
     }),
-  () =>
+  async () =>
     run("3-servico-estacionamento", "Tem estacionamento?", chip("appointment-service-1", "Corte Masculino", "serviço"), {
       forbid: [DEGRADE_BOOKING, /30 min.*tradicional/i],
       require: [/estacionamento|conveniado|mapa/i],
       noBooking: true,
     }),
-  () =>
+  async () =>
     run("4-post-curitiba", "Tem essa barbearia em Curitiba?", chip("apt-soc-2", "Nosso espaco foi renovado!"), {
       forbid: [AUGUSTA, DEGRADE_BOOKING],
       require: [/unidade|franquia|cidade|curitiba|esta unidade/i],
       noBooking: true,
     }),
-  () =>
+  async () =>
     run("5-ambiguidade-isso", "o que significa isso pra minha cidade?", chip("apt-soc-1", "Sabado de casa cheia!"), {
       forbid: [AUGUSTA],
       require: [/publicacao|publicação|feed|horario|horário|preco|preço|agendar|unidade|cidade/i],
       noBooking: true,
     }),
-  () =>
+  async () =>
     run("6-me-fala-ai-sem-chip", "me fala ai", [], {
       forbid: [AUGUSTA],
       require: [BROAD],
@@ -120,7 +140,11 @@ const cases = [
     }),
 ]
 
-const results = cases.map((c) => c())
-const passed = results.filter(Boolean).length
-console.log(`\n--- WS-19A manual smoke: ${passed}/${results.length} ---`)
-process.exit(passed === results.length ? 0 : 1)
+async function main(): Promise<void> {
+  const results = await Promise.all(cases.map((c) => c()))
+  const passed = results.filter(Boolean).length
+  console.log(`\n--- WS-19A manual smoke: ${passed}/${results.length} ---`)
+  process.exit(passed === results.length ? 0 : 1)
+}
+
+main()

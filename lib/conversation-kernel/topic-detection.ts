@@ -43,7 +43,8 @@ export function isFadeReferencedAsVideoContent(message: string): boolean {
     "tecnica",
     "técnica",
     "clipe",
-    "mostra"
+    "mostra",
+    "fade"
   )
 }
 
@@ -75,6 +76,13 @@ export function detectStrongTopic(message: string): ActiveTopic | null {
 
   if (hasToken(m, "servico", "serviço", "degrade", "corte masculino", "barba completa") && !hasToken(m, "barbeiro")) {
     return "service"
+  }
+
+  if (
+    hasToken(m, "fade") &&
+    hasToken(m, "o que e", "o que é", "oque é", "o que significa", "significa o que")
+  ) {
+    return null
   }
 
   if (hasToken(m, "fade") && !hasToken(m, "barbeiro") && !isFadeReferencedAsVideoContent(message)) {

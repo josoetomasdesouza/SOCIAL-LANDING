@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url"
 import { buildAppointmentModelContextPack } from "@/lib/conversation-kernel/appointment/build-appointment-model-context-pack"
 import { isKernelResponseValid } from "@/lib/conversation-kernel/types"
 import {
+  loadWs19bCoverage,
   printWs19bReport,
   runWs19bMetrics,
 } from "./ws19b-metrics-runner"
@@ -11,6 +12,7 @@ import {
   resolveRuleKernelStub,
   touchKernelSessionFromMessage,
 } from "@/lib/conversation-kernel/rule-kernel-stub"
+import { classifyTurn } from "@/lib/conversation-kernel/strategy-executor"
 import type { KernelResponse, ModelContextPack, SelectedContextItem } from "@/lib/conversation-kernel/types"
 import { createKernelSession } from "@/lib/conversation-kernel/types"
 import type { EstablishmentDialogueContext } from "@/lib/mock-data/appointment-establishment-dialogue-context"
@@ -65,10 +67,11 @@ const PHASE1_IDS = new Set([
   "E-G43",
   "E-G44",
   "E-G45",
+  "E-G46",
   "E-X17",
 ])
 
-const AUGUSTA_FORBIDDEN = /veja servi(c|o)s e profissionais no feed quando quiser/i
+const AUGUSTA_FORBIDDEN = /veja servi[cç]os e profissionais no feed quando quiser/i
 const ASSISTANT_FORBIDDEN = /como posso ajudar|sou um assistente|assistente virtual/i
 
 const appointmentCtx: EstablishmentDialogueContext = {
@@ -407,6 +410,42 @@ function runEval(id: string): { ok: boolean; detail: string } {
       return { ok: false, detail: last.reply.slice(0, 80) }
     }
 
+    if (id === "E-G46") {
+      const session46 = createKernelSession()
+      const pack46 = appointmentPack(selected)
+      let r1: KernelResponse | null = null
+      let r2: KernelResponse | null = null
+      for (let i = 0; i < prompts.length; i++) {
+        const r = resolveRuleKernelStub({ message: prompts[i], pack: pack46, session: session46 })
+        if (i === 0) r1 = r
+        r2 = r
+        touchKernelSessionFromMessage(prompts[i], session46, pack46)
+      }
+      const broad = /não captei o foco|nao captei o foco/i
+      const situated = /me conta em uma linha/i
+      const audience = /careca|calvo|masculino|tend/i
+      const passesTurn = (r: KernelResponse | null) =>
+        Boolean(
+          r &&
+            audience.test(r.reply) &&
+            !AUGUSTA_FORBIDDEN.test(r.reply) &&
+            !/fica na augusta/i.test(r.reply) &&
+            !broad.test(r.reply) &&
+            !situated.test(r.reply) &&
+            (r.grounding.source === "selected_context" || r.source === "selected_context")
+        )
+      const turn2 = classifyTurn(prompts[1], pack46, session46)
+      const laneOk =
+        turn2.lane === "answerable_from_selected_context" && turn2.strategy === "direct"
+      if (passesTurn(r1) && passesTurn(r2) && laneOk) {
+        return { ok: true, detail: "T1/T2 video carecas gap · lane direct/selected_context" }
+      }
+      return {
+        ok: false,
+        detail: `T1=${passesTurn(r1)} T2=${passesTurn(r2)} lane=${turn2.lane}/${turn2.strategy} ${r2?.reply.slice(0, 60)}`,
+      }
+    }
+
     if (contentOk && forbiddenOk && (topicOk || shiftOk || id === "E-G41" || id === "E-G43")) {
       return { ok: true, detail: `activeTopic=${last.activeTopic ?? last.topic}` }
     }
@@ -626,7 +665,7 @@ function runEval(id: string): { ok: boolean; detail: string } {
       return assertResponse(id, response, {
         mustRespond: true,
         contentPattern: /estacionamento|conveniado|mapa/i,
-        forbiddenPattern: /30 min|tradicional|veja servi(c|o)s e profissionais/i,
+        forbiddenPattern: /30 min|tradicional|veja servi[cç]os e profissionais/i,
         topicShift: true,
         noAugusta: true,
       })
@@ -634,7 +673,7 @@ function runEval(id: string): { ok: boolean; detail: string } {
       return assertResponse(id, response, {
         mustRespond: true,
         contentPattern: /esta unidade|outra unidade|cidade/i,
-        forbiddenPattern: /veja servi(c|o)s e profissionais|augusta quando quiser|seg-sab: 9h/i,
+        forbiddenPattern: /veja servi[cç]os e profissionais|augusta quando quiser|seg-sab: 9h/i,
         topicShift: true,
         noAugusta: true,
       })
@@ -642,14 +681,14 @@ function runEval(id: string): { ok: boolean; detail: string } {
       return assertResponse(id, response, {
         mustRespond: true,
         contentPattern: /publicacao|publicação|feed|horario|horário|preco|preço|agendar/i,
-        forbiddenPattern: /veja servi(c|o)s e profissionais/i,
+        forbiddenPattern: /veja servi[cç]os e profissionais/i,
         noAugusta: true,
       })
     case "E-G38":
       return assertResponse(id, response, {
         mustRespond: true,
         contentPattern: /não captei o foco|nao captei o foco|horario|horário|agendar/i,
-        forbiddenPattern: /veja servi(c|o)s e profissionais|fica na augusta/i,
+        forbiddenPattern: /veja servi[cç]os e profissionais|fica na augusta/i,
         noAugusta: true,
       })
     case "E-G39":
@@ -664,7 +703,7 @@ function runEval(id: string): { ok: boolean; detail: string } {
       return assertResponse(id, response, {
         mustRespond: true,
         contentPattern: /fade|vídeo|video|mulher|feminino|masculino|clipe/i,
-        forbiddenPattern: /caminho comum por aqui|Degrade e um|veja servi(c|o)s e profissionais no feed quando quiser/i,
+        forbiddenPattern: /caminho comum por aqui|Degrade e um|veja servi[cç]os e profissionais no feed quando quiser/i,
         groundingSource: "selected_context",
         noAugusta: true,
       })
@@ -737,15 +776,10 @@ function main() {
   if (fail > 0) process.exit(1)
 
   const ws19b = runWs19bMetrics()
-  printWs19bReport(ws19b.records, ws19b.summary)
+  const ws19bFile = loadWs19bCoverage()
+  printWs19bReport(ws19b, ws19bFile)
 
-  const escapePct =
-    ws19b.summary.total > 0
-      ? (ws19b.summary.escapeCount / ws19b.summary.total) * 100
-      : 0
-  const escapeGateOk = escapePct < 5 && ws19b.summary.criticalWrongLaneCount === 0
-
-  if (!escapeGateOk) {
+  if (!ws19b.gateOk) {
     console.error("\nWS-19B gate FAILED")
     for (const f of ws19b.failures) console.error(`  ${f}`)
     process.exit(1)
@@ -757,7 +791,15 @@ function main() {
     process.exit(1)
   }
 
-  console.log("\nWS-19B gate: PASS (Escape < 5%, critical wrong lane = 0)")
+  for (const w of ws19b.realityWarnings) {
+    console.warn(`\n${w}`)
+  }
+
+  const st = ws19bFile.stats
+  const rm = ws19b.reality
+  console.log(
+    `\nWS-19B gate: PASS (Escape < 5% on gate scope, critical wrong lane = 0 · total=${st?.total ?? ws19b.records.length} human=${ws19b.calibration.human} probe=${ws19b.calibration.probe} reality_count=${rm.reality_count} (${rm.reality_percentage}%) synthetic_count=${rm.synthetic_count} adversarial=${st?.adversarial ?? "?"} NC=${st?.negativeControls ?? "?"})`
+  )
 }
 
 main()

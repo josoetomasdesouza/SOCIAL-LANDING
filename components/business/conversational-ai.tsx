@@ -99,6 +99,8 @@ interface ConversationalAIProps {
   renderVisualBlock?: ConversationVisualBlockRenderer
   /** Publishes compact composer footprint for scroll clearance on overlaid surfaces. */
   trackCompactFootprint?: boolean
+  /** Appointment: never fall back to generic host mock rotation. */
+  disableHostMockFallback?: boolean
 }
 
 type ConversationRuntimeMessage = ConversationMessage & {
@@ -139,9 +141,9 @@ function buildMockReply(brandName: string, userMessage: string, contextItems: Co
   }
 
   const genericReplies = [
-    `${brandName} pode te ajudar com isso rapidinho. Posso te mostrar a melhor opcao?`,
-    `Claro. Posso te orientar sobre ${brandName} de um jeito bem direto.`,
-    `Sem problema. Eu resumo o principal sobre ${brandName} pra voce.`,
+    `Não captei o foco. É horário, como chegar, preço, um item do feed ou agendar na ${brandName}?`,
+    `Me conta em uma frase o que você quer na ${brandName}: horário, serviço, preço ou agendar.`,
+    `Posso ajudar com horário, como chegar, preços ou agendar na ${brandName}. O que você precisa?`,
   ]
 
   return genericReplies[responseIndex]
@@ -195,6 +197,7 @@ export function ConversationalAI({
   responseResolver,
   renderVisualBlock,
   trackCompactFootprint = true,
+  disableHostMockFallback = false,
 }: ConversationalAIProps) {
   const conversationSelectionContext = useConversationSelectionContext()
   const conversationHistoryStorageKey = useMemo(
@@ -781,12 +784,14 @@ export function ConversationalAI({
     activeContextIdsRef.current = nextContextIds
   }, [appendContextEvent, clearPendingContextIds, contextItems, hasEngagedConversation, isConversationCollapsed, setPendingContextIdsSnapshot])
 
-  const buildResolvedReply = (userMessage: string): ConversationRuntimeMessage => {
-    const resolvedReply = responseResolver?.({
-      message: userMessage,
-      brandName,
-      contextItems,
-    })
+  const buildResolvedReply = async (userMessage: string): Promise<ConversationRuntimeMessage> => {
+    const resolvedReply = await Promise.resolve(
+      responseResolver?.({
+        message: userMessage,
+        brandName,
+        contextItems,
+      })
+    )
 
     if (resolvedReply) {
       return {
@@ -797,10 +802,14 @@ export function ConversationalAI({
       }
     }
 
+    const fallbackText = disableHostMockFallback
+      ? "Posso ajudar com horário, como chegar, preço ou agendar. O que você quer saber?"
+      : buildMockReply(brandName, userMessage, contextItems)
+
     return {
       id: `ai-${Date.now()}`,
       role: "ai",
-      content: buildMockReply(brandName, userMessage, contextItems),
+      content: fallbackText,
     }
   }
 
@@ -833,13 +842,13 @@ export function ConversationalAI({
     onSendMessage?.(nextMessage)
 
     replyTimeoutRef.current = window.setTimeout(() => {
-      const aiMessage = buildResolvedReply(nextMessage)
-
-      setMessages((prev) => [...prev, aiMessage])
-      setIsTyping(false)
-      setIsConversationCollapsed(false)
-      setIsCompactResumePreview(false)
-      replyTimeoutRef.current = null
+      void buildResolvedReply(nextMessage).then((aiMessage) => {
+        setMessages((prev) => [...prev, aiMessage])
+        setIsTyping(false)
+        setIsConversationCollapsed(false)
+        setIsCompactResumePreview(false)
+        replyTimeoutRef.current = null
+      })
     }, 700)
   }
 

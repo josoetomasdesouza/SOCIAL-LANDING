@@ -22,8 +22,23 @@ function isLocationBranchCue(message: string): boolean {
 
 /** Referent ambiguous — in_domain but needs clarify before answer (WS-19A Fase 1.5). */
 export function isInDomainMissingContext(message: string, chip?: SelectedContextItem): boolean {
+  const m = normalizeKernelText(message).trim()
+
   if (!chip) {
     return hasToken(message, "essa cidade", "isso aqui", "la em", "lá em", "pra minha cidade")
+  }
+
+  if (/^essa$/i.test(m)) return true
+
+  if (
+    hasToken(message, "e la", "e lá", "la em", "lá em", "minha cidade") ||
+    /^e\s+isso/i.test(m)
+  ) {
+    return true
+  }
+
+  if (hasToken(message, "fale mais", "sobre isso", "sobre esse", "sobre o conteudo", "sobre o conteúdo")) {
+    return false
   }
 
   if (isSocialFeedChip(chip) && isLocationBranchCue(message) && hasToken(message, "tem essa", "essa barbearia", "essa unidade")) {
@@ -42,9 +57,9 @@ export function resolveMissingContextClarification(
   message: string,
   chip?: SelectedContextItem
 ): KernelResponse {
-  const locationReply = `Você quer saber se esta unidade da ${pack.brandName} fica na cidade que você citou ou se existe outra unidade da barbearia por lá?`
+  const locationReply = `Você quer saber se a ${pack.brandName} fica na cidade que citou ou se existe outra unidade por lá?`
 
-  const genericReply = `Sobre o item do feed: você quer falar da publicação em si ou de algo prático da casa (horário, preço, como chegar)?`
+  const genericReply = `Sobre esse item do feed: é a publicação em si ou algo prático (horário, preço, como chegar)?`
 
   const reply =
     chip && isSocialFeedChip(chip) && isLocationBranchCue(message)

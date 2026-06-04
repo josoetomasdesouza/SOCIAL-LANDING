@@ -3,7 +3,7 @@ import type { KernelResponse, ModelContextPack } from "./types"
 import { isTransactionalDelegate } from "./action-registry"
 
 const AUGUSTA_FALLBACK_PATTERN =
-  /veja servi(c|o)s e profissionais no feed quando quiser/i
+  /veja servi[cç]os e profissionais no feed quando quiser/i
 
 export function kernelResponseToResolverResult(
   response: KernelResponse,

@@ -4,6 +4,7 @@ import type {
   ConversationResponseResolver,
   ConversationResponseResolverResult,
 } from "@/lib/mock-data/conversational-search"
+import { isLocationBranchQuestion } from "@/lib/conversation-kernel/answerability-classifier"
 import { normalizeSurfaceFlowText } from "@/lib/surface-flow/product-entity"
 
 export const APPOINTMENT_BOOKING_RESULTS_KIND = "appointment-booking-results"
@@ -279,10 +280,21 @@ function findServiceFromMessage(message: string) {
 
 function findBarbersBySpecialty(message: string, limit = 3) {
   const normalized = normalizeText(message)
+  if (isLocationBranchQuestion(message)) {
+    return []
+  }
   const matchedSpecialties = new Set<string>()
 
   for (const [specialty, keywords] of Object.entries(BARBER_SPECIALTY_KEYWORDS)) {
-    if (keywords.some((keyword) => normalized.includes(normalizeText(keyword)))) {
+    if (
+      keywords.some((keyword) => {
+        const k = normalizeText(keyword)
+        if (k.length <= 4) {
+          return new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(normalized)
+        }
+        return normalized.includes(k)
+      })
+    ) {
       matchedSpecialties.add(specialty)
     }
   }
@@ -487,7 +499,7 @@ export function createAppointmentMockConversationResolver(): ConversationRespons
       const items: AppointmentSearchResult[] = [serviceToSearchResult(matchedService), ...barbersForService.map(barberToSearchResult)]
 
       return buildBookingResultsResponse(
-        `${matchedService.name} e um caminho comum por aqui — veja servico e quem costuma fazer.`,
+        `${matchedService.name} costuma ser um bom caminho por aqui. Veja o servico e quem atende no bloco abaixo.`,
         items.slice(0, 3),
         "service"
       )

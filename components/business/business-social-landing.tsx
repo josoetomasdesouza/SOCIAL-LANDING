@@ -941,6 +941,7 @@ export function BusinessSocialLanding({
           responseResolver={conversationResponseResolver}
           renderVisualBlock={renderConversationVisualBlock}
           trackCompactFootprint={shouldTrackComposerFootprint}
+          disableHostMockFallback={Boolean(conversationResponseResolver)}
         />
       )}
 

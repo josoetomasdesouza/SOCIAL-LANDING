@@ -82,6 +82,21 @@ async function getLastAiTurnText(page) {
   return (await turn.textContent()) ?? ""
 }
 
+/** Wait until the latest AI bubble leaves the loading state (bounded LLM can take ~3s). */
+async function waitForLastAiTurnReady(page, timeoutMs = 10000) {
+  const composer = page.locator('[data-conversation-composer="true"]')
+  const turn = composer.locator("div.flex.justify-start").last()
+  await turn.waitFor({ state: "attached", timeout: timeoutMs })
+  const started = Date.now()
+  while (Date.now() - started < timeoutMs) {
+    const loadingDots = await turn.locator(".animate-bounce").count()
+    const text = ((await turn.textContent()) ?? "").trim()
+    if (loadingDots === 0 && text.length >= 5) return text
+    await page.waitForTimeout(150)
+  }
+  return (await turn.textContent()) ?? ""
+}
+
 async function assertTextDialogue(page, results, step, message, contentPattern, forbiddenPattern) {
   await sendComposerMessage(page, message)
   const resultsBlock = page.getByTestId("appointment-conversation-results-block").last()
@@ -318,6 +333,75 @@ async function main() {
     "Quero algo mais moderno",
     /moderno|Degrade|feed|referencia/i,
     situatedFallbackForbidden
+  )
+
+  const robotForbidden =
+    /veja servi[cç]os e profissionais no feed|pode te ajudar com isso rapidinho|me conta em uma linha|não captei o foco|nao captei o foco|melhor opcao/i
+
+  async function assertChipChat(page, step, sourceId, message, contentPattern) {
+    await openAppointment(page)
+    const target = page.locator(`[data-post-context-source="${sourceId}"]`).first()
+    await longPress(page, target)
+    await page
+      .locator(`[data-conversation-context-chip="${sourceId}"]`)
+      .first()
+      .waitFor({ state: "visible", timeout: 8000 })
+    for (let i = 0; i < 2; i += 1) {
+      await page.keyboard.press("Escape")
+      await page.waitForTimeout(200)
+    }
+    await sendComposerMessage(page, message)
+    const text = await waitForLastAiTurnReady(page)
+    const resultsBlock = page.getByTestId("appointment-conversation-results-block").last()
+    const noBookingBlock = !(await resultsBlock.isVisible().catch(() => false))
+    const textOk = contentPattern.test(text)
+    const forbiddenOk = !robotForbidden.test(text)
+    record(results, step, noBookingBlock && textOk && forbiddenOk, text.slice(0, 100))
+  }
+
+  await assertChipChat(
+    page,
+    "AP-CHAT-01 video fede typo",
+    "apt-vid-1",
+    "o que é fede?",
+    /fade|vídeo|video|tutorial|técnica|tecnica/i
+  )
+  await assertChipChat(
+    page,
+    "AP-CHAT-02 video carecas",
+    "apt-vid-2",
+    "carecas",
+    /careca|calvo|masculino|tendencia|tendência/i
+  )
+  await assertChipChat(
+    page,
+    "AP-CHAT-03 post fale mais",
+    "apt-soc-1",
+    "fale mais",
+    /post|sabado|confianca|feed/i
+  )
+  await assertChipChat(
+    page,
+    "AP-CHAT-04 service estacionamento",
+    "appointment-service-service-1",
+    "tem estacionamento?",
+    /estacionamento|mapa|vaga|rua/i
+  )
+  await assertChipChat(
+    page,
+    "AP-CHAT-05 post curitiba",
+    "apt-soc-1",
+    "tem em Curitiba?",
+    /curitiba|augusta|unidade|não temos|nao temos/i
+  )
+  await openAppointment(page)
+  await assertTextDialogue(
+    page,
+    results,
+    "AP-CHAT-06 sem chip me fala ai",
+    "me fala aí",
+    /horário|horario|preço|preco|agendar|quer saber/i,
+    robotForbidden
   )
 
   const criticalErrors = consoleErrors.filter(

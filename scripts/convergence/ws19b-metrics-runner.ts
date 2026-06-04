@@ -6,6 +6,7 @@ import {
   buildEvalMetricRecord,
   formatMetricsReport,
   summarizeMetrics,
+  type EscapeReason,
   type EvalMetricRecord,
 } from "@/lib/conversation-kernel/eval-metrics"
 import { classifyTurn } from "@/lib/conversation-kernel/strategy-executor"
@@ -15,11 +16,40 @@ import {
 } from "@/lib/conversation-kernel/rule-kernel-stub"
 import type { AnswerabilityClass } from "@/lib/conversation-kernel/answerability-classifier"
 import type { ResponseStrategy } from "@/lib/conversation-kernel/strategy-executor"
-import { createKernelSession, type KernelResponse, type SelectedContextItem } from "@/lib/conversation-kernel/types"
+import {
+  createKernelSession,
+  type KernelAction,
+  type KernelResponse,
+  type SelectedContextItem,
+} from "@/lib/conversation-kernel/types"
 import { barberShopArrivalContext, barberShopConfig, barberShopHeroOperationalContext } from "@/lib/mock-data/appointment-data"
+import {
+  assertCorpusRealityLinks,
+  buildRealityMetrics,
+  buildRealityTargetDashboard,
+  countScenarioOrigins,
+  formatRealityTargetDashboard,
+  listTopRealityScenarios,
+  loadRealityHarvest,
+  REALITY_CORPUS_TARGET,
+  realityAccelerationWarnings,
+  summarizeRealityPromotionDashboard,
+  validateRealityHarvest,
+  type RealityMetrics,
+  type RealityPromotionDashboard,
+  type RealityTargetDashboard,
+  type TopRealityScenario,
+} from "./ws19b-reality-harvest"
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const WS19B_PATH = path.join(ROOT, "docs/audit/ws19b-conversational-coverage.json")
+
+export type Ws19bCalibration = "probe" | "human"
+
+export type Ws19bControlFixture = {
+  reply: string
+  action?: KernelAction
+}
 
 export type Ws19bScenario = {
   id: string
@@ -30,13 +60,44 @@ export type Ws19bScenario = {
   expected_lane: AnswerabilityClass | "any"
   expected_strategy: ResponseStrategy | "any"
   forbidden_patterns?: string[]
+  forbidden_action_types?: string[]
   escape_expected: boolean
+  expected_escape_reason?: EscapeReason
   critical: boolean
+  calibration: Ws19bCalibration
+  tags?: string[]
+  adversarial?: boolean
+  known_product_gap?: boolean
+  control_fixture?: Ws19bControlFixture
+  origin?: "reality" | "synthetic"
+  realityRef?: string
 }
 
 export type Ws19bCoverageFile = {
   version: string
-  gate: { escapeRateMaxPercent: number; criticalWrongLaneMax: number }
+  gate: {
+    escapeRateMaxPercent: number
+    criticalWrongLaneMax: number
+    escapeRateScope?: string
+    wrongLaneScope?: string
+    corpusMin?: number
+    humanCalibratedMin?: number
+    realityTargetMin?: number
+  }
+  stats?: {
+    total: number
+    humanCalibrated: number
+    probeCalibrated?: number
+    adversarial: number
+    negativeControls: number
+    realityDerived?: number
+    synthetic?: number
+    realityBacklogOpen?: number
+    reality_count?: number
+    synthetic_count?: number
+    reality_percentage?: number
+  }
+  realityHarvest?: string
   scenarios: Ws19bScenario[]
 }
 
@@ -72,6 +133,44 @@ function chipFromScenario(scenario: Ws19bScenario): SelectedContextItem[] | unde
   ]
 }
 
+function responseFromFixture(fixture: Ws19bControlFixture): KernelResponse {
+  return {
+    reply: fixture.reply,
+    intent: "discover",
+    domainZone: "in_domain",
+    topic: "negative_control_fixture",
+    topicShift: false,
+    structure: { acknowledged: true, answered: false },
+    confidence: "medium",
+    action: fixture.action ?? ({ type: "text_only" } satisfies KernelAction),
+    source: "rule_table",
+    grounding: { source: "none", itemIds: [], confidence: "low" },
+  }
+}
+
+function isNegativeControl(scenario: Ws19bScenario): boolean {
+  return scenario.tags?.includes("negative_control") ?? false
+}
+
+function isAdversarial(scenario: Ws19bScenario): boolean {
+  return scenario.adversarial === true || scenario.tags?.includes("adversarial") === true
+}
+
+function isEscapeRateDenominator(scenario: Ws19bScenario): boolean {
+  return !scenario.escape_expected && !isNegativeControl(scenario) && !isAdversarial(scenario)
+}
+
+function isWrongLaneGateScope(scenario: Ws19bScenario): boolean {
+  return (
+    scenario.critical &&
+    scenario.calibration === "human" &&
+    !isAdversarial(scenario) &&
+    !scenario.known_product_gap &&
+    !isNegativeControl(scenario) &&
+    !scenario.escape_expected
+  )
+}
+
 export function runWs19bScenario(scenario: Ws19bScenario): {
   response: KernelResponse | null
   record: EvalMetricRecord
@@ -83,25 +182,27 @@ export function runWs19bScenario(scenario: Ws19bScenario): {
   }
 
   const session = createKernelSession()
-  const turns = [...(scenario.prior_turns ?? []), scenario.prompt]
   let response: KernelResponse | null = null
 
-  for (const message of turns) {
-    response = resolveRuleKernelStub({ message, pack, session })
-    touchKernelSessionFromMessage(message, session, pack)
+  if (scenario.control_fixture) {
+    response = responseFromFixture(scenario.control_fixture)
+  } else {
+    const turns = [...(scenario.prior_turns ?? []), scenario.prompt]
+    for (const message of turns) {
+      response = resolveRuleKernelStub({ message, pack, session })
+      touchKernelSessionFromMessage(message, session, pack)
+    }
   }
 
-  const lastMessage = scenario.prompt
+  const lastMessage = scenario.control_fixture ? scenario.prompt : scenario.prompt
   const turn = classifyTurn(lastMessage, pack, session)
-  const actual_lane = turn.lane
-  const actual_strategy = turn.strategy
 
   const record = buildEvalMetricRecord({
     eval_id: scenario.id,
     expected_lane: scenario.expected_lane,
-    actual_lane,
+    actual_lane: turn.lane,
     expected_strategy: scenario.expected_strategy,
-    actual_strategy,
+    actual_strategy: turn.strategy,
     response,
   })
 
@@ -112,45 +213,94 @@ export function loadWs19bCoverage(): Ws19bCoverageFile {
   return JSON.parse(readFileSync(WS19B_PATH, "utf8")) as Ws19bCoverageFile
 }
 
-export function runWs19bMetrics(): {
+export type Ws19bMetricsResult = {
   records: EvalMetricRecord[]
   summary: ReturnType<typeof summarizeMetrics>
+  gateSummary: ReturnType<typeof summarizeMetrics>
+  calibration: { human: number; probe: number }
+  reality: RealityMetrics
+  realityTarget: RealityTargetDashboard
+  realityDashboard: RealityPromotionDashboard
+  topRealityScenarios: TopRealityScenario[]
+  realityWarnings: string[]
   gateOk: boolean
   failures: string[]
-} {
+}
+
+export function runWs19bMetrics(): Ws19bMetricsResult {
   const file = loadWs19bCoverage()
-  const scenarios = file.scenarios.slice(0, 40)
-  const criticalIds = new Set(scenarios.filter((s) => s.critical).map((s) => s.id))
+  const byId = new Map<string, Ws19bScenario>()
+  for (const s of file.scenarios) {
+    if (s.id) byId.set(s.id, s)
+  }
+  const scenarios = [...byId.values()]
+  const wrongLaneGateIds = new Set(scenarios.filter(isWrongLaneGateScope).map((s) => s.id))
+  const escapeGateRecords: EvalMetricRecord[] = []
   const records: EvalMetricRecord[] = []
   const failures: string[] = []
 
-  for (const scenario of scenarios) {
-    const { response, record } = runWs19bScenario(scenario)
+  let humanCount = 0
+  let probeCount = 0
 
-    for (const pat of scenario.forbidden_patterns ?? []) {
-      if (response?.reply && new RegExp(pat, "i").test(response.reply)) {
-        failures.push(`${scenario.id}: forbidden pattern ${pat}`)
+  for (const scenario of scenarios) {
+    if (scenario.calibration === "human") humanCount++
+    else probeCount++
+
+    const { response, record } = runWs19bScenario(scenario)
+    records.push(record)
+
+    if (isEscapeRateDenominator(scenario)) {
+      escapeGateRecords.push(record)
+    }
+
+    const enforce = !isAdversarial(scenario)
+
+    if (!isNegativeControl(scenario)) {
+      for (const pat of scenario.forbidden_patterns ?? []) {
+        if (response?.reply && new RegExp(pat, "i").test(response.reply)) {
+          const msg = `${scenario.id}: forbidden pattern ${pat}`
+          if (enforce) failures.push(msg)
+        }
       }
     }
 
-    if (!scenario.escape_expected && record.escaped) {
+    for (const actionType of scenario.forbidden_action_types ?? []) {
+      if (response?.action.type === actionType) {
+        const msg = `${scenario.id}: forbidden action ${actionType}`
+        if (enforce) failures.push(msg)
+      }
+    }
+
+    if (scenario.escape_expected) {
+      if (!record.escaped) {
+        failures.push(`${scenario.id}: expected escape but none detected`)
+      } else if (
+        scenario.expected_escape_reason &&
+        record.escape_reason !== scenario.expected_escape_reason
+      ) {
+        failures.push(
+          `${scenario.id}: expected escape_reason ${scenario.expected_escape_reason} got ${record.escape_reason ?? "none"}`
+        )
+      }
+    } else if (record.escaped && enforce) {
       failures.push(
         `${scenario.id}: unexpected escape (${record.escape_reason ?? "unknown"}) ref=${scenario.matrixRef ?? ""}`
       )
     }
-
-    records.push(record)
   }
 
-  const summary = summarizeMetrics(records, criticalIds)
-  const escapePct = summary.total > 0 ? (summary.escapeCount / summary.total) * 100 : 0
+  const summary = summarizeMetrics(records, new Set(scenarios.filter((s) => s.critical).map((s) => s.id)))
+  const gateSummary = summarizeMetrics(escapeGateRecords, wrongLaneGateIds)
+
+  const escapePct =
+    gateSummary.total > 0 ? (gateSummary.escapeCount / gateSummary.total) * 100 : 0
   const gateOk =
     escapePct < file.gate.escapeRateMaxPercent &&
-    summary.criticalWrongLaneCount <= file.gate.criticalWrongLaneMax
+    gateSummary.criticalWrongLaneCount <= file.gate.criticalWrongLaneMax
 
-  if (summary.criticalWrongLaneCount > 0) {
+  if (gateSummary.criticalWrongLaneCount > 0) {
     for (const r of records) {
-      if (r.wrong_lane && criticalIds.has(r.eval_id)) {
+      if (r.wrong_lane && wrongLaneGateIds.has(r.eval_id)) {
         failures.push(
           `${r.eval_id}: wrong_lane expected=${r.expected_lane}/${r.expected_strategy} actual=${r.actual_lane}/${r.actual_strategy}`
         )
@@ -158,11 +308,117 @@ export function runWs19bMetrics(): {
     }
   }
 
-  return { records, summary, gateOk, failures }
+  const humanMin = file.gate.humanCalibratedMin ?? 40
+  const corpusMin = file.gate.corpusMin ?? 60
+
+  if (humanCount < humanMin) {
+    failures.push(`human calibration count ${humanCount} < ${humanMin} required`)
+  }
+
+  if (scenarios.length < corpusMin) {
+    failures.push(`corpus size ${scenarios.length} < ${corpusMin} required`)
+  }
+
+  const corpusIds = new Set(scenarios.map((s) => s.id))
+  const harvestValidation = validateRealityHarvest(corpusIds)
+  if (!harvestValidation.ok) {
+    for (const e of harvestValidation.errors) failures.push(`reality-harvest: ${e}`)
+  }
+  for (const e of assertCorpusRealityLinks(scenarios, harvestValidation.promotedCorpusIds)) {
+    failures.push(`reality-harvest: ${e}`)
+  }
+
+  const origins = countScenarioOrigins(scenarios)
+  const realityDerived = file.stats?.realityDerived ?? origins.reality
+  const syntheticCount = file.stats?.synthetic ?? origins.synthetic
+  const reality = buildRealityMetrics(realityDerived, syntheticCount)
+  const realityTargetMin = file.gate.realityTargetMin ?? REALITY_CORPUS_TARGET
+  const realityTarget = buildRealityTargetDashboard(realityDerived, realityTargetMin)
+  const realityWarnings = realityAccelerationWarnings(reality, realityTargetMin)
+
+  let realityDashboard: RealityPromotionDashboard = {
+    backlog: 0,
+    promoted: 0,
+    fixed: 0,
+    pending: 0,
+  }
+  let topRealityScenarios: TopRealityScenario[] = []
+  try {
+    const harvest = loadRealityHarvest()
+    realityDashboard = summarizeRealityPromotionDashboard(harvest.entries)
+    topRealityScenarios = listTopRealityScenarios(harvest.entries)
+  } catch {
+    realityWarnings.push("reality-harvest: could not load promotion dashboard")
+  }
+
+  return {
+    records,
+    summary,
+    gateSummary,
+    calibration: { human: humanCount, probe: probeCount },
+    reality,
+    realityTarget,
+    realityDashboard,
+    topRealityScenarios,
+    realityWarnings,
+    gateOk,
+    failures,
+  }
 }
 
-export function printWs19bReport(records: EvalMetricRecord[], summary: ReturnType<typeof summarizeMetrics>): void {
-  console.log("\n--- WS-19B Top 40 metrics ---")
+export function printWs19bReport(result: Ws19bMetricsResult, file?: Ws19bCoverageFile): void {
+  const { records, summary, gateSummary, calibration, reality, realityTarget, realityDashboard, topRealityScenarios, realityWarnings } =
+    result
+  const stats = file?.stats
+  const adversarial =
+    stats?.adversarial ??
+    records.filter((_, i) => {
+      const s = file?.scenarios[i]
+      return s?.adversarial === true || s?.tags?.includes("adversarial")
+    }).length
+  const negativeControls =
+    stats?.negativeControls ?? file?.scenarios.filter((s) => s.tags?.includes("negative_control")).length ?? 0
+  const origins = file?.scenarios
+    ? countScenarioOrigins(file.scenarios)
+    : { reality: 0, synthetic: records.length, realityRefs: [] as string[] }
+
+  console.log("\n--- WS-19B coverage metrics ---")
+  console.log(`Total scenarios: ${records.length}`)
+  console.log(`Human calibrated: ${calibration.human}`)
+  console.log(`Probe calibrated: ${calibration.probe}`)
+  console.log("\n--- Reality dashboard (corpus target) ---")
+  console.log(formatRealityTargetDashboard(realityTarget))
+  console.log(`reality_count: ${reality.reality_count}`)
+  console.log(`synthetic_count: ${reality.synthetic_count}`)
+  console.log(`reality_percentage: ${reality.reality_percentage}%`)
+  if (origins.realityRefs.length) {
+    console.log(`  corpus links: ${origins.realityRefs.join(", ")}`)
+  }
+  console.log(`Adversarial: ${adversarial}`)
+  console.log(`Negative controls: ${negativeControls}`)
+
+  console.log("\n--- Reality promotion dashboard (harvest) ---")
+  console.log(`RH backlog: ${realityDashboard.backlog}`)
+  console.log(`RH promoted: ${realityDashboard.promoted}`)
+  console.log(`RH fixed: ${realityDashboard.fixed}`)
+  console.log(`RH pending: ${realityDashboard.pending}`)
+
+  if (topRealityScenarios.length > 0) {
+    console.log("\n--- Top Reality Scenarios (promoted) ---")
+    for (const row of topRealityScenarios) {
+      const corpus = row.corpus_ids.length ? row.corpus_ids.join(", ") : "—"
+      console.log(`  ${row.rh_id} · eval ${row.eval_id ?? "—"} · corpus ${corpus}`)
+    }
+  } else {
+    console.log("\n--- Top Reality Scenarios (promoted) ---")
+    console.log("  (none yet)")
+  }
+
+  if (realityWarnings.length > 0) {
+    console.log("\n--- Reality gate (advisory) ---")
+    for (const w of realityWarnings) console.log(`  WARN ${w}`)
+  }
+
   for (const r of records) {
     const flags = [
       r.escaped ? `escape=${r.escape_reason}` : "ok",
@@ -174,5 +430,10 @@ export function printWs19bReport(records: EvalMetricRecord[], summary: ReturnTyp
       `${r.escaped || r.wrong_lane ? "WARN" : "OK  "} ${r.eval_id} lane=${r.actual_lane} strategy=${r.actual_strategy} (${flags})`
     )
   }
-  console.log("\n" + formatMetricsReport(summary))
+
+  console.log("\n--- Full corpus ---")
+  console.log(formatMetricsReport(summary))
+
+  console.log("\n--- Gate scope (escape_expected=false, non-control) ---")
+  console.log(formatMetricsReport(gateSummary))
 }

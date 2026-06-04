@@ -31,7 +31,7 @@ export interface ConversationResponseResolverInput {
 
 export type ConversationResponseResolver = (
   input: ConversationResponseResolverInput
-) => ConversationResponseResolverResult | null
+) => ConversationResponseResolverResult | null | Promise<ConversationResponseResolverResult | null>
 
 export type ConversationVisualBlockRenderer = (
   visualBlock: ConversationVisualBlock

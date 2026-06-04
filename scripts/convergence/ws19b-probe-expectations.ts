@@ -22,7 +22,7 @@ const MATRIX_REFS = [
   "E-G01", "E-G02", "E-G03", "E-G04", "E-G05", "E-G06", "E-G07", "E-G08", "E-G09", "E-G10",
   "E-G18", "E-G19", "E-G20", "E-G21", "E-G22", "E-G23", "E-G24", "E-G25", "E-G26", "E-G27",
   "E-G28", "E-G29", "E-G30", "E-G31", "E-G33", "E-G34", "E-G35", "E-G36", "E-G37", "E-G38",
-  "E-G39", "E-G40", "E-G41", "E-G42", "E-G43", "E-G44", "E-G45",
+  "E-G39", "E-G40", "E-G41", "E-G42", "E-G43", "E-G44", "E-G45", "E-G46",
   "E-M-APT-15", "E-M-APT-16", "E-M-APT-17", "E-M-APT-18",
 ]
 
@@ -111,7 +111,7 @@ for (let i = 0; i < MATRIX_REFS.length; i++) {
       : null,
     expected_lane: turn.lane,
     expected_strategy: turn.strategy,
-    forbidden_patterns: ["veja servi(c|o)s e profissionais no feed quando quiser"],
+    forbidden_patterns: ["veja servi[cç]os e profissionais no feed quando quiser"],
     escape_expected: false,
     critical: true,
   })

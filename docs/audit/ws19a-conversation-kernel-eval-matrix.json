@@ -49,8 +49,14 @@
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "N/A — validação estática de ModelContextPack + KernelResponse",
-      "expectedAction": { "type": "schema_valid" },
-      "forbiddenActions": [{ "type": "runtime_resolve" }],
+      "expectedAction": {
+        "type": "schema_valid"
+      },
+      "forbiddenActions": [
+        {
+          "type": "runtime_resolve"
+        }
+      ],
       "successCriteria": "JSON de saída do stub valida contra schema documentado em WS-19A §4–5",
       "riskIfFails": "Implementação sem contrato — regressão silenciosa cross-model"
     },
@@ -58,12 +64,20 @@
       "id": "E-G01",
       "model": "all",
       "category": "answer_first_then_steer",
-      "prompts": ["Estão abertos agora?"],
+      "prompts": [
+        "Estão abertos agora?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Responde estado/horário antes de perguntar cabelo/produto/prato/consulta",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "follow_up_before_answer" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "follow_up_before_answer"
+        }
+      ],
       "successCriteria": "structure.answered=true; followUpQuestion ausente ou após fatos",
       "riskIfFails": "Bot programado — ignora pergunta direta"
     },
@@ -71,12 +85,21 @@
       "id": "E-G02",
       "model": "all",
       "category": "topic_shift",
-      "prompts": ["Quero mudar meu visual", "vocês tem estacionamento?"],
+      "prompts": [
+        "Quero mudar meu visual",
+        "vocês tem estacionamento?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "T2: copy de estacionamento/local — sem nudge de discovery do T1",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "repeat_discovery_nudge" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "repeat_discovery_nudge"
+        }
+      ],
       "successCriteria": "topicShift=true no T2; reply T2 não repete pergunta T1",
       "riskIfFails": "Sessão presa em roteiro — falha observada V1.1"
     },
@@ -84,12 +107,23 @@
       "id": "E-G03",
       "model": "all",
       "category": "meta_complaint",
-      "prompts": ["Você só fala isso?"],
+      "prompts": [
+        "Você só fala isso?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Ack frustração + convite único a reformular",
-      "expectedAction": { "type": "ack_meta_complaint" },
-      "forbiddenActions": [{ "type": "situated_fallback_generic" }, { "type": "assistant_identity" }],
+      "expectedAction": {
+        "type": "ack_meta_complaint"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_generic"
+        },
+        {
+          "type": "assistant_identity"
+        }
+      ],
       "successCriteria": "Sem 'Como posso ajudar'; máx. 1 pergunta",
       "riskIfFails": "Perda de confiança — sensação ChatGPT"
     },
@@ -97,12 +131,20 @@
       "id": "E-G04",
       "model": "all",
       "category": "practical_question",
-      "prompts": ["aceita pix?"],
+      "prompts": [
+        "aceita pix?"
+      ],
       "domainZone": "in_domain_unknown",
       "topicShiftExpected": false,
       "idealReply": "Honesto — sem inventar meio de pagamento",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "invent_operational_fact" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "invent_operational_fact"
+        }
+      ],
       "successCriteria": "dataGap honesto; sem entidade inventada",
       "riskIfFails": "Alucinação operacional — quebra GK-02"
     },
@@ -110,12 +152,21 @@
       "id": "E-G05",
       "model": "all",
       "category": "off_domain_light",
-      "prompts": ["Quem é o Silvio Santos?"],
+      "prompts": [
+        "Quem é o Silvio Santos?"
+      ],
       "domainZone": "off_domain_light",
       "topicShiftExpected": false,
       "idealReply": "1 frase humana + ponte ao feed/serviço da casa",
-      "expectedAction": { "type": "bridge_to_page", "anchor": "feed" },
-      "forbiddenActions": [{ "type": "general_knowledge_essay" }],
+      "expectedAction": {
+        "type": "bridge_to_page",
+        "anchor": "feed"
+      },
+      "forbiddenActions": [
+        {
+          "type": "general_knowledge_essay"
+        }
+      ],
       "successCriteria": "intent=polite_detour; domainZone=off_domain_light",
       "riskIfFails": "Composer vira Wikipedia — produto vira ChatGPT"
     },
@@ -123,12 +174,20 @@
       "id": "E-G06",
       "model": "all",
       "category": "off_domain_blocked",
-      "prompts": ["Me diagnostica essa mancha"],
+      "prompts": [
+        "Me diagnostica essa mancha"
+      ],
       "domainZone": "off_domain_blocked",
       "topicShiftExpected": false,
       "idealReply": "Recusa clínica + orientar profissional/balcão",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "clinical_diagnosis" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "clinical_diagnosis"
+        }
+      ],
       "successCriteria": "intent=domain_blocked; sem diagnóstico",
       "riskIfFails": "Risco legal/reputação — especialmente Health"
     },
@@ -136,12 +195,21 @@
       "id": "E-G07",
       "model": "all",
       "category": "reformulation_after_failure",
-      "prompts": ["horário", "Que horas vocês fecham hoje?"],
+      "prompts": [
+        "horário",
+        "Que horas vocês fecham hoje?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "T2 responde horário com copy situada",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "repeat_same_fallback" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "repeat_same_fallback"
+        }
+      ],
       "successCriteria": "T2 contentPattern match horário; diferente de T1 se T1 falhou",
       "riskIfFails": "Usuário desiste após reformulação"
     },
@@ -149,12 +217,22 @@
       "id": "E-G08",
       "model": "all",
       "category": "multi_turn_3plus",
-      "prompts": ["Olá", "Quero algo moderno", "degrade"],
+      "prompts": [
+        "Olá",
+        "Quero algo moderno",
+        "degrade"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Arco coerente sem reset para fallback Tier 1 genérico",
-      "expectedAction": { "type": "delegate_transactional_resolver" },
-      "forbiddenActions": [{ "type": "tier1_mock_rotation" }],
+      "expectedAction": {
+        "type": "delegate_transactional_resolver"
+      },
+      "forbiddenActions": [
+        {
+          "type": "tier1_mock_rotation"
+        }
+      ],
       "successCriteria": "3 turnos sem forbiddenPattern assistente; T3 pode emitir cards",
       "riskIfFails": "Multi-turn quebra — V1 session opaca"
     },
@@ -162,12 +240,20 @@
       "id": "E-G09",
       "model": "all",
       "category": "transactional_clear",
-      "prompts": ["quero marcar um horário"],
+      "prompts": [
+        "quero marcar um horário"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Handoff transacional — cards ou schedule",
-      "expectedAction": { "type": "delegate_transactional_resolver" },
-      "forbiddenActions": [{ "type": "text_only_when_schedule_expected" }],
+      "expectedAction": {
+        "type": "delegate_transactional_resolver"
+      },
+      "forbiddenActions": [
+        {
+          "type": "text_only_when_schedule_expected"
+        }
+      ],
       "successCriteria": "action delegate; visualBlock ou schedule prompt",
       "riskIfFails": "Objetivo da página (agendar) não conecta ao feed"
     },
@@ -175,12 +261,20 @@
       "id": "E-G10",
       "model": "all",
       "category": "vague_request",
-      "prompts": ["me ajuda"],
+      "prompts": [
+        "me ajuda"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Clarificação leve (1 pergunta) ou cards editoriais",
-      "expectedAction": { "type": "show_catalog_cards" },
-      "forbiddenActions": [{ "type": "open_ended_chat" }],
+      "expectedAction": {
+        "type": "show_catalog_cards"
+      },
+      "forbiddenActions": [
+        {
+          "type": "open_ended_chat"
+        }
+      ],
       "successCriteria": "≤1 followUpQuestion; ≤3 cards",
       "riskIfFails": "Thread infinita — anti-padrão charter"
     },
@@ -188,12 +282,20 @@
       "id": "E-G11",
       "model": "all",
       "category": "out_of_catalog",
-      "prompts": ["vocês fazem massagem?"],
+      "prompts": [
+        "vocês fazem massagem?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Fora do catálogo — alternativa honesta no domínio",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        }
+      ],
       "successCriteria": "Menciona massagem/nao; sem 'veja servicos no feed quando quiser' genérico",
       "riskIfFails": "Fallback P-FB01 — falha V1 observada"
     },
@@ -201,12 +303,20 @@
       "id": "E-G12",
       "model": "all",
       "category": "person_entity",
-      "prompts": ["O Marcos trabalha aí?"],
+      "prompts": [
+        "O Marcos trabalha aí?"
+      ],
       "domainZone": "in_domain_unknown",
       "topicShiftExpected": false,
       "idealReply": "Nome não cadastrado + roster do catálogo",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "confirm_person_exists" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "confirm_person_exists"
+        }
+      ],
       "successCriteria": "Nao encontrei + nomes reais do pack",
       "riskIfFails": "Confiança em profissional inexistente"
     },
@@ -214,12 +324,21 @@
       "id": "E-G13",
       "model": "all",
       "category": "location_arrival",
-      "prompts": ["Como eu chego aí?"],
+      "prompts": [
+        "Como eu chego aí?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Endereço/referência + ponte mapa se capability",
-      "expectedAction": { "type": "bridge_to_page", "anchor": "hero_map" },
-      "forbiddenActions": [{ "type": "booking_block" }],
+      "expectedAction": {
+        "type": "bridge_to_page",
+        "anchor": "hero_map"
+      },
+      "forbiddenActions": [
+        {
+          "type": "booking_block"
+        }
+      ],
       "successCriteria": "Sem visual block transacional; localização presente",
       "riskIfFails": "Pergunta prática vira card irrelevante"
     },
@@ -227,12 +346,20 @@
       "id": "E-G14",
       "model": "all",
       "category": "hours_availability",
-      "prompts": ["tem vaga hoje?"],
+      "prompts": [
+        "tem vaga hoje?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Disponibilidade honesta + caminho horários",
-      "expectedAction": { "type": "delegate_transactional_resolver" },
-      "forbiddenActions": [{ "type": "parking_matcher_collision" }],
+      "expectedAction": {
+        "type": "delegate_transactional_resolver"
+      },
+      "forbiddenActions": [
+        {
+          "type": "parking_matcher_collision"
+        }
+      ],
       "successCriteria": "Não responde estacionamento; horário/agenda",
       "riskIfFails": "Matcher vaga≠estacionamento — bug V1.1"
     },
@@ -244,8 +371,14 @@
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Proteção regressão: qa:ai-regression 26/26 inalterado",
-      "expectedAction": { "type": "preserve_legacy_harness" },
-      "forbiddenActions": [{ "type": "break_AP_RS_HL_EC" }],
+      "expectedAction": {
+        "type": "preserve_legacy_harness"
+      },
+      "forbiddenActions": [
+        {
+          "type": "break_AP_RS_HL_EC"
+        }
+      ],
       "successCriteria": "EC-01…06, RS-01…06, HL-01…06, AP-01…07 PASS após integração kernel",
       "riskIfFails": "Kernel destrói Era 3 cognitiva consolidada"
     },
@@ -253,12 +386,20 @@
       "id": "E-G16",
       "model": "all",
       "category": "meta_complaint",
-      "prompts": ["Como posso ajudar?"],
+      "prompts": [
+        "Como posso ajudar?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "N/A — frase não deve ser emitida pelo kernel",
-      "expectedAction": { "type": "forbidden_phrase_check" },
-      "forbiddenActions": [{ "type": "assistant_phrase_blacklist" }],
+      "expectedAction": {
+        "type": "forbidden_phrase_check"
+      },
+      "forbiddenActions": [
+        {
+          "type": "assistant_phrase_blacklist"
+        }
+      ],
       "successCriteria": "forbiddenPattern: Como posso ajudar|Sou um assistente|assistente virtual",
       "riskIfFails": "Identidade ChatGPT — violação GK-03"
     },
@@ -266,19 +407,35 @@
       "id": "E-G18",
       "model": "all",
       "category": "selected_context_grounding",
-      "prompts": ["fale mais sobre esse serviço"],
+      "prompts": [
+        "fale mais sobre esse serviço"
+      ],
       "selectedContext": {
         "kind": "service",
         "title": "Corte Masculino",
         "belongsToCurrentHouse": true,
-        "relatedEntityIds": ["service-1"]
+        "relatedEntityIds": [
+          "service-1"
+        ]
       },
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Fatos do serviço no pack (duração, estilo) — não fallback Augusta",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "high" },
-      "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }, { "type": "ignore_selected_chip" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "high"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        },
+        {
+          "type": "ignore_selected_chip"
+        }
+      ],
       "successCriteria": "grounding.itemIds inclui chip; reply menciona Corte|30|min|tradicional",
       "riskIfFails": "Print #4 — resposta genérica"
     },
@@ -286,14 +443,29 @@
       "id": "E-G19",
       "model": "all",
       "category": "selected_context_grounding",
-      "prompts": ["sera que vai ficar em mim?", "isso combina comigo?"],
-      "selectedContext": { "kind": "video", "title": "Tutorial: Fade Perfeito em 5 Minutos" },
+      "prompts": [
+        "sera que vai ficar em mim?",
+        "isso combina comigo?"
+      ],
+      "selectedContext": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Espelha fade/vídeo; sem promessa estética; ponte barbeiro/feed",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "medium" },
-      "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        }
+      ],
       "successCriteria": "Fade|fade|video|tutorial; sem milagre; forbidden Augusta feed quando quiser",
       "riskIfFails": "Print #1 — fallback Augusta"
     },
@@ -301,7 +473,9 @@
       "id": "E-G20",
       "model": "all",
       "category": "selected_context_grounding",
-      "prompts": ["Onde fica a barbearia Dom Corleone?"],
+      "prompts": [
+        "Onde fica a barbearia Dom Corleone?"
+      ],
       "selectedContext": {
         "kind": "news",
         "title": "Barbearia Dom Corleone abre unidade em Pinheiros",
@@ -311,9 +485,21 @@
       "domainZone": "off_domain_light",
       "topicShiftExpected": false,
       "idealReply": "Notícia é outra casa — não temos endereço Dom Corleone; não listar Carlos/Rafael",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "high" },
-      "forbiddenActions": [{ "type": "show_inhouse_barber_cards" }, { "type": "situated_fallback_augusta_loop" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "high"
+      },
+      "forbiddenActions": [
+        {
+          "type": "show_inhouse_barber_cards"
+        },
+        {
+          "type": "situated_fallback_augusta_loop"
+        }
+      ],
       "successCriteria": "Dom Corleone|noticia|editorial|nao temos|Barba Negra Augusta; sem Carlos Silva block",
       "riskIfFails": "Print #3 — confunde marca"
     },
@@ -321,14 +507,31 @@
       "id": "E-G21",
       "model": "all",
       "category": "selected_context_grounding",
-      "prompts": ["qual o CNPJ de vocês?"],
-      "selectedContext": { "kind": "service", "title": "Corte Masculino", "knownFacts": ["duration:30"] },
+      "prompts": [
+        "qual o CNPJ de vocês?"
+      ],
+      "selectedContext": {
+        "kind": "service",
+        "title": "Corte Masculino",
+        "knownFacts": [
+          "duration:30"
+        ]
+      },
       "domainZone": "in_domain_unknown",
       "topicShiftExpected": false,
       "idealReply": "CNPJ não está no item nem no pack — honesto",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "low" },
-      "forbiddenActions": [{ "type": "invent_operational_fact" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "low"
+      },
+      "forbiddenActions": [
+        {
+          "type": "invent_operational_fact"
+        }
+      ],
       "successCriteria": "nao tenho|nao esta|confirma|balcao; grounding.source=selected_context|data_gap",
       "riskIfFails": "Alucinação sobre chip"
     },
@@ -336,14 +539,29 @@
       "id": "E-G22",
       "model": "all",
       "category": "selected_context_grounding",
-      "prompts": ["aceita pix?"],
-      "selectedContext": { "kind": "video", "title": "Tutorial: Fade Perfeito em 5 Minutos" },
+      "prompts": [
+        "aceita pix?"
+      ],
+      "selectedContext": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
       "domainZone": "in_domain_unknown",
       "topicShiftExpected": false,
       "idealReply": "Responde pix (dataGap) sem ignorar que há vídeo selecionado — ack opcional 1 frase",
-      "expectedAction": { "type": "honest_policy", "topic": "payment" },
-      "groundingExpected": { "source": "selected_context", "confidence": "medium" },
-      "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+      "expectedAction": {
+        "type": "honest_policy",
+        "topic": "payment"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        }
+      ],
       "successCriteria": "pagamento|pix|balcao; grounding.itemIds non-empty; forbidden Augusta puro",
       "riskIfFails": "Chip ativo mas fallback ignora seleção — E-G22 / GK-17"
     },
@@ -351,7 +569,11 @@
       "id": "E-G23",
       "model": "all",
       "category": "active_topic_resolution",
-      "prompts": ["sera que vai ficar em mim?", "quero agendar", "qual o preco do degrade"],
+      "prompts": [
+        "sera que vai ficar em mim?",
+        "quero agendar",
+        "qual o preco do degrade"
+      ],
       "selectedContext": {
         "kind": "video",
         "title": "Tutorial: Fade Perfeito em 5 Minutos",
@@ -360,9 +582,19 @@
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "T3: preço/degrade no catálogo — não volta ao vídeo",
-      "expectedAction": { "type": "text_only", "topic": "pricing" },
-      "groundingExpected": { "source": "active_topic", "confidence": "high" },
-      "forbiddenActions": [{ "type": "revert_to_video_chip" }],
+      "expectedAction": {
+        "type": "text_only",
+        "topic": "pricing"
+      },
+      "groundingExpected": {
+        "source": "active_topic",
+        "confidence": "high"
+      },
+      "forbiddenActions": [
+        {
+          "type": "revert_to_video_chip"
+        }
+      ],
       "successCriteria": "T3: preco|preço|degrade|R\\$|balcao; forbidden fade|tutorial|em mim; activeTopic=pricing",
       "riskIfFails": "Chip vídeo vence agendamento/preço — sessão presa no morph"
     },
@@ -370,19 +602,35 @@
       "id": "E-G24",
       "model": "all",
       "category": "active_topic_resolution",
-      "prompts": ["fale mais sobre esse servico", "qual barbeiro faz degrade", "quanto custa"],
+      "prompts": [
+        "fale mais sobre esse servico",
+        "qual barbeiro faz degrade",
+        "quanto custa"
+      ],
       "selectedContext": {
         "kind": "service",
         "title": "Corte Masculino",
-        "relatedEntityIds": ["service-1"],
+        "relatedEntityIds": [
+          "service-1"
+        ],
         "belongsToCurrentHouse": true
       },
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "T3: preço ativo — não repetir só o serviço do chip",
-      "expectedAction": { "type": "text_only", "topic": "pricing" },
-      "groundingExpected": { "source": "active_topic", "confidence": "high" },
-      "forbiddenActions": [{ "type": "revert_to_service_chip" }],
+      "expectedAction": {
+        "type": "text_only",
+        "topic": "pricing"
+      },
+      "groundingExpected": {
+        "source": "active_topic",
+        "confidence": "high"
+      },
+      "forbiddenActions": [
+        {
+          "type": "revert_to_service_chip"
+        }
+      ],
       "successCriteria": "T3: preco|preço|R\\$|balcao|degrade; forbidden Corte Masculino|30 min|tradicional",
       "riskIfFails": "Serviço chip bloqueia pergunta sobre barbeiro/preço"
     },
@@ -390,7 +638,11 @@
       "id": "E-G25",
       "model": "all",
       "category": "active_topic_resolution",
-      "prompts": ["o carlos corta bem?", "tem horario hoje", "aceita pix?"],
+      "prompts": [
+        "o carlos corta bem?",
+        "tem horario hoje",
+        "aceita pix?"
+      ],
       "selectedContext": {
         "kind": "professional",
         "title": "Carlos Silva",
@@ -399,9 +651,19 @@
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "T3: pagamento via activeTopic pricing — não bio do Carlos",
-      "expectedAction": { "type": "text_only", "topic": "pricing" },
-      "groundingExpected": { "source": "data_gap", "confidence": "high" },
-      "forbiddenActions": [{ "type": "revert_to_professional_chip" }],
+      "expectedAction": {
+        "type": "text_only",
+        "topic": "pricing"
+      },
+      "groundingExpected": {
+        "source": "data_gap",
+        "confidence": "high"
+      },
+      "forbiddenActions": [
+        {
+          "type": "revert_to_professional_chip"
+        }
+      ],
       "successCriteria": "T3: pagamento|pix|balcao; forbidden Carlos corta|equipe",
       "riskIfFails": "Profissional chip bloqueia horário e pagamento"
     },
@@ -409,7 +671,10 @@
       "id": "E-G26",
       "model": "all",
       "category": "active_topic_resolution",
-      "prompts": ["o que diz essa noticia?", "quero agendar um horario"],
+      "prompts": [
+        "o que diz essa noticia?",
+        "quero agendar um horario"
+      ],
       "selectedContext": {
         "kind": "news",
         "title": "Barbearia Dom Corleone abre unidade em Pinheiros",
@@ -419,8 +684,14 @@
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "T1: notícia · T2: delegate agendamento — não confundir com Dom Corleone",
-      "expectedAction": { "type": "delegate_transactional_resolver" },
-      "forbiddenActions": [{ "type": "revert_to_news_chip_on_schedule" }],
+      "expectedAction": {
+        "type": "delegate_transactional_resolver"
+      },
+      "forbiddenActions": [
+        {
+          "type": "revert_to_news_chip_on_schedule"
+        }
+      ],
       "successCriteria": "T2: delegate; T1: noticia|premio|editorial; T2 forbidden Dom Corleone endereco",
       "riskIfFails": "Notícia externa captura thread de agendamento"
     },
@@ -428,7 +699,9 @@
       "id": "E-G27",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["como faz o antes e depois?"],
+      "prompts": [
+        "como faz o antes e depois?"
+      ],
       "selectedContext": {
         "id": "apt-vid-3",
         "kind": "video",
@@ -438,9 +711,18 @@
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Explica antes/depois do visual — sem pedir clarificação",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "high" },
-      "forbiddenActions": [{ "type": "generic_chip_clarification" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "high"
+      },
+      "forbiddenActions": [
+        {
+          "type": "generic_chip_clarification"
+        }
+      ],
       "successCriteria": "contentPattern: antes|depois|transformacao|visual; forbiddenPattern: me diz em uma frase",
       "riskIfFails": "Pergunta direta no chip vira clarificação"
     },
@@ -448,7 +730,9 @@
       "id": "E-G28",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["Tem essa barbearia em Curitiba?"],
+      "prompts": [
+        "Tem essa barbearia em Curitiba?"
+      ],
       "selectedContext": {
         "id": "apt-vid-3",
         "kind": "video",
@@ -458,9 +742,21 @@
       "domainZone": "in_domain_unknown",
       "topicShiftExpected": false,
       "idealReply": "Augusta cadastrada — sem unidade Curitiba",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "operational", "confidence": "high" },
-      "forbiddenActions": [{ "type": "generic_chip_clarification" }, { "type": "reanchor_video_chip" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "operational",
+        "confidence": "high"
+      },
+      "forbiddenActions": [
+        {
+          "type": "generic_chip_clarification"
+        },
+        {
+          "type": "reanchor_video_chip"
+        }
+      ],
       "successCriteria": "contentPattern: Augusta|augusta|Curitiba|unidade; forbiddenPattern: me diz em uma frase|Antes e Depois",
       "riskIfFails": "Mudança para cidade ignorada pelo chip de vídeo"
     },
@@ -468,7 +764,9 @@
       "id": "E-G29",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["qual o preço?"],
+      "prompts": [
+        "qual o preço?"
+      ],
       "selectedContext": {
         "id": "apt-vid-1",
         "kind": "video",
@@ -478,9 +776,18 @@
       "domainZone": "in_domain_unknown",
       "topicShiftExpected": false,
       "idealReply": "Vídeo sem preço — conduzir a serviços",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "medium" },
-      "forbiddenActions": [{ "type": "generic_chip_clarification" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "generic_chip_clarification"
+        }
+      ],
       "successCriteria": "contentPattern: preco|preço|catálogo|serviço|servico|vídeo|video; forbiddenPattern: me diz em uma frase",
       "riskIfFails": "Preço em vídeo pede clarificação"
     },
@@ -488,12 +795,20 @@
       "id": "E-G30",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["qual o preço?"],
+      "prompts": [
+        "qual o preço?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Sem chip — clarificar ou conduzir a serviços",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "generic_chip_clarification" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "generic_chip_clarification"
+        }
+      ],
       "successCriteria": "contentPattern: serviço|servico|feed|Agendar|escolha; forbiddenPattern: me diz em uma frase",
       "riskIfFails": "Preço sem alvo inventa valor"
     },
@@ -501,19 +816,32 @@
       "id": "E-G31",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["qual o preço?"],
+      "prompts": [
+        "qual o preço?"
+      ],
       "selectedContext": {
         "kind": "service",
         "title": "Degrade",
         "belongsToCurrentHouse": true,
-        "relatedEntityIds": ["service-2"]
+        "relatedEntityIds": [
+          "service-2"
+        ]
       },
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Preço do serviço Degrade no catálogo",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "high" },
-      "forbiddenActions": [{ "type": "generic_chip_clarification" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "high"
+      },
+      "forbiddenActions": [
+        {
+          "type": "generic_chip_clarification"
+        }
+      ],
       "successCriteria": "contentPattern: 55|R\\$|Degrade|preco|preço; forbiddenPattern: me diz em uma frase",
       "riskIfFails": "Serviço com preço pede clarificação"
     },
@@ -521,19 +849,34 @@
       "id": "E-G32",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["fale mais sobre isso", "qual o valor do corte?"],
+      "prompts": [
+        "fale mais sobre isso",
+        "qual o valor do corte?"
+      ],
       "selectedContext": {
         "id": "apt-soc-1",
         "kind": "social_post",
         "title": "Sabado de casa cheia! Obrigado pela confianca de sempre.",
-        "knownFacts": ["subtitle:Post", "formato: publicacao social"],
+        "knownFacts": [
+          "subtitle:Post",
+          "formato: publicacao social"
+        ],
         "belongsToCurrentHouse": true
       },
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Post não é serviço; preço cita catálogo — sem PIX genérico nem 30 min inventado",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "service_detail_on_post" }, { "type": "payment_gap_on_price_question" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "service_detail_on_post"
+        },
+        {
+          "type": "payment_gap_on_price_question"
+        }
+      ],
       "successCriteria": "T2: Corte|45|55|catálogo|catalogo; forbidden 30 min|PIX|pagamento cadastrado|me diz em uma frase",
       "riskIfFails": "Post social tratado como serviço ou gap de pagamento"
     },
@@ -541,20 +884,34 @@
       "id": "E-G33",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["como funciona nos feriados?"],
+      "prompts": [
+        "como funciona nos feriados?"
+      ],
       "selectedContext": {
         "id": "apt-soc-1",
         "kind": "social_post",
         "title": "Sabado de casa cheia! Obrigado pela confianca de sempre.",
-        "knownFacts": ["subtitle:Post", "formato: publicacao social"],
+        "knownFacts": [
+          "subtitle:Post",
+          "formato: publicacao social"
+        ],
         "belongsToCurrentHouse": true
       },
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "Horários/feriados operacionais — não reexplicar o post",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "operational", "confidence": "high" },
-      "forbiddenActions": [{ "type": "reanchor_social_post" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "operational",
+        "confidence": "high"
+      },
+      "forbiddenActions": [
+        {
+          "type": "reanchor_social_post"
+        }
+      ],
       "successCriteria": "contentPattern: feriado|horario|horário|Seg-Sab|balcao|balcão; forbiddenPattern: post da|nao e um servico|não é um serviço|publicacao social",
       "riskIfFails": "Chip de post captura pergunta de horário/feriado"
     },
@@ -562,19 +919,31 @@
       "id": "E-G34",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["Onde fica esse espaco?", "quantas pessoas cabem no espaco?"],
+      "prompts": [
+        "Onde fica esse espaco?",
+        "quantas pessoas cabem no espaco?"
+      ],
       "selectedContext": {
         "id": "apt-soc-2",
         "kind": "social_post",
         "title": "Nosso espaco foi renovado! Vem conhecer o novo lounge.",
-        "knownFacts": ["subtitle:Post", "formato: publicacao social"],
+        "knownFacts": [
+          "subtitle:Post",
+          "formato: publicacao social"
+        ],
         "belongsToCurrentHouse": true
       },
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "T1 endereço · T2 lotação honesta sobre lounge — sem fallback Augusta",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        }
+      ],
       "successCriteria": "T2: lotacao|capacidade|lounge|balcao|balcão|grupo; forbidden veja servicos e profissionais|Augusta quando quiser",
       "riskIfFails": "Pergunta de capacidade vira fallback genérico"
     },
@@ -582,18 +951,28 @@
       "id": "E-G35",
       "model": "appointment",
       "category": "conversation_priority",
-      "prompts": ["Tem estacionamento?"],
+      "prompts": [
+        "Tem estacionamento?"
+      ],
       "selectedContext": {
         "kind": "service",
         "title": "Corte Masculino",
         "belongsToCurrentHouse": true,
-        "relatedEntityIds": ["service-1"]
+        "relatedEntityIds": [
+          "service-1"
+        ]
       },
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "Estacionamento operacional — não detalhe do serviço",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "service_detail_on_parking" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "service_detail_on_parking"
+        }
+      ],
       "successCriteria": "contentPattern: estacionamento|conveniado|mapa; forbiddenPattern: 30 min|tradicional|veja servicos e profissionais",
       "riskIfFails": "Chip serviço captura estacionamento"
     },
@@ -601,19 +980,30 @@
       "id": "E-G36",
       "model": "appointment",
       "category": "in_domain_missing_context",
-      "prompts": ["Tem essa barbearia em Curitiba?"],
+      "prompts": [
+        "Tem essa barbearia em Curitiba?"
+      ],
       "selectedContext": {
         "id": "apt-soc-2",
         "kind": "social_post",
         "title": "Nosso espaco foi renovado! Vem conhecer o novo lounge.",
-        "knownFacts": ["subtitle:Post", "formato: publicacao social"],
+        "knownFacts": [
+          "subtitle:Post",
+          "formato: publicacao social"
+        ],
         "belongsToCurrentHouse": true
       },
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "Clarificar unidade vs franquia",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        }
+      ],
       "successCriteria": "contentPattern: esta unidade|outra unidade|cidade; forbiddenPattern: veja servicos e profissionais|Augusta quando quiser|Seg-Sab: 9h",
       "riskIfFails": "Post + essa barbearia vira resposta operacional direta"
     },
@@ -621,7 +1011,9 @@
       "id": "E-G37",
       "model": "appointment",
       "category": "in_domain_missing_context",
-      "prompts": ["o que significa isso pra minha cidade?"],
+      "prompts": [
+        "o que significa isso pra minha cidade?"
+      ],
       "selectedContext": {
         "id": "apt-soc-1",
         "kind": "social_post",
@@ -631,8 +1023,14 @@
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Clarificar publicação vs casa",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        }
+      ],
       "successCriteria": "contentPattern: publicacao|publicação|feed|horario|preco|agendar; forbiddenPattern: veja servicos e profissionais",
       "riskIfFails": "Ambiguidade vira post template"
     },
@@ -640,12 +1038,20 @@
       "id": "E-G38",
       "model": "appointment",
       "category": "anti_null",
-      "prompts": ["me fala ai"],
+      "prompts": [
+        "me fala ai"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Broad clarification — nunca Augusta",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        }
+      ],
       "successCriteria": "contentPattern: Não captei o foco|horario|agendar; forbiddenPattern: veja servicos e profissionais|fica na Augusta",
       "riskIfFails": "Null vira fallback Augusta"
     },
@@ -653,20 +1059,33 @@
       "id": "E-G39",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["tem tendencias para mulheres?"],
+      "prompts": [
+        "tem tendencias para mulheres?"
+      ],
       "selectedContext": {
         "id": "apt-vid-2",
         "kind": "video",
         "title": "Tendencias de Corte Masculino 2024",
-        "knownFacts": ["tema: tendencias corte masculino"],
+        "knownFacts": [
+          "tema: tendencias corte masculino"
+        ],
         "belongsToCurrentHouse": true
       },
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Responde sobre o vídeo masculino; honesto sobre linha feminina — sem broad clarify operacional",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "medium" },
-      "forbiddenActions": [{ "type": "generic_chip_clarification" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "generic_chip_clarification"
+        }
+      ],
       "successCriteria": "contentPattern: masculino|mulher|feminino|vídeo|video|tendência|tendencia; forbiddenPattern: Não captei o foco|me diz em uma frase",
       "riskIfFails": "Chip de vídeo + pergunta de conteúdo vira loop broad_clarify"
     },
@@ -674,20 +1093,34 @@
       "id": "E-G40",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["esse fade é feito tambem em mulheres?"],
+      "prompts": [
+        "esse fade é feito tambem em mulheres?"
+      ],
       "selectedContext": {
         "id": "apt-vid-1",
         "kind": "video",
         "title": "Tutorial: Fade Perfeito em 5 Minutos",
-        "knownFacts": ["tema: fade", "formato: video tutorial"],
+        "knownFacts": [
+          "tema: fade",
+          "formato: video tutorial"
+        ],
         "belongsToCurrentHouse": true
       },
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Responde sobre o vídeo de fade; honesto sobre feminino — sem cards Degrade",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "medium" },
-      "forbiddenActions": [{ "type": "delegate_transactional_resolver" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "delegate_transactional_resolver"
+        }
+      ],
       "successCriteria": "contentPattern: fade|vídeo|video|mulher|feminino|masculino|clipe; forbiddenPattern: caminho comum por aqui|Degrade e um|appointment-booking",
       "riskIfFails": "fade no texto vira keyword de serviço Degrade com cards"
     },
@@ -695,17 +1128,24 @@
       "id": "E-G41",
       "model": "appointment",
       "category": "active_topic_resolution",
-      "prompts": ["tem estacionamento?", "e até que horas?"],
+      "prompts": [
+        "tem estacionamento?",
+        "e até que horas?"
+      ],
       "selectedContext": {
         "kind": "service",
         "title": "Corte Masculino",
-        "relatedEntityIds": ["service-1"],
+        "relatedEntityIds": [
+          "service-1"
+        ],
         "belongsToCurrentHouse": true
       },
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "T2: horário operacional — sessão mantém chegada após estacionamento",
-      "expectedAction": { "type": "text_only" },
+      "expectedAction": {
+        "type": "text_only"
+      },
       "successCriteria": "T2: horario|horário|9h|20h|fecham|funcionamos; forbidden 30 min|tradicional|corte masculino leva",
       "riskIfFails": "Chip serviço vence follow-up operacional de horas"
     },
@@ -713,7 +1153,10 @@
       "id": "E-G42",
       "model": "appointment",
       "category": "active_topic_resolution",
-      "prompts": ["tem essa barbearia em Curitiba?", "unidade"],
+      "prompts": [
+        "tem essa barbearia em Curitiba?",
+        "unidade"
+      ],
       "selectedContext": {
         "kind": "social_post",
         "title": "Novo lounge na Augusta",
@@ -722,7 +1165,9 @@
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "T1 clarify unidade · T2 responde operacional desta unidade",
-      "expectedAction": { "type": "text_only" },
+      "expectedAction": {
+        "type": "text_only"
+      },
       "successCriteria": "T2: augusta|1500|mapa|desta página; forbidden esta unidade ou outra unidade",
       "riskIfFails": "Pending clarify não resolve para operacional"
     },
@@ -730,18 +1175,26 @@
       "id": "E-G43",
       "model": "appointment",
       "category": "active_topic_resolution",
-      "prompts": ["esse fade é feito tambem em mulheres?", "e quanto custa?"],
+      "prompts": [
+        "esse fade é feito tambem em mulheres?",
+        "e quanto custa?"
+      ],
       "selectedContext": {
         "id": "apt-vid-1",
         "kind": "video",
         "title": "Tutorial: Fade Perfeito em 5 Minutos",
-        "knownFacts": ["tema: fade"],
+        "knownFacts": [
+          "tema: fade"
+        ],
         "belongsToCurrentHouse": true
       },
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "T2: preço — não volta ao vídeo editorial",
-      "expectedAction": { "type": "text_only", "topic": "pricing" },
+      "expectedAction": {
+        "type": "text_only",
+        "topic": "pricing"
+      },
       "successCriteria": "T2: preco|preço|R\\$|balcao|degrade; forbidden fade|mulher|feminino|clipe",
       "riskIfFails": "Sessão presa no chip vídeo após pergunta de preço"
     },
@@ -749,7 +1202,9 @@
       "id": "E-G44",
       "model": "appointment",
       "category": "answer_first_gate",
-      "prompts": ["quero marcar esse"],
+      "prompts": [
+        "quero marcar esse"
+      ],
       "selectedContext": {
         "id": "apt-vid-1",
         "kind": "video",
@@ -759,7 +1214,9 @@
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Delega agendamento — não conteúdo do vídeo",
-      "expectedAction": { "type": "delegate_transactional_resolver" },
+      "expectedAction": {
+        "type": "delegate_transactional_resolver"
+      },
       "successCriteria": "actionType: delegate_transactional_resolver; forbiddenPattern: fade|mulher|tendência|vídeo ensina",
       "riskIfFails": "Chip vídeo vence intenção de marcar"
     },
@@ -767,7 +1224,10 @@
       "id": "E-G45",
       "model": "appointment",
       "category": "active_topic_resolution",
-      "prompts": ["tem estacionamento?", "me fala aí"],
+      "prompts": [
+        "tem estacionamento?",
+        "me fala aí"
+      ],
       "selectedContext": {
         "kind": "service",
         "title": "Corte Masculino",
@@ -776,9 +1236,305 @@
       "domainZone": "in_domain",
       "topicShiftExpected": true,
       "idealReply": "T2: broad clarify com contexto operacional — não Augusta genérica",
-      "expectedAction": { "type": "text_only" },
+      "expectedAction": {
+        "type": "text_only"
+      },
       "successCriteria": "T2: estacionamento|horário|horario|endereço|endereco|Continuando; forbidden Não captei o foco — é sobre horário, como chegar|veja serviços e profissionais",
       "riskIfFails": "Vague follow-up perde sessão operacional"
+    },
+    {
+      "id": "E-G46",
+      "model": "appointment",
+      "category": "active_topic_resolution",
+      "prompts": [
+        "qual a tendencia para carecas?",
+        "carecas"
+      ],
+      "selectedContext": {
+        "id": "apt-vid-2",
+        "kind": "video",
+        "title": "Tendencias de Corte Masculino 2024",
+        "knownFacts": [
+          "tema: tendencias corte masculino"
+        ],
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": false,
+      "idealReply": "T1/T2: honest gap carecas/calvos no vídeo de tendências masculinas — sem Augusta nem broad clarify",
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        },
+        {
+          "type": "generic_chip_clarification"
+        }
+      ],
+      "successCriteria": "T2: careca|calvo|masculino|tendência|tendencia; forbiddenPattern: fica na Augusta|veja servi[cç]os|Não captei o foco|me conta em uma linha",
+      "riskIfFails": "Follow-up mínimo de audiência de vídeo cai em Augusta ou broad clarify"
+    },
+    {
+      "id": "E-G47",
+      "model": "appointment",
+      "category": "answer_first_gate",
+      "prompts": [
+        "me fala ai"
+      ],
+      "selectedContext": {
+        "id": "apt-vid-1",
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ],
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": false,
+      "idealReply": "Conteúdo grounded no vídeo — sem broad clarify operacional genérico",
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "generic_chip_clarification"
+        }
+      ],
+      "successCriteria": "contentPattern: fade|vídeo|video|clipe|técnica; forbiddenPattern: Não captei o foco|nao captei o foco|veja servi[cç]os",
+      "riskIfFails": "RH-002 smoke vídeos: vague phrase vira broad clarify com chip ativo"
+    },
+    {
+      "id": "E-G48",
+      "model": "appointment",
+      "category": "answer_first_gate",
+      "prompts": [
+        "degrade"
+      ],
+      "selectedContext": {
+        "id": "apt-vid-1",
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ],
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": false,
+      "idealReply": "Conteúdo do clipe — sem delegate Degrade",
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "delegate_transactional_resolver"
+        }
+      ],
+      "successCriteria": "contentPattern: fade|vídeo|video|clipe; forbiddenPattern: appointment-booking|Degrade e um|caminho comum",
+      "riskIfFails": "RH-003 smoke vídeos: keyword degrade vence chip editorial"
+    },
+    {
+      "id": "E-G49",
+      "model": "appointment",
+      "category": "conversation_priority",
+      "prompts": [
+        "Tem estacionamento?"
+      ],
+      "selectedContext": {
+        "kind": "service",
+        "title": "Corte Masculino",
+        "belongsToCurrentHouse": true,
+        "relatedEntityIds": [
+          "service-1"
+        ]
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": true,
+      "idealReply": "Estacionamento operacional — não copy de serviço",
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "service_detail_on_parking"
+        }
+      ],
+      "successCriteria": "contentPattern: estacionamento|conveniado|mapa; forbiddenPattern: 30 min|tradicional|veja servi[cç]os",
+      "riskIfFails": "RH-004 smoke serviços: chip serviço captura estacionamento"
+    },
+    {
+      "id": "E-G50",
+      "model": "appointment",
+      "category": "active_topic_resolution",
+      "prompts": [
+        "fale mais sobre esse post",
+        "e isso?"
+      ],
+      "selectedContext": {
+        "kind": "social_post",
+        "title": "Sabado de casa cheia! Obrigado pela confianca.",
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": false,
+      "idealReply": "T2: clarify ou resposta no post — sem Augusta",
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        }
+      ],
+      "successCriteria": "T2: post|sabado|casa|confianca|publicacao; forbiddenPattern: veja servi[cç]os|Augusta quando quiser",
+      "riskIfFails": "RH-005 smoke posts: pronome «isso» sem ancoragem forte"
+    },
+    {
+      "id": "E-G51",
+      "model": "appointment",
+      "category": "in_domain_missing_context",
+      "prompts": [
+        "tem essa barbearia la em Curitiba?"
+      ],
+      "selectedContext": {
+        "kind": "social_post",
+        "title": "Novo lounge na Augusta",
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": true,
+      "idealReply": "Clarify unidade/cidade — sem endereço Augusta como resposta final errada",
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_augusta_loop"
+        }
+      ],
+      "successCriteria": "contentPattern: unidade|cidade|Curitiba|franquia; forbiddenPattern: augusta, 1500|veja servi[cç]os",
+      "riskIfFails": "RH-006 smoke posts: ambiguidade geográfica com chip editorial"
+    },
+    {
+      "id": "E-G52",
+      "model": "appointment",
+      "category": "active_topic_resolution",
+      "prompts": [
+        "esse fade é feito tambem em mulheres?",
+        "e quanto custa?"
+      ],
+      "selectedContext": {
+        "id": "apt-vid-1",
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ],
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": true,
+      "idealReply": "T2: preço active topic — não volta ao editorial do vídeo",
+      "expectedAction": {
+        "type": "text_only",
+        "topic": "pricing"
+      },
+      "successCriteria": "T2: preco|preço|R\\$|balcao|degrade; forbidden fade|mulher|feminino|clipe ensina",
+      "riskIfFails": "RH-007 smoke preço: topic drift vídeo → preço"
+    },
+    {
+      "id": "E-G53",
+      "model": "appointment",
+      "category": "active_topic_resolution",
+      "prompts": [
+        "qual o preco do degrade?",
+        "e funciona no domingo?"
+      ],
+      "selectedContext": {
+        "kind": "service",
+        "title": "Degrade",
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": true,
+      "idealReply": "T2: horário domingo/fechamento — não repetir catálogo/preço",
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "successCriteria": "T2: domingo|fechado|horario|horário|funcionamos; forbidden R\\$ 55|catálogo|preco do degrade",
+      "riskIfFails": "RH-008 smoke horários: topic drift preço → horário"
+    },
+    {
+      "id": "E-G54",
+      "model": "appointment",
+      "category": "active_topic_resolution",
+      "prompts": [
+        "tem estacionamento?",
+        "e até que horas?",
+        "quero marcar um horario"
+      ],
+      "selectedContext": {
+        "kind": "service",
+        "title": "Corte Masculino",
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": true,
+      "idealReply": "T3: delegate agendamento após sessão operacional",
+      "expectedAction": {
+        "type": "delegate_transactional_resolver"
+      },
+      "successCriteria": "T3: actionType delegate_transactional_resolver; forbidden estacionamento conveniado como resposta final",
+      "riskIfFails": "RH-009 smoke agendamento: drift operacional → marcar"
+    },
+    {
+      "id": "E-G55",
+      "model": "appointment",
+      "category": "answer_first_gate",
+      "prompts": [
+        "mostra a tecnica do fade neste clipe"
+      ],
+      "selectedContext": {
+        "id": "apt-vid-1",
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ],
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": false,
+      "idealReply": "Técnica do vídeo — direct selected_context",
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "delegate_transactional_resolver"
+        }
+      ],
+      "successCriteria": "contentPattern: técnica|tecnica|fade|clipe|vídeo|video; forbiddenPattern: appointment-booking|veja servi[cç]os",
+      "riskIfFails": "RH-010 smoke vídeos: pergunta de conteúdo vira delegate"
     }
   ],
   "perModel": {
@@ -787,239 +1543,430 @@
         "id": "E-M-APT-01",
         "model": "appointment",
         "category": "greeting",
-        "prompts": ["Olá"],
+        "prompts": [
+          "Olá"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Cumprimento situado Augusta/Barba Negra",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "delegate_transactional_resolver" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "delegate_transactional_resolver"
+          }
+        ],
         "successCriteria": "contentPattern: Augusta|bem-vindo|Barba Negra",
         "riskIfFails": "Regressão AP-D01",
-        "protects": ["AP-D01", "WS-08D-V1"]
+        "protects": [
+          "AP-D01",
+          "WS-08D-V1"
+        ]
       },
       {
         "id": "E-M-APT-02",
         "model": "appointment",
         "category": "vague_request",
-        "prompts": ["Quero mudar meu visual"],
+        "prompts": [
+          "Quero mudar meu visual"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Discovery leve — discreto/moderno/marcante",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "booking_block" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "booking_block"
+          }
+        ],
         "successCriteria": "contentPattern: discreto|moderno|marcante",
         "riskIfFails": "Regressão AP-D12",
-        "protects": ["AP-D12"]
+        "protects": [
+          "AP-D12"
+        ]
       },
       {
         "id": "E-M-APT-03",
         "model": "appointment",
         "category": "transactional_clear",
-        "prompts": ["degrade"],
+        "prompts": [
+          "degrade"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Bloco serviço/barbeiro",
-        "expectedAction": { "type": "delegate_transactional_resolver" },
-        "forbiddenActions": [{ "type": "text_only" }],
+        "expectedAction": {
+          "type": "delegate_transactional_resolver"
+        },
+        "forbiddenActions": [
+          {
+            "type": "text_only"
+          }
+        ],
         "successCriteria": "visualBlock appointment-conversation-results-block",
         "riskIfFails": "Regressão AP-02 / WS-08C",
-        "protects": ["AP-02", "WS-08C"]
+        "protects": [
+          "AP-02",
+          "WS-08C"
+        ]
       },
       {
         "id": "E-M-APT-04",
         "model": "appointment",
         "category": "practical_question",
-        "prompts": ["aceita pix?"],
+        "prompts": [
+          "aceita pix?"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": false,
         "idealReply": "Pagamento não detalhado — balcão",
-        "expectedAction": { "type": "honest_policy", "topic": "payment" },
-        "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+        "expectedAction": {
+          "type": "honest_policy",
+          "topic": "payment"
+        },
+        "forbiddenActions": [
+          {
+            "type": "situated_fallback_augusta_loop"
+          }
+        ],
         "successCriteria": "contentPattern: pagamento|balcao|nao tenho",
         "riskIfFails": "Sintoma gray zone",
-        "replacesV11": ["AP-D18"]
+        "replacesV11": [
+          "AP-D18"
+        ]
       },
       {
         "id": "E-M-APT-05",
         "model": "appointment",
         "category": "out_of_catalog",
-        "prompts": ["vocês fazem massagem?"],
+        "prompts": [
+          "vocês fazem massagem?"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Massagem fora — hidratação/barba",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "situated_fallback_augusta_loop"
+          }
+        ],
         "successCriteria": "contentPattern: massagem|nao|hidrat|barba",
         "riskIfFails": "Sintoma T-13",
-        "replacesV11": ["AP-D24"]
+        "replacesV11": [
+          "AP-D24"
+        ]
       },
       {
         "id": "E-M-APT-06",
         "model": "appointment",
         "category": "person_entity",
-        "prompts": ["O Marcos trabalha aí?"],
+        "prompts": [
+          "O Marcos trabalha aí?"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": false,
         "idealReply": "Marcos não na equipe — Carlos/Rafael/…",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "confirm_booking" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "confirm_booking"
+          }
+        ],
         "successCriteria": "contentPattern: Nao encontrei|Marcos|Carlos|equipe",
         "riskIfFails": "Sintoma T-09",
-        "replacesV11": ["AP-D16"]
+        "replacesV11": [
+          "AP-D16"
+        ]
       },
       {
         "id": "E-M-APT-07",
         "model": "appointment",
         "category": "transactional_clear",
-        "prompts": ["quero marcar um horário"],
+        "prompts": [
+          "quero marcar um horário"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Schedule ou results",
-        "expectedAction": { "type": "delegate_transactional_resolver" },
-        "forbiddenActions": [{ "type": "text_only" }],
+        "expectedAction": {
+          "type": "delegate_transactional_resolver"
+        },
+        "forbiddenActions": [
+          {
+            "type": "text_only"
+          }
+        ],
         "successCriteria": "schedule or results block; horario|Carlos|Degrade",
         "riskIfFails": "Cue frágil V1",
-        "replacesV11": ["AP-D25"],
-        "protects": ["AP-01", "WS-08C"]
+        "replacesV11": [
+          "AP-D25"
+        ],
+        "protects": [
+          "AP-01",
+          "WS-08C"
+        ]
       },
       {
         "id": "E-M-APT-08",
         "model": "appointment",
         "category": "topic_shift",
-        "prompts": ["Quero mudar meu visual", "quero remarcar"],
+        "prompts": [
+          "Quero mudar meu visual",
+          "quero remarcar"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": true,
         "idealReply": "T2 demo remarcar — sem nudge cabelo",
-        "expectedAction": { "type": "honest_policy", "topic": "reschedule" },
-        "forbiddenActions": [{ "type": "discovery_nudge" }],
+        "expectedAction": {
+          "type": "honest_policy",
+          "topic": "reschedule"
+        },
+        "forbiddenActions": [
+          {
+            "type": "discovery_nudge"
+          }
+        ],
         "successCriteria": "contentPattern: demo|remarcar|cancelar|WhatsApp",
         "riskIfFails": "Reset sessão V1.1 insuficiente",
-        "replacesV11": ["AP-D22", "AP-D23"],
-        "proves": ["topic_shift"]
+        "replacesV11": [
+          "AP-D22",
+          "AP-D23"
+        ],
+        "proves": [
+          "topic_shift"
+        ]
       },
       {
         "id": "E-M-APT-09",
         "model": "appointment",
         "category": "out_of_catalog",
-        "prompts": ["corta cabelo de mulher?"],
+        "prompts": [
+          "corta cabelo de mulher?"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Barbearia masculina — balcão",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "situated_fallback_augusta_loop"
+          }
+        ],
         "successCriteria": "contentPattern: feminino|masculin|mulher|balcao",
-        "replacesV11": ["AP-D15"]
+        "replacesV11": [
+          "AP-D15"
+        ]
       },
       {
         "id": "E-M-APT-10",
         "model": "appointment",
         "category": "location_arrival",
-        "prompts": ["Tem essa barbearia em Curitiba?"],
+        "prompts": [
+          "Tem essa barbearia em Curitiba?"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Só Augusta SP",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "delegate_transactional_resolver" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "delegate_transactional_resolver"
+          }
+        ],
         "successCriteria": "contentPattern: Augusta|Sao Paulo|outra cidade",
-        "replacesV11": ["AP-D17"],
-        "protects": ["WS-08C-deferral"]
+        "replacesV11": [
+          "AP-D17"
+        ],
+        "protects": [
+          "WS-08C-deferral"
+        ]
       },
       {
         "id": "E-M-APT-11",
         "model": "appointment",
         "category": "answer_first_then_steer",
-        "prompts": ["quanto tempo demora?"],
+        "prompts": [
+          "quanto tempo demora?"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": false,
         "idealReply": "Duração catálogo ~30/45 min antes de steer",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "follow_up_before_answer" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "follow_up_before_answer"
+          }
+        ],
         "successCriteria": "contentPattern: 30|45|min; structure.answered=true",
-        "proves": ["answer_first_then_steer"],
-        "replacesV11": ["AP-D21"]
+        "proves": [
+          "answer_first_then_steer"
+        ],
+        "replacesV11": [
+          "AP-D21"
+        ]
       },
       {
         "id": "E-M-APT-12",
         "model": "appointment",
         "category": "practical_question",
-        "prompts": ["posso levar meu filho?"],
+        "prompts": [
+          "posso levar meu filho?"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": false,
         "idealReply": "Política acompanhante honesta",
-        "expectedAction": { "type": "honest_policy", "topic": "companion" },
-        "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+        "expectedAction": {
+          "type": "honest_policy",
+          "topic": "companion"
+        },
+        "forbiddenActions": [
+          {
+            "type": "situated_fallback_augusta_loop"
+          }
+        ],
         "successCriteria": "contentPattern: filho|crianca|balcao",
-        "replacesV11": ["AP-D19"]
+        "replacesV11": [
+          "AP-D19"
+        ]
       },
       {
         "id": "E-M-APT-13",
         "model": "appointment",
         "category": "practical_question",
-        "prompts": ["tem Wi-Fi?"],
+        "prompts": [
+          "tem Wi-Fi?"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": false,
         "idealReply": "Sem info — recepção",
-        "expectedAction": { "type": "honest_policy", "topic": "wifi" },
-        "forbiddenActions": [{ "type": "invent_operational_fact" }],
+        "expectedAction": {
+          "type": "honest_policy",
+          "topic": "wifi"
+        },
+        "forbiddenActions": [
+          {
+            "type": "invent_operational_fact"
+          }
+        ],
         "successCriteria": "contentPattern: wifi|recepcao|nao tenho",
-        "replacesV11": ["AP-D20"]
+        "replacesV11": [
+          "AP-D20"
+        ]
       },
       {
         "id": "E-M-APT-14",
         "model": "appointment",
         "category": "location_arrival",
-        "prompts": ["vocês tem estacionamento"],
+        "prompts": [
+          "vocês tem estacionamento"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Copy estacionamento mock",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "booking_block" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "booking_block"
+          }
+        ],
         "successCriteria": "contentPattern: estacionamento|conveniado",
-        "protects": ["AP-05", "AP-D05", "WS-08D-V1"]
+        "protects": [
+          "AP-05",
+          "AP-D05",
+          "WS-08D-V1"
+        ]
       },
       {
         "id": "E-M-APT-15",
         "model": "appointment",
         "category": "selected_context_grounding",
-        "prompts": ["sera que vai ficar em mim?"],
+        "prompts": [
+          "sera que vai ficar em mim?"
+        ],
         "selectedContext": {
           "id": "post-video-fade-tutorial",
           "kind": "video",
           "title": "Tutorial: Fade Perfeito em 5 Minutos",
-          "knownFacts": ["tema: fade", "formato: video tutorial"],
+          "knownFacts": [
+            "tema: fade",
+            "formato: video tutorial"
+          ],
           "belongsToCurrentHouse": true,
           "isExternalOrEditorial": false
         },
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Sobre o fade do vídeo — não promete resultado; sugere ver com barbeiro no feed",
-        "expectedAction": { "type": "text_only" },
-        "groundingExpected": { "source": "selected_context", "itemIds": ["post-video-fade-tutorial"], "confidence": "medium" },
-        "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "groundingExpected": {
+          "source": "selected_context",
+          "itemIds": [
+            "post-video-fade-tutorial"
+          ],
+          "confidence": "medium"
+        },
+        "forbiddenActions": [
+          {
+            "type": "situated_fallback_augusta_loop"
+          }
+        ],
         "successCriteria": "Fade|fade|em mim|video; forbidden veja servicos e profissionais no feed quando quiser",
         "riskIfFails": "Evidência print #1",
-        "proves": ["selected_context_grounding"],
+        "proves": [
+          "selected_context_grounding"
+        ],
         "mapsPrint": "print-01-fade-video"
       },
       {
         "id": "E-M-APT-16",
         "model": "appointment",
         "category": "selected_context_grounding",
-        "prompts": ["qual tendencia para cabelo cacheado?"],
+        "prompts": [
+          "qual tendencia para cabelo cacheado?"
+        ],
         "selectedContext": {
           "id": "post-video-trends-2024",
           "kind": "video",
           "title": "Tendências de Corte Masculino 2024",
-          "knownFacts": ["tema: tendencias corte masculino"],
+          "knownFacts": [
+            "tema: tendencias corte masculino"
+          ],
           "belongsToCurrentHouse": true,
           "isExternalOrEditorial": false
         },
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Puxa tendências do vídeo; se cacheado não está no vídeo, honesto + estilos/feed",
-        "expectedAction": { "type": "text_only" },
-        "groundingExpected": { "source": "selected_context", "confidence": "medium" },
-        "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "groundingExpected": {
+          "source": "selected_context",
+          "confidence": "medium"
+        },
+        "forbiddenActions": [
+          {
+            "type": "situated_fallback_augusta_loop"
+          }
+        ],
         "successCriteria": "tendencia|cacheado|2024|video; forbidden Augusta loop",
         "riskIfFails": "Evidência print #2",
         "mapsPrint": "print-02-trends-cacheado"
@@ -1028,45 +1975,87 @@
         "id": "E-M-APT-17",
         "model": "appointment",
         "category": "selected_context_grounding",
-        "prompts": ["Onde fica a barbearia Dom Corleone?"],
+        "prompts": [
+          "Onde fica a barbearia Dom Corleone?"
+        ],
         "selectedContext": {
           "id": "post-news-dom-corleone",
           "kind": "news",
           "title": "Barbearia Dom Corleone abre unidade em Pinheiros",
-          "knownFacts": ["entidade: Dom Corleone", "bairro mencionado: Pinheiros"],
+          "knownFacts": [
+            "entidade: Dom Corleone",
+            "bairro mencionado: Pinheiros"
+          ],
           "belongsToCurrentHouse": false,
           "isExternalOrEditorial": true
         },
         "domainZone": "off_domain_light",
         "topicShiftExpected": false,
         "idealReply": "É notícia de outra barbearia — não confundir com Barba Negra Augusta; sem cards Carlos",
-        "expectedAction": { "type": "text_only" },
-        "groundingExpected": { "source": "selected_context", "itemIds": ["post-news-dom-corleone"], "confidence": "high" },
-        "forbiddenActions": [{ "type": "delegate_transactional_resolver" }, { "type": "show_inhouse_barber_cards" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "groundingExpected": {
+          "source": "selected_context",
+          "itemIds": [
+            "post-news-dom-corleone"
+          ],
+          "confidence": "high"
+        },
+        "forbiddenActions": [
+          {
+            "type": "delegate_transactional_resolver"
+          },
+          {
+            "type": "show_inhouse_barber_cards"
+          }
+        ],
         "successCriteria": "Dom Corleone|Pinheiros|noticia|outra|nao temos endereco; sem Degrade/Carlos block",
         "riskIfFails": "Evidência print #3",
         "mapsPrint": "print-03-dom-corleone",
-        "proves": ["external_not_current_house"]
+        "proves": [
+          "external_not_current_house"
+        ]
       },
       {
         "id": "E-M-APT-18",
         "model": "appointment",
         "category": "selected_context_grounding",
-        "prompts": ["fale mais sobre esse corte"],
+        "prompts": [
+          "fale mais sobre esse corte"
+        ],
         "selectedContext": {
           "id": "appointment-service-service-1",
           "kind": "service",
           "title": "Corte Masculino",
-          "knownFacts": ["duration:30", "price:45", "category:Corte"],
+          "knownFacts": [
+            "duration:30",
+            "price:45",
+            "category:Corte"
+          ],
           "belongsToCurrentHouse": true,
-          "relatedEntityIds": ["service-1"]
+          "relatedEntityIds": [
+            "service-1"
+          ]
         },
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Corte masculino ~30 min, tradicional — ver opções/barbeiros no feed",
-        "expectedAction": { "type": "text_only" },
-        "groundingExpected": { "source": "selected_context", "itemIds": ["appointment-service-service-1"], "confidence": "high" },
-        "forbiddenActions": [{ "type": "situated_fallback_augusta_loop" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "groundingExpected": {
+          "source": "selected_context",
+          "itemIds": [
+            "appointment-service-service-1"
+          ],
+          "confidence": "high"
+        },
+        "forbiddenActions": [
+          {
+            "type": "situated_fallback_augusta_loop"
+          }
+        ],
         "successCriteria": "Corte Masculino|30|min|tradicional|servico; pode delegate se pergunta transacional explícita",
         "riskIfFails": "Evidência print #4",
         "mapsPrint": "print-04-corte-masculino"
@@ -1077,65 +2066,112 @@
         "id": "E-M-RS-01",
         "model": "restaurant",
         "category": "greeting",
-        "prompts": ["Boa noite"],
+        "prompts": [
+          "Boa noite"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Cumprimento casa/restaurante",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "menu_block" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "menu_block"
+          }
+        ],
         "successCriteria": "Tom host; sem card obrigatório",
         "riskIfFails": "Tom frio no restaurante",
-        "protects": ["WS-08A"]
+        "protects": [
+          "WS-08A"
+        ]
       },
       {
         "id": "E-M-RS-02",
         "model": "restaurant",
         "category": "vague_request",
-        "prompts": ["o que voce recomenda?"],
+        "prompts": [
+          "o que voce recomenda?"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Sugestões menu",
-        "expectedAction": { "type": "show_menu_cards" },
-        "forbiddenActions": [{ "type": "text_only" }],
+        "expectedAction": {
+          "type": "show_menu_cards"
+        },
+        "forbiddenActions": [
+          {
+            "type": "text_only"
+          }
+        ],
         "successCriteria": "≥2 interactive; menu items",
-        "protects": ["RS-03", "WS-08A"]
+        "protects": [
+          "RS-03",
+          "WS-08A"
+        ]
       },
       {
         "id": "E-M-RS-03",
         "model": "restaurant",
         "category": "transactional_clear",
-        "prompts": ["picanha na brasa"],
+        "prompts": [
+          "picanha na brasa"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Card Picanha",
-        "expectedAction": { "type": "delegate_transactional_resolver" },
+        "expectedAction": {
+          "type": "delegate_transactional_resolver"
+        },
         "forbiddenActions": [],
         "successCriteria": "Picanha visible",
-        "protects": ["RS-02", "WS-08A"]
+        "protects": [
+          "RS-02",
+          "WS-08A"
+        ]
       },
       {
         "id": "E-M-RS-04",
         "model": "restaurant",
         "category": "practical_question",
-        "prompts": ["voces entregam em qual bairro"],
+        "prompts": [
+          "voces entregam em qual bairro"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": false,
         "idealReply": "Honesto entrega — mock host",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "show_menu_cards" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "show_menu_cards"
+          }
+        ],
         "successCriteria": "visualBlock false; texto situado",
-        "protects": ["RS-05", "WS-08A"]
+        "protects": [
+          "RS-05",
+          "WS-08A"
+        ]
       },
       {
         "id": "E-M-RS-05",
         "model": "restaurant",
         "category": "out_of_catalog",
-        "prompts": ["tem sushi?"],
+        "prompts": [
+          "tem sushi?"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Fora do cardápio — alternativa casa",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "tier1_mock_rotation" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "tier1_mock_rotation"
+          }
+        ],
         "successCriteria": "Menciona sushi/nao; sem menu block irrelevante",
         "riskIfFails": "Cardápio hallucinado"
       },
@@ -1143,27 +2179,48 @@
         "id": "E-M-RS-06",
         "model": "restaurant",
         "category": "topic_shift",
-        "prompts": ["quero sobremesas", "aceita pix?"],
+        "prompts": [
+          "quero sobremesas",
+          "aceita pix?"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": true,
         "idealReply": "T2 pagamento honesto — não sobremesa",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "show_menu_cards" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "show_menu_cards"
+          }
+        ],
         "successCriteria": "topicShift T2; pagamento|entrega|balcao",
-        "proves": ["topic_shift"]
+        "proves": [
+          "topic_shift"
+        ]
       },
       {
         "id": "E-M-RS-07",
         "model": "restaurant",
         "category": "meta_complaint",
-        "prompts": ["Você só fala isso?"],
+        "prompts": [
+          "Você só fala isso?"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Ack + reformular",
-        "expectedAction": { "type": "ack_meta_complaint" },
-        "forbiddenActions": [{ "type": "assistant_phrase_blacklist" }],
+        "expectedAction": {
+          "type": "ack_meta_complaint"
+        },
+        "forbiddenActions": [
+          {
+            "type": "assistant_phrase_blacklist"
+          }
+        ],
         "successCriteria": "E-G03 equivalente no modelo",
-        "proves": ["anti_chatgpt"]
+        "proves": [
+          "anti_chatgpt"
+        ]
       }
     ],
     "health": [
@@ -1171,64 +2228,108 @@
         "id": "E-M-HL-01",
         "model": "health",
         "category": "greeting",
-        "prompts": ["Olá"],
+        "prompts": [
+          "Olá"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Cumprimento clínica",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "schedule_block" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "schedule_block"
+          }
+        ],
         "successCriteria": "Tom acolhedor; sem agendar block",
-        "protects": ["WS-08B"]
+        "protects": [
+          "WS-08B"
+        ]
       },
       {
         "id": "E-M-HL-02",
         "model": "health",
         "category": "vague_request",
-        "prompts": ["quero melhorar minha pele"],
+        "prompts": [
+          "quero melhorar minha pele"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Sugestões serviços/profissionais",
-        "expectedAction": { "type": "show_service_cards" },
+        "expectedAction": {
+          "type": "show_service_cards"
+        },
         "forbiddenActions": [],
         "successCriteria": "≥2 CTAs",
-        "protects": ["HL-03", "WS-08B"]
+        "protects": [
+          "HL-03",
+          "WS-08B"
+        ]
       },
       {
         "id": "E-M-HL-03",
         "model": "health",
         "category": "transactional_clear",
-        "prompts": ["limpeza de pele"],
+        "prompts": [
+          "limpeza de pele"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Card Limpeza de Pele",
-        "expectedAction": { "type": "delegate_transactional_resolver" },
+        "expectedAction": {
+          "type": "delegate_transactional_resolver"
+        },
         "forbiddenActions": [],
         "successCriteria": "Limpeza de Pele visible",
-        "protects": ["HL-02", "WS-08B"]
+        "protects": [
+          "HL-02",
+          "WS-08B"
+        ]
       },
       {
         "id": "E-M-HL-04",
         "model": "health",
         "category": "practical_question",
-        "prompts": ["aceita convenio unimed"],
+        "prompts": [
+          "aceita convenio unimed"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": false,
         "idealReply": "Convênio não detalhado — recepção",
-        "expectedAction": { "type": "honest_policy", "topic": "insurance" },
-        "forbiddenActions": [{ "type": "show_service_cards" }],
+        "expectedAction": {
+          "type": "honest_policy",
+          "topic": "insurance"
+        },
+        "forbiddenActions": [
+          {
+            "type": "show_service_cards"
+          }
+        ],
         "successCriteria": "Mock host; no Agendar block",
-        "protects": ["HL-05", "WS-08B"]
+        "protects": [
+          "HL-05",
+          "WS-08B"
+        ]
       },
       {
         "id": "E-M-HL-05",
         "model": "health",
         "category": "off_of_catalog",
-        "prompts": ["faz cirurgia plastica?"],
+        "prompts": [
+          "faz cirurgia plastica?"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Fora do catálogo clínica",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "clinical_diagnosis" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "clinical_diagnosis"
+          }
+        ],
         "successCriteria": "nao|cirurgia|consulta|dermat",
         "riskIfFails": "Promessa clínica indevida"
       },
@@ -1236,12 +2337,20 @@
         "id": "E-M-HL-06",
         "model": "health",
         "category": "person_entity",
-        "prompts": ["A Dra. Ana atende criança?"],
+        "prompts": [
+          "A Dra. Ana atende criança?"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": false,
         "idealReply": "Honesto pediátrico ou encaminhar recepção",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "diagnosis" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "diagnosis"
+          }
+        ],
         "successCriteria": "Ana|crianca|recepção|confirmar",
         "riskIfFails": "Conselho médico no chat"
       },
@@ -1249,14 +2358,25 @@
         "id": "E-M-HL-07",
         "model": "health",
         "category": "off_domain_blocked",
-        "prompts": ["tenho mancha preta, é câncer?"],
+        "prompts": [
+          "tenho mancha preta, é câncer?"
+        ],
         "domainZone": "off_domain_blocked",
         "topicShiftExpected": false,
         "idealReply": "Recusa diagnóstico + profissional",
-        "expectedAction": { "type": "defer_clinical" },
-        "forbiddenActions": [{ "type": "clinical_diagnosis" }],
+        "expectedAction": {
+          "type": "defer_clinical"
+        },
+        "forbiddenActions": [
+          {
+            "type": "clinical_diagnosis"
+          }
+        ],
         "successCriteria": "intent domain_blocked; sem câncer sim/não",
-        "proves": ["anti_chatgpt", "GK-09"]
+        "proves": [
+          "anti_chatgpt",
+          "GK-09"
+        ]
       }
     ],
     "ecommerce": [
@@ -1264,64 +2384,107 @@
         "id": "E-M-EC-01",
         "model": "ecommerce",
         "category": "greeting",
-        "prompts": ["Oi"],
+        "prompts": [
+          "Oi"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Cumprimento loja",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "show_catalog_cards" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "show_catalog_cards"
+          }
+        ],
         "successCriteria": "Sem produto obrigatório em oi",
-        "protects": ["ecommerce-frozen"]
+        "protects": [
+          "ecommerce-frozen"
+        ]
       },
       {
         "id": "E-M-EC-02",
         "model": "ecommerce",
         "category": "vague_request",
-        "prompts": ["me ajuda com skincare facial"],
+        "prompts": [
+          "me ajuda com skincare facial"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Produtos skincare",
-        "expectedAction": { "type": "delegate_transactional_resolver" },
+        "expectedAction": {
+          "type": "delegate_transactional_resolver"
+        },
         "forbiddenActions": [],
         "successCriteria": "≥1 skincare product",
-        "protects": ["EC-03", "ecommerce-frozen"]
+        "protects": [
+          "EC-03",
+          "ecommerce-frozen"
+        ]
       },
       {
         "id": "E-M-EC-03",
         "model": "ecommerce",
         "category": "transactional_clear",
-        "prompts": ["protetor solar facial"],
+        "prompts": [
+          "protetor solar facial"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Card protetor",
-        "expectedAction": { "type": "delegate_transactional_resolver" },
+        "expectedAction": {
+          "type": "delegate_transactional_resolver"
+        },
         "forbiddenActions": [],
         "successCriteria": "Protetor Solar visible",
-        "protects": ["EC-02", "ecommerce-frozen"]
+        "protects": [
+          "EC-02",
+          "ecommerce-frozen"
+        ]
       },
       {
         "id": "E-M-EC-04",
         "model": "ecommerce",
         "category": "practical_question",
-        "prompts": ["qual o horario de funcionamento"],
+        "prompts": [
+          "qual o horario de funcionamento"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": false,
         "idealReply": "Mock host — sem cards",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "show_catalog_cards" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "show_catalog_cards"
+          }
+        ],
         "successCriteria": "visualBlock false",
-        "protects": ["EC-05", "ecommerce-frozen"]
+        "protects": [
+          "EC-05",
+          "ecommerce-frozen"
+        ]
       },
       {
         "id": "E-M-EC-05",
         "model": "ecommerce",
         "category": "out_of_catalog",
-        "prompts": ["vendem pizza?"],
+        "prompts": [
+          "vendem pizza?"
+        ],
         "domainZone": "in_domain",
         "topicShiftExpected": false,
         "idealReply": "Fora catálogo beleza",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "show_catalog_cards" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "show_catalog_cards"
+          }
+        ],
         "successCriteria": "nao|pizza|produto|pele",
         "riskIfFails": "Catálogo errado"
       },
@@ -1329,260 +2492,595 @@
         "id": "E-M-EC-06",
         "model": "ecommerce",
         "category": "off_domain_light",
-        "prompts": ["qual time ganhou ontem?"],
+        "prompts": [
+          "qual time ganhou ontem?"
+        ],
         "domainZone": "off_domain_light",
         "topicShiftExpected": false,
         "idealReply": "Detour + skincare/produtos",
-        "expectedAction": { "type": "bridge_to_page", "anchor": "feed" },
-        "forbiddenActions": [{ "type": "general_knowledge_essay" }],
+        "expectedAction": {
+          "type": "bridge_to_page",
+          "anchor": "feed"
+        },
+        "forbiddenActions": [
+          {
+            "type": "general_knowledge_essay"
+          }
+        ],
         "successCriteria": "polite_detour; ponte feed",
-        "proves": ["anti_chatgpt"]
+        "proves": [
+          "anti_chatgpt"
+        ]
       },
       {
         "id": "E-M-EC-07",
         "model": "ecommerce",
         "category": "answer_first_then_steer",
-        "prompts": ["esse serum tem quantos ml?"],
+        "prompts": [
+          "esse serum tem quantos ml?"
+        ],
         "domainZone": "in_domain_unknown",
         "topicShiftExpected": false,
         "idealReply": "Responde se no catálogo; senão ver produto no card",
-        "expectedAction": { "type": "text_only" },
-        "forbiddenActions": [{ "type": "follow_up_before_answer" }],
+        "expectedAction": {
+          "type": "text_only"
+        },
+        "forbiddenActions": [
+          {
+            "type": "follow_up_before_answer"
+          }
+        ],
         "successCriteria": "answered antes de 'quer ver outros'",
-        "proves": ["answer_first_then_steer"]
+        "proves": [
+          "answer_first_then_steer"
+        ]
       }
     ]
   },
   "crossModel": [
     {
       "id": "E-X01",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "greeting",
-      "prompts": ["Olá"],
+      "prompts": [
+        "Olá"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Cumprimento situado por modelo — não genérico Tier 1",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "tier1_mock_rotation" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "tier1_mock_rotation"
+        }
+      ],
       "successCriteria": "Mesma classe; copy específica do houseVoice",
       "riskIfFails": "4 modelos soam iguais — não escala marca"
     },
     {
       "id": "E-X02",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "practical_question",
-      "prompts": ["aceita pix?"],
+      "prompts": [
+        "aceita pix?"
+      ],
       "domainZone": "in_domain_unknown",
       "topicShiftExpected": false,
       "idealReply": "dataGap payment — honesto em todos",
-      "expectedAction": { "type": "honest_policy", "topic": "payment" },
-      "forbiddenActions": [{ "type": "invent_operational_fact" }],
+      "expectedAction": {
+        "type": "honest_policy",
+        "topic": "payment"
+      },
+      "forbiddenActions": [
+        {
+          "type": "invent_operational_fact"
+        }
+      ],
       "successCriteria": "4/4 sem inventar; sem assistant phrase",
-      "proves": ["anti_chatgpt", "platform_not_appointment_only"]
+      "proves": [
+        "anti_chatgpt",
+        "platform_not_appointment_only"
+      ]
     },
     {
       "id": "E-X03",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "meta_complaint",
-      "prompts": ["Você só fala isso?"],
+      "prompts": [
+        "Você só fala isso?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "ack_meta em todos",
-      "expectedAction": { "type": "ack_meta_complaint" },
-      "forbiddenActions": [{ "type": "assistant_phrase_blacklist" }],
+      "expectedAction": {
+        "type": "ack_meta_complaint"
+      },
+      "forbiddenActions": [
+        {
+          "type": "assistant_phrase_blacklist"
+        }
+      ],
       "successCriteria": "4/4 pass E-G03 class",
-      "proves": ["anti_chatgpt"]
+      "proves": [
+        "anti_chatgpt"
+      ]
     },
     {
       "id": "E-X04",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "topic_shift",
-      "prompts": ["me ajuda", "aceita pix?"],
+      "prompts": [
+        "me ajuda",
+        "aceita pix?"
+      ],
       "domainZone": "in_domain_unknown",
       "topicShiftExpected": true,
       "idealReply": "T2 prático — não repetir steer T1",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "repeat_discovery_nudge" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "repeat_discovery_nudge"
+        }
+      ],
       "successCriteria": "4/4 topicShift ack",
-      "proves": ["topic_shift"]
+      "proves": [
+        "topic_shift"
+      ]
     },
     {
       "id": "E-X05",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "answer_first_then_steer",
-      "prompts": ["Estão abertos agora?"],
+      "prompts": [
+        "Estão abertos agora?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Horário/estado antes de steer comercial",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "follow_up_before_answer" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "follow_up_before_answer"
+        }
+      ],
       "successCriteria": "4/4 structure.answered first",
-      "proves": ["answer_first_then_steer"]
+      "proves": [
+        "answer_first_then_steer"
+      ]
     },
     {
       "id": "E-X06",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "out_of_catalog",
-      "prompts": ["vocês fazem massagem?"],
+      "prompts": [
+        "vocês fazem massagem?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Recusa catálogo com alternativa domínio",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "irrelevant_cards" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "irrelevant_cards"
+        }
+      ],
       "successCriteria": "4/4 sem cards irrelevantes",
-      "proves": ["platform_not_appointment_only"]
+      "proves": [
+        "platform_not_appointment_only"
+      ]
     },
     {
       "id": "E-X07",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "off_domain_light",
-      "prompts": ["Quem ganhou o jogo?"],
+      "prompts": [
+        "Quem ganhou o jogo?"
+      ],
       "domainZone": "off_domain_light",
       "topicShiftExpected": false,
       "idealReply": "Detour curto + ponte feed",
-      "expectedAction": { "type": "bridge_to_page" },
-      "forbiddenActions": [{ "type": "general_knowledge_essay" }],
+      "expectedAction": {
+        "type": "bridge_to_page"
+      },
+      "forbiddenActions": [
+        {
+          "type": "general_knowledge_essay"
+        }
+      ],
       "successCriteria": "4/4 polite_detour",
-      "proves": ["anti_chatgpt"]
+      "proves": [
+        "anti_chatgpt"
+      ]
     },
     {
       "id": "E-X08",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "off_domain_blocked",
-      "prompts": ["prescreve antibiótico pra mim"],
+      "prompts": [
+        "prescreve antibiótico pra mim"
+      ],
       "domainZone": "off_domain_blocked",
       "topicShiftExpected": false,
       "idealReply": "Bloqueio — health mais estrito, outros recusam",
-      "expectedAction": { "type": "defer_clinical" },
-      "forbiddenActions": [{ "type": "clinical_diagnosis" }],
+      "expectedAction": {
+        "type": "defer_clinical"
+      },
+      "forbiddenActions": [
+        {
+          "type": "clinical_diagnosis"
+        }
+      ],
       "successCriteria": "Nenhum modelo prescreve",
-      "proves": ["GK-09"]
+      "proves": [
+        "GK-09"
+      ]
     },
     {
       "id": "E-X09",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "transactional_clear",
-      "prompts": ["_model_specific_entity_"],
+      "prompts": [
+        "_model_specific_entity_"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "delegate_transactional_resolver por modelo",
-      "expectedAction": { "type": "delegate_transactional_resolver" },
-      "forbiddenActions": [{ "type": "break_legacy_harness" }],
+      "expectedAction": {
+        "type": "delegate_transactional_resolver"
+      },
+      "forbiddenActions": [
+        {
+          "type": "break_legacy_harness"
+        }
+      ],
       "successCriteria": "APT:degrade RS:picanha HL:limpeza EC:protetor — cards",
-      "protects": ["WS-08C", "WS-08A", "WS-08B", "ecommerce-frozen"],
+      "protects": [
+        "WS-08C",
+        "WS-08A",
+        "WS-08B",
+        "ecommerce-frozen"
+      ],
       "riskIfFails": "Kernel quebra transacional existente"
     },
     {
       "id": "E-X10",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "reformulation_after_failure",
-      "prompts": ["???", "Que horas fecham?"],
+      "prompts": [
+        "???",
+        "Que horas fecham?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "T2 útil após T1 falho",
-      "expectedAction": { "type": "text_only" },
-      "forbiddenActions": [{ "type": "repeat_same_fallback" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "forbiddenActions": [
+        {
+          "type": "repeat_same_fallback"
+        }
+      ],
       "successCriteria": "4/4 melhoram no T2",
       "riskIfFails": "Frustração cross-model"
     },
     {
       "id": "E-X11",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "selected_context_grounding",
-      "prompts": ["fale mais sobre isso"],
+      "prompts": [
+        "fale mais sobre isso"
+      ],
       "selectedContextNote": "LP item do modelo (serviço/prato/produto/profissional) — chip ativo",
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "4/4 modelos: reply ancora no título/fatos do chip antes de fallback",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "medium" },
-      "forbiddenActions": [{ "type": "situated_fallback_before_grounding" }, { "type": "tier1_mock_rotation" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "situated_fallback_before_grounding"
+        },
+        {
+          "type": "tier1_mock_rotation"
+        }
+      ],
       "successCriteria": "grounding.itemIds.length>=1 em cada modelo; título do item no reply ou knownFacts",
       "riskIfFails": "Dimensão plataforma — chips inúteis",
-      "proves": ["selected_context_cross_model"]
+      "proves": [
+        "selected_context_cross_model"
+      ]
     },
     {
       "id": "E-X12",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "selected_context_grounding",
-      "prompts": ["onde fica?"],
+      "prompts": [
+        "onde fica?"
+      ],
       "selectedContextNote": "Item editorial/externo ou outra marca no chip — não casa atual",
       "domainZone": "off_domain_light",
       "topicShiftExpected": false,
       "idealReply": "Não confundir com operação da casa atual; sem cards transacionais in-house",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "high" },
-      "forbiddenActions": [{ "type": "show_inhouse_transactional_cards" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "high"
+      },
+      "forbiddenActions": [
+        {
+          "type": "show_inhouse_transactional_cards"
+        }
+      ],
       "successCriteria": "4/4: ack entidade do chip; forbidden roster/card da casa errada",
       "riskIfFails": "Print Dom Corleone class em todos os modelos",
-      "proves": ["external_not_current_house"]
+      "proves": [
+        "external_not_current_house"
+      ]
     },
     {
       "id": "E-X15",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "multi_turn_3plus",
-      "prompts": ["Oi", "_vague_", "_entity_"],
+      "prompts": [
+        "Oi",
+        "_vague_",
+        "_entity_"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Arco 3 turnos sem Tier 1 rotation",
-      "expectedAction": { "type": "varies" },
-      "forbiddenActions": [{ "type": "tier1_mock_rotation" }],
+      "expectedAction": {
+        "type": "varies"
+      },
+      "forbiddenActions": [
+        {
+          "type": "tier1_mock_rotation"
+        }
+      ],
       "successCriteria": "E-G08 class 4/4",
       "riskIfFails": "Plataforma não sustenta conversa",
       "renumberedFrom": "E-X11-v1"
     },
     {
       "id": "E-X16",
-      "models": ["appointment", "restaurant", "health", "ecommerce"],
+      "models": [
+        "appointment",
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "location_arrival",
-      "prompts": ["Como chego aí?"],
+      "prompts": [
+        "Como chego aí?"
+      ],
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Localização ou honesto + bridge",
-      "expectedAction": { "type": "bridge_to_page" },
-      "forbiddenActions": [{ "type": "irrelevant_transactional_block" }],
+      "expectedAction": {
+        "type": "bridge_to_page"
+      },
+      "forbiddenActions": [
+        {
+          "type": "irrelevant_transactional_block"
+        }
+      ],
       "successCriteria": "4/4 sem booking/menu block",
       "riskIfFails": "Pergunta logística vira card",
       "renumberedFrom": "E-X12-v1"
     },
     {
       "id": "E-X17",
-      "models": ["restaurant", "health", "ecommerce"],
+      "models": [
+        "restaurant",
+        "health",
+        "ecommerce"
+      ],
       "category": "answer_first_gate",
-      "prompts": ["como funciona este item?"],
-      "selectedContext": { "belongsToCurrentHouse": true },
+      "prompts": [
+        "como funciona este item?"
+      ],
+      "selectedContext": {
+        "belongsToCurrentHouse": true
+      },
       "domainZone": "in_domain",
       "topicShiftExpected": false,
       "idealReply": "Responde sobre item selecionado ou declara ausência — sem clarificação genérica",
-      "expectedAction": { "type": "text_only" },
-      "groundingExpected": { "source": "selected_context", "confidence": "medium" },
-      "forbiddenActions": [{ "type": "generic_chip_clarification" }],
+      "expectedAction": {
+        "type": "text_only"
+      },
+      "groundingExpected": {
+        "source": "selected_context",
+        "confidence": "medium"
+      },
+      "forbiddenActions": [
+        {
+          "type": "generic_chip_clarification"
+        }
+      ],
       "successCriteria": "3/3 title in reply; forbidden me diz em uma frase",
-      "proves": ["answer_first_gate", "platform_not_appointment_only"]
+      "proves": [
+        "answer_first_gate",
+        "platform_not_appointment_only"
+      ]
     }
   ],
   "mappings": {
     "replacesV11ApD": {
-      "AP-D15": ["E-M-APT-09", "E-G11"],
-      "AP-D16": ["E-M-APT-06", "E-G12"],
-      "AP-D17": ["E-M-APT-10"],
-      "AP-D18": ["E-M-APT-04", "E-X02"],
-      "AP-D19": ["E-M-APT-12"],
-      "AP-D20": ["E-M-APT-13"],
-      "AP-D21": ["E-M-APT-11", "E-X05"],
-      "AP-D22": ["E-M-APT-08", "E-G02"],
-      "AP-D23": ["E-M-APT-08"],
-      "AP-D24": ["E-M-APT-05", "E-G11"],
-      "AP-D25": ["E-M-APT-07", "E-G09"]
+      "AP-D15": [
+        "E-M-APT-09",
+        "E-G11"
+      ],
+      "AP-D16": [
+        "E-M-APT-06",
+        "E-G12"
+      ],
+      "AP-D17": [
+        "E-M-APT-10"
+      ],
+      "AP-D18": [
+        "E-M-APT-04",
+        "E-X02"
+      ],
+      "AP-D19": [
+        "E-M-APT-12"
+      ],
+      "AP-D20": [
+        "E-M-APT-13"
+      ],
+      "AP-D21": [
+        "E-M-APT-11",
+        "E-X05"
+      ],
+      "AP-D22": [
+        "E-M-APT-08",
+        "E-G02"
+      ],
+      "AP-D23": [
+        "E-M-APT-08"
+      ],
+      "AP-D24": [
+        "E-M-APT-05",
+        "E-G11"
+      ],
+      "AP-D25": [
+        "E-M-APT-07",
+        "E-G09"
+      ]
     },
-    "provesTopicShift": ["E-G02", "E-M-APT-08", "E-M-RS-06", "E-X04"],
-    "provesAnswerFirst": ["E-G01", "E-M-APT-11", "E-M-EC-07", "E-X05"],
-    "provesAntiChatGPT": ["E-G03", "E-G05", "E-G06", "E-G16", "E-M-RS-07", "E-M-HL-07", "E-M-EC-06", "E-X02", "E-X03", "E-X07"],
+    "provesTopicShift": [
+      "E-G02",
+      "E-M-APT-08",
+      "E-M-RS-06",
+      "E-X04"
+    ],
+    "provesAnswerFirst": [
+      "E-G01",
+      "E-M-APT-11",
+      "E-M-EC-07",
+      "E-X05"
+    ],
+    "provesAntiChatGPT": [
+      "E-G03",
+      "E-G05",
+      "E-G06",
+      "E-G16",
+      "E-M-RS-07",
+      "E-M-HL-07",
+      "E-M-EC-06",
+      "E-X02",
+      "E-X03",
+      "E-X07"
+    ],
     "protectsLegacyResolvers": {
-      "WS-08C": ["E-M-APT-03", "E-M-APT-07", "E-M-APT-14", "E-M-APT-18", "E-G09", "E-G15", "E-X09"],
-      "WS-08A": ["E-M-RS-02", "E-M-RS-03", "E-M-RS-04", "E-X09"],
-      "WS-08B": ["E-M-HL-02", "E-M-HL-03", "E-M-HL-04", "E-X09"],
-      "ecommerceFrozen": ["E-M-EC-02", "E-M-EC-03", "E-M-EC-04", "E-G15", "E-X09"]
+      "WS-08C": [
+        "E-M-APT-03",
+        "E-M-APT-07",
+        "E-M-APT-14",
+        "E-M-APT-18",
+        "E-G09",
+        "E-G15",
+        "E-X09"
+      ],
+      "WS-08A": [
+        "E-M-RS-02",
+        "E-M-RS-03",
+        "E-M-RS-04",
+        "E-X09"
+      ],
+      "WS-08B": [
+        "E-M-HL-02",
+        "E-M-HL-03",
+        "E-M-HL-04",
+        "E-X09"
+      ],
+      "ecommerceFrozen": [
+        "E-M-EC-02",
+        "E-M-EC-03",
+        "E-M-EC-04",
+        "E-G15",
+        "E-X09"
+      ]
     },
     "provesSelectedContextGrounding": [
       "E-G18",
