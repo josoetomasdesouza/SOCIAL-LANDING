@@ -4,7 +4,7 @@ import {
   shouldActiveTopicOverrideChip,
   updateActiveTopicFromMessage,
 } from "./active-topic"
-import { resolveAnswerFirstGate } from "./answerability-classifier"
+import { resolveAnswerFirstGate } from "./strategy-executor"
 import { isSocialFeedChip } from "./model-context-pack"
 import type {
   KernelResponse,
