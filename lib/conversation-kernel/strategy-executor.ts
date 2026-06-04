@@ -29,7 +29,7 @@ export interface TurnClassification {
   reason: string
 }
 
-const AUGUSTA_FORBIDDEN = /veja servi(c|o)s e profissionais no feed quando quiser/i
+const AUGUSTA_FORBIDDEN = /veja servi[cç]os e profissionais no feed quando quiser/i
 
 export function resolveStrategyFromDecision(decision: AnswerabilityDecision): ResponseStrategy {
   switch (decision.class) {

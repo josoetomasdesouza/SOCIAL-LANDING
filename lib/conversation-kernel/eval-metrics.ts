@@ -21,9 +21,9 @@ export type EvalMetricRecord = {
   wrong_lane: boolean
 }
 
-const AUGUSTA_GENERIC = /veja servi(c|o)s e profissionais no feed quando quiser/i
+const AUGUSTA_GENERIC = /veja servi[cç]os e profissionais no feed quando quiser/i
 /** Legacy situated fallback copy — not in-domain meta ack (PR4 observability). */
-const SITUATED_FALLBACK = /me conta em uma linha:\s*cabelo|veja servi(c|o)s e profissionais no feed quando quiser/i
+const SITUATED_FALLBACK = /me conta em uma linha:\s*cabelo|veja servi[cç]os e profissionais no feed quando quiser/i
 const BROAD_CLARIFY_REPLY = /não captei o foco|nao captei o foco/i
 
 export function detectEscape(params: {

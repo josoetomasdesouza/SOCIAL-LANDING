@@ -7,7 +7,7 @@ import { barberShopConfig, barberShopArrivalContext, barberShopHeroOperationalCo
 import { createAppointmentConversationResolverWithDialogue } from "@/lib/mock-data/appointment-conversation-resolver-composed"
 import type { ConversationContextPayload } from "@/lib/business-types"
 
-const AUGUSTA = /veja servi(c|o)s e profissionais no feed quando quiser/i
+const AUGUSTA = /veja servi[cç]os e profissionais no feed quando quiser/i
 const DEGRADE_BOOKING = /caminho comum por aqui|appointment-booking/i
 const BROAD = /não captei o foco|nao captei o foco/i
 
@@ -88,6 +88,22 @@ const cases = [
       require: [/masculino|mulher|feminino|tend/i],
       noBooking: true,
     }),
+  () => {
+    const items = chip("apt-vid-2", "Tendencias de Corte Masculino 2024")
+    const t1 = resolver({ message: "qual a tendencia para carecas?", brandName: ctx.brandName, contextItems: items })
+    const t2 = resolver({ message: "carecas", brandName: ctx.brandName, contextItems: items })
+    const text = t2?.text ?? ""
+    const ok =
+      !AUGUSTA.test(text) &&
+      !BROAD.test(text) &&
+      /careca|calvo|masculino|tend/i.test(text) &&
+      !(t2 && typeof t2 === "object" && "kind" in t2)
+    console.log(`${ok ? "PASS" : "FAIL"} 1b-video-tendencias-carecas-followup`)
+    console.log(`  T1: ${(t1?.text ?? "").slice(0, 100)}…`)
+    console.log(`  T2: ${text.slice(0, 140)}`)
+    if (!ok) console.log("  → Augusta or missing bald-gap copy on follow-up")
+    return ok
+  },
   () =>
     run("2-video-fade-mulheres", "esse fade é feito tambem em mulheres?", chip("apt-vid-1", "Tutorial: Fade Perfeito em 5 Minutos"), {
       forbid: [BROAD, DEGRADE_BOOKING],

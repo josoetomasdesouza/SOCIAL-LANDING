@@ -90,42 +90,57 @@ function messageReferencesChip(message: string, item: SelectedContextItem): bool
     )
   }
 
-  if (
-    item.kind === "video" &&
-    hasToken(
-      m,
-      "antes",
-      "depois",
-      "transformacao",
-      "transformação",
-      "video",
-      "vídeo",
-      "tendencia",
-      "tendência",
-      "fade",
-      "esse",
-      "feito",
-      "tambem",
-      "também",
-      "mulher",
-      "mulheres",
-      "feminino",
-      "homem",
-      "homens",
-      "card",
-      "estilo",
-      "corte",
-      "comente",
-      "perguntei",
-      "sobre o que",
-      "estamos falando",
-      "do que estamos"
-    )
-  ) {
-    if (hasToken(m, "sobre o que", "estamos falando", "do que estamos", "perguntei", "comentei", "card")) {
+  if (item.kind === "video") {
+    if (
+      hasToken(
+        m,
+        "careca",
+        "carecas",
+        "calvo",
+        "calvos",
+        "calvicie",
+        "cacheado",
+        "crespo",
+        "mulher",
+        "mulheres",
+        "feminino"
+      )
+    ) {
       return true
     }
-    return /antes|depois|transformacao|transformação/.test(m) || hits.length >= 1
+    if (
+      hasToken(
+        m,
+        "antes",
+        "depois",
+        "transformacao",
+        "transformação",
+        "video",
+        "vídeo",
+        "tendencia",
+        "tendência",
+        "fade",
+        "esse",
+        "feito",
+        "tambem",
+        "também",
+        "homem",
+        "homens",
+        "card",
+        "estilo",
+        "corte",
+        "comente",
+        "perguntei",
+        "sobre o que",
+        "estamos falando",
+        "do que estamos"
+      )
+    ) {
+      if (hasToken(m, "sobre o que", "estamos falando", "do que estamos", "perguntei", "comentei", "card")) {
+        return true
+      }
+      return /antes|depois|transformacao|transformação/.test(m) || hits.length >= 1
+    }
   }
   return hits.length >= 1 && hasToken(m, "como", "qual", "oque", "o que", "fale", "sobre", "isso", "esse")
 }
@@ -387,6 +402,14 @@ export function classifyAnswerability(
     return { class: "needs_clarification", reason: "defer_to_legacy" }
   }
 
+  if (
+    chip?.kind === "video" &&
+    hasToken(m, "careca", "carecas", "calvo", "calvos", "calvicie", "cacheado", "crespo", "mulher", "mulheres", "feminino") &&
+    (session.lastTopic === "video_content" || messageReferencesChip(message, chip))
+  ) {
+    return { class: "answerable_from_selected_context", reason: "video_audience_followup" }
+  }
+
   return { class: "needs_clarification", reason: "defer_to_legacy" }
 }
 
@@ -461,6 +484,22 @@ function replyVideoTrendsInquiry(
         reply: `O "${item.title}" traz tendências de corte masculino — o clipe não cobre tendências femininas. Para mulheres, veja outros posts no feed ou agende e peça ao barbeiro o estilo que você quer.`,
         intent: "context_grounded",
         topic: "video_trends_gender_gap",
+        source: "selected_context",
+        grounding: groundingFromItem(item, "medium"),
+      },
+      "answerable_from_selected_context"
+    )
+  }
+
+  if (
+    hasToken(m, "careca", "carecas", "calvo", "calvos", "calvicie") &&
+    videoFocusesOnMasculineTrends(item)
+  ) {
+    return baseAnswer(
+      {
+        reply: `O "${item.title}" fala de tendências de corte masculino com cabelo — não cobre estilos ou tendências para carecas/calvos. Para calvos, veja outros posts no feed ou agende e alinhe o visual com o barbeiro.`,
+        intent: "context_grounded",
+        topic: "video_trends_bald_gap",
         source: "selected_context",
         grounding: groundingFromItem(item, "medium"),
       },

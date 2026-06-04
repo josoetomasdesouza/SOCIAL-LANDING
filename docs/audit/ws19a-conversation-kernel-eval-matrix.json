@@ -779,6 +779,30 @@
       "expectedAction": { "type": "text_only" },
       "successCriteria": "T2: estacionamento|horário|horario|endereço|endereco|Continuando; forbidden Não captei o foco — é sobre horário, como chegar|veja serviços e profissionais",
       "riskIfFails": "Vague follow-up perde sessão operacional"
+    },
+    {
+      "id": "E-G46",
+      "model": "appointment",
+      "category": "active_topic_resolution",
+      "prompts": ["qual a tendencia para carecas?", "carecas"],
+      "selectedContext": {
+        "id": "apt-vid-2",
+        "kind": "video",
+        "title": "Tendencias de Corte Masculino 2024",
+        "knownFacts": ["tema: tendencias corte masculino"],
+        "belongsToCurrentHouse": true
+      },
+      "domainZone": "in_domain",
+      "topicShiftExpected": false,
+      "idealReply": "T1/T2: honest gap carecas/calvos no vídeo de tendências masculinas — sem Augusta nem broad clarify",
+      "expectedAction": { "type": "text_only" },
+      "groundingExpected": { "source": "selected_context", "confidence": "medium" },
+      "forbiddenActions": [
+        { "type": "situated_fallback_augusta_loop" },
+        { "type": "generic_chip_clarification" }
+      ],
+      "successCriteria": "T2: careca|calvo|masculino|tendência|tendencia; forbiddenPattern: fica na Augusta|veja servi[cç]os|Não captei o foco|me conta em uma linha",
+      "riskIfFails": "Follow-up mínimo de audiência de vídeo cai em Augusta ou broad clarify"
     }
   ],
   "perModel": {

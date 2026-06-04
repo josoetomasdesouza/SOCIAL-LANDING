@@ -1,10 +1,22 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "workstream": "WS-19B",
   "charter": "docs/audit/WS-19B_CONVERSATIONAL_COVERAGE.md",
+  "followup": "docs/audit/WS-19B_V1_1_FOLLOWUP.md",
   "gate": {
     "escapeRateMaxPercent": 5,
-    "criticalWrongLaneMax": 0
+    "criticalWrongLaneMax": 0,
+    "escapeRateScope": "escape_expected_false",
+    "wrongLaneScope": "human_critical_non_adversarial",
+    "corpusMin": 60,
+    "humanCalibratedMin": 40
+  },
+  "stats": {
+    "total": 61,
+    "humanCalibrated": 45,
+    "probeCalibrated": 16,
+    "adversarial": 16,
+    "negativeControls": 3
   },
   "scenarios": [
     {
@@ -19,7 +31,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-02",
@@ -35,7 +51,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-03",
@@ -49,7 +69,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-04",
@@ -63,7 +87,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-05",
@@ -77,7 +105,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-06",
@@ -91,7 +123,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-07",
@@ -107,7 +143,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-08",
@@ -124,7 +164,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-09",
@@ -138,7 +182,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-10",
@@ -152,7 +200,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-11",
@@ -169,7 +221,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-12",
@@ -182,30 +238,17 @@
         "kind": "video",
         "title": "Tutorial: Fade Perfeito em 5 Minutos"
       },
-      "expected_lane": "needs_clarification",
-      "expected_strategy": "defer_legacy",
-      "forbidden_patterns": [
-        "veja servi(c|o)s e profissionais no feed quando quiser"
-      ],
-      "escape_expected": false,
-      "critical": true
-    },
-    {
-      "id": "B-13",
-      "matrixRef": "E-G20",
-      "prompt": "Onde fica a barbearia Dom Corleone?",
-      "prior_turns": [],
-      "chip": {
-        "kind": "news",
-        "title": "Barbearia Dom Corleone abre unidade em Pinheiros"
-      },
       "expected_lane": "answerable_from_selected_context",
       "expected_strategy": "direct",
       "forbidden_patterns": [
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": true
     },
     {
       "id": "B-14",
@@ -222,7 +265,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-15",
@@ -239,7 +286,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-16",
@@ -259,7 +310,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-17",
@@ -279,7 +334,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-18",
@@ -299,7 +358,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-19",
@@ -318,7 +381,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-20",
@@ -335,7 +402,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-21",
@@ -352,7 +423,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-22",
@@ -369,7 +444,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-23",
@@ -383,7 +462,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-24",
@@ -400,7 +483,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-25",
@@ -417,7 +504,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-26",
@@ -436,7 +527,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-27",
@@ -453,7 +548,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-28",
@@ -470,7 +569,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-29",
@@ -487,7 +590,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-30",
@@ -501,7 +608,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": true
     },
     {
       "id": "B-31",
@@ -518,7 +629,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-32",
@@ -535,7 +650,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-33",
@@ -554,7 +673,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-34",
@@ -573,7 +696,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-35",
@@ -592,7 +719,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-36",
@@ -609,7 +740,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-37",
@@ -628,7 +763,11 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
       "id": "B-38",
@@ -639,13 +778,17 @@
         "kind": "video",
         "title": "Tutorial: Fade Perfeito em 5 Minutos"
       },
-      "expected_lane": "needs_clarification",
-      "expected_strategy": "defer_legacy",
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
       "forbidden_patterns": [
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "human",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": true
     },
     {
       "id": "B-39",
@@ -662,24 +805,600 @@
         "veja servi(c|o)s e profissionais no feed quando quiser"
       ],
       "escape_expected": false,
-      "critical": true
+      "critical": true,
+      "calibration": "probe",
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false
     },
     {
-      "id": "B-40",
+      "id": "B-41",
+      "tags": [
+        "adversarial",
+        "transactional_indevido"
+      ],
+      "prompt": "degrade",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ]
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser"
+      ],
+      "forbidden_action_types": [
+        "delegate_transactional_resolver"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-42",
+      "tags": [
+        "adversarial",
+        "broad_indevido"
+      ],
+      "prompt": "me fala ai",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos"
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "não captei o foco|nao captei o foco"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-43",
+      "tags": [
+        "adversarial",
+        "chip_trap"
+      ],
+      "matrixRef": "E-G35",
+      "prompt": "Tem estacionamento?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "30 min",
+        "tradicional com máquina"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-44",
+      "tags": [
+        "adversarial",
+        "ambiguity"
+      ],
+      "prompt": "e isso?",
+      "prior_turns": [
+        "fale mais sobre esse post"
+      ],
+      "chip": {
+        "kind": "social_post",
+        "title": "Sabado de casa cheia! Obrigado pela confianca."
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-45",
+      "tags": [
+        "adversarial",
+        "ambiguity"
+      ],
+      "prompt": "tem essa barbearia la em Curitiba?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "social_post",
+        "title": "Novo lounge na Augusta"
+      },
+      "expected_lane": "in_domain_missing_context",
+      "expected_strategy": "clarify_target",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "augusta, 1500"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-46",
+      "tags": [
+        "adversarial",
+        "ambiguity"
+      ],
+      "prompt": "o que significa isso pra minha cidade?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "social_post",
+        "title": "Sabado de casa cheia! Obrigado pela confianca."
+      },
+      "expected_lane": "in_domain_missing_context",
+      "expected_strategy": "clarify_target",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-47",
+      "tags": [
+        "adversarial",
+        "topic_drift"
+      ],
+      "prompt": "e quanto custa?",
+      "prior_turns": [
+        "esse fade é feito tambem em mulheres?"
+      ],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ]
+      },
+      "expected_lane": "answerable_from_active_topic",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "mulher|feminino|clipe ensina"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-48",
+      "tags": [
+        "adversarial",
+        "topic_drift"
+      ],
+      "prompt": "e funciona no domingo?",
+      "prior_turns": [
+        "qual o preco do degrade?"
+      ],
+      "chip": {
+        "kind": "service",
+        "title": "Degrade"
+      },
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "R\\$ 55|catálogo"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-49",
+      "tags": [
+        "adversarial",
+        "topic_drift"
+      ],
+      "prompt": "quero marcar um horario",
+      "prior_turns": [
+        "tem estacionamento?",
+        "e até que horas?"
+      ],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino"
+      },
+      "expected_lane": "should_delegate_transactional",
+      "expected_strategy": "delegate_08c",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "estacionamento conveniado"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-50",
+      "tags": [
+        "adversarial",
+        "transactional_indevido"
+      ],
+      "prompt": "mostra a tecnica do fade neste clipe",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tutorial: Fade Perfeito em 5 Minutos",
+        "knownFacts": [
+          "tema: fade"
+        ]
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser"
+      ],
+      "forbidden_action_types": [
+        "delegate_transactional_resolver"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "NC-01",
+      "tags": [
+        "negative_control"
+      ],
+      "forbidden_patterns": [],
+      "prompt": "???",
+      "prior_turns": [],
+      "chip": null,
+      "expected_lane": "any",
+      "expected_strategy": "any",
+      "escape_expected": true,
+      "expected_escape_reason": "empty_or_null",
+      "calibration": "human",
+      "critical": false,
+      "adversarial": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "NC-02",
+      "tags": [
+        "negative_control"
+      ],
+      "forbidden_patterns": [],
+      "prompt": "(fixture)",
+      "control_fixture": {
+        "reply": "Veja servicos e profissionais no feed quando quiser.",
+        "action": {
+          "type": "text_only"
+        }
+      },
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "escape_expected": true,
+      "expected_escape_reason": "augusta_generic",
+      "calibration": "human",
+      "critical": false,
+      "prior_turns": [],
+      "chip": null,
+      "adversarial": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "NC-03",
+      "tags": [
+        "negative_control"
+      ],
+      "forbidden_patterns": [],
+      "prompt": "(fixture-broad)",
+      "control_fixture": {
+        "reply": "Não captei o foco — é sobre horário, como chegar, preços, um item do feed ou agendar?",
+        "action": {
+          "type": "text_only"
+        }
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "escape_expected": true,
+      "expected_escape_reason": "broad_clarify_unexpected",
+      "calibration": "human",
+      "critical": false,
+      "prior_turns": [],
+      "chip": null,
+      "adversarial": false,
+      "known_product_gap": false
+    },
+    {
+      "id": "B-51",
+      "matrixRef": "E-G46",
+      "tags": [
+        "video_audience_followup"
+      ],
+      "prompt": "carecas",
+      "prior_turns": [
+        "qual a tendencia para carecas?"
+      ],
+      "chip": {
+        "kind": "video",
+        "title": "Tendencias de Corte Masculino 2024",
+        "knownFacts": [
+          "tema: tendencias corte masculino"
+        ]
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "fica na augusta",
+        "não captei o foco|nao captei o foco",
+        "me conta em uma linha"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": false,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-52",
       "matrixRef": "E-M-APT-17",
+      "tags": [
+        "replaces_B-13"
+      ],
       "prompt": "Onde fica a barbearia Dom Corleone?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "news",
+        "title": "Barbearia Dom Corleone abre unidade em Pinheiros",
+        "knownFacts": [
+          "entidade: Dom Corleone"
+        ]
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "Carlos Silva|appointment-booking"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": false,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-53",
+      "matrixRef": "E-M-APT-18",
+      "prompt": "fale mais sobre esse corte",
+      "prior_turns": [],
+      "chip": {
+        "kind": "service",
+        "title": "Corte Masculino",
+        "relatedEntityIds": [
+          "service-1"
+        ]
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "known_product_gap": true,
+      "tags": [],
+      "adversarial": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-54",
+      "tags": [
+        "adversarial",
+        "ambiguity"
+      ],
+      "prompt": "essa",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tendencias de Corte Masculino 2024",
+        "knownFacts": [
+          "tema: tendencias corte masculino"
+        ]
+      },
+      "expected_lane": "in_domain_missing_context",
+      "expected_strategy": "clarify_target",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "não captei o foco|nao captei o foco"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-55",
+      "tags": [
+        "adversarial",
+        "ambiguity"
+      ],
+      "prompt": "isso",
+      "prior_turns": [
+        "qual tendencia para cabelo cacheado?"
+      ],
+      "chip": {
+        "kind": "video",
+        "title": "Tendencias de Corte Masculino 2024",
+        "knownFacts": [
+          "tema: tendencias corte masculino"
+        ]
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "não captei o foco|nao captei o foco"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-56",
+      "tags": [
+        "adversarial",
+        "ambiguity"
+      ],
+      "prompt": "e la?",
+      "prior_turns": [
+        "fale mais sobre esse post"
+      ],
+      "chip": {
+        "kind": "social_post",
+        "title": "Sabado de casa cheia! Obrigado pela confianca."
+      },
+      "expected_lane": "in_domain_missing_context",
+      "expected_strategy": "clarify_target",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "não captei o foco|nao captei o foco"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-57",
+      "tags": [
+        "adversarial",
+        "ambiguity"
+      ],
+      "prompt": "minha cidade",
+      "prior_turns": [],
+      "chip": {
+        "kind": "social_post",
+        "title": "Novo lounge na Augusta"
+      },
+      "expected_lane": "in_domain_missing_context",
+      "expected_strategy": "clarify_target",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "augusta, 1500"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-58",
+      "tags": [
+        "adversarial",
+        "chip_trap"
+      ],
+      "prompt": "Tem estacionamento?",
       "prior_turns": [],
       "chip": {
         "kind": "news",
         "title": "Barbearia Dom Corleone abre unidade em Pinheiros"
       },
+      "expected_lane": "answerable_from_operational_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "Dom Corleone abre|Pinheiros"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-59",
+      "tags": [
+        "adversarial",
+        "broad_indevido"
+      ],
+      "prompt": "oi",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tendencias de Corte Masculino 2024"
+      },
       "expected_lane": "answerable_from_selected_context",
       "expected_strategy": "direct",
       "forbidden_patterns": [
-        "veja servi(c|o)s e profissionais no feed quando quiser"
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "não captei o foco|nao captei o foco"
       ],
-      "escape_expected": false,
-      "critical": true
+      "calibration": "human",
+      "critical": true,
+      "adversarial": true,
+      "known_product_gap": false,
+      "escape_expected": false
+    },
+    {
+      "id": "B-60",
+      "matrixRef": "E-M-APT-16",
+      "prompt": "qual tendencia para cabelo cacheado?",
+      "prior_turns": [],
+      "chip": {
+        "kind": "video",
+        "title": "Tendencias de Corte Masculino 2024",
+        "knownFacts": [
+          "tema: tendencias corte masculino"
+        ]
+      },
+      "expected_lane": "answerable_from_selected_context",
+      "expected_strategy": "direct",
+      "forbidden_patterns": [
+        "veja servi[cç]os e profissionais no feed quando quiser",
+        "não captei o foco|nao captei o foco"
+      ],
+      "calibration": "human",
+      "critical": true,
+      "tags": [],
+      "adversarial": false,
+      "known_product_gap": false,
+      "escape_expected": false
     }
   ]
 }

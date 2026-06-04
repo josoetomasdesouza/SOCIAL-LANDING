@@ -1,8 +1,8 @@
 # WS-19B v1.1 — Human calibration and adversarial coverage
 
-**Status:** Planned (post PR #82 / merge `0c1d80c`)  
-**Prerequisite:** PR #81 + PR #82 merged on `main`  
-**Blocks:** LLM bounded (Fase 4) — do not start until this follow-up is reviewed
+**Status:** Implemented (corpus v1.1.0 — 61 scenarios, 45 human, gates green)  
+**Prerequisite:** PR #81 + PR #82 merged on `main` ✅  
+**Blocks:** LLM bounded (Fase 4) — human review of Top 40 difficulty still required before GO
 
 ---
 

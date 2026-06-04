@@ -31,7 +31,7 @@ function hasToken(message: string, ...tokens: string[]): boolean {
 }
 
 function augustaForbidden(reply: string): boolean {
-  return /veja servi(c|o)s e profissionais no feed quando quiser/i.test(reply)
+  return /veja servi[cç]os e profissionais no feed quando quiser/i.test(reply)
 }
 
 function baseResponse(
@@ -184,6 +184,20 @@ function resolveSelectedContextGrounding(
         reply: `O "${primary.title}" traz tendências de corte masculino — o clipe não cobre tendências femininas. Para mulheres, veja outros posts no feed ou agende e peça ao barbeiro o estilo que você quer.`,
         intent: "context_grounded",
         topic: "video_trends_gender_gap",
+        confidence: "medium",
+        source: "selected_context",
+        grounding: groundingFromItem(primary, "medium"),
+      })
+    }
+  }
+
+  if (primary.kind === "video" && hasToken(m, "careca", "carecas", "calvo", "calvos", "calvicie")) {
+    const masc = /masculino|homem|homens/i.test(`${primary.title} ${primary.summary ?? ""} ${primary.knownFacts.join(" ")}`)
+    if (masc) {
+      return baseResponse({
+        reply: `O "${primary.title}" fala de tendências de corte masculino com cabelo — não cobre estilos ou tendências para carecas/calvos. Para calvos, veja outros posts no feed ou agende e alinhe o visual com o barbeiro.`,
+        intent: "context_grounded",
+        topic: "video_trends_bald_gap",
         confidence: "medium",
         source: "selected_context",
         grounding: groundingFromItem(primary, "medium"),

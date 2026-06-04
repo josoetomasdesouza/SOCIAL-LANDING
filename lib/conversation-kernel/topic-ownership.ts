@@ -205,7 +205,11 @@ export function syncTopicOwnershipFromResponse(
     session.lastTopic = detected
   }
 
-  if (owner === "chip" && pack.selectedContextItems[0]?.kind === "video") {
+  if (
+    owner === "chip" &&
+    pack.selectedContextItems[0]?.kind === "video" &&
+    (response?.topic?.startsWith("video_") || response?.source === "selected_context")
+  ) {
     session.lastTopic = "video_content"
   }
 
