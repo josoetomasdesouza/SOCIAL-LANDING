@@ -2,6 +2,10 @@
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react"
 import { observeComposerModeChanged } from "@/lib/events/instrumentation"
+import {
+  DEFAULT_COMPOSER_LAYOUT_VERSION,
+  type ComposerLayoutVersion,
+} from "@/lib/ui/composer-layout"
 import type { ComposerScrollMetrics } from "@/lib/ui/composer-scroll-clearance"
 import type { ConversationContextItem } from "./conversational-ai"
 import { useConversationContextMorph } from "./conversation-context-morph"
@@ -30,6 +34,8 @@ interface ConversationSelectionController {
   setComposerScrollMetrics: (metrics: ComposerScrollMetrics) => void
   composerOffsetClassName?: string
   setComposerOffsetClassName: (className?: string) => void
+  /** WS-21 layout pilot — v1 default; v2 enables hybrid path in R1+. */
+  composerLayoutVersion: ComposerLayoutVersion
 }
 
 const ConversationSelectionContext = createContext<ConversationSelectionController | null>(null)
@@ -117,6 +123,7 @@ export function useConversationSelectionState(): ConversationSelectionController
     setComposerScrollMetrics,
     composerOffsetClassName,
     setComposerOffsetClassName,
+    composerLayoutVersion: DEFAULT_COMPOSER_LAYOUT_VERSION,
   }
 }
 
