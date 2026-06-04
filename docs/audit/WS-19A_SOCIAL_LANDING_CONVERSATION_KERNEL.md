@@ -1,9 +1,10 @@
 # WS-19A — Social Landing Conversation Kernel (Charter de Plataforma)
 
-**Baseline:** `origin/main` @ `4172f2d`  
+**Baseline:** `origin/main` @ `72d49ad`  
 **Autoridade:** Workstream de **plataforma** — conversa cross-model no Composer visitante  
-**Tipo:** charter + contratos + evals — **sem implementação** nesta publicação  
-**Status:** ✅ **Charter publicado** · 🔴 **Implementação bloqueada** até novo GO explícito  
+**Tipo:** charter + contratos + evals + **Fase 1 stub** (PR #78)  
+**Status:** ✅ **Charter publicado** · ✅ **Fase 1 FECHADA** · 🔴 **Fase 2 NÃO ABERTA** · 🔴 **LLM/endpoint NO-GO**  
+**Closure:** [`WS-19A_PHASE1_CLOSURE.md`](./WS-19A_PHASE1_CLOSURE.md)
 **Relacionados:** [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](./WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md) · [`WS-08D_V2_CONVERSATION_KERNEL.md`](./WS-08D_V2_CONVERSATION_KERNEL.md) · [`AI_RESOLVER_CONSTITUTION.md`](../ai/AI_RESOLVER_CONSTITUTION.md) · [`WS-18A_OPERATIONAL_AI_MINIMUM.md`](./WS-18A_OPERATIONAL_AI_MINIMUM.md)
 
 ---
@@ -14,7 +15,8 @@
 
 ```txt
 WS-19A design / platform charter:     GO (este documento)
-WS-19A implementação (código):        NO-GO
+WS-19A Fase 1 (stub + Appointment):   FECHADA @ 72d49ad (PR #78)
+WS-19A Fase 2:                        NÃO ABERTA
 LLM visitante / endpoint Kernel:      NO-GO (fase atual)
 V1.1 rules como estratégia final:     NO-GO
 V1.1 implementação em main:           NO-GO (estratégia encerrada)
@@ -476,7 +478,8 @@ type KernelAction =
 | **Implementar V2 Appointment isolado** | **NO-GO** — subordinar a WS-19A |
 | **LLM / endpoint** | **NO-GO** (fase atual) |
 
-**Próximo passo institucional:** `GO implementação WS-19A fase 1` (contratos types-only + rule-kernel stub + harness leitura da matriz).
+**Fase 1:** concluída — ver [`WS-19A_PHASE1_CLOSURE.md`](./WS-19A_PHASE1_CLOSURE.md).  
+**Próximo passo institucional:** `GO humano explícito` para **Fase 2** (evals restantes, adapters RS/HL/EC, Playwright chips) — **não** autorizado automaticamente.
 
 ---
 

@@ -1,7 +1,7 @@
 # Handoff Operacional — Social Landing
 
-**Data:** 2026-06-03 (atualizado pós WS-13 Etapa 1 + WS-18A)
-**Baseline remoto:** `origin/main` @ `4172f2d` (WS-08D V1 + V1.1 spec) · **WS-19A** charter local pendente push  
+**Data:** 2026-06-04 (atualizado pós WS-19A Fase 1)
+**Baseline remoto:** `origin/main` @ `72d49ad` (WS-19A Fase 1 merged · PR #78)  
 **Tipo:** Baseline consolidado · estado atual · sem propostas de feature  
 **Autoridade:** Registrar contexto para próxima conversa — não reabrir filosofia congelada  
 **WS-18A runbook canônico:** [`WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md`](WS-18A_ETAPA_4_OPERATIONAL_CLOSURE.md)
@@ -12,7 +12,8 @@
 
 | Âncora | Hash | Significado |
 |--------|------|-------------|
-| **`origin/main` (publicado)** | `23fec61` | HEAD remoto · CI verde (QA Minimum) |
+| **`origin/main` (publicado)** | `72d49ad` | HEAD remoto · WS-19A Fase 1 · CI verde (QA Minimum) |
+| **WS-19A Fase 1 feature** | `1de7113` | Kernel stub + Appointment adapter (PR #78) |
 | **CI fix client bundle** | `fdb9e68` | `node:fs` leak corrigido · dev server `/demo` OK |
 | **WS-18A Etapa 1** | `e64912c` | Operational AI primitives (fixture-only) |
 | **WS-18A Etapa 0 charter** | `31c9b78` | `WS-18A_OPERATIONAL_AI_MINIMUM.md` |
@@ -64,7 +65,7 @@
 | WS-08D V1 establishment dialogue | ✅ | `10b36c7` — PR #77 · `[2]→[1]→[3]` · AP-D01…14 |
 | WS-08D V1.1 zona cinza | 🟢 spec · 🔴 estratégia | [`WS-08D_V1_1_GRAY_ZONE_SPEC.md`](WS-08D_V1_1_GRAY_ZONE_SPEC.md) — local = experimento/baseline |
 | WS-08D V2 Conversation Kernel | 🟢 design / 🔴 código | Perfil Appointment → WS-19A |
-| **WS-19A** Conversation Kernel | 🟢 **charter + eval matrix** / 🔴 **código** | + **Selected Context Grounding** (prints fade/Dom Corleone/corte) · E-G22/E-M-APT-15…18 |
+| **WS-19A** Conversation Kernel | ✅ **Fase 1 FECHADA** @ `72d49ad` / 🔴 **Fase 2 NÃO ABERTA** | Stub + `qa:kernel-stub` 22/22 · grounding prints · ver [`WS-19A_PHASE1_CLOSURE.md`](WS-19A_PHASE1_CLOSURE.md) |
 
 ### Era 4 — Appointment operacional (server)
 | WS | Status | Hash ref |
@@ -86,7 +87,7 @@
 | WS-10 | 🟡 Observational hardening (macro) |
 | WS-13 Presença contínua | ✅ **Etapa 1 FECHADA** · Sessão B humana @ `eaf5701` · [`WS-13_ETAPA_1_HUMAN_CLOSURE.md`](WS-13_ETAPA_1_HUMAN_CLOSURE.md) |
 | WS-08D | ✅ V1 @ `4172f2d` · V1.1 spec only · **sucessor: WS-19A** |
-| WS-19A | 🟢 charter + matriz eval · **impl./LLM/endpoint NO-GO** · próximo: fase 1 stub |
+| WS-19A | ✅ **Fase 1 FECHADA** @ `72d49ad` · **Fase 2 NÃO ABERTA** · LLM/endpoint **NO-GO** · [`WS-19A_PHASE1_CLOSURE.md`](WS-19A_PHASE1_CLOSURE.md) |
 | WS-09 DB enterprise | 🔴 BLOCKED |
 
 ---

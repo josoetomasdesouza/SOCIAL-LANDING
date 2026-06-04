@@ -327,15 +327,15 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Plataforma conversacional (todos os modelos) |
-| **Status** | ✅ **Charter publicado** · 🔴 **implementação NO-GO** · 🔴 **LLM/endpoint NO-GO** |
+| **Status** | ✅ **Fase 1 FECHADA** @ `72d49ad` (PR #78) · 🔴 **Fase 2 NÃO ABERTA** · 🔴 **LLM/endpoint NO-GO** |
 | **Objetivo** | Composer natural em **ecommerce, restaurant, health, appointment** — anfitrião da página, não ChatGPT |
-| **Fase 1 futura** | Contratos + evals E-G* + rule-kernel stub (Appointment) · sem LLM · sem Tier 1 diff |
+| **Fase 1 (entregue)** | Contratos + rule-kernel stub + `qa:kernel-stub` + Appointment adapter · PR [#78](https://github.com/josoetomasdesouza/SOCIAL-LANDING/pull/78) |
 | **Fora de escopo** | WS-18A operacional; CRM; memória permanente; agente autônomo; V1.1 rules como produto final |
-| **V1.1 local** | Baseline comparativo / branch experimento — **não** promover a `main` |
-| **Eval matrix** | MD + JSON — **68 evals** · dimensão **Selected Context Grounding** (E-G18…22, E-M-APT-15…18, E-X11…12) |
-| **Gate saída fase 1** | Stub verde em E-G00…10, **E-G18…22**, E-X01…05, **E-X11…12** + regressão 26/26 |
-| **Fase 1 obrigatório** | `selectedContextItems` + `grounding` no pack/response |
-| **Refs** | Charter · matriz evals (acima) |
+| **V1.1 local** | Baseline comparativo / `experiment/ws08d-v1.1-gray-zone` — **não** em `main` |
+| **Eval matrix** | MD + JSON — **68 evals** · Fase 1 stub: 22 obrigatórios verdes |
+| **Gate saída fase 1** | ✅ `qa:kernel-stub` 22/22 · `qa:appointment` 22/22 · `qa:ai-regression` 26/26 · CI pós-merge verde |
+| **Fase 2** | Requer **GO humano explícito** — ver [`WS-19A_PHASE1_CLOSURE.md`](../audit/WS-19A_PHASE1_CLOSURE.md) |
+| **Refs** | Charter · matriz · [**Fase 1 closure**](../audit/WS-19A_PHASE1_CLOSURE.md) |
 
 ---
 
@@ -500,7 +500,7 @@ WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB enterprise) — BLOCKED, GO humano separado
 ```
 
-**Atual:** @ `8743087` — **WS-19A ✅ charter + eval matrix** · WS-08D V1 produção · V1.1 rules **NO-GO** · impl. 19A **NO-GO**; **próximo:** `GO WS-19A fase 1` (stub + harness matriz).
+**Atual:** @ `72d49ad` — **WS-19A ✅ Fase 1 FECHADA** (PR #78) · WS-08D V1 produção · V1.1 rules **NO-GO** · **Fase 2 NÃO ABERTA**; **próximo:** `GO humano explícito` para Fase 2 (ver closure).
 
 ---
 

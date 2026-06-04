@@ -1,28 +1,29 @@
 # WS-19A — Matriz de Avaliação Cross-Model (Conversation Kernel)
 
-**Baseline:** `origin/main` @ `8743087`  
+**Baseline:** `origin/main` @ `72d49ad`  
 **Charter:** [`WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md`](./WS-19A_SOCIAL_LANDING_CONVERSATION_KERNEL.md)  
 **Fixture (fonte de verdade):** [`ws19a-conversation-kernel-eval-matrix.json`](./ws19a-conversation-kernel-eval-matrix.json)  
-**Tipo:** evals institucionais — **sem harness** · **sem código** nesta publicação  
-**Status:** ✅ **Matriz publicada** · 🔴 **Implementação WS-19A NO-GO** · 🔴 **LLM/endpoint NO-GO**
+**Harness Fase 1:** `pnpm qa:kernel-stub` — 22 evals obrigatórios  
+**Status:** ✅ **Matriz publicada** · ✅ **Fase 1 stub verde** · 🔴 **Fase 2 NÃO ABERTA** · 🔴 **LLM/endpoint NO-GO**  
+**Closure:** [`WS-19A_PHASE1_CLOSURE.md`](./WS-19A_PHASE1_CLOSURE.md)
 
 ---
 
 ## Registro institucional (bloqueios mantidos)
 
 ```txt
-Implementação WS-19A:        NO-GO
+WS-19A Fase 1 stub:          FECHADA @ 72d49ad (22/22 qa:kernel-stub)
+WS-19A Fase 2:               NÃO ABERTA
 LLM visitante:               NO-GO
 Endpoint Kernel:             NO-GO
 Código V1.1 local em main:   PROIBIDO (baseline comparativo apenas)
 Tier 1 / conversational-ai:  INTOCADO
 WS-18A:                      ISOLADO
-lib/ components/ scripts/:   INTOCADOS nesta sessão
 ```
 
-**Selected Context Grounding:** requisito **obrigatório fase 1** (GK-17…19) — evidência prints @ baseline produção.
+**Selected Context Grounding:** requisito **obrigatório fase 1** (GK-17…19) — **coberto no stub** @ PR #78.
 
-**Gate futuro para `GO implementação WS-19A fase 1`:** E-G00…E-G10 + **E-G18…E-G22** + E-X01…E-X05 + **E-X11…E-X12** verdes no stub + `qa:ai-regression` 26/26.
+**Gate Fase 1 (atingido):** E-G00…E-G10 + **E-G18…E-G22** + **E-X11…E-X12** + E-M-APT-15…18 verdes + `qa:ai-regression` 26/26 + `qa:appointment` 22/22.
 
 ---
 
