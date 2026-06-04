@@ -224,7 +224,7 @@ Antes de liberar código (charter §11), a organização deve ter:
 2. ✅ Priorização V1: T-01–T-05 + T-13 + P-FB01 (escopo congelado; ver templates §Matriz resumo).
 3. ☐ Casos R existentes congelados como regressão (AP-01–07 + E-29–E-45, E-72–E-74).
 4. ✅ Copy bounds: [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](./WS-08D_V1_CONVERSATIONAL_TEMPLATES.md) (GC-01…12, AC-C01…06).
-5. ☐ Decisão humana explícita GO implementação.
+5. ✅ Decisão humana — [`WS-08D_V1_GO_RECORD.md`](./WS-08D_V1_GO_RECORD.md).
 
 **Pergunta operacional atual:**
 

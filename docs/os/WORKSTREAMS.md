@@ -308,13 +308,13 @@
 | Campo | Valor |
 |-------|-------|
 | **Era** | 5 — Multi-Vertical AI (diálogo situado) |
-| **Status** | 🟢 **ABERTA (charter)** @ `3d75600` — implementação **NO-GO** |
+| **Status** | 🟡 **V1 GO autorizado** @ `dc4281b` — implementação V1-core na branch `workstream/ws-08d-v1-establishment-dialogue` |
 | **Objetivo** | Política de diálogo especializada do estabelecimento: situado + descoberta leve + handoff WS-08C |
-| **Escopo** | Charter; matriz V1; camadas L1–L3; guardrails; critérios aceite/rollback |
-| **Fora de escopo** | Código; Tier 1; WS-18A; runtime/publication/storage/external; chatbot/CRM/agente/memória/IA protagonista |
-| **Gate de saída (charter)** | Charter merged · GO humano explícito para implementação (§11 charter) |
-| **Gate de saída (implementação)** | Matriz V1 + `qa:appointment` + `qa:events` + `qa:ai-regression` + observação humana |
-| **Refs** | [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](../audit/WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md) · [`WS-08D_CONVERSATIONAL_MATRIX_REAL.md`](../audit/WS-08D_CONVERSATIONAL_MATRIX_REAL.md) · [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](../audit/WS-08D_V1_CONVERSATIONAL_TEMPLATES.md) |
+| **Escopo** | Charter; matriz; templates; GO + plano PR V1; código conforme plano de execução |
+| **Fora de escopo** | Tier 1; WS-18A; runtime/publication/storage/external; T-06/07/11/12; drawer composer; LLM/CRM |
+| **Gate de saída (charter)** | Charter + GO record + plano PR publicados |
+| **Gate de saída (implementação)** | [`WS-08D_V1_PR_EXECUTION_PLAN.md`](../audit/WS-08D_V1_PR_EXECUTION_PLAN.md) §4–6 · `qa:appointment` 16/16 · `qa:ai-regression` · observação copy |
+| **Refs** | [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](../audit/WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md) · [`WS-08D_CONVERSATIONAL_MATRIX_REAL.md`](../audit/WS-08D_CONVERSATIONAL_MATRIX_REAL.md) · [`WS-08D_V1_CONVERSATIONAL_TEMPLATES.md`](../audit/WS-08D_V1_CONVERSATIONAL_TEMPLATES.md) · [`WS-08D_V1_GO_RECORD.md`](../audit/WS-08D_V1_GO_RECORD.md) · [`WS-08D_V1_PR_EXECUTION_PLAN.md`](../audit/WS-08D_V1_PR_EXECUTION_PLAN.md) |
 
 ---
 
@@ -474,12 +474,12 @@ WS-16A ✅ — External Reality Minimum · [`WS-16A_EXTERNAL_REALITY_MINIMUM.md`
 WS-15A ✅ — Publication Primitive · [`WS-15A_PUBLICATION_PRIMITIVE.md`](../audit/WS-15A_PUBLICATION_PRIMITIVE.md) @ `a837064` (draft/live CLI · preview OFF · auto-promote proibido)
 WS-09A ✅ — Persistence Primitive · [`WS-09A_PERSISTENCE_PRIMITIVE.md`](../audit/WS-09A_PERSISTENCE_PRIMITIVE.md) @ `67e41fe` (filesystem adapter · SQLite BLOCKED)
 WS-18A ✅ — Operational AI Minimum · [`WS-18A_OPERATIONAL_AI_MINIMUM.md`](../audit/WS-18A_OPERATIONAL_AI_MINIMUM.md) @ `31c9b78`/`e64912c`/`23fec61` + Etapa 3 LLM (fixture default · draft-only)
-WS-08D 🟢 — Establishment Conversational Dialogue · [`WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md`](../audit/WS-08D_ESTABLISHMENT_CONVERSATIONAL_DIALOGUE.md) (charter · implementação NO-GO)
+WS-08D 🟡 — Establishment Conversational Dialogue · charter + GO V1-core · [`WS-08D_V1_GO_RECORD.md`](../audit/WS-08D_V1_GO_RECORD.md) · PR técnica pendente
 WS-03 (parity gaps) — paralelo, escopo menor
 WS-09 (DB enterprise) — BLOCKED, GO humano separado
 ```
 
-**Atual:** **Era 4 emergente** @ `3d75600` — WS-09A · WS-15A · WS-16A · **WS-18A ✅** · **WS-13 Etapa 1 ✅** · **WS-08D 🟢 charter**; **próximo ciclo deliberado:** GO implementação WS-08D (humano) · WS-17 (editor — GO humano explícito) · WS-09 enterprise BLOCKED.
+**Atual:** **Era 4 emergente** @ `dc4281b` — **WS-08D 🟡 V1 GO** (branch técnica) · WS-18A ✅ · WS-13 ✅; **próximo:** PR `workstream/ws-08d-v1-establishment-dialogue` · WS-17 / WS-09 enterprise BLOCKED.
 
 ---
 
