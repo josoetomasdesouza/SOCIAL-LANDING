@@ -738,16 +738,26 @@ export function ConversationalAI({
     clearComposerScrollClearanceCssVar()
   }, [conversationSelectionContext, trackCompactFootprint])
 
+  const setComposerScrollMetricsRef = useRef(conversationSelectionContext?.setComposerScrollMetrics)
+  setComposerScrollMetricsRef.current = conversationSelectionContext?.setComposerScrollMetrics
+
   useEffect(() => {
     return () => {
-      conversationSelectionContext?.setComposerScrollMetrics({
+      setComposerScrollMetricsRef.current?.({
         footprintPx: 0,
         bottomInsetPx: 0,
         clearancePx: 0,
       })
       clearComposerScrollClearanceCssVar()
     }
-  }, [conversationSelectionContext])
+  }, [])
+
+  useEffect(() => {
+    const clearancePx = conversationSelectionContext?.composerScrollClearancePx ?? 0
+    if (clearancePx > 0) {
+      setComposerScrollClearanceCssVar(clearancePx)
+    }
+  }, [conversationSelectionContext?.composerScrollClearancePx])
 
   useLayoutEffect(() => {
     publishComposerScrollMetrics()
@@ -761,6 +771,29 @@ export function ConversationalAI({
     hiddenContextIds.length,
     hasEngagedConversation,
     measureShowContextRow,
+    trackCompactFootprint,
+    isStickyShellCompactOnly,
+    shouldPortalThread,
+  ])
+
+  useEffect(() => {
+    if (!shouldPortalThread) {
+      return
+    }
+
+    publishComposerScrollMetrics()
+    const frame = window.requestAnimationFrame(() => {
+      publishComposerScrollMetrics()
+      window.requestAnimationFrame(scrollInFlowThreadToLatestTurn)
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [
+    publishComposerScrollMetrics,
+    scrollInFlowThreadToLatestTurn,
+    shouldPortalThread,
+    messages,
+    isTyping,
   ])
 
   const getNearestSnapHeight = useCallback(
