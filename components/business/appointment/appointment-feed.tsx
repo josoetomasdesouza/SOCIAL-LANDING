@@ -21,7 +21,7 @@ import {
   appointmentHairStyles,
   appointmentHeroOperationalContext,
 } from "@/lib/runtime/appointment/appointment-feed-data"
-import { createAppointmentMockConversationResolver } from "@/lib/mock-data/appointment-conversational-search"
+import { createAppointmentConversationResolverWithDialogue } from "@/lib/mock-data/appointment-conversation-resolver-composed"
 import { createAppointmentConversationalVisualBlockRenderer } from "./appointment-conversational-visual-block"
 import { AppointmentOperationalHero } from "./appointment-operational-hero"
 import { AppointmentArrivalDrawer } from "./appointment-arrival-drawer"
@@ -696,7 +696,37 @@ export function AppointmentFeed() {
     }
   }, [selectedService])
 
-  const conversationResponseResolver = useMemo(() => createAppointmentMockConversationResolver(), [])
+  const conversationResponseResolver = useMemo(
+    () =>
+      createAppointmentConversationResolverWithDialogue({
+        brandName: appointmentBarberShopConfig.name,
+        operational: {
+          liveState: appointmentHeroOperationalContext.liveState,
+          placeHint: appointmentHeroOperationalContext.placeHint,
+          momentHint: appointmentHeroOperationalContext.momentHint,
+          hoursHint: appointmentHeroOperationalContext.hoursHint,
+          openingHours: appointmentBarberShopConfig.openingHours || "Seg-Sab: 9h-20h",
+        },
+        arrival: {
+          addressLine: appointmentArrivalContext.addressLine,
+          parkingHint: appointmentArrivalContext.parkingHint,
+          referenceHint: appointmentArrivalContext.referenceHint,
+        },
+        serviceNames: appointmentBarberServices.map((service) => service.name),
+      }),
+    [
+      appointmentArrivalContext.addressLine,
+      appointmentArrivalContext.parkingHint,
+      appointmentArrivalContext.referenceHint,
+      appointmentBarberServices,
+      appointmentBarberShopConfig.name,
+      appointmentBarberShopConfig.openingHours,
+      appointmentHeroOperationalContext.hoursHint,
+      appointmentHeroOperationalContext.liveState,
+      appointmentHeroOperationalContext.momentHint,
+      appointmentHeroOperationalContext.placeHint,
+    ]
+  )
 
   const renderConversationVisualBlock = useMemo(
     () =>

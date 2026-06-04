@@ -273,8 +273,8 @@
           "prompt": "voces tem estacionamento",
           "expect": {
             "visualBlock": false,
-            "contentPattern": "Barba Negra|ajudar|orientar",
-            "forbiddenPattern": "Ver horarios|Degrade"
+            "contentPattern": "Augusta|estacionamento|conveniado|Barba Negra|barbearia",
+            "forbiddenPattern": "Ver horarios|Degrade|Como posso ajudar|rapidinho"
           }
         },
         {
@@ -289,8 +289,8 @@
           "prompt": "qual o estacionamento",
           "expect": {
             "visualBlock": false,
-            "contentPattern": "Barba Negra|ajudar|orientar",
-            "forbiddenPattern": "Carlos Silva|Ver horarios"
+            "contentPattern": "Augusta|estacionamento|conveniado|Barba Negra|barbearia",
+            "forbiddenPattern": "Carlos Silva|Ver horarios|Como posso ajudar|rapidinho"
           }
         },
         {

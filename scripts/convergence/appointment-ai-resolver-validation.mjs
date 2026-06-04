@@ -1,5 +1,5 @@
 /**
- * WS-08C — Appointment AI resolver validation.
+ * WS-08C + WS-08D V1 — Appointment AI resolver validation.
  *
  * Prerequisites:
  *   pnpm dev  (http://localhost:3000/demo)
@@ -74,6 +74,25 @@ async function longPress(page, locator) {
       }),
     LONG_PRESS_MS
   )
+}
+
+async function getLastAiTurnText(page) {
+  const composer = page.locator('[data-conversation-composer="true"]')
+  const turn = composer.locator("div.flex.justify-start").last()
+  return (await turn.textContent()) ?? ""
+}
+
+async function assertTextDialogue(page, results, step, message, contentPattern, forbiddenPattern) {
+  await sendComposerMessage(page, message)
+  const resultsBlock = page.getByTestId("appointment-conversation-results-block").last()
+  const scheduleBlock = page.getByTestId("appointment-schedule-prompt-block").last()
+  const text = await getLastAiTurnText(page)
+  const noBlock =
+    !(await resultsBlock.isVisible().catch(() => false)) &&
+    !(await scheduleBlock.isVisible().catch(() => false))
+  const textOk = contentPattern.test(text)
+  const forbiddenOk = forbiddenPattern ? !forbiddenPattern.test(text) : true
+  record(results, step, noBlock && textOk && forbiddenOk, text.slice(0, 100))
 }
 
 async function longPressContextItem(page, sourceId, heading = "Agendar Horario") {
@@ -162,12 +181,13 @@ async function main() {
   const fallbackOk =
     !(await fallbackMenu.isVisible().catch(() => false)) &&
     !(await fallbackSchedule.isVisible().catch(() => false)) &&
-    /Barba Negra|ajudar|orientar/i.test(fallbackText ?? "")
+    /Augusta|estacionamento|conveniado|Barba Negra|barbearia/i.test(fallbackText ?? "") &&
+    !/Como posso ajudar|rapidinho/i.test(fallbackText ?? "")
   record(
     results,
-    "5. fallback stays editorial without booking block",
+    "5. parking dialogue without booking block",
     fallbackOk,
-    fallbackOk ? "mock reply only" : "unexpected booking block"
+    fallbackOk ? "situated dialogue" : "unexpected booking block"
   )
 
   await longPressContextItem(page, "appointment-barber-barber-1")
@@ -195,12 +215,52 @@ async function main() {
   const resetOk =
     !(await resetBlock.isVisible().catch(() => false)) &&
     !(await resetSchedule.isVisible().catch(() => false)) &&
-    !/Carlos Silva/i.test(resetText ?? "")
+    !/Carlos Silva/i.test(resetText ?? "") &&
+    /Augusta|estacionamento|conveniado|Barba Negra/i.test(resetText ?? "")
   record(
     results,
     "7. context reset after vertical reload",
     resetOk,
     resetOk ? "no stale appointment context" : "stale context detected"
+  )
+
+  const blockForbidden = /Ver horarios|Degrade|Carlos Silva/i
+  await openAppointment(page)
+  await assertTextDialogue(page, results, "9. AP-D01 greeting Ola", "Olá", /Augusta|bem-vindo|Barba Negra|vontade/i, blockForbidden)
+  await assertTextDialogue(page, results, "10. AP-D02 greeting Bom dia", "Bom dia", /Bom dia|Augusta/i, blockForbidden)
+  await assertTextDialogue(page, results, "11. AP-D03 hours open today", "Estão atendendo hoje?", /Aberto|Augusta|20h/i, blockForbidden)
+  await assertTextDialogue(page, results, "12. AP-D04 hours close", "Que horas fecham?", /20h|Seg|Augusta/i, blockForbidden)
+  await assertTextDialogue(
+    page,
+    results,
+    "13. AP-D05 parking",
+    "vocês tem estacionamento",
+    /estacionamento|conveniado|Augusta/i,
+    blockForbidden
+  )
+  await assertTextDialogue(
+    page,
+    results,
+    "14. AP-D06 out of domain",
+    "Qual produto para limpeza do rosto",
+    /nao|hidrat|rosto|fazemos/i,
+    blockForbidden
+  )
+  await assertTextDialogue(
+    page,
+    results,
+    "15. AP-D07 first visit",
+    "Nunca fui aí",
+    /primeira|servico|barbeiro|Bem-vindo/i,
+    blockForbidden
+  )
+  await assertTextDialogue(
+    page,
+    results,
+    "16. AP-D08 arrival text",
+    "Como eu chego aí?",
+    /Augusta|chegar|Paulista|Ver como/i,
+    blockForbidden
   )
 
   const criticalErrors = consoleErrors.filter(
@@ -212,7 +272,7 @@ async function main() {
   )
   record(
     results,
-    "8. no critical console errors",
+    "17. no critical console errors",
     criticalErrors.length === 0,
     criticalErrors.slice(0, 3).join(" | ") || "none"
   )
