@@ -19,6 +19,11 @@ import {
 import { useConversationContextMorph } from "./conversation-context-morph"
 import { useComposerScrollPaddingBottom, COMPOSER_SCROLL_CLEARANCE_CSS_VAR } from "@/lib/ui/composer-scroll-clearance"
 import { shouldRenderThreadInFlow } from "@/lib/ui/composer-layout"
+import {
+  CONVERSATION_ROOM_ORBIT_LEADING_CLASS,
+  CONVERSATION_ROOM_ORBIT_SECTION_CLASS,
+  CONVERSATION_ROOM_ORBIT_STORIES_CLASS,
+} from "@/lib/ui/conversation-room-envelope"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
@@ -684,7 +689,10 @@ function BusinessSectionComponent({
   
   return (
     <section
-      className={cn("mb-10 transition-[opacity,transform] duration-300 ease-out", engagedContextMode && "mb-6 opacity-[0.38] saturate-[0.68] contrast-[0.86]")}
+      className={cn(
+        "mb-10 transition-[transform,filter,opacity] duration-300 ease-out",
+        engagedContextMode && cn("mb-6", CONVERSATION_ROOM_ORBIT_SECTION_CLASS)
+      )}
       data-section={sectionId}
       id={`section-${sectionId}`}
     >
@@ -905,9 +913,13 @@ export function BusinessSocialLanding({
   
   return (
     <div
-      className="min-h-screen bg-background"
+      className={cn(
+        "min-h-screen bg-background",
+        isAppointmentEngagedContext && "bg-[#faf8f5]"
+      )}
       style={{ paddingBottom: pageScrollPaddingBottom }}
       data-composer-layout-version={composerLayoutVersion}
+      data-conversation-room-engaged={isAppointmentEngagedContext ? "true" : undefined}
     >
       {/* Main Content - Centralizado estilo rede social */}
       <main
@@ -918,7 +930,16 @@ export function BusinessSocialLanding({
         <BusinessFeedIntro config={config} onCartClick={onHeaderCartClick} cartCount={headerCartCount} />
 
         {/* Leading content slot — padded so -mx-4 bleed (e.g. operational hero) stays within main column */}
-        {leadingContent ? <div className="px-4 sm:px-5">{leadingContent}</div> : null}
+        {leadingContent ? (
+          <div
+            className={cn(
+              "px-4 sm:px-5 transition-[transform,filter,opacity] duration-300 ease-out",
+              isAppointmentEngagedContext && CONVERSATION_ROOM_ORBIT_LEADING_CLASS
+            )}
+          >
+            {leadingContent}
+          </div>
+        ) : null}
 
         {/* Stories */}
         <BusinessStories
@@ -927,7 +948,7 @@ export function BusinessSocialLanding({
           onStoryClick={handleStoryClick}
           className={cn(
             storiesClassName,
-            isAppointmentEngagedContext && "border-border/30 py-3 opacity-40 saturate-[0.72]"
+            isAppointmentEngagedContext && cn("border-border/30 py-3", CONVERSATION_ROOM_ORBIT_STORIES_CLASS)
           )}
         />
 
@@ -938,7 +959,7 @@ export function BusinessSocialLanding({
         <div
           className={cn(
             "px-4 sm:px-5 py-6 transition-[opacity] duration-300 ease-out",
-            isAppointmentEngagedContext && "py-4 opacity-[0.46] saturate-[0.72]",
+            isAppointmentEngagedContext && "py-4",
             sectionsClassName
           )}
         >
@@ -962,9 +983,8 @@ export function BusinessSocialLanding({
             ref={setThreadPortalTarget}
             data-conversation-thread-anchor="true"
             className={cn(
-              "relative px-4 sm:px-5",
-              isAppointmentEngagedContext &&
-                "before:pointer-events-none before:absolute before:-top-28 before:inset-x-0 before:z-[2] before:h-28 before:bg-gradient-to-b before:from-transparent before:via-background/55 before:to-background",
+              "relative px-0 sm:px-0",
+              isAppointmentEngagedContext && "z-[1]",
               composerMode !== "default" && "hidden"
             )}
             style={{ paddingBottom: `var(${COMPOSER_SCROLL_CLEARANCE_CSS_VAR}, 0px)` }}

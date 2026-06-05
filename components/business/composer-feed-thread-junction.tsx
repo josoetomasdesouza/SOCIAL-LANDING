@@ -1,10 +1,8 @@
 "use client"
 
 import { useMemo } from "react"
-import {
-  resolveComposerFeedThreadJunctionStyle,
-  resolveComposerSurfaceIntensity,
-} from "@/lib/ui/composer-surface-material"
+import { resolveComposerSurfaceIntensity } from "@/lib/ui/composer-surface-material"
+import { resolveConversationRoomOrbitHorizonStyle } from "@/lib/ui/conversation-room-envelope"
 
 interface ComposerFeedThreadJunctionProps {
   progress: number
@@ -13,7 +11,7 @@ interface ComposerFeedThreadJunctionProps {
 export function ComposerFeedThreadJunction({ progress }: ComposerFeedThreadJunctionProps) {
   const intensity = resolveComposerSurfaceIntensity()
   const style = useMemo(
-    () => resolveComposerFeedThreadJunctionStyle(intensity, progress),
+    () => resolveConversationRoomOrbitHorizonStyle(intensity, progress),
     [intensity, progress]
   )
 
