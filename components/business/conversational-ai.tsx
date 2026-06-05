@@ -340,6 +340,20 @@ export function ConversationalAI({
 
     return () => window.cancelAnimationFrame(frame)
   }, [targetThreadEngagedProgress])
+
+  useEffect(() => {
+    if (!conversationSelectionContext || !isLayoutV2) {
+      return
+    }
+
+    conversationSelectionContext.setComposerThreadEngagedProgress(threadEngagedProgress)
+
+    return () => {
+      conversationSelectionContext.setComposerThreadEngagedProgress(0)
+    }
+  }, [conversationSelectionContext, isLayoutV2, threadEngagedProgress])
+
+  const isEngagedPerceptual = isLayoutV2 && threadEngagedProgress > 0
   const shellContextRowItems = useMemo(
     () => (isLayoutV2 ? contextItems.filter((item) => !hiddenContextIdSet.has(item.id)) : contextRowItems),
     [contextItems, contextRowItems, hiddenContextIdSet, isLayoutV2]
@@ -1334,7 +1348,7 @@ export function ConversationalAI({
     const previousMessage = messageList[index - 1]
     const sharesGroupWithPrevious =
       previousMessage?.role === message.role && message.role !== "context_event"
-    const spacingClass = index === 0 ? "" : sharesGroupWithPrevious ? "mt-2.5" : "mt-5"
+    const spacingClass = index === 0 ? "" : sharesGroupWithPrevious ? "mt-3" : "mt-7"
 
     if (message.role === "context_event") {
       const eventContexts = message.contexts ?? (message.context ? [message.context] : [])
@@ -1370,10 +1384,12 @@ export function ConversationalAI({
               className={cn(
                 "inline-block text-[15px] leading-[1.45] align-top",
                 message.role === "user"
-                  ? "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
+                  ? inFlowThread
+                    ? "max-w-[88%] border-r-2 border-foreground/15 pr-3 text-right text-[15px] font-medium leading-[1.5] text-foreground/90"
+                    : "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
                   : inFlowThread
-                    ? "px-0 py-0.5 text-left text-foreground/90"
-                    : "px-0 py-0.5 text-left text-white/[0.94]"
+                    ? "max-w-[92%] border-l-2 border-accent/35 pl-3 py-0.5 text-left text-[16px] leading-[1.55] text-foreground/95"
+                    : "px-0 py-0.5 text-left text-foreground/90"
               )}
               style={messageTextBubbleStyle}
             >
@@ -1423,7 +1439,19 @@ export function ConversationalAI({
     shouldPortalThread && threadPortalTarget ? (
       <div data-composer-thread-engaged-progress={threadEngagedProgress.toFixed(2)}>
         <ComposerFeedThreadJunction progress={threadEngagedProgress} />
-        <div className="py-4">
+        <div
+          className={cn(
+            "relative py-6 sm:py-7",
+            isEngagedPerceptual &&
+              "rounded-t-[28px] bg-gradient-to-b from-secondary/25 via-background to-background px-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]"
+          )}
+        >
+          {isEngagedPerceptual ? (
+            <div
+              aria-hidden
+              className="mb-5 h-px w-full bg-gradient-to-r from-transparent via-border/70 to-transparent"
+            />
+          ) : null}
           <div ref={messagesMeasureRef}>
             {displayedMessages.map((message, index) =>
               renderConversationMessage(message, index, displayedMessages, { inFlowThread: true })
@@ -1466,8 +1494,11 @@ export function ConversationalAI({
             }
             onPointerDownCapture={handleCompactComposerPress}
             className={cn(
-              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden rounded-[28px] transition-[height] duration-300 ease-out",
+              "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden transition-[height,border-radius,box-shadow] duration-300 ease-out",
+              isEngagedPerceptual ? "rounded-b-[28px] rounded-t-[18px]" : "rounded-[28px]",
               composerSectionSurfaceClass,
+              isEngagedPerceptual &&
+                "shadow-[0_-16px_48px_-28px_rgba(15,23,42,0.28)] ring-1 ring-white/[0.08]",
               dragHeight !== null && "transition-none"
             )}
             style={{
@@ -1568,7 +1599,7 @@ export function ConversationalAI({
             {(isLayoutV2 ? showContextRowOnShell : !hasEngagedConversation && showContextRow) && (
               <div
                 ref={contextRailRef}
-                className="shrink-0 px-4 py-2.5"
+                className={cn("shrink-0 px-4 py-2.5", isEngagedPerceptual && "py-1.5 opacity-90")}
                 style={composerInnerSurfaceStyle}
               >
                 <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
