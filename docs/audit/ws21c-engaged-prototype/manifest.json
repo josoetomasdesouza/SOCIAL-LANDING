@@ -1,0 +1,15 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "url": "http://localhost:3000/demo?composer-layout=v2",
+  "capturedAt": "2026-06-05T00:36:14.525Z",
+  "files": [
+    "components/business/conversation-selection-context.tsx",
+    "components/business/conversational-ai.tsx",
+    "components/business/appointment/appointment-operational-hero.tsx",
+    "components/business/business-social-landing.tsx",
+    "lib/ui/composer-surface-material.ts"
+  ]
+}

@@ -36,6 +36,9 @@ interface ConversationSelectionController {
   setComposerOffsetClassName: (className?: string) => void
   /** WS-21 layout pilot — v1 default; v2 enables hybrid path in R1+. */
   composerLayoutVersion: ComposerLayoutVersion
+  /** WS-21C perceptual pilot — published by ConversationalAI on v2 engaged thread. */
+  composerThreadEngagedProgress: number
+  setComposerThreadEngagedProgress: (progress: number) => void
 }
 
 const ConversationSelectionContext = createContext<ConversationSelectionController | null>(null)
@@ -47,7 +50,15 @@ export function useConversationSelectionState(): ConversationSelectionController
   const [composerBottomInsetPx, setComposerBottomInsetPxState] = useState(0)
   const [composerScrollClearancePx, setComposerScrollClearancePxState] = useState(0)
   const [composerOffsetClassName, setComposerOffsetClassName] = useState<string | undefined>(undefined)
+  const [composerThreadEngagedProgress, setComposerThreadEngagedProgressState] = useState(0)
   const composerModeRef = useRef<ConversationComposerMode>("default")
+
+  const setComposerThreadEngagedProgress = useCallback((progress: number) => {
+    const normalized = Number.isFinite(progress) ? Math.max(0, Math.min(1, progress)) : 0
+    setComposerThreadEngagedProgressState((previous) =>
+      previous === normalized ? previous : normalized
+    )
+  }, [])
 
   const setComposerScrollMetrics = useCallback(
     ({ footprintPx, bottomInsetPx, clearancePx }: ComposerScrollMetrics) => {
@@ -124,6 +135,8 @@ export function useConversationSelectionState(): ConversationSelectionController
     composerOffsetClassName,
     setComposerOffsetClassName,
     composerLayoutVersion: DEFAULT_COMPOSER_LAYOUT_VERSION,
+    composerThreadEngagedProgress,
+    setComposerThreadEngagedProgress,
   }
 }
 

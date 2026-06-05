@@ -664,6 +664,7 @@ function BusinessSectionComponent({
   selectedContextIds,
   onToggleConversationContext,
   isConversationSelected,
+  engagedContextMode = false,
 }: { 
   section: BusinessSection
   config: BusinessConfig
@@ -672,6 +673,7 @@ function BusinessSectionComponent({
   selectedContextIds: Set<string>
   onToggleConversationContext: (item: ConversationContextItem) => void
   isConversationSelected: (id: string) => boolean
+  engagedContextMode?: boolean
 }) {
   // Gera ID para scroll baseado no titulo da secao
   const sectionId = section.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")
@@ -681,11 +683,22 @@ function BusinessSectionComponent({
   })
   
   return (
-    <section className="mb-10" data-section={sectionId} id={`section-${sectionId}`}>
+    <section
+      className={cn("mb-10 transition-[opacity,transform] duration-300 ease-out", engagedContextMode && "mb-6 opacity-[0.38] saturate-[0.68] contrast-[0.86]")}
+      data-section={sectionId}
+      id={`section-${sectionId}`}
+    >
       {/* Section Header */}
       <div className="flex items-center gap-2 mb-5">
         {section.icon}
-        <h2 className="text-lg font-bold text-foreground">{section.title}</h2>
+        <h2
+          className={cn(
+            "text-lg font-bold text-foreground",
+            engagedContextMode && "text-base font-semibold text-muted-foreground"
+          )}
+        >
+          {section.title}
+        </h2>
       </div>
       
       {/* Custom Content (for specific modules - sem drawer) */}
@@ -789,6 +802,7 @@ export function BusinessSocialLanding({
     composerOffsetClassName,
     composerLayoutVersion,
     setComposerMode,
+    composerThreadEngagedProgress,
   } = conversationSelection
   const toggleConversationContextItemWithMorph = hasSharedMorph
     ? sharedConversationSelection.toggleConversationContextItemWithMorph
@@ -798,6 +812,8 @@ export function BusinessSocialLanding({
     : localMorph.hiddenContextIds
   const pageScrollPaddingBottom = useComposerScrollPaddingBottom()
   const isLayoutV2 = shouldRenderThreadInFlow(composerLayoutVersion)
+  const isAppointmentEngagedContext =
+    config.model === "appointment" && isLayoutV2 && composerThreadEngagedProgress > 0
   const [threadPortalTarget, setThreadPortalTarget] = useState<HTMLDivElement | null>(null)
   const shouldTrackComposerFootprint =
     composerMode !== "hidden" && !(drawerOpen && !feedDrawerOpen)
@@ -894,7 +910,10 @@ export function BusinessSocialLanding({
       data-composer-layout-version={composerLayoutVersion}
     >
       {/* Main Content - Centralizado estilo rede social */}
-      <main className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto">
+      <main
+        className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
+        data-appointment-engaged-context={isAppointmentEngagedContext ? "true" : undefined}
+      >
         {/* Feed intro */}
         <BusinessFeedIntro config={config} onCartClick={onHeaderCartClick} cartCount={headerCartCount} />
 
@@ -902,13 +921,27 @@ export function BusinessSocialLanding({
         {leadingContent ? <div className="px-4 sm:px-5">{leadingContent}</div> : null}
 
         {/* Stories */}
-        <BusinessStories stories={stories} config={config} onStoryClick={handleStoryClick} className={storiesClassName} />
+        <BusinessStories
+          stories={stories}
+          config={config}
+          onStoryClick={handleStoryClick}
+          className={cn(
+            storiesClassName,
+            isAppointmentEngagedContext && "border-border/30 py-3 opacity-40 saturate-[0.72]"
+          )}
+        />
 
         {/* Top content slot */}
         {topContent}
         
         {/* Sections */}
-        <div className={cn("px-4 sm:px-5 py-6", sectionsClassName)}>
+        <div
+          className={cn(
+            "px-4 sm:px-5 py-6 transition-[opacity] duration-300 ease-out",
+            isAppointmentEngagedContext && "py-4 opacity-[0.46] saturate-[0.72]",
+            sectionsClassName
+          )}
+        >
           {sections.map((section) => (
             <BusinessSectionComponent
               key={section.id}
@@ -919,6 +952,7 @@ export function BusinessSocialLanding({
               selectedContextIds={selectedContextIds}
               onToggleConversationContext={toggleConversationContextItemWithMorph}
               isConversationSelected={isConversationSelected}
+              engagedContextMode={isAppointmentEngagedContext}
             />
           ))}
         </div>
@@ -927,7 +961,12 @@ export function BusinessSocialLanding({
           <div
             ref={setThreadPortalTarget}
             data-conversation-thread-anchor="true"
-            className={cn("px-4 sm:px-5", composerMode !== "default" && "hidden")}
+            className={cn(
+              "relative px-4 sm:px-5",
+              isAppointmentEngagedContext &&
+                "before:pointer-events-none before:absolute before:-top-28 before:inset-x-0 before:z-[2] before:h-28 before:bg-gradient-to-b before:from-transparent before:via-background/55 before:to-background",
+              composerMode !== "default" && "hidden"
+            )}
             style={{ paddingBottom: `var(${COMPOSER_SCROLL_CLEARANCE_CSS_VAR}, 0px)` }}
             aria-hidden={composerMode !== "default" ? true : undefined}
           />

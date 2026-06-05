@@ -409,13 +409,13 @@ export function resolveComposerFeedThreadJunctionStyle(
   return {
     height: `${heightPx}px`,
     marginTop: `-${bleedPx}px`,
-    marginBottom: `${Math.round(8 * normalizedProgress)}px`,
-    opacity: normalizedProgress,
-    background: `linear-gradient(to bottom, rgba(250,248,244,0) 0%, rgba(255,255,255,${(0.32 * normalizedProgress).toFixed(3)}) 14%, rgba(15,23,42,${(0.05 * normalizedProgress).toFixed(3)}) 42%, rgba(8,12,18,${(0.14 * normalizedProgress).toFixed(3)}) 100%)`,
-    backdropFilter: normalizedProgress > 0.2 ? `blur(${Math.round(6 * normalizedProgress)}px)` : undefined,
-    WebkitBackdropFilter: normalizedProgress > 0.2 ? `blur(${Math.round(6 * normalizedProgress)}px)` : undefined,
-    maskImage: "linear-gradient(to bottom, black 0%, black 82%, transparent 100%)",
-    WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 82%, transparent 100%)",
+    marginBottom: `${Math.round(10 * normalizedProgress)}px`,
+    opacity: Math.min(1, normalizedProgress * 1.08),
+    background: `linear-gradient(to bottom, rgba(250,248,244,0) 0%, rgba(255,255,255,${(0.42 * normalizedProgress).toFixed(3)}) 10%, rgba(15,23,42,${(0.08 * normalizedProgress).toFixed(3)}) 36%, rgba(8,12,18,${(0.22 * normalizedProgress).toFixed(3)}) 72%, rgba(8,12,18,${(0.1 * normalizedProgress).toFixed(3)}) 100%)`,
+    backdropFilter: normalizedProgress > 0.15 ? `blur(${Math.round(8 * normalizedProgress)}px)` : undefined,
+    WebkitBackdropFilter: normalizedProgress > 0.15 ? `blur(${Math.round(8 * normalizedProgress)}px)` : undefined,
+    maskImage: "linear-gradient(to bottom, black 0%, black 88%, transparent 100%)",
+    WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 88%, transparent 100%)",
   }
 }
 
