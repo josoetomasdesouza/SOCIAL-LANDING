@@ -19,6 +19,11 @@ import {
   resolveComposerScrollClearancePx,
   setComposerScrollClearanceCssVar,
 } from "@/lib/ui/composer-scroll-clearance"
+import {
+  conversationTurnAiClass,
+  conversationTurnSpacingClass,
+  conversationTurnUserClass,
+} from "@/lib/ui/conversation-turn-editorial"
 import { ComposerFeedThreadJunction } from "./composer-feed-thread-junction"
 import {
   COMPOSER_SURFACE_BASELINE,
@@ -1335,6 +1340,14 @@ export function ConversationalAI({
     wordBreak: "normal",
   } as const
 
+  const inFlowMessageTextStyle = {
+    width: "100%",
+    maxWidth: "100%",
+    whiteSpace: "normal",
+    overflowWrap: "break-word",
+    wordBreak: "normal",
+  } as const
+
   const renderConversationMessage = (
     message: ConversationRuntimeMessage,
     index: number,
@@ -1348,7 +1361,7 @@ export function ConversationalAI({
     const previousMessage = messageList[index - 1]
     const sharesGroupWithPrevious =
       previousMessage?.role === message.role && message.role !== "context_event"
-    const spacingClass = index === 0 ? "" : sharesGroupWithPrevious ? "mt-3" : "mt-7"
+    const spacingClass = conversationTurnSpacingClass(index, sharesGroupWithPrevious, inFlowThread)
 
     if (message.role === "context_event") {
       const eventContexts = message.contexts ?? (message.context ? [message.context] : [])
@@ -1371,27 +1384,30 @@ export function ConversationalAI({
     return (
       <div
         key={message.id}
-        className={cn(spacingClass, "flex", message.role === "user" ? "justify-end" : "justify-start")}
+        className={cn(
+          spacingClass,
+          "flex",
+          inFlowThread ? "justify-start" : message.role === "user" ? "justify-end" : "justify-start"
+        )}
+        data-conversation-turn-editorial={inFlowThread ? "true" : undefined}
+        data-conversation-turn-role={inFlowThread ? message.role : undefined}
       >
         <div
           className={cn(
             "flex w-full max-w-full flex-col gap-2",
-            message.role === "user" ? "items-end" : "items-start"
+            inFlowThread ? "items-start" : message.role === "user" ? "items-end" : "items-start"
           )}
         >
-          <div className={cn("w-full", message.role === "user" ? "text-right" : "text-left")}>
+          <div className={cn("w-full", inFlowThread ? "text-left" : message.role === "user" ? "text-right" : "text-left")}>
             <div
               className={cn(
-                "inline-block text-[15px] leading-[1.45] align-top",
+                "inline-block align-top",
+                !inFlowThread && "text-[15px] leading-[1.45]",
                 message.role === "user"
-                  ? inFlowThread
-                    ? "max-w-[88%] border-r-2 border-foreground/15 pr-3 text-right text-[15px] font-medium leading-[1.5] text-foreground/90"
-                    : "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
-                  : inFlowThread
-                    ? "max-w-[92%] border-l-2 border-accent/35 pl-3 py-0.5 text-left text-[16px] leading-[1.55] text-foreground/95"
-                    : "px-0 py-0.5 text-left text-foreground/90"
+                  ? conversationTurnUserClass(inFlowThread)
+                  : conversationTurnAiClass(inFlowThread)
               )}
-              style={messageTextBubbleStyle}
+              style={inFlowThread ? inFlowMessageTextStyle : messageTextBubbleStyle}
             >
               {message.content}
             </div>
@@ -1406,29 +1422,29 @@ export function ConversationalAI({
   }
 
   const renderTypingIndicator = (hasPreviousMessages: boolean, inFlowThread = false) => (
-    <div className={cn(hasPreviousMessages && "mt-5", "flex justify-start")}>
+    <div className={cn(hasPreviousMessages && (inFlowThread ? "mt-8" : "mt-5"), "flex justify-start")}>
       <div
         className={cn(
-          "flex max-w-[82%] items-center gap-1 px-0 py-0.5",
-          inFlowThread ? "text-foreground/55" : "text-white/[0.74]"
+          "flex max-w-full items-center gap-1.5 px-0 py-1",
+          inFlowThread ? "text-foreground/50" : "text-white/[0.74]"
         )}
       >
         <span
           className={cn(
-            "h-2 w-2 animate-bounce rounded-full [animation-delay:-0.2s]",
-            inFlowThread ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
+            "h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:-0.2s]",
+            inFlowThread ? "bg-foreground/40" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
           )}
         />
         <span
           className={cn(
-            "h-2 w-2 animate-bounce rounded-full [animation-delay:-0.1s]",
-            inFlowThread ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
+            "h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:-0.1s]",
+            inFlowThread ? "bg-foreground/40" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
           )}
         />
         <span
           className={cn(
-            "h-2 w-2 animate-bounce rounded-full",
-            inFlowThread ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
+            "h-1.5 w-1.5 animate-bounce rounded-full",
+            inFlowThread ? "bg-foreground/40" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
           )}
         />
       </div>
@@ -1441,7 +1457,7 @@ export function ConversationalAI({
         <ComposerFeedThreadJunction progress={threadEngagedProgress} />
         <div
           className={cn(
-            "relative py-6 sm:py-7",
+            "relative py-7 sm:py-8",
             isEngagedPerceptual &&
               "rounded-t-[28px] bg-gradient-to-b from-secondary/25 via-background to-background px-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]"
           )}

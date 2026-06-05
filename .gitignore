@@ -3,3 +3,4 @@ node_modules
 # WS-15A — appointment publication operational artifacts
 data/runtime/appointment/*.draft.json
 data/runtime/appointment/backups/
+docs/audit/product-s1-turns-hero/.backup/
