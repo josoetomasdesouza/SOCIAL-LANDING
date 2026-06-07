@@ -4,11 +4,87 @@
     "height": 844
   },
   "flag": "surface-cement=on|off",
+  "intensity": "medium (default, no param)",
   "url": "/demo?composer-layout=v2",
   "captures": [
     "01-idle",
     "02-engaged",
     "03-drawer-open",
     "04-composer-over-feed"
-  ]
+  ],
+  "validation": {
+    "intensity": "medium (CSS default, no query param)",
+    "flag": "surface-cement=on|off",
+    "off": {
+      "idleValidation": {
+        "mode": "before",
+        "canvasClass": null,
+        "bgImage": "none",
+        "dataSurfaceCement": null,
+        "composerHasCementUtilityClass": false,
+        "threadHasCementUtilityClass": false,
+        "junctionHasCementUtilityClass": false
+      },
+      "engagedValidation": {
+        "mode": "before-engaged",
+        "canvasClass": null,
+        "bgImage": "none",
+        "dataSurfaceCement": null,
+        "composerHasCementUtilityClass": false,
+        "threadHasCementUtilityClass": false,
+        "junctionHasCementUtilityClass": false
+      },
+      "drawerValidation": {
+        "mode": "before-drawer",
+        "canvasClass": null,
+        "bgImage": "none",
+        "dataSurfaceCement": null,
+        "composerHasCementUtilityClass": false,
+        "threadHasCementUtilityClass": false,
+        "junctionHasCementUtilityClass": false
+      }
+    },
+    "on": {
+      "idleValidation": {
+        "mode": "after",
+        "canvasClass": "min-h-screen surface-cement-canvas",
+        "intensityAttr": null,
+        "bgImage": "gradient",
+        "dataSurfaceCement": "true",
+        "composerHasCementUtilityClass": false,
+        "threadHasCementUtilityClass": false,
+        "junctionHasCementUtilityClass": false
+      },
+      "engagedValidation": {
+        "mode": "after-engaged",
+        "canvasClass": "min-h-screen surface-cement-canvas",
+        "intensityAttr": null,
+        "bgImage": "gradient",
+        "dataSurfaceCement": "true",
+        "composerHasCementUtilityClass": false,
+        "threadHasCementUtilityClass": false,
+        "junctionHasCementUtilityClass": false
+      },
+      "drawerValidation": {
+        "mode": "after-drawer",
+        "canvasClass": "min-h-screen surface-cement-canvas",
+        "intensityAttr": null,
+        "bgImage": "gradient",
+        "dataSurfaceCement": "true",
+        "composerHasCementUtilityClass": false,
+        "threadHasCementUtilityClass": false,
+        "junctionHasCementUtilityClass": false
+      }
+    },
+    "checks": {
+      "offFlat": true,
+      "offNoCanvasClass": true,
+      "offBgFlat": true,
+      "onHasTexture": true,
+      "onMediumDefault": true,
+      "composerNoCementClass": true,
+      "threadNoCementClass": true,
+      "junctionNoCementClass": true
+    }
+  }
 }

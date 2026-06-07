@@ -12,7 +12,7 @@ import { ContextSelectable } from "./context-selectable"
 import { useComposerOverlayClearance } from "@/lib/ui/composer-scroll-clearance"
 import { resolveDrawerSheetStyle } from "@/lib/ui/drawer-layout"
 import { useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
-import { isSurfaceCementActive } from "@/lib/ui/surface-cement"
+import { isSurfaceCementActive, resolveSurfaceCementDevIntensity } from "@/lib/ui/surface-cement"
 
 interface BusinessFeedDrawerProps {
   isOpen: boolean
@@ -225,6 +225,7 @@ export function BusinessFeedDrawer({
   const initialPostRef = useRef<HTMLDivElement>(null)
   const wasOpenRef = useRef(false)
   const [surfaceCementActive, setSurfaceCementActive] = useState(false)
+  const [surfaceCementDevIntensity, setSurfaceCementDevIntensity] = useState<string | null>(null)
   const { paddingBottom: composerClearance, isActive: composerOverlaysFeed } = useComposerOverlayClearance()
   const { sheetRef, scrollRef, setScrollRef, rawDragOffsetPx, resetDrag, isDragging, isPulling, dragHandleProps, getBackdropOpacity } =
     useDrawerSheetDrag(onClose, isOpen)
@@ -243,7 +244,9 @@ export function BusinessFeedDrawer({
   }, [filteredPosts, initialPost])
 
   useEffect(() => {
-    setSurfaceCementActive(isSurfaceCementActive())
+    const active = isSurfaceCementActive()
+    setSurfaceCementActive(active)
+    setSurfaceCementDevIntensity(active ? resolveSurfaceCementDevIntensity() : null)
   }, [])
 
   useEffect(() => {
@@ -326,6 +329,7 @@ export function BusinessFeedDrawer({
           surfaceCementActive ? "surface-cement-drawer" : "bg-background",
           isDragging ? "transition-none" : "animate-in slide-in-from-bottom duration-300 transition-[height,transform]"
         )}
+        data-surface-cement-intensity={surfaceCementDevIntensity ?? undefined}
         style={{
           bottom: 0,
           ...resolveDrawerSheetStyle(rawDragOffsetPx),

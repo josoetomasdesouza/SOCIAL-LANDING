@@ -19,7 +19,7 @@ import {
 import { useConversationContextMorph } from "./conversation-context-morph"
 import { useComposerScrollPaddingBottom, COMPOSER_SCROLL_CLEARANCE_CSS_VAR } from "@/lib/ui/composer-scroll-clearance"
 import { shouldRenderThreadInFlow } from "@/lib/ui/composer-layout"
-import { isSurfaceCementActive } from "@/lib/ui/surface-cement"
+import { isSurfaceCementActive, resolveSurfaceCementDevIntensity } from "@/lib/ui/surface-cement"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
@@ -817,8 +817,11 @@ export function BusinessSocialLanding({
     config.model === "appointment" && isLayoutV2 && composerThreadEngagedProgress > 0
   const [threadPortalTarget, setThreadPortalTarget] = useState<HTMLDivElement | null>(null)
   const [surfaceCementActive, setSurfaceCementActive] = useState(false)
+  const [surfaceCementDevIntensity, setSurfaceCementDevIntensity] = useState<string | null>(null)
   useEffect(() => {
-    setSurfaceCementActive(isSurfaceCementActive())
+    const active = isSurfaceCementActive()
+    setSurfaceCementActive(active)
+    setSurfaceCementDevIntensity(active ? resolveSurfaceCementDevIntensity() : null)
   }, [])
 
   const shouldTrackComposerFootprint =
@@ -918,6 +921,7 @@ export function BusinessSocialLanding({
       style={{ paddingBottom: pageScrollPaddingBottom }}
       data-composer-layout-version={composerLayoutVersion}
       data-surface-cement={surfaceCementActive ? "true" : undefined}
+      data-surface-cement-intensity={surfaceCementDevIntensity ?? undefined}
     >
       {/* Main Content - Centralizado estilo rede social */}
       <main
