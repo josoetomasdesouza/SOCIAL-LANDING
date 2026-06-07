@@ -1,0 +1,14 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "flag": "surface-cement=on|off",
+  "url": "/demo?composer-layout=v2",
+  "captures": [
+    "01-idle",
+    "02-engaged",
+    "03-drawer-open",
+    "04-composer-over-feed"
+  ]
+}
