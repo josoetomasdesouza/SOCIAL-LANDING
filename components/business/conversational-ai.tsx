@@ -33,6 +33,7 @@ import {
   resolveComposerExpansionProgress,
   resolveComposerExpansionSectionStyle,
   resolveComposerHandleVisuals,
+  resolveComposerEngagedPresenceMaterial,
   resolveComposerPageMaskBackground,
   resolveComposerSurfaceIntensity,
   resolveComposerSurfaceMaterial,
@@ -391,6 +392,11 @@ export function ConversationalAI({
   const composerSurfaceMaterial = resolveComposerSurfaceMaterial(surfaceIntensity)
   const composerSectionSurfaceClass = composerSurfaceMaterial.sectionClassName
   const composerInnerSurfaceStyle = composerSurfaceMaterial.innerSurfaceStyle
+  const engagedPresenceMaterial = useMemo(
+    () =>
+      isEngagedPerceptual ? resolveComposerEngagedPresenceMaterial(surfaceIntensity) : null,
+    [isEngagedPerceptual, surfaceIntensity]
+  )
   const isSmokeShell = isComposerSmokeSurfaceActive(surfaceIntensity)
 
   useEffect(() => {
@@ -1508,17 +1514,20 @@ export function ConversationalAI({
             data-composer-thread-engaged-progress={
               isLayoutV2 ? threadEngagedProgress.toFixed(2) : undefined
             }
+            data-composer-engaged-presence={isEngagedPerceptual ? "plate" : undefined}
             onPointerDownCapture={handleCompactComposerPress}
             className={cn(
               "pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden transition-[height,border-radius,box-shadow] duration-300 ease-out",
-              isEngagedPerceptual ? "rounded-b-[28px] rounded-t-[18px]" : "rounded-[28px]",
-              composerSectionSurfaceClass,
-              isEngagedPerceptual &&
-                "shadow-[0_-16px_48px_-28px_rgba(15,23,42,0.28)] ring-1 ring-white/[0.08]",
+              isEngagedPerceptual
+                ? cn("rounded-none", engagedPresenceMaterial?.plateClassName)
+                : "rounded-[28px]",
+              !isEngagedPerceptual && composerSectionSurfaceClass,
               dragHeight !== null && "transition-none"
             )}
             style={{
-              ...composerSectionStyle,
+              ...(isEngagedPerceptual && engagedPresenceMaterial
+                ? engagedPresenceMaterial.plateStyle
+                : composerSectionStyle),
               ...(shellShouldApplySheetHeight && resolvedSheetHeight > 0
                 ? { height: `${resolvedSheetHeight}px` }
                 : {}),
@@ -1616,7 +1625,11 @@ export function ConversationalAI({
               <div
                 ref={contextRailRef}
                 className={cn("shrink-0 px-4 py-2.5", isEngagedPerceptual && "py-1.5 opacity-90")}
-                style={composerInnerSurfaceStyle}
+                style={
+                  isEngagedPerceptual && engagedPresenceMaterial
+                    ? engagedPresenceMaterial.plateInnerSurfaceStyle
+                    : composerInnerSurfaceStyle
+                }
               >
                 <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
                   {(isLayoutV2 ? shellContextRowItems : contextRowItems).map((item) => renderContextChip(item))}
@@ -1627,39 +1640,90 @@ export function ConversationalAI({
             <form
               ref={composerFormRef}
               onSubmit={handleSubmit}
-              className="flex shrink-0 items-center gap-3 px-3 py-2.5"
-              style={composerInnerSurfaceStyle}
+              className={cn(
+                "flex shrink-0",
+                isEngagedPerceptual ? "px-3 py-2" : "items-center gap-3 px-3 py-2.5"
+              )}
+              style={
+                isEngagedPerceptual && engagedPresenceMaterial
+                  ? engagedPresenceMaterial.plateInnerSurfaceStyle
+                  : composerInnerSurfaceStyle
+              }
             >
-              <button
-                type="button"
-                disabled
-                className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10"
-                aria-label="Usuario"
-              >
-                <Image src={USER_AVATAR} alt="Usuario" fill className="object-cover" />
-              </button>
-              <input
-                ref={composerInputRef}
-                type="text"
-                value={inputValue}
-                onChange={(event) => setInputValue(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault()
-                    handleSendMessage()
-                  }
-                }}
-                placeholder={resolvedPlaceholder}
-                className="h-10 min-w-0 flex-1 bg-transparent text-[16px] text-white/92 outline-none placeholder:text-white/58"
-              />
-              <button
-                type="submit"
-                disabled={!inputValue.trim() || isTyping}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.96] text-[rgba(7,16,24,0.94)] shadow-[0_16px_32px_-20px_rgba(0,0,0,0.52)] transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="Enviar mensagem"
-              >
-                {isTyping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              </button>
+              {isEngagedPerceptual && engagedPresenceMaterial ? (
+                <div
+                  data-composer-input-capsule="true"
+                  className={cn(
+                    "flex w-full items-center gap-2.5 px-2 py-1",
+                    engagedPresenceMaterial.capsuleClassName
+                  )}
+                  style={engagedPresenceMaterial.capsuleStyle}
+                >
+                  <button
+                    type="button"
+                    disabled
+                    className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10"
+                    aria-label="Usuario"
+                  >
+                    <Image src={USER_AVATAR} alt="Usuario" fill className="object-cover" />
+                  </button>
+                  <input
+                    ref={composerInputRef}
+                    type="text"
+                    value={inputValue}
+                    onChange={(event) => setInputValue(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault()
+                        handleSendMessage()
+                      }
+                    }}
+                    placeholder={resolvedPlaceholder}
+                    className="h-10 min-w-0 flex-1 bg-transparent text-[16px] text-white/92 outline-none placeholder:text-white/58"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!inputValue.trim() || isTyping}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.96] text-[rgba(7,16,24,0.94)] shadow-[0_16px_32px_-20px_rgba(0,0,0,0.52)] transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Enviar mensagem"
+                  >
+                    {isTyping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    disabled
+                    className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10"
+                    aria-label="Usuario"
+                  >
+                    <Image src={USER_AVATAR} alt="Usuario" fill className="object-cover" />
+                  </button>
+                  <input
+                    ref={composerInputRef}
+                    type="text"
+                    value={inputValue}
+                    onChange={(event) => setInputValue(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault()
+                        handleSendMessage()
+                      }
+                    }}
+                    placeholder={resolvedPlaceholder}
+                    className="h-10 min-w-0 flex-1 bg-transparent text-[16px] text-white/92 outline-none placeholder:text-white/58"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!inputValue.trim() || isTyping}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.96] text-[rgba(7,16,24,0.94)] shadow-[0_16px_32px_-20px_rgba(0,0,0,0.52)] transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Enviar mensagem"
+                  >
+                    {isTyping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </button>
+                </>
+              )}
             </form>
           </section>
         </div>

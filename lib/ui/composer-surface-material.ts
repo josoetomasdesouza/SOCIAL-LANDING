@@ -411,11 +411,51 @@ export function resolveComposerFeedThreadJunctionStyle(
     marginTop: `-${bleedPx}px`,
     marginBottom: `${Math.round(10 * normalizedProgress)}px`,
     opacity: Math.min(1, normalizedProgress * 1.08),
-    background: `linear-gradient(to bottom, rgba(250,248,244,0) 0%, rgba(255,255,255,${(0.42 * normalizedProgress).toFixed(3)}) 10%, rgba(15,23,42,${(0.08 * normalizedProgress).toFixed(3)}) 36%, rgba(8,12,18,${(0.22 * normalizedProgress).toFixed(3)}) 72%, rgba(8,12,18,${(0.1 * normalizedProgress).toFixed(3)}) 100%)`,
+    background: `linear-gradient(to bottom, rgba(250,248,244,0) 0%, rgba(255,255,255,${(0.38 * normalizedProgress).toFixed(3)}) 12%, rgba(250,248,244,${(0.55 * normalizedProgress).toFixed(3)}) 52%, rgba(250,248,244,${(0.88 * normalizedProgress).toFixed(3)}) 82%, rgba(250,248,244,${(0.96 * normalizedProgress).toFixed(3)}) 100%)`,
     backdropFilter: normalizedProgress > 0.15 ? `blur(${Math.round(8 * normalizedProgress)}px)` : undefined,
     WebkitBackdropFilter: normalizedProgress > 0.15 ? `blur(${Math.round(8 * normalizedProgress)}px)` : undefined,
     maskImage: "linear-gradient(to bottom, black 0%, black 88%, transparent 100%)",
     WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 88%, transparent 100%)",
+  }
+}
+
+/** S2 — engaged v2: light footer plate + dark input capsule (structure only; idle pill unchanged). */
+export interface ComposerEngagedPresenceMaterial {
+  plateClassName: string
+  plateStyle: CSSProperties
+  plateInnerSurfaceStyle: CSSProperties
+  capsuleClassName: string
+  capsuleStyle: CSSProperties
+}
+
+export function resolveComposerEngagedPresenceMaterial(
+  intensity: ComposerSurfaceIntensity
+): ComposerEngagedPresenceMaterial {
+  const capsuleStyle =
+    intensity === "off"
+      ? { backgroundColor: COMPOSER_SURFACE_BASELINE }
+      : withBackdropBlur(
+          { backgroundColor: COMPOSER_SMOKE_FUME_COMPACT_SURFACE },
+          22,
+          1.06
+        )
+
+  const capsuleClassName =
+    intensity === "off"
+      ? "rounded-full border border-white/[0.08]"
+      : "rounded-full border border-white/[0.06] shadow-[0_14px_32px_-20px_rgba(0,0,0,0.48)]"
+
+  return {
+    plateClassName:
+      "border-t border-border/45 bg-background/90 shadow-[0_-10px_36px_-22px_rgba(15,23,42,0.14)] backdrop-blur-md",
+    plateStyle: {
+      backgroundColor: "rgba(250, 248, 244, 0.92)",
+      backdropFilter: "blur(16px) saturate(1.02)",
+      WebkitBackdropFilter: "blur(16px) saturate(1.02)",
+    },
+    plateInnerSurfaceStyle: { backgroundColor: "transparent" },
+    capsuleClassName,
+    capsuleStyle,
   }
 }
 
