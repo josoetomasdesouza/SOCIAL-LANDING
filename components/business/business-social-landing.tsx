@@ -739,7 +739,11 @@ function BusinessFooter({ config, links }: { config: BusinessConfig; links?: { l
         {links && links.length > 0 && (
           <div className="flex flex-wrap justify-center gap-4 mb-6">
             {links.map((link) => (
-              <a key={link.href} href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <a
+                key={`${link.label}-${link.href}`}
+                href={link.href}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
                 {link.label}
               </a>
             ))}

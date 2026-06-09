@@ -9,6 +9,7 @@ import {
   type PostToChatMorphRect,
 } from "./post-to-chat-morph-layer"
 import { observeMorphCompleted, observeMorphStarted } from "@/lib/events/instrumentation"
+import { resolveComposerLayoutVersion, shouldRenderThreadInFlow } from "@/lib/ui/composer-layout"
 
 const MORPH_DURATION_MS = 480
 const MORPH_TARGET_MIN_SIZE = 44
@@ -58,8 +59,8 @@ function getComposerContextRailChipRect(contextId: string): PostToChatMorphRect 
   }
 
   const chipElement =
-    railElement.querySelector<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`) ??
-    railElement.querySelector<HTMLElement>(`[data-conversation-context-chip-target="${escapedContextId}"]`)
+    railElement.querySelector<HTMLElement>(`[data-conversation-context-chip-target="${escapedContextId}"]`) ??
+    railElement.querySelector<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`)
 
   if (chipElement) {
     const chipRect = chipElement.getBoundingClientRect()
@@ -128,6 +129,46 @@ function getComposerFallbackRect(): PostToChatMorphRect {
 
 function getComposerChipRect(contextId: string): PostToChatMorphRect | null {
   const escapedContextId = getEscapedSelectorValue(contextId)
+  const railElement = document.querySelector<HTMLElement>('[data-conversation-context-rail="true"]')
+
+  if (railElement) {
+    const railChipElement =
+      railElement.querySelector<HTMLElement>(`[data-conversation-context-chip-target="${escapedContextId}"]`) ??
+      railElement.querySelector<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`)
+
+    if (railChipElement) {
+      const railChipRect = railChipElement.getBoundingClientRect()
+
+      if (isVisibleRect(railChipRect)) {
+        return {
+          left: railChipRect.left,
+          top: railChipRect.top,
+          width: railChipRect.width,
+          height: railChipRect.height,
+          borderRadius: 999,
+        }
+      }
+    }
+  }
+
+  const measurementTargetElement = document.querySelector<HTMLElement>(
+    `[data-conversation-context-chip-target="${escapedContextId}"]`
+  )
+
+  if (measurementTargetElement) {
+    const measurementRect = measurementTargetElement.getBoundingClientRect()
+
+    if (isVisibleRect(measurementRect)) {
+      return {
+        left: measurementRect.left,
+        top: measurementRect.top,
+        width: measurementRect.width,
+        height: measurementRect.height,
+        borderRadius: 999,
+      }
+    }
+  }
+
   const chipElements = Array.from(
     document.querySelectorAll<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`)
   )
@@ -137,27 +178,7 @@ function getComposerChipRect(contextId: string): PostToChatMorphRect | null {
     .at(-1)
 
   if (!chipElement) {
-    const measurementTargetElement = document.querySelector<HTMLElement>(
-      `[data-conversation-context-chip-target="${escapedContextId}"]`
-    )
-
-    if (!measurementTargetElement) {
-      return null
-    }
-
-    const measurementRect = measurementTargetElement.getBoundingClientRect()
-
-    if (!isVisibleRect(measurementRect)) {
-      return null
-    }
-
-    return {
-      left: measurementRect.left,
-      top: measurementRect.top,
-      width: measurementRect.width,
-      height: measurementRect.height,
-      borderRadius: 999,
-    }
+    return null
   }
 
   return {
@@ -246,17 +267,36 @@ export function useConversationContextMorph(deps: MorphSelectionDeps, vertical: 
       return
     }
 
-    const targetRect = resolveMorphTargetRect(queuedMorph.contextId)
+    let cancelled = false
+    let rafId = 0
 
-    observeMorphStarted({ itemId: queuedMorph.contextId, source: "long-press", vertical })
-    setActiveMorph({
-      key: queuedMorph.key,
-      contextId: queuedMorph.contextId,
-      preview: queuedMorph.preview,
-      fromRect: createMorphSpawnRect(queuedMorph.sourceRect, targetRect),
-      toRect: targetRect,
+    const startMorph = () => {
+      if (cancelled) {
+        return
+      }
+
+      const targetRect = resolveMorphTargetRect(queuedMorph.contextId)
+
+      observeMorphStarted({ itemId: queuedMorph.contextId, source: "long-press", vertical })
+      setActiveMorph({
+        key: queuedMorph.key,
+        contextId: queuedMorph.contextId,
+        preview: queuedMorph.preview,
+        fromRect: createMorphSpawnRect(queuedMorph.sourceRect, targetRect),
+        toRect: targetRect,
+      })
+      setQueuedMorph(null)
+    }
+
+    // Wait for dock capsule layout (context rail height) before locking morph target.
+    rafId = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(startMorph)
     })
-    setQueuedMorph(null)
+
+    return () => {
+      cancelled = true
+      window.cancelAnimationFrame(rafId)
+    }
   }, [queuedMorph, resolveMorphTargetRect, vertical])
 
   const queueConversationContextMorph = useCallback((contextItem: ConversationContextItem) => {
@@ -316,6 +356,8 @@ export function useConversationContextMorph(deps: MorphSelectionDeps, vertical: 
       return null
     }
 
+    const useLightSurface = !shouldRenderThreadInFlow(resolveComposerLayoutVersion())
+
     return (
       <PostToChatMorphLayer
         key={activeMorph.key}
@@ -325,6 +367,7 @@ export function useConversationContextMorph(deps: MorphSelectionDeps, vertical: 
         toRect={activeMorph.toRect}
         resolveToRect={() => resolveMorphTargetRect(activeMorph.contextId)}
         durationMs={MORPH_DURATION_MS}
+        useLightSurface={useLightSurface}
         onComplete={() => {
           observeMorphCompleted({ itemId: activeMorph.contextId, vertical })
           setHiddenContextIds((currentIds) =>

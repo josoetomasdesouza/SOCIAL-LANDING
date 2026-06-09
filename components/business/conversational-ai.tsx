@@ -317,21 +317,17 @@ export function ConversationalAI({
   )
   const hasEngagedConversation = hasConversation && isConversationSessionActive
   const pendingContextIdSet = useMemo(() => new Set(pendingContextIds), [pendingContextIds])
-  const immediatePendingContextIdSet = useMemo(() => {
-    const previousActiveContextIds = new Set(activeContextIdsRef.current)
-
-    return new Set(
-      contextItems
-        .filter((item) => !previousActiveContextIds.has(item.id))
-        .map((item) => item.id)
-    )
-  }, [contextItems])
   const contextRowItems = useMemo(
     () =>
-      contextItems.filter(
-        (item) => pendingContextIdSet.has(item.id) || immediatePendingContextIdSet.has(item.id)
-      ),
-    [contextItems, immediatePendingContextIdSet, pendingContextIdSet]
+      contextItems.filter((item) => {
+        if (pendingContextIdSet.has(item.id)) {
+          return true
+        }
+
+        // First frame after morph add — before useLayoutEffect syncs pending/active refs.
+        return !activeContextIdsRef.current.includes(item.id)
+      }),
+    [contextItems, pendingContextIdSet, pendingContextIds]
   )
   const showContextRow =
     contextRowItems.length > 0 &&
@@ -367,10 +363,10 @@ export function ConversationalAI({
     isDockDrawerShellVisible && hasEngagedConversation && !isConversationCollapsed
   const isDockDrawerCollapsedToDock =
     isDockDrawerShellVisible && (!hasEngagedConversation || isConversationCollapsed)
+  /** Dock v1 — pending chips on capsule rail; committed chips live in drawer thread after send. */
+  const showDockCapsuleContextRail = isDockDrawerV1 && contextRowItems.length > 0
   const isComposerCapsuleLocked =
-    isDockDrawerV1 && hasEngagedConversation && !showContextRow
-  const showDockCapsuleContextRail =
-    isDockDrawerV1 && showContextRow && (!hasEngagedConversation || isConversationCollapsed)
+    isDockDrawerV1 && hasEngagedConversation && contextRowItems.length === 0
   const {
     sheetRef: setDockSheetRef,
     setScrollRef: setDockScrollRef,
@@ -665,8 +661,7 @@ export function ConversationalAI({
     if (isDockDrawerShellVisible) {
       const dockHandleHeight = showDockDrawerHandle ? dockHandleRef.current?.offsetHeight ?? 0 : 0
       const collapsedDrawerHeight = DOCK_PEEK_PX
-      const contextRailHeight =
-        showDockCapsuleContextRail && measureShowContextRow
+      const contextRailHeight = showDockCapsuleContextRail
           ? contextRailRef.current?.offsetHeight ?? 0
           : 0
       const capsuleCompact = formHeight + contextRailHeight
@@ -1190,7 +1185,7 @@ export function ConversationalAI({
     setPendingContextIdsSnapshot(pendingContextIdsRef.current.filter((id) => !idsToClear.has(id)))
   }, [setPendingContextIdsSnapshot])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const previousActiveContextIds = new Set(activeContextIdsRef.current)
     const nextContextIds = contextItems.map((item) => item.id)
     const removedContextIds = activeContextIdsRef.current.filter((id) => !nextContextIds.includes(id))
@@ -1209,6 +1204,8 @@ export function ConversationalAI({
         if (isConversationCollapsed && !isDockDrawerV1) {
           setIsConversationSessionActive(false)
           setIsConversationCollapsed(false)
+        } else if (isDockDrawerV1 && !isConversationCollapsed) {
+          // Keep chip pending in capsule until the user sends — then handleSendMessage commits it.
         } else {
           setMessages((prev) => appendContextEvent(prev, addedContextItems))
           if (!(isDockDrawerV1 && isConversationCollapsed)) {
@@ -1973,7 +1970,10 @@ export function ConversationalAI({
             }
             onPointerDownCapture={handleCompactComposerPress}
             className={cn(
-              "relative z-[2] pointer-events-auto flex shrink-0 flex-col overflow-hidden rounded-[28px] transition-[height,border-radius,box-shadow] duration-300 ease-out",
+              "relative z-[2] pointer-events-auto flex shrink-0 flex-col overflow-hidden rounded-[28px] ease-out",
+              isDockDrawerV1
+                ? "transition-[border-radius,box-shadow] duration-300"
+                : "transition-[height,border-radius,box-shadow] duration-300",
               activeComposerSectionSurfaceClass,
               isEngagedPerceptual && !isDockDrawerV1 && "rounded-b-[28px] rounded-t-[18px]",
               !isComposerCapsuleLocked &&
@@ -2020,6 +2020,15 @@ export function ConversationalAI({
                     }}
                   />
                 </div>
+              </div>
+            ) : null}
+
+            {isDockDrawerV1 && showDockCapsuleContextRail ? (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 top-0 z-0 flex gap-2 px-4 py-2.5 opacity-0"
+              >
+                {contextRowItems.map((item) => renderContextChip(item, { measurementTarget: true }))}
               </div>
             ) : null}
 
@@ -2086,7 +2095,9 @@ export function ConversationalAI({
                 style={activeComposerInnerSurfaceStyle}
               >
                 <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
-                  {(isLayoutV2 ? shellContextRowItems : contextRowItems).map((item) => renderContextChip(item))}
+                  {(isLayoutV2 ? shellContextRowItems : contextRowItems).map((item) =>
+                    renderContextChip(item)
+                  )}
                 </div>
               </div>
             )}
