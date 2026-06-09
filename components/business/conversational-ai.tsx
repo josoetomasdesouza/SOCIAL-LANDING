@@ -67,6 +67,22 @@ const COMPOSER_SHEET_FILL_TOP =
   "calc(100% - var(--composer-capsule-height, 44px) - max(0.75rem, env(safe-area-inset-bottom, 0px)))" as const
 /** Inset for h-7 controls in the dock capsule row — (44px row − 28px control) / 2, matches py-2. */
 const COMPOSER_CAPSULE_CONTROL_INSET_PX = 8
+const COMPOSER_DOCK_DRAWER_TEXTURE_STYLE = {
+  backgroundColor: "#dddddd",
+  backgroundImage: 'url("/textures/composer-dock-cement.png")',
+  backgroundSize: "cover",
+  backgroundPosition: "center top",
+  backgroundRepeat: "no-repeat",
+} as const
+const DOCK_CAPSULE_SURFACE_CLASS = "border-[0.5px] border-[#52585f]/42" as const
+const DOCK_CAPSULE_SURFACE_STYLE = {
+  backgroundColor: "#ffffff",
+  backdropFilter: "none",
+  WebkitBackdropFilter: "none",
+} as const
+const DOCK_CAPSULE_INNER_SURFACE_STYLE = {
+  backgroundColor: "transparent",
+} as const
 const CLOSE_THRESHOLD_OFFSET_PX = 72
 const PREVIEW_DRAG_INTENT_THRESHOLD_PX = 4
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
@@ -660,9 +676,8 @@ export function ConversationalAI({
       )
 
       if (isDockDrawerExpanded) {
-        const measuredConversationContentHeight = isResumeAutoGrowActive
-          ? autoGrowMeasureRef.current?.offsetHeight ?? 0
-          : messagesMeasureRef.current?.offsetHeight ?? messagesContentRef.current?.scrollHeight ?? 0
+        const measuredConversationContentHeight =
+          messagesMeasureRef.current?.offsetHeight ?? messagesContentRef.current?.scrollHeight ?? 0
         const drawerPaddingY = 24
         const drawerContentHeight = dockHandleHeight + measuredConversationContentHeight + drawerPaddingY
         const drawerAuto = Math.min(drawerMax, Math.max(DOCK_DRAWER_MIN_PX, drawerContentHeight))
@@ -925,6 +940,13 @@ export function ConversationalAI({
     expansionProgress,
     forceCompactShell
   )
+  const activeComposerSectionStyle = isDockDrawerV1 ? DOCK_CAPSULE_SURFACE_STYLE : composerSectionStyle
+  const activeComposerSectionSurfaceClass = isDockDrawerV1
+    ? DOCK_CAPSULE_SURFACE_CLASS
+    : composerSectionSurfaceClass
+  const activeComposerInnerSurfaceStyle = isDockDrawerV1
+    ? DOCK_CAPSULE_INNER_SURFACE_STYLE
+    : composerInnerSurfaceStyle
   const composerPageMaskBackground =
     isDockDrawerShellVisible || (isLayoutV2 && hasEngagedConversation)
       ? "transparent"
@@ -1535,7 +1557,10 @@ export function ConversationalAI({
         data-conversation-context-chip-target={isMeasurementTarget ? item.id : undefined}
         aria-hidden={isHidden || undefined}
         className={cn(
-          "flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)]",
+          "flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full pr-1.5",
+          isDockDrawerV1
+            ? "border-[0.5px] border-[#52585f]/32 bg-white"
+            : "border border-white/[0.08] bg-white/[0.055] shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)]",
           isHidden && "pointer-events-none opacity-0"
         )}
       >
@@ -1545,11 +1570,23 @@ export function ConversationalAI({
 
         <div className="min-w-0 flex-1">
           {item.subtitle ? (
-            <p className="truncate text-[10px] font-medium uppercase tracking-wide text-white/42">
+            <p
+              className={cn(
+                "truncate text-[10px] font-medium uppercase tracking-wide",
+                isDockDrawerV1 ? "text-muted-foreground" : "text-white/42"
+              )}
+            >
               {item.subtitle}
             </p>
           ) : null}
-          <p className="truncate text-xs font-medium text-white/92">{item.title}</p>
+          <p
+            className={cn(
+              "truncate text-xs font-medium",
+              isDockDrawerV1 ? "text-foreground" : "text-white/92"
+            )}
+          >
+            {item.title}
+          </p>
         </div>
 
         {onRemoveContext ? (
@@ -1557,7 +1594,12 @@ export function ConversationalAI({
             type="button"
             onClick={() => handleRemoveContextItem(item.id)}
             disabled={isHidden}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/56 transition-colors hover:bg-white/[0.12] hover:text-white/90"
+            className={cn(
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors",
+              isDockDrawerV1
+                ? "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                : "bg-white/[0.08] text-white/56 hover:bg-white/[0.12] hover:text-white/90"
+            )}
             aria-label={`Remover ${item.title}`}
             tabIndex={isHidden ? -1 : undefined}
           >
@@ -1571,21 +1613,48 @@ export function ConversationalAI({
   const renderMeasurementContextChip = (item: ConversationContextItem) => (
     <div
       key={item.id}
-      className="flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)]"
+      className={cn(
+        "flex h-11 min-w-[156px] shrink-0 items-center gap-2 rounded-full pr-1.5",
+        isDockDrawerV1
+          ? "border-[0.5px] border-[#52585f]/32 bg-white"
+          : "border border-white/[0.08] bg-white/[0.055] shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)]"
+      )}
     >
-      <div className="h-11 w-11 shrink-0 rounded-full bg-white/[0.08]" />
+      <div
+        className={cn(
+          "h-11 w-11 shrink-0 rounded-full",
+          isDockDrawerV1 ? "bg-muted" : "bg-white/[0.08]"
+        )}
+      />
 
       <div className="min-w-0 flex-1">
         {item.subtitle ? (
-          <p className="truncate text-[10px] font-medium uppercase tracking-wide text-white/42">
+          <p
+            className={cn(
+              "truncate text-[10px] font-medium uppercase tracking-wide",
+              isDockDrawerV1 ? "text-muted-foreground" : "text-white/42"
+            )}
+          >
             {item.subtitle}
           </p>
         ) : null}
-        <p className="truncate text-xs font-medium text-white/92">{item.title}</p>
+        <p
+          className={cn(
+            "truncate text-xs font-medium",
+            isDockDrawerV1 ? "text-foreground" : "text-white/92"
+          )}
+        >
+          {item.title}
+        </p>
       </div>
 
       {onRemoveContext ? (
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/56">
+        <div
+          className={cn(
+            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
+            isDockDrawerV1 ? "bg-muted text-muted-foreground" : "bg-white/[0.08] text-white/56"
+          )}
+        >
           <X className="h-3.5 w-3.5" />
         </div>
       ) : null}
@@ -1626,9 +1695,13 @@ export function ConversationalAI({
     options?: {
       measurementOnly?: boolean
       inFlowThread?: boolean
+      /** Dock v1 drawer on light cement — user bubble + plain AI (no accent strokes). */
+      dockThread?: boolean
     }
   ) => {
     const inFlowThread = options?.inFlowThread === true
+    const dockThread = options?.dockThread === true
+    const useFeedAccentStrokes = inFlowThread && !dockThread
     const previousMessage = messageList[index - 1]
     const sharesGroupWithPrevious =
       previousMessage?.role === message.role && message.role !== "context_event"
@@ -1668,12 +1741,14 @@ export function ConversationalAI({
               className={cn(
                 "inline-block text-[15px] leading-[1.45] align-top",
                 message.role === "user"
-                  ? inFlowThread
+                  ? useFeedAccentStrokes
                     ? "max-w-[88%] border-r-2 border-foreground/15 pr-3 text-right text-[15px] font-medium leading-[1.5] text-foreground/90"
-                    : "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
-                  : inFlowThread
+                    : dockThread
+                      ? "rounded-[20px] rounded-br-[8px] border border-border/45 bg-white px-4 py-3 text-left text-[15px] leading-[1.45] text-foreground shadow-[0_8px_20px_-16px_rgba(15,23,42,0.18)]"
+                      : "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
+                  : useFeedAccentStrokes
                     ? "max-w-[92%] border-l-2 border-accent/35 pl-3 py-0.5 text-left text-[16px] leading-[1.55] text-foreground/95"
-                    : "px-0 py-0.5 text-left text-foreground/90"
+                    : "max-w-[92%] px-0 py-0.5 text-left text-[15px] leading-[1.55] text-foreground/90"
               )}
               style={messageTextBubbleStyle}
             >
@@ -1689,35 +1764,42 @@ export function ConversationalAI({
     )
   }
 
-  const renderTypingIndicator = (hasPreviousMessages: boolean, inFlowThread = false) => (
+  const renderTypingIndicator = (
+    hasPreviousMessages: boolean,
+    options?: { inFlowThread?: boolean; dockThread?: boolean }
+  ) => {
+    const useLightSurface = options?.dockThread === true || options?.inFlowThread === true
+
+    return (
     <div className={cn(hasPreviousMessages && "mt-5", "flex justify-start")}>
       <div
         className={cn(
           "flex max-w-[82%] items-center gap-1 px-0 py-0.5",
-          inFlowThread ? "text-foreground/55" : "text-white/[0.74]"
+          useLightSurface ? "text-foreground/55" : "text-white/[0.74]"
         )}
       >
         <span
           className={cn(
             "h-2 w-2 animate-bounce rounded-full [animation-delay:-0.2s]",
-            inFlowThread ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
+            useLightSurface ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
           )}
         />
         <span
           className={cn(
             "h-2 w-2 animate-bounce rounded-full [animation-delay:-0.1s]",
-            inFlowThread ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
+            useLightSurface ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
           )}
         />
         <span
           className={cn(
             "h-2 w-2 animate-bounce rounded-full",
-            inFlowThread ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
+            useLightSurface ? "bg-foreground/45" : "bg-white/[0.58] shadow-[0_0_6px_rgba(255,255,255,0.16)]"
           )}
         />
       </div>
     </div>
-  )
+    )
+  }
 
   const threadPortalContent =
     shouldPortalThread && threadPortalTarget ? (
@@ -1741,7 +1823,7 @@ export function ConversationalAI({
               renderConversationMessage(message, index, displayedMessages, { inFlowThread: true })
             )}
 
-            {isTyping ? renderTypingIndicator(displayedMessages.length > 0, true) : null}
+            {isTyping ? renderTypingIndicator(displayedMessages.length > 0, { inFlowThread: true }) : null}
 
             <div
               ref={messagesPortalEndRef}
@@ -1782,9 +1864,10 @@ export function ConversationalAI({
             <div
               aria-hidden
               data-composer-sheet-fill="true"
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-0 bg-background/98"
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
               style={{
                 top: isDockDrawerCollapsedToDock ? COMPOSER_SHEET_FILL_TOP_COMPACT : COMPOSER_SHEET_FILL_TOP,
+                ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
               }}
             />
           ) : null}
@@ -1792,15 +1875,13 @@ export function ConversationalAI({
           {isDockDrawerShellVisible ? (
             <div
               ref={assignDockSheetRef}
-              data-composer-dock-drawer="true"
-              data-composer-dock-drawer-collapsed={isDockDrawerCollapsedToDock ? "true" : undefined}
               className={cn(
-                "pointer-events-auto absolute inset-x-0 z-[1] flex w-full min-h-0 flex-col overflow-hidden rounded-t-[20px] border border-border/45 border-b-0 bg-background/98",
+                "pointer-events-auto absolute inset-x-0 z-[1]",
                 isDockDragging && "transition-none",
                 !isDockDragging &&
-                  (isDockDrawerParking || isDockDrawerCollapsedToDock) &&
+                  isDockDrawerParking &&
                   "transition-[height,transform] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-                !isDockDragging && !isDockDrawerParking && !isDockDrawerCollapsedToDock && "duration-300 ease-out"
+                !isDockDragging && !isDockDrawerParking && "transition-none"
               )}
               style={{
                 bottom: COMPOSER_DOCK_DRAWER_BOTTOM,
@@ -1813,11 +1894,23 @@ export function ConversationalAI({
                 transform: getDrawerSheetTransform(dockDragOffsetPx),
               }}
             >
+              <div
+                aria-hidden
+                data-composer-dock-drawer-shadow="true"
+                className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px"
+              />
+              <div
+                data-composer-dock-drawer="true"
+                data-composer-dock-drawer-collapsed={isDockDrawerCollapsedToDock ? "true" : undefined}
+                data-composer-dock-drawer-expanded={isDockDrawerExpanded ? "true" : undefined}
+                className="flex h-full w-full min-h-0 flex-col overflow-hidden rounded-t-[20px] border border-border/45 border-b-0"
+                style={COMPOSER_DOCK_DRAWER_TEXTURE_STYLE}
+              >
               {showDockDrawerHandle ? (
                 <div ref={dockHandleRef} className="relative z-[1] shrink-0">
                   <DrawerDragZone
                     dragHandleProps={dockDragHandleProps}
-                    className="border-b border-border/40 bg-background/98"
+                    className="border-b border-border/40 bg-transparent"
                   >
                     <span className="sr-only">Arraste para fechar a conversa</span>
                   </DrawerDragZone>
@@ -1835,9 +1928,9 @@ export function ConversationalAI({
                 >
                   <div ref={messagesMeasureRef}>
                     {displayedMessages.map((message, index) =>
-                      renderConversationMessage(message, index, displayedMessages, { inFlowThread: true })
+                      renderConversationMessage(message, index, displayedMessages, { dockThread: true })
                     )}
-                    {isTyping ? renderTypingIndicator(displayedMessages.length > 0, true) : null}
+                    {isTyping ? renderTypingIndicator(displayedMessages.length > 0, { dockThread: true }) : null}
                     <div ref={messagesEndRef} />
                   </div>
                   {isResumeAutoGrowActive ? (
@@ -1849,14 +1942,15 @@ export function ConversationalAI({
                       {autoGrowMessages.map((message, index) =>
                         renderConversationMessage(message, index, autoGrowMessages, {
                           measurementOnly: true,
-                          inFlowThread: true,
+                          dockThread: true,
                         })
                       )}
-                      {isTyping ? renderTypingIndicator(autoGrowMessages.length > 0, true) : null}
+                      {isTyping ? renderTypingIndicator(autoGrowMessages.length > 0, { dockThread: true }) : null}
                     </div>
                   ) : null}
                 </DrawerScrollBody>
               ) : null}
+              </div>
             </div>
           ) : null}
 
@@ -1880,15 +1974,16 @@ export function ConversationalAI({
             onPointerDownCapture={handleCompactComposerPress}
             className={cn(
               "relative z-[2] pointer-events-auto flex shrink-0 flex-col overflow-hidden rounded-[28px] transition-[height,border-radius,box-shadow] duration-300 ease-out",
-              composerSectionSurfaceClass,
+              activeComposerSectionSurfaceClass,
               isEngagedPerceptual && !isDockDrawerV1 && "rounded-b-[28px] rounded-t-[18px]",
               !isComposerCapsuleLocked &&
+                !isDockDrawerV1 &&
                 (isEngagedPerceptual || hasEngagedConversation) &&
                 "shadow-[0_-16px_48px_-28px_rgba(15,23,42,0.28)] ring-1 ring-white/[0.08]",
               dragHeight !== null && "transition-none"
             )}
             style={{
-              ...composerSectionStyle,
+              ...activeComposerSectionStyle,
               ...(shellShouldApplySheetHeight && resolvedComposerHeight > 0
                 ? { height: `${resolvedComposerHeight}px` }
                 : {}),
@@ -1901,7 +1996,7 @@ export function ConversationalAI({
                   "shrink-0 border-b px-4",
                   "border-white/[0.07] pt-3 pb-2"
                 )}
-                style={composerInnerSurfaceStyle}
+                style={activeComposerInnerSurfaceStyle}
               >
                 <div
                   role="slider"
@@ -1934,7 +2029,7 @@ export function ConversationalAI({
                   "relative min-h-0 flex-1 overflow-hidden",
                   shellShouldShowConversationBody && "border-t border-white/[0.035]"
                 )}
-                style={composerInnerSurfaceStyle}
+                style={activeComposerInnerSurfaceStyle}
               >
                 {hasEngagedConversation && contextRowItems.length > 0 ? (
                   <div
@@ -1988,7 +2083,7 @@ export function ConversationalAI({
               <div
                 ref={contextRailRef}
                 className={cn("shrink-0 px-4 py-2.5", isEngagedPerceptual && "py-1.5 opacity-90")}
-                style={composerInnerSurfaceStyle}
+                style={activeComposerInnerSurfaceStyle}
               >
                 <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
                   {(isLayoutV2 ? shellContextRowItems : contextRowItems).map((item) => renderContextChip(item))}
@@ -2006,17 +2101,20 @@ export function ConversationalAI({
               style={
                 isDockDrawerV1
                   ? {
-                      ...composerInnerSurfaceStyle,
+                      ...activeComposerInnerSurfaceStyle,
                       paddingLeft: COMPOSER_CAPSULE_CONTROL_INSET_PX,
                       paddingRight: COMPOSER_CAPSULE_CONTROL_INSET_PX,
                     }
-                  : composerInnerSurfaceStyle
+                  : activeComposerInnerSurfaceStyle
               }
             >
               <button
                 type="button"
                 disabled
-                className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full ring-1 ring-white/10"
+                className={cn(
+                  "relative h-7 w-7 shrink-0 overflow-hidden rounded-full",
+                  isDockDrawerV1 ? "ring-1 ring-border/55" : "ring-1 ring-white/10"
+                )}
                 aria-label="Usuario"
               >
                 <Image src={USER_AVATAR} alt="Usuario" fill className="object-cover" />
@@ -2033,12 +2131,22 @@ export function ConversationalAI({
                   }
                 }}
                 placeholder={resolvedPlaceholder}
-                className="h-7 min-w-0 flex-1 bg-transparent text-[16px] leading-none text-white/92 outline-none placeholder:text-white/58"
+                className={cn(
+                  "h-7 min-w-0 flex-1 bg-transparent text-[16px] leading-none outline-none",
+                  isDockDrawerV1
+                    ? "text-foreground placeholder:text-muted-foreground"
+                    : "text-white/92 placeholder:text-white/58"
+                )}
               />
               <button
                 type="submit"
                 disabled={!inputValue.trim() || isTyping}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.96] text-[rgba(7,16,24,0.94)] shadow-[0_12px_24px_-18px_rgba(0,0,0,0.48)] transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+                className={cn(
+                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-opacity disabled:cursor-not-allowed disabled:opacity-50",
+                  isDockDrawerV1
+                    ? "bg-foreground text-background"
+                    : "bg-white/[0.96] text-[rgba(7,16,24,0.94)] shadow-[0_12px_24px_-18px_rgba(0,0,0,0.48)]"
+                )}
                 aria-label="Enviar mensagem"
               >
                 {isTyping ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}

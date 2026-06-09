@@ -137,6 +137,29 @@
   --material-platform-groove: #cfc2ae;
   --material-platform-shadow: rgb(28 25 23 / 0.14);
   --material-platform-contact: rgb(28 25 23 / 0.082);
+  --composer-dock-drawer-base: #dddddd;
+  --composer-dock-drawer-texture: url("/textures/composer-dock-cement.png");
+}
+
+/*
+ * Composer v1 — dock drawer + sheet fill use cement/plaster texture (compact + expanded).
+ */
+[data-composer-dock-drawer="true"],
+[data-composer-sheet-fill="true"] {
+  background-color: var(--composer-dock-drawer-base) !important;
+  background-image: var(--composer-dock-drawer-texture) !important;
+  background-position: center top !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+
+[data-composer-dock-drawer="true"] [data-drawer-drag-zone] {
+  background-color: transparent !important;
+}
+
+/* Conversation drawer — top lift shadow (compact + expanded; layer avoids overflow clip). */
+[data-composer-dock-drawer-shadow="true"] {
+  box-shadow: 0 -22px 44px -14px rgb(28 25 23 / 0.32) !important;
 }
 
 /*
@@ -274,6 +297,16 @@
   background-repeat: no-repeat !important;
 }
 
+/* Composer v1 dock drawer — cement texture (overrides bg-background bleed below) */
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-dock-drawer="true"],
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-sheet-fill="true"] {
+  background-color: var(--composer-dock-drawer-base) !important;
+  background-image: var(--composer-dock-drawer-texture) !important;
+  background-size: cover !important;
+  background-position: center top !important;
+  background-repeat: no-repeat !important;
+}
+
 /*
  * Fase 2 — plataforma pedra/nogueira clara (Z3): aresta + sombra de contato.
  * Sem textura interna; matte warm limestone.
@@ -307,7 +340,7 @@
 }
 
 /* Item surfaces inside cards (contact rows etc.) */
-.surface-cement-canvas[data-appointment-surface-cement="true"] main [class*="bg-background"]:not(section.border-y) {
+.surface-cement-canvas[data-appointment-surface-cement="true"] main [class*="bg-background"]:not(section.border-y):not([data-composer-dock-drawer="true"]):not([data-composer-sheet-fill="true"]) {
   background-color: color-mix(in srgb, var(--surface-cement-card-surface) 94%, var(--border)) !important;
   background-image: none !important;
 }

@@ -17,6 +17,9 @@ function resolveMenuItem(menuItems: MenuItem[], result: RestaurantMenuSearchResu
   return menuItems.find((item) => item.id === result.id) ?? null
 }
 
+const CONVERSATION_RESULT_CARD_CLASS =
+  "flex gap-3 p-3 rounded-xl border border-border/45 bg-white shadow-[0_6px_18px_-16px_rgba(15,23,42,0.12)]"
+
 export function RestaurantConversationMenuBlock({
   items,
   menuItems,
@@ -34,7 +37,7 @@ export function RestaurantConversationMenuBlock({
         return (
           <div
             key={item.id}
-            className="flex gap-3 p-3 rounded-xl border border-white/10 bg-white/5"
+            className={CONVERSATION_RESULT_CARD_CLASS}
           >
             <button
               type="button"
@@ -45,9 +48,9 @@ export function RestaurantConversationMenuBlock({
                 <Image src={item.image} alt={item.name} fill className="object-cover" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-sm text-white/95 line-clamp-1">{item.name}</p>
+                <p className="font-medium text-sm text-foreground line-clamp-1">{item.name}</p>
                 {result.subtitle ? (
-                  <p className="text-xs text-white/60 line-clamp-1">{result.subtitle}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{result.subtitle}</p>
                 ) : null}
                 <p className="text-sm font-semibold text-accent mt-1">
                   R$ {item.price.toFixed(2).replace(".", ",")}
