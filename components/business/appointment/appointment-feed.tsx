@@ -597,7 +597,13 @@ export function AppointmentFeed() {
   const { setComposerMode, setComposerOffsetClassName } = conversationSelection
 
   useEffect(() => {
-    setComposerLayoutVersion(resolveComposerLayoutVersion())
+    const applyComposerLayoutVersion = () => {
+      setComposerLayoutVersion(resolveComposerLayoutVersion())
+    }
+
+    applyComposerLayoutVersion()
+    window.addEventListener("popstate", applyComposerLayoutVersion)
+    return () => window.removeEventListener("popstate", applyComposerLayoutVersion)
   }, [])
   const [selectedBarber, setSelectedBarber] = useState<Professional | null>(null)
   const [selectedService, setSelectedService] = useState<Service | null>(null)

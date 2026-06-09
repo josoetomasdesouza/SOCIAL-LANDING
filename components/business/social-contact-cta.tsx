@@ -26,6 +26,8 @@ interface SocialContactCTAProps {
   secondaryItems?: SocialContactItem[]
   primaryActionLabel: string
   onPrimaryAction: () => void
+  /** Optional override for compact surface — appointment cement pilot only. */
+  surfaceClassName?: string
 }
 
 function formatWhatsAppLabel(whatsapp: string) {
@@ -71,6 +73,7 @@ export function SocialContactCTA({
   secondaryItems,
   primaryActionLabel,
   onPrimaryAction,
+  surfaceClassName,
 }: SocialContactCTAProps) {
   const resolvedContextLabel = contextLabel || eyebrow
   const resolvedPrimaryContact = primaryContact || (
@@ -95,7 +98,7 @@ export function SocialContactCTA({
 
   return (
     <section className={socialPatternClasses.sectionSpacing}>
-      <div className={socialPatternClasses.compactSurface}>
+      <div className={surfaceClassName ?? socialPatternClasses.compactSurface}>
         <div className="space-y-1">
           <p className={socialPatternClasses.editorialContext}>{resolvedContextLabel}</p>
           <p className={socialPatternClasses.editorialHeadline}>{headline}</p>
