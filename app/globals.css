@@ -124,6 +124,314 @@
   }
 }
 
+/* Burned-cement — Concreto Premium + madeira discreta (appointment) */
+:root {
+  --surface-cement-base: #ebe7e1;
+  --surface-cement-texture-url: url("/textures/burned-cement-premium.webp?v=neutral-greige-3");
+  --surface-cement-grain-size: 760px;
+  --surface-cement-grain-size-mobile: 560px;
+  --surface-cement-card-surface: #faf8f4;
+  --surface-cement-module-surface: #efeae3;
+  --surface-elevated: #fdfbf7;
+  --material-platform-highlight: #fbf7f0;
+  --material-platform-groove: #cfc2ae;
+  --material-platform-shadow: rgb(28 25 23 / 0.14);
+  --material-platform-contact: rgb(28 25 23 / 0.082);
+  --composer-dock-drawer-base: #dddddd;
+  --composer-dock-drawer-texture: url("/textures/composer-dock-cement.png");
+}
+
+/*
+ * Composer v1 — dock drawer + sheet fill use cement/plaster texture (compact + expanded).
+ */
+[data-composer-dock-drawer="true"],
+[data-composer-sheet-fill="true"] {
+  background-color: var(--composer-dock-drawer-base) !important;
+  background-image: var(--composer-dock-drawer-texture) !important;
+  background-position: center top !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+
+[data-composer-dock-drawer="true"] [data-drawer-drag-zone] {
+  background-color: transparent !important;
+}
+
+/* Conversation drawer — top lift shadow (compact + expanded; layer avoids overflow clip). */
+[data-composer-dock-drawer-shadow="true"] {
+  box-shadow: 0 -22px 44px -14px rgb(28 25 23 / 0.32) !important;
+}
+
+/*
+ * Concreto Premium — chromatic token layer (appointment + surface-cement only).
+ * 85% greige arquitetônico · 15% warmth nogueira/couro (Barba Negra).
+ */
+.surface-cement-canvas[data-appointment-surface-cement="true"] {
+  --background: #ebe7e1;
+  --foreground: #1c1917;
+  --card: #faf8f4;
+  --card-foreground: #1c1917;
+  --popover: #fdfbf7;
+  --popover-foreground: #1c1917;
+  --primary: #1c1917;
+  --primary-foreground: #fdfbf7;
+  --secondary: #efeae3;
+  --secondary-foreground: #1c1917;
+  --muted: #efeae3;
+  --muted-foreground: #6b6560;
+  --accent: #7a6348;
+  --accent-foreground: #fdfbf7;
+  --border: #ddd4c6;
+  --input: #efeae3;
+  --ring: #7a6348;
+}
+
+/* Editorial text-accent (icons, prices) → primary ink; CTA fills → primary */
+.surface-cement-canvas[data-appointment-surface-cement="true"]
+  :is(main, footer, [data-feed-drawer-body="true"])
+  [class*="text-accent"]:not([class*="bg-accent"]) {
+  color: var(--foreground);
+}
+
+.surface-cement-canvas[data-appointment-surface-cement="true"] [class*="bg-accent"] {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.surface-cement-canvas[data-appointment-surface-cement="true"] [class*="hover:bg-accent"]:hover {
+  background-color: color-mix(in srgb, var(--primary) 90%, transparent);
+}
+
+.surface-cement-canvas[data-appointment-surface-cement="true"] [class*="hover:text-accent"]:hover {
+  color: var(--foreground);
+}
+
+/* Story ring — ink gradient (replaces brand primaryColor / orange fallback) */
+.surface-cement-canvas[data-appointment-surface-cement="true"] main > section.border-y button > div:first-child {
+  background: linear-gradient(135deg, #1c1917, #3d3834) !important;
+}
+
+.surface-cement-canvas {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--surface-cement-base);
+}
+
+.surface-cement-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--surface-cement-base);
+  background-image: var(--surface-cement-texture-url);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/*
+ * Fase 1 — ambiente: grain tiled + luz ambiente (não wallpaper cover).
+ */
+.surface-cement-canvas[data-appointment-surface-cement="true"]::before {
+  background-size: var(--surface-cement-grain-size) var(--surface-cement-grain-size);
+  background-repeat: repeat;
+  background-position: center top;
+  background-blend-mode: soft-light;
+  filter: saturate(0.87) brightness(1.06) contrast(1.11);
+}
+
+@media (max-width: 640px) {
+  .surface-cement-canvas[data-appointment-surface-cement="true"]::before {
+    background-size: var(--surface-cement-grain-size-mobile) var(--surface-cement-grain-size-mobile);
+  }
+}
+
+.surface-cement-canvas[data-appointment-surface-cement="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #eeeae4 16%, transparent) 0%,
+      transparent 44%,
+      color-mix(in srgb, #e3ded8 10%, transparent) 100%
+    );
+}
+
+.surface-cement-canvas > main,
+.surface-cement-canvas > footer {
+  position: relative;
+  z-index: 1;
+}
+
+.surface-cement-feed-transparent {
+  background-color: transparent !important;
+}
+
+/*
+ * Appointment — cement BACKGROUND only; cards stay off-white.
+ * Cement: canvas gaps, stories rail, drawer shell.
+ * Plain: cards, modules, lists, footer content, hero media.
+ */
+.surface-cement-canvas[data-appointment-surface-cement="true"] > main {
+  background: transparent !important;
+}
+
+/* Fase 1 — stories rail: depressão Z1 (luminância, sem textura própria) */
+.surface-cement-canvas[data-appointment-surface-cement="true"] main > section.border-y[class*="bg-background"] {
+  background-color: color-mix(in srgb, var(--surface-cement-base) 93%, #1c1917) !important;
+  background-image: none !important;
+  box-shadow: inset 0 1px 0 rgb(28 25 23 / 0.05);
+}
+
+/* Feed drawer shell — unchanged (drawer redesign out of scope) */
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-feed-drawer-sheet="true"] {
+  background-color: var(--surface-cement-base) !important;
+  background-image: var(--surface-cement-texture-url) !important;
+  background-size: cover !important;
+  background-position: center top !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Composer v1 dock drawer — cement texture (overrides bg-background bleed below) */
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-dock-drawer="true"],
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-sheet-fill="true"] {
+  background-color: var(--composer-dock-drawer-base) !important;
+  background-image: var(--composer-dock-drawer-texture) !important;
+  background-size: cover !important;
+  background-position: center top !important;
+  background-repeat: no-repeat !important;
+}
+
+/*
+ * Fase 2 — plataforma pedra/nogueira clara (Z3): aresta + sombra de contato.
+ * Sem textura interna; matte warm limestone.
+ */
+.surface-cement-canvas[data-appointment-surface-cement="true"] main [class*="bg-card"],
+.surface-cement-canvas[data-appointment-surface-cement="true"] footer[class*="bg-card"],
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-feed-drawer-body="true"] [class*="bg-card"],
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-testid="appointment-operational-hero"] > div:last-child,
+.surface-cement-canvas[data-appointment-surface-cement="true"] main [class*="rounded-"][class*="border"][class*="bg-secondary"] {
+  background-color: var(--surface-cement-card-surface) !important;
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--material-platform-highlight) 52%, transparent),
+    transparent 24%
+  ) !important;
+  border-color: transparent !important;
+  border-radius: 20px !important;
+  box-shadow:
+    inset 0 1px 0 var(--material-platform-highlight),
+    inset 0 -1px 0 var(--material-platform-groove),
+    0 1px 0 var(--material-platform-contact),
+    0 15px 38px -18px var(--material-platform-shadow) !important;
+}
+
+/* Module rows — recessão Z2 (inset, sem sombra de plataforma) */
+.surface-cement-canvas[data-appointment-surface-cement="true"] main [class*="bg-secondary"]:not([class*="border"]):not([class*="rounded-full"]),
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-feed-drawer-body="true"] [class*="bg-secondary"]:not([class*="border"]):not([class*="rounded-full"]) {
+  background-color: var(--surface-cement-module-surface) !important;
+  background-image: none !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--material-platform-highlight) 72%, transparent) !important;
+}
+
+/* Item surfaces inside cards (contact rows etc.) */
+.surface-cement-canvas[data-appointment-surface-cement="true"] main [class*="bg-background"]:not(section.border-y):not([data-composer-dock-drawer="true"]):not([data-composer-sheet-fill="true"]) {
+  background-color: color-mix(in srgb, var(--surface-cement-card-surface) 94%, var(--border)) !important;
+  background-image: none !important;
+}
+
+/* Frozen zones + media exceptions — stay plain */
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-conversation-thread-anchor],
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-conversation-thread-anchor] *,
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-conversation-composer="true"],
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-conversation-composer="true"] *,
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-feed-thread-junction="true"],
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-feed-thread-junction="true"] *,
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-conversation-context-rail="true"],
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-conversation-context-rail="true"] *,
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-testid="appointment-operational-hero"] > div:first-child,
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-testid="appointment-operational-hero"] > div:first-child *,
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-feed-drawer-backdrop="true"] {
+  background-color: revert-layer !important;
+  background-image: revert-layer !important;
+  filter: none !important;
+}
+
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-feed-drawer-header="true"] {
+  background-color: color-mix(in srgb, var(--surface-elevated) 98%, transparent) !important;
+  background-image: none !important;
+  filter: none !important;
+}
+
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-feed-drawer-header="true"] * {
+  background-color: transparent !important;
+  background-image: none !important;
+  filter: none !important;
+}
+
+/* Story rings + avatars — elevated surface, no cement bleed */
+.surface-cement-canvas[data-appointment-surface-cement="true"] main > section.border-y button [class*="rounded-full"][class*="bg-background"] {
+  background-color: var(--surface-elevated) !important;
+  background-image: none !important;
+  filter: none !important;
+}
+
+.surface-cement-canvas[data-appointment-surface-cement="true"] main > section.border-y button [class*="bg-secondary"] {
+  background-color: var(--secondary) !important;
+  background-image: none !important;
+  filter: none !important;
+}
+
+/*
+ * Dev-only coverage probe — ?surface-cement=on&surface-cement-debug=expose
+ */
+.surface-cement-canvas[data-surface-cement-debug="expose"]::before {
+  opacity: 1;
+}
+
+.surface-cement-canvas[data-surface-cement-debug="expose"] main
+  :is(
+    section[class*="bg-background"],
+    footer[class*="bg-card"],
+    [class*="bg-card"],
+    [class*="bg-background"],
+    [class*="bg-secondary"]
+  ) {
+  background-color: color-mix(in srgb, var(--background) 34%, transparent) !important;
+}
+
+.surface-cement-canvas[data-surface-cement-debug="expose"]
+  main
+  [data-testid="appointment-operational-hero"]
+  > div:first-child {
+  opacity: 0.52;
+}
+
+.surface-cement-canvas[data-surface-cement-debug="expose"]
+  main
+  [data-testid="appointment-operational-hero"]
+  > div:first-child
+  .absolute.inset-0 {
+  opacity: 0.55;
+}
+
+.surface-cement-canvas[data-surface-cement-debug="expose"] main [data-conversation-thread-anchor],
+.surface-cement-canvas[data-surface-cement-debug="expose"] main [data-conversation-thread-anchor] *,
+.surface-cement-canvas[data-surface-cement-debug="expose"] [data-conversation-composer="true"],
+.surface-cement-canvas[data-surface-cement-debug="expose"] [data-conversation-composer="true"] *,
+.surface-cement-canvas[data-surface-cement-debug="expose"] [data-composer-feed-thread-junction="true"],
+.surface-cement-canvas[data-surface-cement-debug="expose"] [data-composer-feed-thread-junction="true"] *,
+.surface-cement-canvas[data-surface-cement-debug="expose"] [data-conversation-context-rail="true"],
+.surface-cement-canvas[data-surface-cement-debug="expose"] [data-conversation-context-rail="true"] * {
+  background-color: revert-layer !important;
+  opacity: revert !important;
+}
+
 /* Custom Scrollbar */
 .scrollbar-hide {
   -ms-overflow-style: none;

@@ -17,10 +17,8 @@ import { HealthFeed } from "@/components/business/health/health-feed"
 import { InfluencerFeed } from "@/components/business/influencer/influencer-feed"
 import { PersonalFeed } from "@/components/business/personal/personal-feed"
 import { InstitutionalFeed } from "@/components/business/institutional/institutional-feed"
-import {
-  ensureComposerLayoutProductDefault,
-  syncComposerLayoutOverrideFromUrl,
-} from "@/lib/ui/composer-layout"
+import { syncComposerLayoutOverrideFromUrl } from "@/lib/ui/composer-layout"
+import { syncSurfaceCementOverrideFromUrl } from "@/lib/ui/surface-cement"
 import { COMPOSER_SURFACE_OVERRIDE_STORAGE_KEY } from "@/lib/ui/composer-surface-material"
 import type { BusinessType } from "@/lib/business-types"
 
@@ -38,6 +36,7 @@ function syncComposerSurfaceOverrideFromUrl() {
 function syncComposerExperimentOverridesFromUrl() {
   syncComposerSurfaceOverrideFromUrl()
   syncComposerLayoutOverrideFromUrl()
+  syncSurfaceCementOverrideFromUrl()
 }
 
 export default function DemoPage() {
@@ -45,7 +44,6 @@ export default function DemoPage() {
   const previousVerticalRef = useRef<BusinessType | null>(null)
 
   useEffect(() => {
-    ensureComposerLayoutProductDefault()
     syncComposerExperimentOverridesFromUrl()
   }, [])
 

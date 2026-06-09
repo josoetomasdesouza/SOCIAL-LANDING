@@ -12,6 +12,7 @@ import { ContextSelectable } from "./context-selectable"
 import { useComposerOverlayClearance } from "@/lib/ui/composer-scroll-clearance"
 import { resolveDrawerSheetStyle } from "@/lib/ui/drawer-layout"
 import { useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
+import { isSurfaceCementActive } from "@/lib/ui/surface-cement"
 
 interface BusinessFeedDrawerProps {
   isOpen: boolean
@@ -223,6 +224,7 @@ export function BusinessFeedDrawer({
 }: BusinessFeedDrawerProps) {
   const initialPostRef = useRef<HTMLDivElement>(null)
   const wasOpenRef = useRef(false)
+  const [surfaceCementActive, setSurfaceCementActive] = useState(false)
   const { paddingBottom: composerClearance, isActive: composerOverlaysFeed } = useComposerOverlayClearance()
   const { sheetRef, scrollRef, setScrollRef, rawDragOffsetPx, resetDrag, isDragging, isPulling, dragHandleProps, getBackdropOpacity } =
     useDrawerSheetDrag(onClose, isOpen)
@@ -239,6 +241,10 @@ export function BusinessFeedDrawer({
     if (index === -1) return filteredPosts
     return [...filteredPosts.slice(index), ...filteredPosts.slice(0, index)]
   }, [filteredPosts, initialPost])
+
+  useEffect(() => {
+    setSurfaceCementActive(isSurfaceCementActive())
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return
@@ -311,14 +317,13 @@ export function BusinessFeedDrawer({
         style={{ opacity: getBackdropOpacity(0.7) }}
         onClick={handleBackdropClick}
         aria-hidden="true"
-        data-feed-drawer-backdrop="true"
       />
 
       <div
         ref={sheetRef}
-        data-feed-drawer-sheet="true"
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 rounded-t-3xl overflow-hidden flex flex-col shadow-2xl bg-background",
+          "fixed inset-x-0 bottom-0 z-50 rounded-t-3xl overflow-hidden flex flex-col shadow-2xl",
+          surfaceCementActive ? "surface-cement-drawer" : "bg-background",
           isDragging ? "transition-none" : "animate-in slide-in-from-bottom duration-300 transition-[height,transform]"
         )}
         style={{
@@ -326,11 +331,7 @@ export function BusinessFeedDrawer({
           ...resolveDrawerSheetStyle(rawDragOffsetPx),
         }}
       >
-        <DrawerDragZone
-          dragHandleProps={dragHandleProps}
-          data-feed-drawer-header="true"
-          className="sticky top-0 z-10 bg-background/98 backdrop-blur-xl border-b border-border/50"
-        >
+        <DrawerDragZone dragHandleProps={dragHandleProps} className="sticky top-0 z-10 bg-background/98 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center gap-2.5 px-5 pb-4">
             <ChevronUp className="w-5 h-5 text-muted-foreground" />
             <span className="font-semibold text-foreground tracking-tight">
@@ -348,7 +349,7 @@ export function BusinessFeedDrawer({
           isPulling={isPulling}
           style={composerOverlaysFeed ? { paddingBottom: composerClearance } : undefined}
         >
-          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6" data-feed-drawer-body="true">
+          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6">
             <div className="space-y-8">
               {orderedPosts.map((post, index) => {
                 const isInitial = initialPost?.id === post.id

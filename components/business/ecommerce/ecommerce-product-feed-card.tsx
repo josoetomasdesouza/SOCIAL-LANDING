@@ -124,7 +124,7 @@ export function EcommerceProductFeedCard({
       onClick={() => onSelectProduct(product)}
       onLongPress={() => onToggleConversationContext?.(contextItem)}
       selected={isInConversation?.(contextItem.id) ?? false}
-      className="relative group overflow-hidden rounded-xl border border-white/[0.05] bg-white/[0.06]"
+      className="relative group overflow-hidden rounded-xl border border-border/45 bg-white shadow-[0_6px_18px_-16px_rgba(15,23,42,0.12)]"
     >
       <div className="flex">
         {/* Image – flush left */}
@@ -144,15 +144,15 @@ export function EcommerceProductFeedCard({
 
         {/* Text */}
         <div className="flex min-w-0 flex-1 flex-col justify-center px-3 py-3">
-          <p className="line-clamp-2 text-[13px] font-medium leading-snug text-white/90">
+          <p className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground">
             {product.name}
           </p>
           <div className="mt-1.5 flex items-baseline gap-1.5">
-            <span className="text-[13px] font-bold tracking-tight text-white/95">
+            <span className="text-[13px] font-bold tracking-tight text-foreground/90">
               R$ {product.price.toFixed(2).replace(".", ",")}
             </span>
             {product.originalPrice && (
-              <span className="text-[11px] text-white/35 line-through">
+              <span className="text-[11px] text-muted-foreground/80 line-through">
                 R$ {product.originalPrice.toFixed(2).replace(".", ",")}
               </span>
             )}
@@ -164,7 +164,7 @@ export function EcommerceProductFeedCard({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onToggleFavorite(product.id) }}
-            className="rounded-full p-0.5 text-white/30 transition-colors hover:text-white/70"
+            className="rounded-full p-0.5 text-muted-foreground/45 transition-colors hover:text-muted-foreground/75"
             aria-label={`Favoritar ${product.name}`}
           >
             <Heart className={`h-4 w-4 ${favorites.has(product.id) ? "fill-red-500 text-red-500" : ""}`} />
@@ -172,10 +172,10 @@ export function EcommerceProductFeedCard({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onAddToCart(product) }}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.06] transition-colors hover:bg-white/[0.12]"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border/45 bg-secondary transition-colors hover:bg-secondary/80"
             aria-label={`Adicionar ${product.name} ao carrinho`}
           >
-            <Plus className="h-3.5 w-3.5 text-white/60" />
+            <Plus className="h-3.5 w-3.5 text-foreground/70" />
           </button>
         </div>
       </div>

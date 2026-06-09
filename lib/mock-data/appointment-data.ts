@@ -7,7 +7,7 @@ export const barberShopConfig: BusinessConfig = {
   logo: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=100&h=100&fit=crop",
   coverImage: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1200&h=600&fit=crop",
   description: "Barbearia tradicional com atendimento premium",
-  primaryColor: "#8B4513",
+  primaryColor: "#1C1917",
   whatsapp: "5511999999999",
   instagram: "@barbanegra",
   address: "Rua Augusta, 1500 - Sao Paulo, SP",

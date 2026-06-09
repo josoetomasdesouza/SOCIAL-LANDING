@@ -19,6 +19,7 @@ import {
 import { useConversationContextMorph } from "./conversation-context-morph"
 import { useComposerScrollPaddingBottom, COMPOSER_SCROLL_CLEARANCE_CSS_VAR } from "@/lib/ui/composer-scroll-clearance"
 import { shouldRenderThreadInFlow } from "@/lib/ui/composer-layout"
+import { isSurfaceCementActive } from "@/lib/ui/surface-cement"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
@@ -739,11 +740,7 @@ function BusinessFooter({ config, links }: { config: BusinessConfig; links?: { l
         {links && links.length > 0 && (
           <div className="flex flex-wrap justify-center gap-4 mb-6">
             {links.map((link) => (
-              <a
-                key={`${link.label}-${link.href}`}
-                href={link.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <a key={link.href} href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 {link.label}
               </a>
             ))}
@@ -819,6 +816,11 @@ export function BusinessSocialLanding({
   const isAppointmentEngagedContext =
     config.model === "appointment" && isLayoutV2 && composerThreadEngagedProgress > 0
   const [threadPortalTarget, setThreadPortalTarget] = useState<HTMLDivElement | null>(null)
+  const [surfaceCementActive, setSurfaceCementActive] = useState(false)
+  useEffect(() => {
+    setSurfaceCementActive(isSurfaceCementActive())
+  }, [])
+
   const shouldTrackComposerFootprint =
     composerMode !== "hidden" && !(drawerOpen && !feedDrawerOpen)
   const composerModeBeforeFeedDrawerRef = useRef<ConversationComposerMode>("default")
@@ -909,9 +911,13 @@ export function BusinessSocialLanding({
   
   return (
     <div
-      className="min-h-screen bg-background"
+      className={cn(
+        "min-h-screen",
+        surfaceCementActive ? "surface-cement-canvas" : "bg-background"
+      )}
       style={{ paddingBottom: pageScrollPaddingBottom }}
       data-composer-layout-version={composerLayoutVersion}
+      data-surface-cement={surfaceCementActive ? "true" : undefined}
     >
       {/* Main Content - Centralizado estilo rede social */}
       <main
@@ -931,7 +937,8 @@ export function BusinessSocialLanding({
           onStoryClick={handleStoryClick}
           className={cn(
             storiesClassName,
-            isAppointmentEngagedContext && "border-border/30 py-3 opacity-40 saturate-[0.72]"
+            isAppointmentEngagedContext && "border-border/30 py-3 opacity-40 saturate-[0.72]",
+            surfaceCementActive && "surface-cement-feed-transparent border-border/40"
           )}
         />
 
