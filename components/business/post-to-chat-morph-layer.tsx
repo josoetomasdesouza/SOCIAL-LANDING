@@ -114,6 +114,15 @@ export function PostToChatMorphLayer({
       rafId = window.requestAnimationFrame(step)
     }
 
+    let scrollGraceTimeout: number | null = null
+
+    const attachScrollListeners = () => {
+      if (listenersAttached) return
+      window.addEventListener("scroll", cancelAnimation, { passive: true, capture: true })
+      window.addEventListener("resize", cancelAnimation, { passive: true })
+      listenersAttached = true
+    }
+
     const cancelAnimation = () => {
       window.cancelAnimationFrame(rafId)
       detachListeners()
@@ -122,12 +131,13 @@ export function PostToChatMorphLayer({
 
     applyFrame(0)
     rafId = window.requestAnimationFrame(step)
-    window.addEventListener("scroll", cancelAnimation, { passive: true, capture: true })
-    window.addEventListener("resize", cancelAnimation, { passive: true })
-    listenersAttached = true
+    scrollGraceTimeout = window.setTimeout(attachScrollListeners, 120)
 
     return () => {
       window.cancelAnimationFrame(rafId)
+      if (scrollGraceTimeout !== null) {
+        window.clearTimeout(scrollGraceTimeout)
+      }
       detachListeners()
       // Do NOT call finish() here — Strict Mode cleanup fires onComplete()
       // before any visible frame. Real completions happen in:

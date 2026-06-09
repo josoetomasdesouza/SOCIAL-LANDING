@@ -49,6 +49,47 @@ function getComposerMaxWidth(viewportWidth: number) {
   return 512
 }
 
+function getComposerContextRailChipRect(contextId: string): PostToChatMorphRect | null {
+  const escapedContextId = getEscapedSelectorValue(contextId)
+  const railElement = document.querySelector<HTMLElement>('[data-conversation-context-rail="true"]')
+
+  if (!railElement) {
+    return null
+  }
+
+  const chipElement =
+    railElement.querySelector<HTMLElement>(`[data-conversation-context-chip="${escapedContextId}"]`) ??
+    railElement.querySelector<HTMLElement>(`[data-conversation-context-chip-target="${escapedContextId}"]`)
+
+  if (chipElement) {
+    const chipRect = chipElement.getBoundingClientRect()
+
+    if (isVisibleRect(chipRect)) {
+      return {
+        left: chipRect.left,
+        top: chipRect.top,
+        width: chipRect.width,
+        height: chipRect.height,
+        borderRadius: 999,
+      }
+    }
+  }
+
+  const railRect = railElement.getBoundingClientRect()
+
+  if (!isVisibleRect(railRect)) {
+    return null
+  }
+
+  return {
+    left: railRect.left,
+    top: railRect.top,
+    width: Math.max(MORPH_TARGET_MIN_SIZE, Math.min(MORPH_TARGET_WIDTH, railRect.width)),
+    height: Math.max(MORPH_TARGET_MIN_SIZE, MORPH_TARGET_HEIGHT),
+    borderRadius: 999,
+  }
+}
+
 function getComposerFallbackRect(): PostToChatMorphRect {
   const composerElement = document.querySelector<HTMLElement>('[data-conversation-composer="true"]')
 
@@ -56,10 +97,15 @@ function getComposerFallbackRect(): PostToChatMorphRect {
     const composerRect = composerElement.getBoundingClientRect()
 
     if (isVisibleRect(composerRect)) {
+      const chipWidth = Math.max(
+        MORPH_TARGET_MIN_SIZE,
+        Math.min(MORPH_TARGET_WIDTH, composerRect.width - 32)
+      )
+
       return {
         left: composerRect.left + 16,
         top: composerRect.top + 12,
-        width: Math.max(MORPH_TARGET_MIN_SIZE, Math.min(MORPH_TARGET_WIDTH, composerRect.width - 32)),
+        width: chipWidth,
         height: Math.max(MORPH_TARGET_MIN_SIZE, MORPH_TARGET_HEIGHT),
         borderRadius: 999,
       }
@@ -188,7 +234,11 @@ export function useConversationContextMorph(deps: MorphSelectionDeps, vertical: 
   const [queuedMorph, setQueuedMorph] = useState<QueuedPostMorph | null>(null)
 
   const resolveMorphTargetRect = useCallback((contextId: string) => {
-    return getComposerChipRect(contextId) ?? getComposerFallbackRect()
+    return (
+      getComposerChipRect(contextId) ??
+      getComposerContextRailChipRect(contextId) ??
+      getComposerFallbackRect()
+    )
   }, [])
 
   useLayoutEffect(() => {

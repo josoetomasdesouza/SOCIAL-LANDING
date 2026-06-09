@@ -75,7 +75,18 @@ function shouldBypassScrollTopCheck(target: EventTarget | null, scrollEl: HTMLDi
   return !scrollEl.contains(target)
 }
 
-export function useDrawerSheetDrag(onClose: () => void, active = true) {
+export function useDrawerSheetDrag(
+  onClose: () => void,
+  active = true,
+  options?: {
+    resolveCloseSettleTargetRaw?: (sheetHeightPx: number) => number
+    /** Collapse in place (height) instead of translate dismiss — composer dock. */
+    parkClose?: boolean
+    getDockCompactHeightPx?: () => number
+    /** Pull progress (0–1) past which release parks on the dock. */
+    dockParkProximityRatio?: number
+  }
+) {
   const sheetRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const dragStateRef = useRef<DragState | null>(null)
@@ -93,6 +104,17 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
 
   onCloseRef.current = onClose
   activeRef.current = active
+  const resolveCloseSettleTargetRawRef = useRef(
+    options?.resolveCloseSettleTargetRaw ?? resolveDrawerCloseSettleTargetRaw
+  )
+  resolveCloseSettleTargetRawRef.current =
+    options?.resolveCloseSettleTargetRaw ?? resolveDrawerCloseSettleTargetRaw
+  const parkCloseRef = useRef(options?.parkClose ?? false)
+  const getDockCompactHeightPxRef = useRef(options?.getDockCompactHeightPx)
+  const dockParkProximityRatioRef = useRef(options?.dockParkProximityRatio ?? 0.42)
+  parkCloseRef.current = options?.parkClose ?? false
+  getDockCompactHeightPxRef.current = options?.getDockCompactHeightPx
+  dockParkProximityRatioRef.current = options?.dockParkProximityRatio ?? 0.42
 
   const setDragOffset = useCallback((next: number) => {
     rawOffsetRef.current = next
@@ -125,6 +147,15 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
     setIsPulling(false)
   }, [cancelSettleAnimation, setDragOffset])
 
+  const runParkClose = useCallback(() => {
+    cancelSettleAnimation()
+    dragStateRef.current = null
+    sheetGestureRef.current = null
+    setIsPulling(false)
+    setDragOffset(0)
+    onCloseRef.current()
+  }, [cancelSettleAnimation, setDragOffset])
+
   const resolveCloseThreshold = useCallback(() => {
     const height = sheetRef.current?.offsetHeight ?? 400
     return getCloseThresholdPx(height)
@@ -153,7 +184,8 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
       setIsSettling(true)
 
       const sheetHeight = sheetRef.current?.offsetHeight ?? 400
-      const targetOffset = mode === "close" ? resolveDrawerCloseSettleTargetRaw(sheetHeight) : 0
+      const targetOffset =
+        mode === "close" ? resolveCloseSettleTargetRawRef.current(sheetHeight) : 0
       const duration = mode === "close" ? DRAWER_SETTLE_CLOSE_MS : DRAWER_SETTLE_OPEN_MS
       const startOffset = fromOffset
       const startTime = performance.now()
@@ -202,19 +234,34 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
 
       const deltaY = clientY - dragState.startY
       const currentOffset = rawOffsetRef.current
-      const shouldClose = shouldCloseDrawerFromRelease({
-        deltaY,
-        velocityY: velocitySampleRef.current.vy,
-        closeThresholdPx: resolveCloseThreshold(),
-        pulling: dragState.pulling,
-      })
+      const pulledPx = Math.max(currentOffset, deltaY)
+      const sheetHeight = sheetRef.current?.offsetHeight ?? 400
+      const compactPx = getDockCompactHeightPxRef.current?.() ?? 0
+      const dismissRangePx = Math.max(0, sheetHeight - compactPx)
+      const proximityClose =
+        parkCloseRef.current &&
+        dismissRangePx > 0 &&
+        pulledPx >= dismissRangePx * dockParkProximityRatioRef.current
+      const shouldClose =
+        proximityClose ||
+        shouldCloseDrawerFromRelease({
+          deltaY,
+          velocityY: velocitySampleRef.current.vy,
+          closeThresholdPx: resolveCloseThreshold(),
+          pulling: dragState.pulling,
+        })
 
       dragStateRef.current = null
       sheetGestureRef.current = null
       setIsPulling(false)
 
       if (shouldClose) {
-        runSettleAnimation("close", Math.max(currentOffset, deltaY))
+        if (parkCloseRef.current) {
+          runParkClose()
+          return
+        }
+
+        runSettleAnimation("close", pulledPx)
         return
       }
 
@@ -225,7 +272,7 @@ export function useDrawerSheetDrag(onClose: () => void, active = true) {
 
       resetDrag()
     },
-    [isSettling, recordVelocity, resetDrag, resolveCloseThreshold, runSettleAnimation]
+    [isSettling, recordVelocity, resetDrag, resolveCloseThreshold, runParkClose, runSettleAnimation]
   )
 
   const applyHandleDragDelta = useCallback(

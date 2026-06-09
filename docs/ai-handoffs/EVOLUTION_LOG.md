@@ -4,6 +4,37 @@ Este log registra decisoes, recuperacoes, contratos e memorias operacionais do
 projeto. Ele deve ser atualizado sempre que uma mudanca alterar arquitetura,
 linguagem visual, protocolo ou risco sistemico.
 
+## 2026-06-08 - Composer v1 dock drawer shell (default /demo)
+
+### Contexto
+
+O layout v1 do composer em `/demo` precisava de um stack fixo estilo WhatsApp:
+drawer de conversa acima da cápsula, fill até o fundo da tela, cápsula compacta
+desacoplada. Morph de contexto (long-press) quebrava com drawer sumindo e chip
+fora da pill.
+
+### Mudanca
+
+- Shell dock (`fill` + drawer peek 10px) **sempre visível** no v1, mesmo idle.
+- Drawer ancorado no fundo (`bottom` = cápsula + safe area); expande só com conversa engaged.
+- Cápsula locked (só form) quando engaged sem pending; rail de contexto **dentro** da pill.
+- Morph: pending preservado no dock colapsado; alvo via rail/chip; grace 120ms antes de cancel por scroll.
+- Helpers em `drawer-layout`, `use-drawer-sheet-drag` (park close), `composer-layout`.
+
+### Impacto visual
+
+- Idle: peek + fill + cápsula — nunca cápsula sozinha.
+- Engaged colapsado: mesmo stack; morph entra na pill escura.
+- Sem sombra no fill/drawer (borda superior mantida).
+
+### Impacto estrutural
+
+Arquivos principais: `conversational-ai.tsx`, `conversation-context-morph.tsx`,
+`post-to-chat-morph-layer.tsx`, `drawer-layout.ts`, `use-drawer-sheet-drag.ts`,
+`composer-layout.ts`, `business-social-landing.tsx`.
+
+Tier 1 adjacente: morph grace period (120ms) — diff mínimo, sem alterar easing/duração.
+
 ## 2026-05-20 - Criacao dos documentos mestres de memoria operacional
 
 ### Contexto

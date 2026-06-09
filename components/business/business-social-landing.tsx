@@ -19,7 +19,6 @@ import {
 import { useConversationContextMorph } from "./conversation-context-morph"
 import { useComposerScrollPaddingBottom, COMPOSER_SCROLL_CLEARANCE_CSS_VAR } from "@/lib/ui/composer-scroll-clearance"
 import { shouldRenderThreadInFlow } from "@/lib/ui/composer-layout"
-import { isSurfaceCementActive, resolveSurfaceCementDevIntensity } from "@/lib/ui/surface-cement"
 import type {
   ConversationResponseResolver,
   ConversationVisualBlockRenderer,
@@ -816,14 +815,6 @@ export function BusinessSocialLanding({
   const isAppointmentEngagedContext =
     config.model === "appointment" && isLayoutV2 && composerThreadEngagedProgress > 0
   const [threadPortalTarget, setThreadPortalTarget] = useState<HTMLDivElement | null>(null)
-  const [surfaceCementActive, setSurfaceCementActive] = useState(false)
-  const [surfaceCementDevIntensity, setSurfaceCementDevIntensity] = useState<string | null>(null)
-  useEffect(() => {
-    const active = isSurfaceCementActive()
-    setSurfaceCementActive(active)
-    setSurfaceCementDevIntensity(active ? resolveSurfaceCementDevIntensity() : null)
-  }, [])
-
   const shouldTrackComposerFootprint =
     composerMode !== "hidden" && !(drawerOpen && !feedDrawerOpen)
   const composerModeBeforeFeedDrawerRef = useRef<ConversationComposerMode>("default")
@@ -914,14 +905,9 @@ export function BusinessSocialLanding({
   
   return (
     <div
-      className={cn(
-        "min-h-screen",
-        surfaceCementActive ? "surface-cement-canvas" : "bg-background"
-      )}
+      className="min-h-screen bg-background"
       style={{ paddingBottom: pageScrollPaddingBottom }}
       data-composer-layout-version={composerLayoutVersion}
-      data-surface-cement={surfaceCementActive ? "true" : undefined}
-      data-surface-cement-intensity={surfaceCementDevIntensity ?? undefined}
     >
       {/* Main Content - Centralizado estilo rede social */}
       <main
@@ -941,8 +927,7 @@ export function BusinessSocialLanding({
           onStoryClick={handleStoryClick}
           className={cn(
             storiesClassName,
-            isAppointmentEngagedContext && "border-border/30 py-3 opacity-40 saturate-[0.72]",
-            surfaceCementActive && "surface-cement-feed-transparent border-border/40"
+            isAppointmentEngagedContext && "border-border/30 py-3 opacity-40 saturate-[0.72]"
           )}
         />
 
