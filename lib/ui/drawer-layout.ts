@@ -109,39 +109,36 @@ export function resolveDrawerSheetStyle(
   }
 }
 
-function readVisualViewportMetrics() {
-  if (typeof window === "undefined") {
-    return null
-  }
-
-  const visualViewport = window.visualViewport
-  if (!visualViewport) {
-    return {
-      bottomPx: window.innerHeight,
-      insetPx: 0,
-    }
-  }
-
-  const bottomPx = visualViewport.offsetTop + visualViewport.height
-
-  return {
-    bottomPx,
-    insetPx: Math.max(0, Math.round(window.innerHeight - bottomPx)),
-  }
-}
-
 /** Layout viewport bottom minus visual viewport bottom (keyboard, Safari chrome). */
 export function resolveVisualViewportBottomInsetPx() {
-  return readVisualViewportMetrics()?.insetPx ?? 0
-}
-
-/** Visual viewport bottom edge in layout coordinates. */
-export function resolveVisualViewportBottomPx() {
   if (typeof window === "undefined") {
     return 0
   }
 
-  return readVisualViewportMetrics()?.bottomPx ?? window.innerHeight
+  const visualViewport = window.visualViewport
+  if (!visualViewport) {
+    return 0
+  }
+
+  return Math.max(
+    0,
+    Math.round(window.innerHeight - visualViewport.height - visualViewport.offsetTop)
+  )
+}
+
+/** Gap between layout viewport bottom and visual viewport bottom (iOS accessory bar). */
+export function resolveLayoutToVisualViewportGapPx() {
+  if (typeof window === "undefined") {
+    return 0
+  }
+
+  const visualViewport = window.visualViewport
+  if (!visualViewport) {
+    return 0
+  }
+
+  const visualBottomPx = visualViewport.offsetTop + visualViewport.height
+  return Math.max(0, Math.round(window.innerHeight - visualBottomPx))
 }
 
 export function getDrawerMaxUpDragPx(viewportHeight?: number) {
