@@ -20,7 +20,12 @@ import {
   setComposerScrollClearanceCssVar,
 } from "@/lib/ui/composer-scroll-clearance"
 import { DrawerDragZone, DrawerScrollBody } from "@/components/ui/drawer-drag-chrome"
-import { getDrawerSheetTransform, resolveComposerDockDrawerCloseTargetRaw, DRAWER_DOCK_PARK_SETTLE_MS } from "@/lib/ui/drawer-layout"
+import {
+  getDrawerSheetTransform,
+  resolveComposerDockDrawerCloseTargetRaw,
+  resolveVisualViewportBottomInsetPx,
+  DRAWER_DOCK_PARK_SETTLE_MS,
+} from "@/lib/ui/drawer-layout"
 import { useDrawerSheetDrag } from "@/lib/ui/use-drawer-sheet-drag"
 import { ComposerFeedThreadJunction } from "./composer-feed-thread-junction"
 import {
@@ -57,14 +62,9 @@ const COMPACT_BODY_MAX_PX = 196
 const DOCK_DRAWER_MIN_PX = 148
 const DOCK_DRAWER_MAX_VIEWPORT_RATIO = 0.9
 const DOCK_PEEK_PX = 10
-/** Bottom offset for dock drawer — capsule row + safe area; drawer grows upward from here. */
-const COMPOSER_DOCK_DRAWER_BOTTOM =
-  "calc(var(--composer-capsule-height, 44px) + max(0.75rem, env(safe-area-inset-bottom, 0px)))" as const
-/** Fill behind capsule — up to compact drawer top when collapsed. */
-const COMPOSER_SHEET_FILL_TOP_COMPACT =
-  `calc(100% - var(--composer-capsule-height, 44px) - max(0.75rem, env(safe-area-inset-bottom, 0px)) - ${DOCK_PEEK_PX}px)` as const
-const COMPOSER_SHEET_FILL_TOP =
-  "calc(100% - var(--composer-capsule-height, 44px) - max(0.75rem, env(safe-area-inset-bottom, 0px)))" as const
+/** Inset above this ≈ software keyboard — ignores Safari chrome-only shifts. */
+const DOCK_KEYBOARD_OPEN_INSET_PX = 80
+/** Dock safe-bottom + capsule height drive drawer/fill offsets (see dockCapsuleSafeBottomCss). */
 /** Inset for h-7 controls in the dock capsule row — (44px row − 28px control) / 2, matches py-2. */
 const COMPOSER_CAPSULE_CONTROL_INSET_PX = 8
 const COMPOSER_DOCK_DRAWER_TEXTURE_STYLE = {
@@ -262,6 +262,7 @@ export function ConversationalAI({
   const [isConversationSessionActive, setIsConversationSessionActive] = useState(false)
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
   const [isDockDrawerParking, setIsDockDrawerParking] = useState(false)
+  const [dockViewportBottomInsetPx, setDockViewportBottomInsetPx] = useState(0)
   const dockDrawerParkingTimeoutRef = useRef<number | null>(null)
   const [isCompactResumePreview, setIsCompactResumePreview] = useState(false)
   const [resumeSessionStartIndex, setResumeSessionStartIndex] = useState<number | null>(null)
@@ -367,6 +368,16 @@ export function ConversationalAI({
   const showDockCapsuleContextRail = isDockDrawerV1 && contextRowItems.length > 0
   const isComposerCapsuleLocked =
     isDockDrawerV1 && hasEngagedConversation && contextRowItems.length === 0
+  const isDockKeyboardOpen =
+    isDockDrawerV1 && dockViewportBottomInsetPx >= DOCK_KEYBOARD_OPEN_INSET_PX
+  const dockCapsuleSafeBottomCss = isDockKeyboardOpen
+    ? "0.75rem"
+    : "max(0.75rem, env(safe-area-inset-bottom, 0px))"
+  const dockDrawerBottomOffset =
+    `calc(var(--composer-capsule-height, 44px) + ${dockCapsuleSafeBottomCss})` as const
+  const dockSheetFillTop = isDockDrawerCollapsedToDock
+    ? (`calc(100% - var(--composer-capsule-height, 44px) - ${dockCapsuleSafeBottomCss} - ${DOCK_PEEK_PX}px)` as const)
+    : (`calc(100% - var(--composer-capsule-height, 44px) - ${dockCapsuleSafeBottomCss})` as const)
   const {
     sheetRef: setDockSheetRef,
     setScrollRef: setDockScrollRef,
@@ -828,6 +839,32 @@ export function ConversationalAI({
     measureSheetLayout()
   }, [className, measureSheetLayout])
 
+  useLayoutEffect(() => {
+    if (typeof window === "undefined" || !isDockDrawerV1) {
+      setDockViewportBottomInsetPx(0)
+      return
+    }
+
+    const syncDockViewportBottomInset = () => {
+      const nextInsetPx = resolveVisualViewportBottomInsetPx()
+      setDockViewportBottomInsetPx((previousInsetPx) =>
+        previousInsetPx === nextInsetPx ? previousInsetPx : nextInsetPx
+      )
+    }
+
+    syncDockViewportBottomInset()
+
+    window.visualViewport?.addEventListener("resize", syncDockViewportBottomInset)
+    window.visualViewport?.addEventListener("scroll", syncDockViewportBottomInset)
+    window.addEventListener("resize", syncDockViewportBottomInset)
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", syncDockViewportBottomInset)
+      window.visualViewport?.removeEventListener("scroll", syncDockViewportBottomInset)
+      window.removeEventListener("resize", syncDockViewportBottomInset)
+    }
+  }, [isDockDrawerV1])
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return
@@ -837,11 +874,9 @@ export function ConversationalAI({
     handleResize()
 
     window.addEventListener("resize", handleResize)
-    window.visualViewport?.addEventListener("resize", handleResize)
 
     return () => {
       window.removeEventListener("resize", handleResize)
-      window.visualViewport?.removeEventListener("resize", handleResize)
     }
   }, [measureSheetLayout])
 
@@ -1056,6 +1091,7 @@ export function ConversationalAI({
     publishComposerScrollMetrics,
     resolvedComposerHeight,
     resolvedDockDrawerHeight,
+    dockViewportBottomInsetPx,
     className,
     contextItems.length,
     hiddenContextIds.length,
@@ -1065,6 +1101,27 @@ export function ConversationalAI({
     trackCompactFootprint,
     isStickyShellCompactOnly,
     shouldPortalThread,
+  ])
+
+  useLayoutEffect(() => {
+    if (!isDockDrawerV1) {
+      return
+    }
+
+    measureSheetLayout()
+    publishComposerScrollMetrics()
+
+    const frame = window.requestAnimationFrame(() => {
+      measureSheetLayout()
+      publishComposerScrollMetrics()
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [
+    dockViewportBottomInsetPx,
+    isDockDrawerV1,
+    measureSheetLayout,
+    publishComposerScrollMetrics,
   ])
 
   useEffect(() => {
@@ -1839,14 +1896,17 @@ export function ConversationalAI({
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
           background: composerPageMaskBackground,
+          ...(isDockDrawerV1 ? { bottom: dockViewportBottomInsetPx } : undefined),
         }}
       />
       <div
+        data-composer-keyboard-open={isDockKeyboardOpen ? "true" : undefined}
         className={cn(
           "pointer-events-none fixed inset-x-0 bottom-0 z-30",
           !isDockDrawerV1 && "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
           className
         )}
+        style={isDockDrawerV1 ? { bottom: dockViewportBottomInsetPx } : undefined}
       >
         <div
           ref={composerShellRef}
@@ -1863,7 +1923,7 @@ export function ConversationalAI({
               data-composer-sheet-fill="true"
               className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
               style={{
-                top: isDockDrawerCollapsedToDock ? COMPOSER_SHEET_FILL_TOP_COMPACT : COMPOSER_SHEET_FILL_TOP,
+                top: dockSheetFillTop,
                 ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
               }}
             />
@@ -1881,7 +1941,7 @@ export function ConversationalAI({
                 !isDockDragging && !isDockDrawerParking && "transition-none"
               )}
               style={{
-                bottom: COMPOSER_DOCK_DRAWER_BOTTOM,
+                bottom: dockDrawerBottomOffset,
                 ...(isDockDrawerCollapsedToDock
                   ? { height: `${DOCK_PEEK_PX}px`, minHeight: `${DOCK_PEEK_PX}px` }
                   : resolvedDockDrawerHeight > 0
@@ -1955,7 +2015,9 @@ export function ConversationalAI({
             className={cn(
               "relative z-[2] shrink-0",
               isDockDrawerV1
-                ? "px-2.5 sm:px-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+                ? isDockKeyboardOpen
+                  ? "px-2.5 pb-3 sm:px-3.5"
+                  : "px-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-3.5"
                 : "w-full"
             )}
           >
