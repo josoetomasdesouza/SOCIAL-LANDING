@@ -145,7 +145,8 @@
  * Composer v1 — dock drawer + sheet fill use cement/plaster texture (compact + expanded).
  */
 [data-composer-dock-drawer="true"],
-[data-composer-sheet-fill="true"] {
+[data-composer-sheet-fill="true"],
+[data-composer-keyboard-bridge="true"] {
   background-color: var(--composer-dock-drawer-base) !important;
   background-image: var(--composer-dock-drawer-texture) !important;
   background-position: center top !important;
@@ -299,7 +300,8 @@
 
 /* Composer v1 dock drawer — cement texture (overrides bg-background bleed below) */
 .surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-dock-drawer="true"],
-.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-sheet-fill="true"] {
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-sheet-fill="true"],
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-keyboard-bridge="true"] {
   background-color: var(--composer-dock-drawer-base) !important;
   background-image: var(--composer-dock-drawer-texture) !important;
   background-size: cover !important;
@@ -340,7 +342,7 @@
 }
 
 /* Item surfaces inside cards (contact rows etc.) */
-.surface-cement-canvas[data-appointment-surface-cement="true"] main [class*="bg-background"]:not(section.border-y):not([data-composer-dock-drawer="true"]):not([data-composer-sheet-fill="true"]) {
+.surface-cement-canvas[data-appointment-surface-cement="true"] main [class*="bg-background"]:not(section.border-y):not([data-composer-dock-drawer="true"]):not([data-composer-sheet-fill="true"]):not([data-composer-keyboard-bridge="true"]) {
   background-color: color-mix(in srgb, var(--surface-cement-card-surface) 94%, var(--border)) !important;
   background-image: none !important;
 }
