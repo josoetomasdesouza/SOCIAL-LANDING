@@ -126,6 +126,21 @@ export function resolveVisualViewportBottomInsetPx() {
   )
 }
 
+/** Gap between layout viewport bottom and visual viewport bottom (iOS accessory bar). */
+export function resolveLayoutToVisualViewportGapPx() {
+  if (typeof window === "undefined") {
+    return 0
+  }
+
+  const visualViewport = window.visualViewport
+  if (!visualViewport) {
+    return 0
+  }
+
+  const visualBottomPx = visualViewport.offsetTop + visualViewport.height
+  return Math.max(0, Math.round(window.innerHeight - visualBottomPx))
+}
+
 export function getDrawerMaxUpDragPx(viewportHeight?: number) {
   if (viewportHeight != null) {
     return Math.round(viewportHeight * 0.05)
