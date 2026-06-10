@@ -109,6 +109,23 @@ export function resolveDrawerSheetStyle(
   }
 }
 
+/** Layout viewport bottom minus visual viewport bottom (keyboard, Safari chrome). */
+export function resolveVisualViewportBottomInsetPx() {
+  if (typeof window === "undefined") {
+    return 0
+  }
+
+  const visualViewport = window.visualViewport
+  if (!visualViewport) {
+    return 0
+  }
+
+  return Math.max(
+    0,
+    Math.round(window.innerHeight - visualViewport.height - visualViewport.offsetTop)
+  )
+}
+
 export function getDrawerMaxUpDragPx(viewportHeight?: number) {
   if (viewportHeight != null) {
     return Math.round(viewportHeight * 0.05)
