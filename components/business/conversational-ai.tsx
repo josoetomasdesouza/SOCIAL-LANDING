@@ -376,12 +376,7 @@ export function ConversationalAI({
   const dockCapsuleSafeBottomCss = isDockKeyboardOpen
     ? "0.75rem"
     : "max(0.75rem, env(safe-area-inset-bottom, 0px))"
-  /** Capsule tracks keyboard top; drawer + fill stay anchored to layout bottom (screen zero). */
-  const dockDrawerBottomOffset =
-    `calc(${dockKeyboardLiftPx}px + var(--composer-capsule-height, 44px) + ${dockCapsuleSafeBottomCss})` as const
-  const dockSheetFillTop = isDockDrawerCollapsedToDock
-    ? (`calc(100% - var(--composer-capsule-height, 44px) - ${dockCapsuleSafeBottomCss} - ${DOCK_PEEK_PX}px)` as const)
-    : (`calc(100% - var(--composer-capsule-height, 44px) - ${dockCapsuleSafeBottomCss})` as const)
+  /** Capsule row + keyboard tail reserved inside drawer wrapper (screen-bottom anchored). */
   const {
     sheetRef: setDockSheetRef,
     setScrollRef: setDockScrollRef,
@@ -976,6 +971,13 @@ export function ConversationalAI({
       ? dockDrawerMetrics.compact || DOCK_PEEK_PX
       : dockDrawerMetrics.auto
     : 0
+  const dockDrawerPanelHeightPx = isDockDrawerCollapsedToDock
+    ? DOCK_PEEK_PX
+    : Math.max(0, resolvedDockDrawerHeight)
+  const dockDrawerWrapperHeightCss =
+    `calc(${dockDrawerPanelHeightPx}px + ${dockKeyboardLiftPx}px + var(--composer-capsule-height, 44px) + ${dockCapsuleSafeBottomCss})` as const
+  const dockDrawerWrapperMaxHeightCss =
+    `calc(${(dockDrawerMetrics.expanded || DOCK_DRAWER_MIN_PX)}px + ${dockKeyboardLiftPx}px + var(--composer-capsule-height, 44px) + ${dockCapsuleSafeBottomCss})` as const
   const forceCompactShell =
     isStickyShellCompactOnly || !shellShouldShowConversationBody || isComposerCapsuleLocked
   const expansionProgress = isStickyShellCompactOnly
@@ -1919,33 +1921,10 @@ export function ConversationalAI({
         >
           {isDockDrawerShellVisible ? (
             <div
-              aria-hidden
-              data-composer-sheet-fill="true"
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
-              style={{
-                top: dockSheetFillTop,
-                ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
-              }}
-            />
-          ) : null}
-
-          {isDockDrawerShellVisible && isDockKeyboardOpen ? (
-            <div
-              aria-hidden
-              data-composer-dock-keyboard-tail="true"
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
-              style={{
-                height: `${dockKeyboardLiftPx}px`,
-                ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
-              }}
-            />
-          ) : null}
-
-          {isDockDrawerShellVisible ? (
-            <div
               ref={assignDockSheetRef}
+              data-composer-dock-drawer-shell="true"
               className={cn(
-                "pointer-events-auto absolute inset-x-0 z-[1]",
+                "pointer-events-auto absolute inset-x-0 bottom-0 z-[1] flex flex-col",
                 isDockDragging && "transition-none",
                 !isDockDragging &&
                   isDockDrawerParking &&
@@ -1953,14 +1932,10 @@ export function ConversationalAI({
                 !isDockDragging && !isDockDrawerParking && "transition-none"
               )}
               style={{
-                bottom: dockDrawerBottomOffset,
-                ...(isDockDrawerCollapsedToDock
-                  ? { height: `${DOCK_PEEK_PX}px`, minHeight: `${DOCK_PEEK_PX}px` }
-                  : resolvedDockDrawerHeight > 0
-                    ? { height: `${resolvedDockDrawerHeight}px` }
-                    : {}),
-                maxHeight: `${dockDrawerMetrics.expanded || DOCK_DRAWER_MIN_PX}px`,
+                height: dockDrawerWrapperHeightCss,
+                maxHeight: dockDrawerWrapperMaxHeightCss,
                 transform: getDrawerSheetTransform(dockDragOffsetPx),
+                ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
               }}
             >
               <div
@@ -1972,8 +1947,12 @@ export function ConversationalAI({
                 data-composer-dock-drawer="true"
                 data-composer-dock-drawer-collapsed={isDockDrawerCollapsedToDock ? "true" : undefined}
                 data-composer-dock-drawer-expanded={isDockDrawerExpanded ? "true" : undefined}
-                className="flex h-full w-full min-h-0 flex-col overflow-hidden rounded-t-[20px] border border-border/45 border-b-0"
-                style={COMPOSER_DOCK_DRAWER_TEXTURE_STYLE}
+                className="relative z-[1] flex w-full shrink-0 min-h-0 flex-col overflow-hidden rounded-t-[20px] border border-border/45 border-b-0 bg-transparent"
+                style={{
+                  height:
+                    dockDrawerPanelHeightPx > 0 ? `${dockDrawerPanelHeightPx}px` : undefined,
+                  minHeight: isDockDrawerCollapsedToDock ? `${DOCK_PEEK_PX}px` : undefined,
+                }}
               >
               {showDockDrawerHandle ? (
                 <div ref={dockHandleRef} className="relative z-[1] shrink-0">
@@ -2020,6 +1999,11 @@ export function ConversationalAI({
                 </DrawerScrollBody>
               ) : null}
               </div>
+              <div
+                aria-hidden
+                data-composer-dock-stack-spacer="true"
+                className="pointer-events-none relative z-0 min-h-0 flex-1"
+              />
             </div>
           ) : null}
 
