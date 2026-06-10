@@ -109,21 +109,39 @@ export function resolveDrawerSheetStyle(
   }
 }
 
-/** Layout viewport bottom minus visual viewport bottom (keyboard, Safari chrome). */
-export function resolveVisualViewportBottomInsetPx() {
+function readVisualViewportMetrics() {
   if (typeof window === "undefined") {
-    return 0
+    return null
   }
 
   const visualViewport = window.visualViewport
   if (!visualViewport) {
+    return {
+      bottomPx: window.innerHeight,
+      insetPx: 0,
+    }
+  }
+
+  const bottomPx = visualViewport.offsetTop + visualViewport.height
+
+  return {
+    bottomPx,
+    insetPx: Math.max(0, Math.round(window.innerHeight - bottomPx)),
+  }
+}
+
+/** Layout viewport bottom minus visual viewport bottom (keyboard, Safari chrome). */
+export function resolveVisualViewportBottomInsetPx() {
+  return readVisualViewportMetrics()?.insetPx ?? 0
+}
+
+/** Visual viewport bottom edge in layout coordinates. */
+export function resolveVisualViewportBottomPx() {
+  if (typeof window === "undefined") {
     return 0
   }
 
-  return Math.max(
-    0,
-    Math.round(window.innerHeight - visualViewport.height - visualViewport.offsetTop)
-  )
+  return readVisualViewportMetrics()?.bottomPx ?? window.innerHeight
 }
 
 export function getDrawerMaxUpDragPx(viewportHeight?: number) {
