@@ -62,8 +62,8 @@ const COMPACT_BODY_MAX_PX = 196
 const DOCK_DRAWER_MIN_PX = 148
 const DOCK_DRAWER_MAX_VIEWPORT_RATIO = 0.9
 const DOCK_PEEK_PX = 10
-/** Inset above this ≈ software keyboard — ignores Safari chrome-only shifts. */
-const DOCK_KEYBOARD_OPEN_INSET_PX = 80
+/** Ignore small visualViewport insets (Safari address bar) — only lift capsule for keyboard-scale gaps. */
+const DOCK_KEYBOARD_OPEN_INSET_THRESHOLD_PX = 80
 /** Dock safe-bottom + capsule height drive drawer/fill offsets (see dockCapsuleSafeBottomCss). */
 /** Inset for h-7 controls in the dock capsule row — (44px row − 28px control) / 2, matches py-2. */
 const COMPOSER_CAPSULE_CONTROL_INSET_PX = 8
@@ -263,11 +263,6 @@ export function ConversationalAI({
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
   const [isDockDrawerParking, setIsDockDrawerParking] = useState(false)
   const [dockViewportBottomInsetPx, setDockViewportBottomInsetPx] = useState(0)
-  const [isComposerInputFocused, setIsComposerInputFocused] = useState(false)
-  const [dockKeyboardBridgeStyle, setDockKeyboardBridgeStyle] = useState<{
-    top: number
-    height: number
-  } | null>(null)
   const dockDrawerParkingTimeoutRef = useRef<number | null>(null)
   const [isCompactResumePreview, setIsCompactResumePreview] = useState(false)
   const [resumeSessionStartIndex, setResumeSessionStartIndex] = useState<number | null>(null)
@@ -373,18 +368,17 @@ export function ConversationalAI({
   const showDockCapsuleContextRail = isDockDrawerV1 && contextRowItems.length > 0
   const isComposerCapsuleLocked =
     isDockDrawerV1 && hasEngagedConversation && contextRowItems.length === 0
-  const isDockKeyboardOpen =
-    isDockDrawerV1 &&
-    (isComposerInputFocused || dockViewportBottomInsetPx >= DOCK_KEYBOARD_OPEN_INSET_PX)
-  const dockShellBottomPx =
-    isDockKeyboardOpen && dockViewportBottomInsetPx >= DOCK_KEYBOARD_OPEN_INSET_PX
+  const dockKeyboardLiftPx =
+    isDockDrawerV1 && dockViewportBottomInsetPx >= DOCK_KEYBOARD_OPEN_INSET_THRESHOLD_PX
       ? dockViewportBottomInsetPx
       : 0
+  const isDockKeyboardOpen = dockKeyboardLiftPx > 0
   const dockCapsuleSafeBottomCss = isDockKeyboardOpen
     ? "0.75rem"
     : "max(0.75rem, env(safe-area-inset-bottom, 0px))"
+  /** Capsule tracks keyboard top; drawer + fill stay anchored to layout bottom (screen zero). */
   const dockDrawerBottomOffset =
-    `calc(var(--composer-capsule-height, 44px) + ${dockCapsuleSafeBottomCss})` as const
+    `calc(${dockKeyboardLiftPx}px + var(--composer-capsule-height, 44px) + ${dockCapsuleSafeBottomCss})` as const
   const dockSheetFillTop = isDockDrawerCollapsedToDock
     ? (`calc(100% - var(--composer-capsule-height, 44px) - ${dockCapsuleSafeBottomCss} - ${DOCK_PEEK_PX}px)` as const)
     : (`calc(100% - var(--composer-capsule-height, 44px) - ${dockCapsuleSafeBottomCss})` as const)
@@ -849,31 +843,45 @@ export function ConversationalAI({
     measureSheetLayout()
   }, [className, measureSheetLayout])
 
+  const syncDockViewportBottomInset = useCallback(() => {
+    if (!isDockDrawerV1) {
+      setDockViewportBottomInsetPx(0)
+      return
+    }
+
+    setDockViewportBottomInsetPx(resolveVisualViewportBottomInsetPx())
+  }, [isDockDrawerV1])
+
   useLayoutEffect(() => {
     if (typeof window === "undefined" || !isDockDrawerV1) {
       setDockViewportBottomInsetPx(0)
       return
     }
 
-    const syncDockViewportBottomInset = () => {
-      const nextInsetPx = resolveVisualViewportBottomInsetPx()
-      setDockViewportBottomInsetPx((previousInsetPx) =>
-        previousInsetPx === nextInsetPx ? previousInsetPx : nextInsetPx
-      )
+    const handleViewportChange = () => {
+      syncDockViewportBottomInset()
     }
 
-    syncDockViewportBottomInset()
+    handleViewportChange()
 
-    window.visualViewport?.addEventListener("resize", syncDockViewportBottomInset)
-    window.visualViewport?.addEventListener("scroll", syncDockViewportBottomInset)
-    window.addEventListener("resize", syncDockViewportBottomInset)
+    window.visualViewport?.addEventListener("resize", handleViewportChange)
+    window.visualViewport?.addEventListener("scroll", handleViewportChange)
+    window.addEventListener("resize", handleViewportChange)
 
     return () => {
-      window.visualViewport?.removeEventListener("resize", syncDockViewportBottomInset)
-      window.visualViewport?.removeEventListener("scroll", syncDockViewportBottomInset)
-      window.removeEventListener("resize", syncDockViewportBottomInset)
+      window.visualViewport?.removeEventListener("resize", handleViewportChange)
+      window.visualViewport?.removeEventListener("scroll", handleViewportChange)
+      window.removeEventListener("resize", handleViewportChange)
     }
-  }, [isDockDrawerV1])
+  }, [isDockDrawerV1, syncDockViewportBottomInset])
+
+  useLayoutEffect(() => {
+    if (!isDockDrawerV1) {
+      return
+    }
+
+    measureSheetLayout()
+  }, [dockViewportBottomInsetPx, isDockDrawerV1, measureSheetLayout])
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -884,9 +892,11 @@ export function ConversationalAI({
     handleResize()
 
     window.addEventListener("resize", handleResize)
+    window.visualViewport?.addEventListener("resize", handleResize)
 
     return () => {
       window.removeEventListener("resize", handleResize)
+      window.visualViewport?.removeEventListener("resize", handleResize)
     }
   }, [measureSheetLayout])
 
@@ -1059,48 +1069,6 @@ export function ConversationalAI({
     trackCompactFootprint,
   ])
 
-  const measureDockKeyboardBridge = useCallback(() => {
-    if (!isDockDrawerV1 || !isDockKeyboardOpen || typeof window === "undefined") {
-      setDockKeyboardBridgeStyle(null)
-      return
-    }
-
-    const shellElement = composerShellRef.current
-    if (!shellElement) {
-      setDockKeyboardBridgeStyle(null)
-      return
-    }
-
-    const visualViewport = window.visualViewport
-    const visualViewportBottomPx = visualViewport
-      ? visualViewport.offsetTop + visualViewport.height
-      : window.innerHeight
-    const shellBottomPx = shellElement.getBoundingClientRect().bottom
-    const bridgeHeightPx = Math.max(0, Math.round(visualViewportBottomPx - shellBottomPx))
-
-    if (bridgeHeightPx <= 0) {
-      setDockKeyboardBridgeStyle(null)
-      return
-    }
-
-    setDockKeyboardBridgeStyle({
-      top: Math.round(shellBottomPx),
-      height: bridgeHeightPx,
-    })
-  }, [isDockDrawerV1, isDockKeyboardOpen])
-
-  const handleComposerInputFocus = useCallback(() => {
-    setIsComposerInputFocused(true)
-  }, [])
-
-  const handleComposerInputBlur = useCallback(() => {
-    window.setTimeout(() => {
-      if (document.activeElement !== composerInputRef.current) {
-        setIsComposerInputFocused(false)
-      }
-    }, 80)
-  }, [])
-
   useEffect(() => {
     if (trackCompactFootprint) {
       return
@@ -1144,8 +1112,6 @@ export function ConversationalAI({
     resolvedComposerHeight,
     resolvedDockDrawerHeight,
     dockViewportBottomInsetPx,
-    dockShellBottomPx,
-    isComposerInputFocused,
     className,
     contextItems.length,
     hiddenContextIds.length,
@@ -1155,34 +1121,6 @@ export function ConversationalAI({
     trackCompactFootprint,
     isStickyShellCompactOnly,
     shouldPortalThread,
-  ])
-
-  useLayoutEffect(() => {
-    if (!isDockDrawerV1) {
-      setDockKeyboardBridgeStyle(null)
-      return
-    }
-
-    measureSheetLayout()
-    measureDockKeyboardBridge()
-    publishComposerScrollMetrics()
-
-    const frame = window.requestAnimationFrame(() => {
-      measureSheetLayout()
-      measureDockKeyboardBridge()
-      publishComposerScrollMetrics()
-    })
-
-    return () => window.cancelAnimationFrame(frame)
-  }, [
-    dockShellBottomPx,
-    dockViewportBottomInsetPx,
-    isComposerInputFocused,
-    isDockDrawerV1,
-    isDockKeyboardOpen,
-    measureDockKeyboardBridge,
-    measureSheetLayout,
-    publishComposerScrollMetrics,
   ])
 
   useEffect(() => {
@@ -1951,45 +1889,31 @@ export function ConversationalAI({
 
   return (
     <>
-      {isDockDrawerShellVisible && dockKeyboardBridgeStyle ? (
-        <div
-          aria-hidden
-          data-composer-keyboard-bridge="true"
-          className={cn(
-            "pointer-events-none fixed inset-x-0 z-[29]",
-            COMPOSER_FEED_COLUMN_CLASS
-          )}
-          style={{
-            top: dockKeyboardBridgeStyle.top,
-            height: dockKeyboardBridgeStyle.height,
-            ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
-          }}
-        />
-      ) : null}
       <div
         ref={composerMaskRef}
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 bottom-0 top-0 z-[29]"
         style={{
           background: composerPageMaskBackground,
-          ...(isDockDrawerV1 ? { bottom: dockShellBottomPx } : undefined),
         }}
       />
       <div
-        data-composer-keyboard-open={isDockKeyboardOpen ? "true" : undefined}
         className={cn(
           "pointer-events-none fixed inset-x-0 bottom-0 z-30",
           !isDockDrawerV1 && "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
           className
         )}
-        style={isDockDrawerV1 ? { bottom: dockShellBottomPx } : undefined}
       >
         <div
           ref={composerShellRef}
           className={cn(COMPOSER_FEED_COLUMN_CLASS, "relative flex flex-col")}
+          data-composer-dock-keyboard-open={isDockKeyboardOpen ? "true" : undefined}
           style={
             isDockDrawerV1 && resolvedComposerHeight > 0
-              ? ({ ["--composer-capsule-height" as string]: `${resolvedComposerHeight}px` } as const)
+              ? ({
+                  ["--composer-capsule-height" as string]: `${resolvedComposerHeight}px`,
+                  ["--composer-dock-keyboard-lift" as string]: `${dockKeyboardLiftPx}px`,
+                } as const)
               : undefined
           }
         >
@@ -2000,6 +1924,18 @@ export function ConversationalAI({
               className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
               style={{
                 top: dockSheetFillTop,
+                ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
+              }}
+            />
+          ) : null}
+
+          {isDockDrawerShellVisible && isDockKeyboardOpen ? (
+            <div
+              aria-hidden
+              data-composer-dock-keyboard-tail="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-0"
+              style={{
+                height: `${dockKeyboardLiftPx}px`,
                 ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
               }}
             />
@@ -2096,6 +2032,7 @@ export function ConversationalAI({
                   : "px-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-3.5"
                 : "w-full"
             )}
+            style={isDockKeyboardOpen ? { marginBottom: dockKeyboardLiftPx } : undefined}
           >
           <section
             data-conversation-composer="true"
@@ -2273,8 +2210,6 @@ export function ConversationalAI({
                 type="text"
                 value={inputValue}
                 onChange={(event) => setInputValue(event.target.value)}
-                onFocus={handleComposerInputFocus}
-                onBlur={handleComposerInputBlur}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault()
