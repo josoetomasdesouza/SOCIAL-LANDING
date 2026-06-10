@@ -147,7 +147,8 @@
 [data-composer-dock-drawer-shell="true"],
 [data-composer-dock-drawer="true"],
 [data-composer-dock-stack-spacer="true"],
-[data-composer-sheet-fill="true"] {
+[data-composer-sheet-fill="true"],
+[data-composer-keyboard-bridge="true"] {
   background-color: var(--composer-dock-drawer-base) !important;
   background-image: var(--composer-dock-drawer-texture) !important;
   background-position: center top !important;
@@ -303,7 +304,8 @@
 .surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-dock-drawer-shell="true"],
 .surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-dock-drawer="true"],
 .surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-dock-stack-spacer="true"],
-.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-sheet-fill="true"] {
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-sheet-fill="true"],
+.surface-cement-canvas[data-appointment-surface-cement="true"] [data-composer-keyboard-bridge="true"] {
   background-color: var(--composer-dock-drawer-base) !important;
   background-image: var(--composer-dock-drawer-texture) !important;
   background-size: cover !important;
