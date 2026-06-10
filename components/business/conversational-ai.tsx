@@ -64,6 +64,8 @@ const DOCK_DRAWER_MAX_VIEWPORT_RATIO = 0.9
 const DOCK_PEEK_PX = 10
 /** Ignore small visualViewport insets (Safari address bar) — only lift capsule for keyboard-scale gaps. */
 const DOCK_KEYBOARD_OPEN_INSET_THRESHOLD_PX = 80
+/** Fallback lift while visualViewport catches up after input focus (iOS). */
+const DOCK_KEYBOARD_FOCUS_FALLBACK_LIFT_PX = 280
 /** Dock safe-bottom + capsule height drive drawer/fill offsets (see dockCapsuleSafeBottomCss). */
 /** Inset for h-7 controls in the dock capsule row — (44px row − 28px control) / 2, matches py-2. */
 const COMPOSER_CAPSULE_CONTROL_INSET_PX = 8
@@ -263,6 +265,7 @@ export function ConversationalAI({
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
   const [isDockDrawerParking, setIsDockDrawerParking] = useState(false)
   const [dockViewportBottomInsetPx, setDockViewportBottomInsetPx] = useState(0)
+  const [isComposerInputFocused, setIsComposerInputFocused] = useState(false)
   const dockDrawerParkingTimeoutRef = useRef<number | null>(null)
   const [isCompactResumePreview, setIsCompactResumePreview] = useState(false)
   const [resumeSessionStartIndex, setResumeSessionStartIndex] = useState<number | null>(null)
@@ -368,11 +371,15 @@ export function ConversationalAI({
   const showDockCapsuleContextRail = isDockDrawerV1 && contextRowItems.length > 0
   const isComposerCapsuleLocked =
     isDockDrawerV1 && hasEngagedConversation && contextRowItems.length === 0
-  const dockKeyboardLiftPx =
-    isDockDrawerV1 && dockViewportBottomInsetPx >= DOCK_KEYBOARD_OPEN_INSET_THRESHOLD_PX
+  const isDockKeyboardOpen =
+    isDockDrawerV1 &&
+    (dockViewportBottomInsetPx >= DOCK_KEYBOARD_OPEN_INSET_THRESHOLD_PX ||
+      (isComposerInputFocused && dockViewportBottomInsetPx > 0))
+  const dockKeyboardLiftPx = !isDockKeyboardOpen
+    ? 0
+    : dockViewportBottomInsetPx >= DOCK_KEYBOARD_OPEN_INSET_THRESHOLD_PX
       ? dockViewportBottomInsetPx
-      : 0
-  const isDockKeyboardOpen = dockKeyboardLiftPx > 0
+      : Math.max(dockViewportBottomInsetPx, DOCK_KEYBOARD_FOCUS_FALLBACK_LIFT_PX)
   const dockCapsuleSafeBottomCss = isDockKeyboardOpen
     ? "0.75rem"
     : "max(0.75rem, env(safe-area-inset-bottom, 0px))"
@@ -971,13 +978,26 @@ export function ConversationalAI({
       ? dockDrawerMetrics.compact || DOCK_PEEK_PX
       : dockDrawerMetrics.auto
     : 0
+  const dockDrawerExpandedCapPx = dockDrawerMetrics.expanded || DOCK_DRAWER_MIN_PX
   const dockDrawerPanelHeightPx = isDockDrawerCollapsedToDock
     ? DOCK_PEEK_PX
-    : Math.max(0, resolvedDockDrawerHeight)
+    : Math.min(Math.max(0, resolvedDockDrawerHeight), dockDrawerExpandedCapPx)
+  const dockDrawerStackHeightCss =
+    `calc(${dockKeyboardLiftPx}px + var(--composer-capsule-height, 44px) + ${dockCapsuleSafeBottomCss})` as const
   const dockDrawerWrapperHeightCss =
     `calc(${dockDrawerPanelHeightPx}px + ${dockKeyboardLiftPx}px + var(--composer-capsule-height, 44px) + ${dockCapsuleSafeBottomCss})` as const
-  const dockDrawerWrapperMaxHeightCss =
-    `calc(${(dockDrawerMetrics.expanded || DOCK_DRAWER_MIN_PX)}px + ${dockKeyboardLiftPx}px + var(--composer-capsule-height, 44px) + ${dockCapsuleSafeBottomCss})` as const
+  const dockDrawerShellStyle =
+    isDockDrawerV1 && resolvedComposerHeight > 0
+      ? ({
+          ["--composer-capsule-height" as string]: `${resolvedComposerHeight}px`,
+          ["--composer-dock-keyboard-lift" as string]: `${dockKeyboardLiftPx}px`,
+          height: dockDrawerWrapperHeightCss,
+          ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
+        } as const)
+      : ({
+          height: dockDrawerWrapperHeightCss,
+          ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
+        } as const)
   const forceCompactShell =
     isStickyShellCompactOnly || !shellShouldShowConversationBody || isComposerCapsuleLocked
   const expansionProgress = isStickyShellCompactOnly
@@ -1114,6 +1134,7 @@ export function ConversationalAI({
     resolvedComposerHeight,
     resolvedDockDrawerHeight,
     dockViewportBottomInsetPx,
+    isComposerInputFocused,
     className,
     contextItems.length,
     hiddenContextIds.length,
@@ -1906,9 +1927,97 @@ export function ConversationalAI({
           className
         )}
       >
+        {isDockDrawerShellVisible ? (
+          <div
+            ref={assignDockSheetRef}
+            data-composer-dock-drawer-shell="true"
+            data-composer-dock-keyboard-open={isDockKeyboardOpen ? "true" : undefined}
+            className={cn(
+              "pointer-events-auto fixed bottom-0 left-0 right-0 z-[1] mx-auto flex flex-col",
+              COMPOSER_FEED_COLUMN_CLASS,
+              isDockDragging && "transition-none",
+              !isDockDragging &&
+                isDockDrawerParking &&
+                "transition-[height,transform] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+              !isDockDragging && !isDockDrawerParking && "transition-none"
+            )}
+            style={{
+              ...dockDrawerShellStyle,
+              transform: getDrawerSheetTransform(dockDragOffsetPx),
+            }}
+          >
+            <div
+              aria-hidden
+              data-composer-dock-drawer-shadow="true"
+              className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px"
+            />
+            <div
+              data-composer-dock-drawer="true"
+              data-composer-dock-drawer-collapsed={isDockDrawerCollapsedToDock ? "true" : undefined}
+              data-composer-dock-drawer-expanded={isDockDrawerExpanded ? "true" : undefined}
+              className="relative z-[1] flex w-full shrink-0 min-h-0 flex-col overflow-hidden rounded-t-[20px] border border-border/45 border-b-0 bg-transparent"
+              style={{
+                height: `${dockDrawerPanelHeightPx}px`,
+                minHeight: isDockDrawerCollapsedToDock ? `${DOCK_PEEK_PX}px` : undefined,
+              }}
+            >
+            {showDockDrawerHandle ? (
+              <div ref={dockHandleRef} className="relative z-[1] shrink-0">
+                <DrawerDragZone
+                  dragHandleProps={dockDragHandleProps}
+                  className="border-b border-border/40 bg-transparent"
+                >
+                  <span className="sr-only">Arraste para fechar a conversa</span>
+                </DrawerDragZone>
+              </div>
+            ) : null}
+
+            {isDockDrawerExpanded && shellShouldRenderConversationBody ? (
+              <DrawerScrollBody
+                scrollRef={assignDockScrollRef}
+                isPulling={isDockPulling}
+                className={cn(
+                  "relative z-[1] min-h-0 flex-1 px-4 py-3 sm:px-5",
+                  !shellShouldShowConversationBody && "pointer-events-none opacity-0"
+                )}
+              >
+                <div ref={messagesMeasureRef}>
+                  {displayedMessages.map((message, index) =>
+                    renderConversationMessage(message, index, displayedMessages, { dockThread: true })
+                  )}
+                  {isTyping ? renderTypingIndicator(displayedMessages.length > 0, { dockThread: true }) : null}
+                  <div ref={messagesEndRef} />
+                </div>
+                {isResumeAutoGrowActive ? (
+                  <div
+                    ref={autoGrowMeasureRef}
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-4 right-4 top-4 opacity-0"
+                  >
+                    {autoGrowMessages.map((message, index) =>
+                      renderConversationMessage(message, index, autoGrowMessages, {
+                        measurementOnly: true,
+                        dockThread: true,
+                      })
+                    )}
+                    {isTyping ? renderTypingIndicator(autoGrowMessages.length > 0, { dockThread: true }) : null}
+                  </div>
+                ) : null}
+              </DrawerScrollBody>
+            ) : null}
+            </div>
+            <div
+              aria-hidden
+              data-composer-dock-stack-spacer="true"
+              className="pointer-events-none relative z-0 shrink-0"
+              style={{ height: dockDrawerStackHeightCss, ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE }}
+            />
+          </div>
+        ) : null}
+
         <div
           ref={composerShellRef}
-          className={cn(COMPOSER_FEED_COLUMN_CLASS, "relative flex flex-col")}
+          className={cn(COMPOSER_FEED_COLUMN_CLASS, "relative z-[2] mx-auto flex flex-col")}
           data-composer-dock-keyboard-open={isDockKeyboardOpen ? "true" : undefined}
           style={
             isDockDrawerV1 && resolvedComposerHeight > 0
@@ -1919,94 +2028,6 @@ export function ConversationalAI({
               : undefined
           }
         >
-          {isDockDrawerShellVisible ? (
-            <div
-              ref={assignDockSheetRef}
-              data-composer-dock-drawer-shell="true"
-              className={cn(
-                "pointer-events-auto absolute inset-x-0 bottom-0 z-[1] flex flex-col",
-                isDockDragging && "transition-none",
-                !isDockDragging &&
-                  isDockDrawerParking &&
-                  "transition-[height,transform] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-                !isDockDragging && !isDockDrawerParking && "transition-none"
-              )}
-              style={{
-                height: dockDrawerWrapperHeightCss,
-                maxHeight: dockDrawerWrapperMaxHeightCss,
-                transform: getDrawerSheetTransform(dockDragOffsetPx),
-                ...COMPOSER_DOCK_DRAWER_TEXTURE_STYLE,
-              }}
-            >
-              <div
-                aria-hidden
-                data-composer-dock-drawer-shadow="true"
-                className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px"
-              />
-              <div
-                data-composer-dock-drawer="true"
-                data-composer-dock-drawer-collapsed={isDockDrawerCollapsedToDock ? "true" : undefined}
-                data-composer-dock-drawer-expanded={isDockDrawerExpanded ? "true" : undefined}
-                className="relative z-[1] flex w-full shrink-0 min-h-0 flex-col overflow-hidden rounded-t-[20px] border border-border/45 border-b-0 bg-transparent"
-                style={{
-                  height:
-                    dockDrawerPanelHeightPx > 0 ? `${dockDrawerPanelHeightPx}px` : undefined,
-                  minHeight: isDockDrawerCollapsedToDock ? `${DOCK_PEEK_PX}px` : undefined,
-                }}
-              >
-              {showDockDrawerHandle ? (
-                <div ref={dockHandleRef} className="relative z-[1] shrink-0">
-                  <DrawerDragZone
-                    dragHandleProps={dockDragHandleProps}
-                    className="border-b border-border/40 bg-transparent"
-                  >
-                    <span className="sr-only">Arraste para fechar a conversa</span>
-                  </DrawerDragZone>
-                </div>
-              ) : null}
-
-              {isDockDrawerExpanded && shellShouldRenderConversationBody ? (
-                <DrawerScrollBody
-                  scrollRef={assignDockScrollRef}
-                  isPulling={isDockPulling}
-                  className={cn(
-                    "relative z-[1] min-h-0 flex-1 px-4 py-3 sm:px-5",
-                    !shellShouldShowConversationBody && "pointer-events-none opacity-0"
-                  )}
-                >
-                  <div ref={messagesMeasureRef}>
-                    {displayedMessages.map((message, index) =>
-                      renderConversationMessage(message, index, displayedMessages, { dockThread: true })
-                    )}
-                    {isTyping ? renderTypingIndicator(displayedMessages.length > 0, { dockThread: true }) : null}
-                    <div ref={messagesEndRef} />
-                  </div>
-                  {isResumeAutoGrowActive ? (
-                    <div
-                      ref={autoGrowMeasureRef}
-                      aria-hidden="true"
-                      className="pointer-events-none absolute left-4 right-4 top-4 opacity-0"
-                    >
-                      {autoGrowMessages.map((message, index) =>
-                        renderConversationMessage(message, index, autoGrowMessages, {
-                          measurementOnly: true,
-                          dockThread: true,
-                        })
-                      )}
-                      {isTyping ? renderTypingIndicator(autoGrowMessages.length > 0, { dockThread: true }) : null}
-                    </div>
-                  ) : null}
-                </DrawerScrollBody>
-              ) : null}
-              </div>
-              <div
-                aria-hidden
-                data-composer-dock-stack-spacer="true"
-                className="pointer-events-none relative z-0 min-h-0 flex-1"
-              />
-            </div>
-          ) : null}
-
           <div
             className={cn(
               "relative z-[2] shrink-0",
@@ -2194,6 +2215,8 @@ export function ConversationalAI({
                 type="text"
                 value={inputValue}
                 onChange={(event) => setInputValue(event.target.value)}
+                onFocus={() => setIsComposerInputFocused(true)}
+                onBlur={() => setIsComposerInputFocused(false)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault()
