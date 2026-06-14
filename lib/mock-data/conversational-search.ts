@@ -1,5 +1,10 @@
 import type { ReactNode } from "react"
 import type { ConversationContextPayload, Product } from "@/lib/business-types"
+import type {
+  ConversationHistoryMessage,
+  ConversationIntelligenceMeta,
+  ConversationCatalogSummary,
+} from "@/lib/conversation-intelligence/types"
 import { products } from "@/lib/mock-data/ecommerce-data"
 import type { ConversationalSearchProductResult } from "@/lib/surface-flow/contracts"
 import {
@@ -11,6 +16,10 @@ import {
   rankProductEntitiesForConversation,
 } from "@/lib/surface-flow/product-entity"
 
+export type {
+  ConversationHistoryMessage,
+  ConversationIntelligenceMeta,
+} from "@/lib/conversation-intelligence/types"
 export type { ConversationalSearchProductResult } from "@/lib/surface-flow/contracts"
 
 export interface ConversationVisualBlock {
@@ -21,12 +30,15 @@ export interface ConversationVisualBlock {
 export interface ConversationResponseResolverResult {
   text: string
   visualBlock?: ConversationVisualBlock
+  intelligence?: ConversationIntelligenceMeta
 }
 
 export interface ConversationResponseResolverInput {
   message: string
   brandName: string
   contextItems: ConversationContextPayload[]
+  history?: ConversationHistoryMessage[]
+  catalogSummary?: ConversationCatalogSummary
 }
 
 export type ConversationResponseResolver = (
