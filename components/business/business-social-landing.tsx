@@ -79,6 +79,11 @@ interface BusinessSocialLandingProps {
   reserveHeaderSpace?: boolean | "compact"
   onHeaderCartClick?: () => void
   headerCartCount?: number
+  headerSubtitle?: ReactNode
+  headerPrimaryAction?: {
+    label: string
+    onClick: () => void
+  }
   /** Optional class on stories strip — vertical-specific cadence (e.g. appointment @ 320). */
   storiesClassName?: string
   /** Optional class on sections wrapper — vertical-specific cadence. */
@@ -109,6 +114,10 @@ function toConversationContextItem(post: BusinessPost, fallbackImage: string): C
 
 function getBusinessAccentColor(config: BusinessConfig) {
   return (config as BusinessConfig & { brandColor?: string }).brandColor || config.primaryColor || "#F97316"
+}
+
+function LiquidGlassEnvironment() {
+  return <div className="sl-liquid-glass-environment" aria-hidden="true" />
 }
 
 // ========================================
@@ -194,25 +203,34 @@ function BusinessFeedIntro({
   config,
   onCartClick,
   cartCount = 0,
+  subtitle,
+  primaryAction,
 }: {
   config: BusinessConfig
   onCartClick?: () => void
   cartCount?: number
+  subtitle?: ReactNode
+  primaryAction?: {
+    label: string
+    onClick: () => void
+  }
 }) {
   const userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face"
   
   return (
-    <section className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-1 ring-border/60">
+    <section className="px-4 pt-3.5 pb-2.5 sm:px-5 sm:pt-4">
+      <div className="flex items-start justify-between gap-2.5">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full ring-1 ring-white/60 shadow-[0_10px_28px_-22px_rgba(28,25,23,0.58)]">
             <Image src={config.logo} alt={config.name} fill className="object-cover" />
           </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-base font-semibold leading-tight text-foreground">{config.name}</h1>
-            {config.description && (
-              <p className="mt-1 line-clamp-2 text-sm leading-snug text-muted-foreground">{config.description}</p>
-            )}
+          <div className="min-w-0 pt-0.5">
+            <h1 className="truncate text-[17px] font-semibold leading-[1.05] tracking-[-0.02em] text-foreground">{config.name}</h1>
+            {subtitle ? (
+              <div className="mt-0.5 line-clamp-2 text-[11px] font-medium leading-tight text-foreground/56">{subtitle}</div>
+            ) : config.description ? (
+              <p className="mt-0.5 line-clamp-2 text-xs leading-tight text-muted-foreground">{config.description}</p>
+            ) : null}
           </div>
         </div>
         
@@ -221,18 +239,28 @@ function BusinessFeedIntro({
             type="button"
             aria-label={cartCount > 0 ? `Abrir carrinho com ${cartCount} itens` : "Abrir carrinho"}
             onClick={onCartClick}
-            className="relative rounded-full p-2.5 transition-colors hover:bg-secondary"
+            className="relative rounded-full border border-white/32 bg-white/22 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.44)] backdrop-blur-[14px] transition-colors hover:bg-white/34"
           >
-            <ShoppingBag className="h-5 w-5 text-foreground" />
+            <ShoppingBag className="h-[18px] w-[18px] text-foreground/88" />
             {cartCount > 0 ? (
               <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-accent-foreground">
                 {cartCount > 99 ? "99+" : cartCount}
               </span>
             ) : null}
           </button>
-          <div className="relative ml-1 h-8 w-8 overflow-hidden rounded-full">
+          <div className="relative h-8 w-8 overflow-hidden rounded-full ring-1 ring-white/46 shadow-[0_10px_26px_-20px_rgba(28,25,23,0.5)]">
             <Image src={userAvatar} alt="Perfil" fill className="object-cover" />
           </div>
+          {primaryAction ? (
+            <Button
+              type="button"
+              size="sm"
+              onClick={primaryAction.onClick}
+              className="ml-0.5 h-8 rounded-full border border-stone-950/16 bg-stone-950 px-3.5 text-[11.5px] font-semibold tracking-[-0.01em] text-white shadow-[0_16px_38px_-22px_rgba(28,25,23,0.86),0_2px_10px_-8px_rgba(28,25,23,0.82),inset_0_1px_0_rgba(255,255,255,0.18)] ring-1 ring-white/18 hover:bg-stone-950/88"
+            >
+              {primaryAction.label}
+            </Button>
+          ) : null}
         </div>
       </div>
     </section>
@@ -727,7 +755,7 @@ function BusinessSectionComponent({
 // ========================================
 function BusinessFooter({ config, links }: { config: BusinessConfig; links?: { label: string; href: string }[] }) {
   return (
-    <footer className="bg-card border-t border-border/50 py-16">
+    <footer className="sl-liquid-footer border-t border-border/50 py-16">
       <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="relative w-10 h-10 rounded-full overflow-hidden">
@@ -739,11 +767,7 @@ function BusinessFooter({ config, links }: { config: BusinessConfig; links?: { l
         {links && links.length > 0 && (
           <div className="flex flex-wrap justify-center gap-4 mb-6">
             {links.map((link) => (
-              <a
-                key={`${link.label}-${link.href}`}
-                href={link.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <a key={link.href} href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 {link.label}
               </a>
             ))}
@@ -777,6 +801,8 @@ export function BusinessSocialLanding({
   renderConversationVisualBlock,
   onHeaderCartClick,
   headerCartCount = 0,
+  headerSubtitle,
+  headerPrimaryAction,
   storiesClassName,
   sectionsClassName,
 }: BusinessSocialLandingProps) {
@@ -909,17 +935,23 @@ export function BusinessSocialLanding({
   
   return (
     <div
-      className="min-h-screen bg-background"
-      style={{ paddingBottom: pageScrollPaddingBottom }}
+      className="sl-liquid-glass-page relative min-h-screen overflow-x-clip"
       data-composer-layout-version={composerLayoutVersion}
     >
+      <LiquidGlassEnvironment />
       {/* Main Content - Centralizado estilo rede social */}
       <main
-        className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
+        className="relative z-10 max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
         data-appointment-engaged-context={isAppointmentEngagedContext ? "true" : undefined}
       >
         {/* Feed intro */}
-        <BusinessFeedIntro config={config} onCartClick={onHeaderCartClick} cartCount={headerCartCount} />
+        <BusinessFeedIntro
+          config={config}
+          onCartClick={onHeaderCartClick}
+          cartCount={headerCartCount}
+          subtitle={headerSubtitle}
+          primaryAction={headerPrimaryAction}
+        />
 
         {/* Leading content slot — padded so -mx-4 bleed (e.g. operational hero) stays within main column */}
         {leadingContent ? <div className="px-4 sm:px-5">{leadingContent}</div> : null}
@@ -941,7 +973,7 @@ export function BusinessSocialLanding({
         {/* Sections */}
         <div
           className={cn(
-            "px-4 sm:px-5 py-6 transition-[opacity] duration-300 ease-out",
+            "sl-liquid-feed-plate px-4 sm:px-5 py-6 transition-[opacity] duration-300 ease-out",
             isAppointmentEngagedContext && "py-4 opacity-[0.46] saturate-[0.72]",
             sectionsClassName
           )}
@@ -979,7 +1011,9 @@ export function BusinessSocialLanding({
       </main>
       
       {/* Footer */}
-      <BusinessFooter config={config} links={footerLinks} />
+      <div className="sl-liquid-bottom-continuation relative z-10" style={{ paddingBottom: pageScrollPaddingBottom }}>
+        <BusinessFooter config={config} links={footerLinks} />
+      </div>
 
       {/* Conversational AI (fixed or inline) */}
       {conversationalAI || (

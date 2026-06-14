@@ -5,12 +5,13 @@
  * v2 (pilot):   thread in-flow + sticky compact shell — wired in R1+ only.
  *
  * Activation (Appointment /demo pilot surface):
- *   /demo?composer-layout=v2   ← required per session (v2 is not sticky via storage)
+ *   /demo?composer-layout=v2
+ *   localStorage.setItem("sl-composer-layout", "v2"); location.reload()
  *   NEXT_PUBLIC_COMPOSER_LAYOUT=v2
  *
  * Rollback:
- *   /demo  or  /demo?composer-layout=v1
- *   localStorage.removeItem("sl-composer-layout")
+ *   localStorage.setItem("sl-composer-layout", "v1"); location.reload()
+ *   or remove query + localStorage key
  */
 
 export type ComposerLayoutVersion = "v1" | "v2"
@@ -59,7 +60,15 @@ function readOverrideFromQuery(): ComposerLayoutVersion | null {
   return normalizeLayoutVersion(value)
 }
 
-/** Resolve active layout — env → query → v1 default. Storage is sync-only, not read here. */
+function readOverrideFromStorage(): ComposerLayoutVersion | null {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  return normalizeLayoutVersion(window.localStorage.getItem(COMPOSER_LAYOUT_OVERRIDE_STORAGE_KEY))
+}
+
+/** Resolve active layout — env → query → localStorage → v1 default. */
 export function resolveComposerLayoutVersion(): ComposerLayoutVersion {
   const envOverride = readOverrideFromEnv()
   if (envOverride !== null) {
@@ -71,38 +80,15 @@ export function resolveComposerLayoutVersion(): ComposerLayoutVersion {
     return queryOverride
   }
 
+  const storageOverride = readOverrideFromStorage()
+  if (storageOverride !== null) {
+    return storageOverride
+  }
+
   return DEFAULT_COMPOSER_LAYOUT_VERSION
 }
 
-/**
- * Product default on /demo: expansive composer (v1).
- * Strips stale `?composer-layout=v2` bookmarks unless env pilot is active.
- * Clears legacy localStorage override (no longer read by resolve).
- */
-export function ensureComposerLayoutProductDefault() {
-  if (typeof window === "undefined") {
-    return
-  }
-
-  window.localStorage.removeItem(COMPOSER_LAYOUT_OVERRIDE_STORAGE_KEY)
-
-  const envPilot = readOverrideFromEnv() === "v2"
-  if (envPilot) {
-    return
-  }
-
-  const params = new URLSearchParams(window.location.search)
-  if (params.get(COMPOSER_LAYOUT_OVERRIDE_QUERY_KEY) !== "v2") {
-    return
-  }
-
-  params.delete(COMPOSER_LAYOUT_OVERRIDE_QUERY_KEY)
-  const query = params.toString()
-  const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`
-  window.history.replaceState(null, "", nextUrl)
-}
-
-/** Persist query override for /demo pilot — mirrors composer-smoke sync. Not read by resolve. */
+/** Persist query override for /demo pilot — mirrors composer-smoke sync. */
 export function syncComposerLayoutOverrideFromUrl() {
   if (typeof window === "undefined") {
     return
@@ -111,10 +97,7 @@ export function syncComposerLayoutOverrideFromUrl() {
   const mode = new URLSearchParams(window.location.search).get(COMPOSER_LAYOUT_OVERRIDE_QUERY_KEY)
   if (mode === "v1" || mode === "v2") {
     window.localStorage.setItem(COMPOSER_LAYOUT_OVERRIDE_STORAGE_KEY, mode)
-    return
   }
-
-  window.localStorage.removeItem(COMPOSER_LAYOUT_OVERRIDE_STORAGE_KEY)
 }
 
 export function isComposerLayoutV2(version: ComposerLayoutVersion = resolveComposerLayoutVersion()) {
@@ -130,10 +113,3 @@ export function shouldRenderThreadInFlow(version: ComposerLayoutVersion) {
 export function shouldUseStickyShellCompactOnly(version: ComposerLayoutVersion) {
   return version === "v2"
 }
-
-/** Shared with `<main>` feed column in business-social-landing. */
-export const COMPOSER_FEED_COLUMN_CLASS =
-  "mx-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]" as const
-
-/** Horizontal inset for feed cards and dock capsule. */
-export const COMPOSER_FEED_INSET_CLASS = "px-4 sm:px-5" as const

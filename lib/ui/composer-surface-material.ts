@@ -50,24 +50,23 @@ const SMOKE_SUBTLE: ComposerSurfaceMaterialTokens = {
 }
 
 /** Compact: flat dark glass, slightly more transparent than expanded base. */
-export const COMPOSER_SMOKE_FUME_COMPACT_SURFACE = "rgba(10,14,20,0.82)" as const
+export const COMPOSER_SMOKE_FUME_COMPACT_SURFACE = "rgba(255,255,255,0.62)" as const
 
 const SMOKE_FUME: ComposerSurfaceMaterialTokens = {
   sectionClassName:
-    "border border-white/[0.06] shadow-[0_24px_56px_-16px_rgba(0,0,0,0.62),0_12px_32px_-14px_rgba(0,0,0,0.42)]",
+    "border border-white/[0.72] shadow-[0_26px_76px_-34px_rgba(28,25,23,0.34),0_14px_46px_-24px_rgba(255,255,255,0.5)]",
   sectionStyle: {
-    background:
-      "linear-gradient(180deg, rgba(30,34,40,0.78) 0%, rgba(8,12,18,0.92) 100%)",
-    backdropFilter: "blur(22px) saturate(1.06)",
-    WebkitBackdropFilter: "blur(22px) saturate(1.06)",
+    backgroundColor: "rgba(255,255,255,0.62)",
+    backdropFilter: "blur(44px) saturate(1.34) contrast(1.08)",
+    WebkitBackdropFilter: "blur(44px) saturate(1.34) contrast(1.08)",
   },
   innerSurfaceStyle: { backgroundColor: "transparent" },
 }
 
 const SMOKE_FUME_COMPACT: CSSProperties = {
   backgroundColor: COMPOSER_SMOKE_FUME_COMPACT_SURFACE,
-  backdropFilter: "blur(22px) saturate(1.06)",
-  WebkitBackdropFilter: "blur(22px) saturate(1.06)",
+  backdropFilter: "blur(46px) saturate(1.36) contrast(1.08)",
+  WebkitBackdropFilter: "blur(46px) saturate(1.36) contrast(1.08)",
 }
 
 const OVERRIDE_STORAGE_KEY = "sl-composer-smoke-experiment"
@@ -116,11 +115,11 @@ export function resolveComposerHandleVisuals(
 
   return {
     opacity: clampNumber(
-      (hasEngagedConversation ? 0.36 : 0.3) - progress * 0.14 + (isHandleActive ? 0.22 : 0),
-      0.18,
-      0.56
+      (hasEngagedConversation ? 0.56 : 0.46) - progress * 0.08 + (isHandleActive ? 0.18 : 0),
+      0.38,
+      0.74
     ),
-    widthPx: Math.round(40 - progress * 14),
+    widthPx: Math.round(68 - progress * 20),
   }
 }
 
@@ -242,8 +241,8 @@ export function resolveComposerExpansionSectionStyle(
     )
   }
 
-  const blurPx = Math.round(18 + progress * 8)
-  const saturation = 1.06 + progress * 0.08
+  const blurPx = Math.round(42 + progress * 6)
+  const saturation = 1.32 + progress * 0.08
 
   if (progress <= 0.001) {
     return withBackdropBlur({ backgroundColor: COMPOSER_SMOKE_FUME_COMPACT_SURFACE }, blurPx, saturation)
@@ -252,7 +251,7 @@ export function resolveComposerExpansionSectionStyle(
   if (progress >= 0.999) {
     return withBackdropBlur(
       {
-        background: "linear-gradient(180deg, rgba(30,34,40,0.78) 0%, rgba(8,12,18,0.92) 100%)",
+        backgroundColor: "rgba(255,255,255,0.62)",
       },
       blurPx,
       saturation
@@ -261,13 +260,7 @@ export function resolveComposerExpansionSectionStyle(
 
   return withBackdropBlur(
     {
-      background: `linear-gradient(180deg, rgba(${Math.round(lerp(10, 30, progress))},${Math.round(
-        lerp(14, 34, progress)
-      )},${Math.round(lerp(20, 40, progress))},${lerp(0.82, 0.78, progress).toFixed(3)}) 0%, rgba(8,12,18,${lerp(
-        0.82,
-        0.92,
-        progress
-      ).toFixed(3)}) 100%)`,
+      backgroundColor: `rgba(255,255,255,${lerp(0.62, 0.62, progress).toFixed(3)})`,
     },
     blurPx,
     saturation

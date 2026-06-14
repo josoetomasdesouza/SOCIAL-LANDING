@@ -6,31 +6,14 @@ export const DRAWER_PULL_DRAG_RESISTANCE = 0.55
 export const DRAWER_FLICK_CLOSE_VELOCITY_PX_MS = 0.65
 export const DRAWER_SETTLE_CLOSE_MS = 280
 export const DRAWER_SETTLE_OPEN_MS = 220
-/** Composer dock — height collapse when parking on the dock strip. */
-export const DRAWER_DOCK_PARK_SETTLE_MS = 420
 
 export function easeOutCubic(progress: number) {
   const t = Math.min(1, Math.max(0, progress))
   return 1 - Math.pow(1 - t, 3)
 }
 
-/** Soft deceleration — drawer “parks” on the dock. */
-export function easeOutQuart(progress: number) {
-  const t = Math.min(1, Math.max(0, progress))
-  return 1 - Math.pow(1 - t, 4)
-}
-
 export function resolveDrawerCloseSettleTargetRaw(sheetHeightPx: number) {
   return sheetHeightPx / DRAWER_PULL_DRAG_RESISTANCE + 24
-}
-
-/** Bottom-anchored composer dock — settle to compact height, not off-screen. */
-export function resolveComposerDockDrawerCloseTargetRaw(dismissHeightPx: number) {
-  if (dismissHeightPx <= 0) {
-    return 0
-  }
-
-  return dismissHeightPx / DRAWER_PULL_DRAG_RESISTANCE
 }
 
 export function shouldCloseDrawerFromRelease({
@@ -107,38 +90,6 @@ export function resolveDrawerSheetStyle(
     height: resolveDrawerSheetHeight(dragOffsetPx, baseHeight, maxHeight),
     transform: getDrawerSheetTransform(dragOffsetPx, options?.translateX),
   }
-}
-
-/** Layout viewport bottom minus visual viewport bottom (keyboard, Safari chrome). */
-export function resolveVisualViewportBottomInsetPx() {
-  if (typeof window === "undefined") {
-    return 0
-  }
-
-  const visualViewport = window.visualViewport
-  if (!visualViewport) {
-    return 0
-  }
-
-  return Math.max(
-    0,
-    Math.round(window.innerHeight - visualViewport.height - visualViewport.offsetTop)
-  )
-}
-
-/** Gap between layout viewport bottom and visual viewport bottom (iOS accessory bar). */
-export function resolveLayoutToVisualViewportGapPx() {
-  if (typeof window === "undefined") {
-    return 0
-  }
-
-  const visualViewport = window.visualViewport
-  if (!visualViewport) {
-    return 0
-  }
-
-  const visualBottomPx = visualViewport.offsetTop + visualViewport.height
-  return Math.max(0, Math.round(window.innerHeight - visualBottomPx))
 }
 
 export function getDrawerMaxUpDragPx(viewportHeight?: number) {

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Image from "next/image"
-import { Calendar, Clock, Scissors, Star, Play, ChevronRight, Check, Phone } from "lucide-react"
+import { Calendar, Clock, Scissors, Star, Play, ChevronRight, Check, Phone, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BusinessSocialLanding, type BusinessSection } from "../business-social-landing"
@@ -597,13 +597,7 @@ export function AppointmentFeed() {
   const { setComposerMode, setComposerOffsetClassName } = conversationSelection
 
   useEffect(() => {
-    const applyComposerLayoutVersion = () => {
-      setComposerLayoutVersion(resolveComposerLayoutVersion())
-    }
-
-    applyComposerLayoutVersion()
-    window.addEventListener("popstate", applyComposerLayoutVersion)
-    return () => window.removeEventListener("popstate", applyComposerLayoutVersion)
+    setComposerLayoutVersion(resolveComposerLayoutVersion())
   }, [])
   const [selectedBarber, setSelectedBarber] = useState<Professional | null>(null)
   const [selectedService, setSelectedService] = useState<Service | null>(null)
@@ -651,21 +645,9 @@ export function AppointmentFeed() {
         brandName={appointmentBarberShopConfig.name}
         coverImage={appointmentBarberShopConfig.coverImage || appointmentBarberShopConfig.logo}
         coverAlt={`Ambiente ${appointmentBarberShopConfig.name}`}
-        operationalContext={appointmentHeroOperationalContext}
-        headline="Corte preciso, barba bem feita e um clima de casa — passe quando quiser."
-        primaryActionLabel="Agendar horario"
-        onPrimaryAction={handleStartBooking}
-        onPlaceHintSelect={handleOpenArrival}
-        highlights={[
-          { label: "Cortes", onSelect: () => scrollToAppointmentSection("section-agendar-horario") },
-          { label: "Barba", onSelect: handleStartBooking },
-          { label: "Visagismo", onSelect: () => scrollToAppointmentSection("section-estilos-em-alta") },
-          { label: "Avaliacoes", onSelect: () => scrollToAppointmentSection("section-o-que-dizem") },
-          { label: "Ambiente", onSelect: () => scrollToAppointmentSection("section-bastidores") },
-        ]}
       />
     ),
-    [handleOpenArrival]
+    []
   )
   
   const handleSelectService = (service: Service) => {
@@ -860,6 +842,28 @@ export function AppointmentFeed() {
         stories={appointmentFeedContent.stories}
         sections={sections}
         leadingContent={operationalHero}
+        headerSubtitle={
+          <button
+            type="button"
+            onClick={handleOpenArrival}
+            className="inline-flex max-w-full items-center gap-1.5 text-left tracking-[-0.01em] transition-colors hover:text-foreground/78"
+            aria-label={`Ver como chegar ${appointmentHeroOperationalContext.placeHint}`}
+          >
+            <span aria-hidden className="h-[5px] w-[5px] shrink-0 rounded-full bg-emerald-500/90 shadow-[0_0_8px_rgba(16,185,129,0.34)]" />
+            <span className="truncate">
+              {appointmentHeroOperationalContext.liveState}
+              {appointmentHeroOperationalContext.placeHint ? ` · ${appointmentHeroOperationalContext.placeHint}` : ""}
+              {appointmentHeroOperationalContext.hoursHint ? ` · ${appointmentHeroOperationalContext.hoursHint}` : ""}
+            </span>
+            {appointmentHeroOperationalContext.placeHint ? (
+              <MapPin className="h-3 w-3 shrink-0 text-foreground/48" aria-hidden />
+            ) : null}
+          </button>
+        }
+        headerPrimaryAction={{
+          label: "Agendar",
+          onClick: handleStartBooking,
+        }}
         storiesClassName="max-[360px]:py-3.5"
         sectionsClassName="max-[360px]:pt-4 max-[360px]:pb-6"
         conversationResponseResolver={conversationResponseResolver}

@@ -251,7 +251,7 @@ export function ActionDrawer({
   return (
     <>
       <div
-        className="fixed inset-x-0 top-0 z-50 bg-black/50 transition-opacity"
+        className="sl-liquid-drawer-backdrop fixed inset-x-0 top-0 z-50 transition-opacity"
         style={{
           bottom: 0,
           opacity: getBackdropOpacity(0.5),
@@ -262,7 +262,7 @@ export function ActionDrawer({
       <div
         ref={sheetRef}
         className={cn(
-          "fixed bottom-0 z-50 flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-2xl",
+          "sl-liquid-drawer-sheet fixed bottom-0 z-50 flex flex-col overflow-hidden rounded-t-3xl",
           widthClasses,
           isDragging ? "transition-none" : "transition-[height,transform] duration-300 ease-out"
         )}
@@ -273,16 +273,7 @@ export function ActionDrawer({
           transform: sheetLayout.transform,
         }}
       >
-        <DrawerDragZone dragHandleProps={dragHandleProps}>
-          <div className="border-b border-border/50">
-            <div className={`${innerWidthClasses} ${isCompact ? "px-4 pb-3" : "px-5 pb-4"}`}>
-              <div className="min-w-0">
-                <h3 className="truncate text-lg font-semibold text-foreground">{title}</h3>
-                {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
-              </div>
-            </div>
-          </div>
-        </DrawerDragZone>
+        <DrawerDragZone dragHandleProps={dragHandleProps} className="sl-liquid-drawer-header border-b" />
 
         <DrawerScrollBody
           scrollRef={setScrollRef}
@@ -296,7 +287,7 @@ export function ActionDrawer({
         {footer && !shouldPinFooterToScreen ? (
           <div
             className={cn(
-              "shrink-0 border-t bg-card",
+              "sl-liquid-drawer-footer shrink-0 border-t",
               isCompact ? "border-border/30" : "border-border/50"
             )}
             style={composerOverlaysDrawer ? { paddingBottom: composerClearance } : undefined}
@@ -311,7 +302,7 @@ export function ActionDrawer({
           ref={pinnedFooterRef}
           data-action-drawer-pinned-footer="true"
           className={cn(
-            "fixed z-[55] border-t border-border/50 bg-card/98 backdrop-blur-sm shadow-[0_-8px_30px_rgba(15,23,42,0.08)]",
+            "sl-liquid-drawer-footer fixed z-[55] border-t",
             pinnedFooterWidthClasses
           )}
           style={{ bottom: composerPinnedBottomInsetPx }}
