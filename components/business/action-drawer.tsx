@@ -281,7 +281,7 @@ export function ActionDrawer({
           className={isCompact ? "flex-none" : undefined}
           style={scrollPaddingBottom ? { paddingBottom: scrollPaddingBottom } : undefined}
         >
-          <div className={`${innerWidthClasses} ${isCompact ? "px-4 pb-2 pt-2" : "p-5"}`}>{children}</div>
+          <div className={`${innerWidthClasses} ${isCompact ? "px-4 pb-2 pt-1.5" : "px-5 pb-5 pt-3"}`}>{children}</div>
         </DrawerScrollBody>
 
         {footer && !shouldPinFooterToScreen ? (

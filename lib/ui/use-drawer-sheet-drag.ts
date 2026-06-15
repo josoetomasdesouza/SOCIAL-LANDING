@@ -11,8 +11,8 @@ import {
   DRAWER_SETTLE_OPEN_MS,
 } from "@/lib/ui/drawer-layout"
 
-export const DRAWER_PULL_CLOSE_MIN_PX = 60
-export const DRAWER_PULL_ACTIVATION_PX = 4
+export const DRAWER_PULL_CLOSE_MIN_PX = 42
+export const DRAWER_PULL_ACTIVATION_PX = 2
 const SCROLL_TOP_TOLERANCE_PX = 2
 const DRAWER_DRAG_ZONE_SELECTOR = "[data-drawer-drag-zone]"
 const DRAWER_INTERACTIVE_SELECTOR =

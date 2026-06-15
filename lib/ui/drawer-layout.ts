@@ -1,11 +1,11 @@
 export const DRAWER_SHEET_HEIGHT = "95dvh"
 export const DRAWER_SHEET_MAX_HEIGHT = "100dvh"
-export const DRAWER_PULL_DRAG_RESISTANCE = 0.55
+export const DRAWER_PULL_DRAG_RESISTANCE = 0.82
 
 /** Downward flick velocity (px/ms) that completes close with momentum. */
-export const DRAWER_FLICK_CLOSE_VELOCITY_PX_MS = 0.65
-export const DRAWER_SETTLE_CLOSE_MS = 280
-export const DRAWER_SETTLE_OPEN_MS = 220
+export const DRAWER_FLICK_CLOSE_VELOCITY_PX_MS = 0.42
+export const DRAWER_SETTLE_CLOSE_MS = 220
+export const DRAWER_SETTLE_OPEN_MS = 170
 
 export function easeOutCubic(progress: number) {
   const t = Math.min(1, Math.max(0, progress))

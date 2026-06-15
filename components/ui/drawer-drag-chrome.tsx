@@ -5,8 +5,8 @@ import type { DrawerDragHandleProps } from "@/lib/ui/use-drawer-sheet-drag"
 
 export function DrawerDragHandleBar({ className }: { className?: string }) {
   return (
-    <div className={cn("flex justify-center pt-3 pb-2", className)}>
-      <div className="h-[2px] w-[68px] rounded-full bg-gradient-to-r from-stone-700/20 via-stone-700/55 to-stone-700/20 shadow-[0_1px_2px_rgba(255,255,255,0.46),0_0_10px_rgba(28,25,23,0.12)]" />
+    <div className={cn("flex justify-center pt-2 pb-1", className)}>
+      <div className="h-px w-[68px] rounded-full bg-gradient-to-r from-stone-700/10 via-stone-700/34 to-stone-700/10 shadow-[0_1px_1px_rgba(255,255,255,0.42),0_0_8px_rgba(28,25,23,0.06)]" />
     </div>
   )
 }

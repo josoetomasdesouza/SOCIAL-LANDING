@@ -46,11 +46,12 @@ const COMPOSER_MASK_TOP_OFFSET_PX = 8
 const SHEET_TOP_SAFE_MARGIN_PX = 16
 const SHEET_MAX_VIEWPORT_RATIO = 0.9
 const SHEET_MID_VIEWPORT_RATIO = 0.55
-const COMPACT_BODY_MIN_RATIO = 0.22
-const COMPACT_BODY_MIN_PX = 136
-const COMPACT_BODY_MAX_PX = 196
-const CLOSE_THRESHOLD_OFFSET_PX = 72
-const PREVIEW_DRAG_INTENT_THRESHOLD_PX = 4
+const COMPACT_BODY_MIN_RATIO = 0.28
+const COMPACT_BODY_MIN_PX = 156
+const COMPACT_BODY_MAX_PX = 244
+const CLOSE_THRESHOLD_OFFSET_PX = 44
+const PREVIEW_DRAG_INTENT_THRESHOLD_PX = 2
+const COMPOSER_DRAG_RESPONSE = 1.12
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
 const HANDLE_IDLE_DELAY_MS = 1200
 const ECOMMERCE_PRODUCT_CONTEXT_PREFIX = "ecommerce-product-"
@@ -249,6 +250,7 @@ export function ConversationalAI({
   const messagesContentRef = useRef<HTMLDivElement>(null)
   const messagesMeasureRef = useRef<HTMLDivElement>(null)
   const autoGrowMeasureRef = useRef<HTMLDivElement>(null)
+  const pendingLatestTurnAlignmentRef = useRef(false)
   const composerFormRef = useRef<HTMLFormElement>(null)
   const composerInputRef = useRef<HTMLInputElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
@@ -294,11 +296,18 @@ export function ConversationalAI({
   const isCompactComposer = shouldShowTopArea && !shouldShowConversationBody
   const isCollapsedConversation = hasEngagedConversation && isConversationCollapsed
   const displayedMessages = useMemo(() => {
+    const visibleMessages =
+      resumeSessionStartIndex === null
+        ? messages
+        : messages.slice(Math.min(resumeSessionStartIndex, messages.length))
+
     if (!isCompactResumePreview) {
-      return partialAssistantMessage ? [...messages, partialAssistantMessage] : messages
+      return partialAssistantMessage ? [...visibleMessages, partialAssistantMessage] : visibleMessages
     }
 
     const latestMessage =
+      [...visibleMessages].reverse().find((message) => message.role !== "context_event") ??
+      visibleMessages[visibleMessages.length - 1] ??
       [...messages].reverse().find((message) => message.role !== "context_event") ??
       messages[messages.length - 1]
 
@@ -307,7 +316,7 @@ export function ConversationalAI({
     }
 
     return latestMessage ? [latestMessage] : []
-  }, [isCompactResumePreview, messages, partialAssistantMessage])
+  }, [isCompactResumePreview, messages, partialAssistantMessage, resumeSessionStartIndex])
   const hasSheetBody = shouldRenderConversationBody || showContextRow
   const shouldApplySheetHeight = shouldShowTopArea || hasSheetBody
   const hiddenContextIdSet = useMemo(() => new Set(hiddenContextIds), [hiddenContextIds])
@@ -438,24 +447,20 @@ export function ConversationalAI({
     })
   }, [])
 
-  const alignConversationBodyToLatestTurn = useCallback(() => {
+  const alignConversationBodyToLatestUserMessage = useCallback(() => {
     const messagesContentElement = messagesContentRef.current
 
     if (!messagesContentElement) {
       return false
     }
 
+    const maxScrollTop = Math.max(0, messagesContentElement.scrollHeight - messagesContentElement.clientHeight)
     const latestUserMessage = Array.from(
       messagesContentElement.querySelectorAll<HTMLElement>('[data-conversation-message-role="user"]')
     ).at(-1)
-    const latestMessage = latestUserMessage ?? messagesContentElement.querySelector<HTMLElement>('[data-conversation-message]')
+    const latestUserTopLimit = latestUserMessage ? Math.max(0, latestUserMessage.offsetTop - 56) : maxScrollTop
 
-    if (!latestMessage) {
-      messagesContentElement.scrollTop = messagesContentElement.scrollHeight
-      return true
-    }
-
-    messagesContentElement.scrollTop = Math.max(0, latestMessage.offsetTop - 16)
+    messagesContentElement.scrollTop = latestUserMessage ? Math.min(maxScrollTop, latestUserTopLimit) : maxScrollTop
     return true
   }, [])
 
@@ -523,15 +528,42 @@ export function ConversationalAI({
   }, [conversationSelectionContext?.composerScrollClearancePx, runWithInstantDocumentScroll])
 
   useEffect(() => {
+    const shouldAlignAfterLayout = pendingLatestTurnAlignmentRef.current
+
     if (shouldPortalThread) {
+      let nestedFrame = 0
       const frame = window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(scrollInFlowThreadToLatestTurn)
+        nestedFrame = window.requestAnimationFrame(() => {
+          scrollInFlowThreadToLatestTurn()
+          pendingLatestTurnAlignmentRef.current = false
+        })
       })
-      return () => window.cancelAnimationFrame(frame)
+      return () => {
+        window.cancelAnimationFrame(frame)
+        window.cancelAnimationFrame(nestedFrame)
+      }
     }
 
     if (shellShouldShowConversationBody) {
-      if (alignConversationBodyToLatestTurn()) {
+      if (shouldAlignAfterLayout) {
+        let nestedFrame = 0
+        const frame = window.requestAnimationFrame(() => {
+          nestedFrame = window.requestAnimationFrame(() => {
+            if (!alignConversationBodyToLatestUserMessage()) {
+              runWithInstantDocumentScroll(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "auto", block: "end" })
+              })
+            }
+            pendingLatestTurnAlignmentRef.current = false
+          })
+        })
+        return () => {
+          window.cancelAnimationFrame(frame)
+          window.cancelAnimationFrame(nestedFrame)
+        }
+      }
+
+      if (alignConversationBodyToLatestUserMessage()) {
         return
       }
 
@@ -540,7 +572,7 @@ export function ConversationalAI({
       })
     }
   }, [
-    alignConversationBodyToLatestTurn,
+    alignConversationBodyToLatestUserMessage,
     runWithInstantDocumentScroll,
     scrollInFlowThreadToLatestTurn,
     shellShouldShowConversationBody,
@@ -1089,6 +1121,7 @@ export function ConversationalAI({
     }
 
     setIsConversationCollapsed(false)
+    pendingLatestTurnAlignmentRef.current = true
     setMessages((prev) => [...appendContextEvent(prev, pendingContextItems), userMessage])
     setInputValue("")
     setIsTyping(true)
@@ -1099,6 +1132,7 @@ export function ConversationalAI({
     replyTimeoutRef.current = window.setTimeout(() => {
       void buildResolvedReply(nextMessage).then((aiMessage) => {
         clearPartialAssistantMessage()
+        pendingLatestTurnAlignmentRef.current = true
         setMessages((prev) => [...prev, aiMessage])
         setIsTyping(false)
         setIsStreaming(false)
@@ -1177,7 +1211,7 @@ export function ConversationalAI({
 
     event.preventDefault()
 
-    const deltaY = event.clientY - dragState.startY
+    const deltaY = (event.clientY - dragState.startY) * COMPOSER_DRAG_RESPONSE
     const nextHeight = Math.min(sheetMetrics.expanded, Math.max(0, dragState.startHeight - deltaY))
 
     if (dragState.startedPreview && Math.abs(deltaY) >= PREVIEW_DRAG_INTENT_THRESHOLD_PX) {
@@ -1454,7 +1488,7 @@ export function ConversationalAI({
                 message.role === "user"
                   ? inFlowThread
                     ? "max-w-[88%] border-r-2 border-foreground/15 pr-3 text-right text-[15px] font-medium leading-[1.5] text-foreground/90"
-                    : "rounded-[24px] rounded-br-[10px] border border-white/[0.07] bg-[rgba(62,70,79,0.96)] px-4 py-3.5 text-left text-white/[0.96] shadow-[0_18px_40px_-28px_rgba(0,0,0,0.72)]"
+                    : "rounded-[24px] rounded-br-[10px] border border-white/55 bg-white/32 px-4 py-3.5 text-left font-medium text-foreground/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.66),0_18px_38px_-30px_rgba(28,25,23,0.38)] backdrop-blur-[28px] backdrop-saturate-[1.28]"
                   : inFlowThread
                     ? "max-w-[92%] border-l-2 border-accent/35 pl-3 py-0.5 text-left text-[16px] leading-[1.55] text-foreground/95"
                     : "px-0 py-0.5 text-left text-foreground/90"
@@ -1580,8 +1614,8 @@ export function ConversationalAI({
               <div
                 ref={topAreaRef}
                 className={cn(
-                  "shrink-0 border-b px-4",
-                  "border-white/[0.07] pt-3 pb-2"
+                  "shrink-0 px-4",
+                  "pt-3 pb-2"
                 )}
                 style={composerInnerSurfaceStyle}
               >
@@ -1613,8 +1647,7 @@ export function ConversationalAI({
             {shellShouldRenderConversationBody ? (
               <div
                 className={cn(
-                  "relative min-h-0 flex-1 overflow-hidden",
-                  shellShouldShowConversationBody && "border-t border-white/[0.035]"
+                  "relative min-h-0 flex-1 overflow-hidden"
                 )}
                 style={composerInnerSurfaceStyle}
               >
@@ -1634,7 +1667,7 @@ export function ConversationalAI({
                 <div
                   ref={messagesContentRef}
                   className={cn(
-                    "relative z-10 h-full overflow-y-auto px-4 py-4 overscroll-contain",
+                    "relative z-10 h-full overflow-y-auto px-4 pb-12 pt-8 overscroll-contain",
                     !shellShouldShowConversationBody && "pointer-events-none opacity-0"
                   )}
                 >

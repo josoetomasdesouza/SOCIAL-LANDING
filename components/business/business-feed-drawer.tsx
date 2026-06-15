@@ -338,7 +338,7 @@ export function BusinessFeedDrawer({
           isPulling={isPulling}
           style={composerOverlaysFeed ? { paddingBottom: composerClearance } : undefined}
         >
-          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6" data-feed-drawer-body="true">
+          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 pb-6 pt-3 sm:px-5" data-feed-drawer-body="true">
             <div className="space-y-8">
               {orderedPosts.map((post, index) => {
                 const isInitial = initialPost?.id === post.id
