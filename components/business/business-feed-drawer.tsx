@@ -318,7 +318,7 @@ export function BusinessFeedDrawer({
         ref={sheetRef}
         data-feed-drawer-sheet="true"
         className={cn(
-          "sl-liquid-drawer-sheet fixed inset-x-0 bottom-0 z-50 rounded-t-3xl overflow-hidden flex flex-col",
+          "sl-liquid-drawer-sheet fixed inset-x-0 bottom-0 z-[60] rounded-t-3xl overflow-hidden flex flex-col",
           isDragging ? "transition-none" : "animate-in slide-in-from-bottom duration-300 transition-[height,transform]"
         )}
         style={{

@@ -942,6 +942,7 @@ export function BusinessSocialLanding({
       {/* Main Content - Centralizado estilo rede social */}
       <main
         className="relative z-10 max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto"
+        data-social-feed-shell="true"
         data-appointment-engaged-context={isAppointmentEngagedContext ? "true" : undefined}
       >
         {/* Feed intro */}

@@ -1,5 +1,5 @@
-export const DRAWER_SHEET_HEIGHT = "95dvh"
-export const DRAWER_SHEET_MAX_HEIGHT = "100dvh"
+export const DRAWER_SHEET_HEIGHT = "97dvh"
+export const DRAWER_SHEET_MAX_HEIGHT = "97dvh"
 export const DRAWER_PULL_DRAG_RESISTANCE = 0.82
 
 /** Downward flick velocity (px/ms) that completes close with momentum. */

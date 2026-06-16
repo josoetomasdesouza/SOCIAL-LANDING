@@ -222,10 +222,10 @@ export function ActionDrawer({
     ...(size === "sm"
       ? {
           baseHeight: "auto",
-          maxHeight: composerHidden ? "86dvh" : "82dvh",
+          maxHeight: DRAWER_SHEET_MAX_HEIGHT,
         }
       : size === "lg"
-        ? { baseHeight: "85dvh" }
+        ? { baseHeight: DRAWER_SHEET_HEIGHT, maxHeight: DRAWER_SHEET_MAX_HEIGHT }
         : size === "full"
           ? { baseHeight: DRAWER_SHEET_MAX_HEIGHT, maxHeight: DRAWER_SHEET_MAX_HEIGHT }
           : { baseHeight: DRAWER_SHEET_HEIGHT }),
@@ -262,7 +262,7 @@ export function ActionDrawer({
       <div
         ref={sheetRef}
         className={cn(
-          "sl-liquid-drawer-sheet fixed bottom-0 z-50 flex flex-col overflow-hidden rounded-t-3xl",
+          "sl-liquid-drawer-sheet fixed bottom-0 z-[60] flex flex-col overflow-hidden rounded-t-3xl",
           widthClasses,
           isDragging ? "transition-none" : "transition-[height,transform] duration-300 ease-out"
         )}
@@ -302,7 +302,7 @@ export function ActionDrawer({
           ref={pinnedFooterRef}
           data-action-drawer-pinned-footer="true"
           className={cn(
-            "sl-liquid-drawer-footer fixed z-[55] border-t",
+            "sl-liquid-drawer-footer fixed z-[65] border-t",
             pinnedFooterWidthClasses
           )}
           style={{ bottom: composerPinnedBottomInsetPx }}

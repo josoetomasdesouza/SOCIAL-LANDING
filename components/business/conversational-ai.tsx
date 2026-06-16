@@ -44,14 +44,17 @@ import {
 const USER_AVATAR = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face"
 const COMPOSER_MASK_TOP_OFFSET_PX = 8
 const SHEET_TOP_SAFE_MARGIN_PX = 16
-const SHEET_MAX_VIEWPORT_RATIO = 0.9
+const SHEET_MAX_VIEWPORT_RATIO = 0.97
 const SHEET_MID_VIEWPORT_RATIO = 0.55
 const COMPACT_BODY_MIN_RATIO = 0.28
 const COMPACT_BODY_MIN_PX = 156
 const COMPACT_BODY_MAX_PX = 244
-const CLOSE_THRESHOLD_OFFSET_PX = 44
-const PREVIEW_DRAG_INTENT_THRESHOLD_PX = 2
-const COMPOSER_DRAG_RESPONSE = 1.12
+const CLOSE_THRESHOLD_OFFSET_PX = 26
+const PREVIEW_DRAG_INTENT_THRESHOLD_PX = 1
+const COMPOSER_DRAG_RESPONSE = 1.34
+const COMPOSER_FLICK_CLOSE_VELOCITY_PX_MS = 0.32
+const COMPOSER_FLICK_CLOSE_MIN_DELTA_PX = 10
+const COMPOSER_SCROLL_CLOSE_THRESHOLD_PX = 52
 const CONVERSATION_HISTORY_STORAGE_PREFIX = "business-conversation-history:"
 const HANDLE_IDLE_DELAY_MS = 1200
 const ECOMMERCE_PRODUCT_CONTEXT_PREFIX = "ecommerce-product-"
@@ -226,6 +229,14 @@ export function ConversationalAI({
   const [isConversationSessionActive, setIsConversationSessionActive] = useState(false)
   const [isConversationCollapsed, setIsConversationCollapsed] = useState(false)
   const [isCompactResumePreview, setIsCompactResumePreview] = useState(false)
+  const [isCompactSendExpandedShell, setIsCompactSendExpandedShell] = useState(false)
+  const [visualViewportCoveredBottomPx, setVisualViewportCoveredBottomPx] = useState(0)
+  const [viewportBaselineHeightPx, setViewportBaselineHeightPx] = useState(0)
+  const [feedFloorExtensionPx, setFeedFloorExtensionPx] = useState(0)
+  const [feedFloorTopPx, setFeedFloorTopPx] = useState(0)
+  const [feedFloorLeftPx, setFeedFloorLeftPx] = useState(0)
+  const [feedFloorWidthPx, setFeedFloorWidthPx] = useState(0)
+  const [feedFloorPortalTarget, setFeedFloorPortalTarget] = useState<HTMLElement | null>(null)
   const [resumeSessionStartIndex, setResumeSessionStartIndex] = useState<number | null>(null)
   const [pendingContextIds, setPendingContextIds] = useState<string[]>([])
   const [manualSnapHeight, setManualSnapHeight] = useState<number | null>(null)
@@ -251,6 +262,14 @@ export function ConversationalAI({
   const messagesMeasureRef = useRef<HTMLDivElement>(null)
   const autoGrowMeasureRef = useRef<HTMLDivElement>(null)
   const pendingLatestTurnAlignmentRef = useRef(false)
+  const viewportBaselineHeightRef = useRef(0)
+  const composerTouchStartYRef = useRef(0)
+  const composerTouchStartHeightRef = useRef(0)
+  const composerTouchLastYRef = useRef(0)
+  const composerTouchLastTimestampRef = useRef(0)
+  const composerTouchDownwardVelocityRef = useRef(0)
+  const isComposerScrollCloseActiveRef = useRef(false)
+  const commitSheetCloseRef = useRef<(() => void) | null>(null)
   const composerFormRef = useRef<HTMLFormElement>(null)
   const composerInputRef = useRef<HTMLInputElement>(null)
   const replyTimeoutRef = useRef<number | null>(null)
@@ -261,6 +280,9 @@ export function ConversationalAI({
     pointerId: number
     startY: number
     startHeight: number
+    lastY: number
+    lastTimestamp: number
+    downwardVelocityPxMs: number
     startedCollapsed: boolean
     startedPreview: boolean
   } | null>(null)
@@ -415,6 +437,7 @@ export function ConversationalAI({
     setIsConversationSessionActive(false)
     setIsConversationCollapsed(false)
     setIsCompactResumePreview(false)
+    setIsCompactSendExpandedShell(false)
     setResumeSessionStartIndex(null)
     setPendingContextIds([])
     activeContextIdsRef.current = []
@@ -458,9 +481,19 @@ export function ConversationalAI({
     const latestUserMessage = Array.from(
       messagesContentElement.querySelectorAll<HTMLElement>('[data-conversation-message-role="user"]')
     ).at(-1)
+    const latestTurnMessage = Array.from(
+      messagesContentElement.querySelectorAll<HTMLElement>(
+        '[data-conversation-message-role="user"], [data-conversation-message-role="ai"]'
+      )
+    ).at(-1)
     const latestUserTopLimit = latestUserMessage ? Math.max(0, latestUserMessage.offsetTop - 56) : maxScrollTop
+    const latestTurnBottomLimit = latestTurnMessage
+      ? Math.max(0, latestTurnMessage.offsetTop + latestTurnMessage.offsetHeight - messagesContentElement.clientHeight + 24)
+      : maxScrollTop
 
-    messagesContentElement.scrollTop = latestUserMessage ? Math.min(maxScrollTop, latestUserTopLimit) : maxScrollTop
+    messagesContentElement.scrollTop = latestUserMessage
+      ? Math.min(maxScrollTop, Math.max(latestUserTopLimit, latestTurnBottomLimit))
+      : maxScrollTop
     return true
   }, [])
 
@@ -626,11 +659,16 @@ export function ConversationalAI({
     const shellBottom = composerShellRef.current?.getBoundingClientRect().bottom ?? viewportHeight
     const bottomOffset = Math.max(0, viewportHeight - shellBottom)
     const availableViewportHeight = Math.max(0, viewportHeight - bottomOffset - SHEET_TOP_SAFE_MARGIN_PX)
-    const expanded = Math.round(availableViewportHeight * SHEET_MAX_VIEWPORT_RATIO)
+    const expanded = Math.round(Math.max(0, viewportHeight - bottomOffset) * SHEET_MAX_VIEWPORT_RATIO)
     const topAreaHeight = shellShouldShowTopArea ? topAreaRef.current?.offsetHeight ?? 0 : 0
     const contextHeight = measureShowContextRow ? contextRailRef.current?.offsetHeight ?? 0 : 0
-    const formHeight = composerFormRef.current?.offsetHeight ?? 0
-    const chromeHeight = topAreaHeight + contextHeight + formHeight
+    const formElement = composerFormRef.current
+    const formStyle = formElement ? window.getComputedStyle(formElement) : null
+    const formHeight = formElement?.offsetHeight ?? 0
+    const formMarginY = formStyle
+      ? parseFloat(formStyle.marginTop) + parseFloat(formStyle.marginBottom)
+      : 0
+    const chromeHeight = topAreaHeight + contextHeight + formHeight + formMarginY
     const messagesContentElement = messagesContentRef.current
     const messagesContentStyle = messagesContentElement ? window.getComputedStyle(messagesContentElement) : null
     const messagesContentPaddingY = messagesContentStyle
@@ -642,7 +680,7 @@ export function ConversationalAI({
         : messagesMeasureRef.current?.offsetHeight ?? messagesContentRef.current?.scrollHeight ?? 0
       : 0
     const conversationContentHeight = shellShouldShowConversationBody
-      ? measuredConversationContentHeight + (isCompactResumePreview ? messagesContentPaddingY : 0)
+      ? measuredConversationContentHeight + messagesContentPaddingY
       : 0
     const compactBodyHeight = shellShouldShowConversationBody
       ? isCompactResumePreview
@@ -714,15 +752,137 @@ export function ConversationalAI({
   }, [measureSheetLayout])
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const measureCoveredViewport = () => {
+      const visualViewport = window.visualViewport
+      const documentHeight = document.documentElement?.clientHeight ?? 0
+      const currentViewportHeight = Math.max(window.innerHeight || 0, documentHeight)
+      const commitViewportBaselineHeight = (nextBaselineHeight: number) => {
+        const roundedBaselineHeight = Math.round(nextBaselineHeight)
+
+        if (viewportBaselineHeightRef.current === roundedBaselineHeight) {
+          return
+        }
+
+        viewportBaselineHeightRef.current = roundedBaselineHeight
+        setViewportBaselineHeightPx(roundedBaselineHeight)
+      }
+
+      if (!visualViewport) {
+        commitViewportBaselineHeight(
+          Math.max(viewportBaselineHeightRef.current, currentViewportHeight)
+        )
+        setVisualViewportCoveredBottomPx(0)
+        return
+      }
+
+      const visualViewportHeight = Math.round(visualViewport.height + visualViewport.offsetTop)
+      const currentViewportBottom = Math.max(currentViewportHeight, visualViewportHeight)
+      const keyboardLikelyOpen =
+        viewportBaselineHeightRef.current > 0 &&
+        visualViewportHeight < viewportBaselineHeightRef.current - 80
+
+      if (!keyboardLikelyOpen) {
+        commitViewportBaselineHeight(
+          Math.max(viewportBaselineHeightRef.current, currentViewportBottom)
+        )
+      }
+
+      const viewportBaselineHeight = Math.max(
+        viewportBaselineHeightRef.current,
+        currentViewportBottom
+      )
+      const coveredBottomPx = Math.max(
+        0,
+        Math.round(viewportBaselineHeight - visualViewport.height - visualViewport.offsetTop)
+      )
+
+      setVisualViewportCoveredBottomPx((current) =>
+        current === coveredBottomPx ? current : coveredBottomPx
+      )
+    }
+
+    measureCoveredViewport()
+    window.visualViewport?.addEventListener("resize", measureCoveredViewport)
+    window.visualViewport?.addEventListener("scroll", measureCoveredViewport)
+    window.addEventListener("resize", measureCoveredViewport)
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", measureCoveredViewport)
+      window.visualViewport?.removeEventListener("scroll", measureCoveredViewport)
+      window.removeEventListener("resize", measureCoveredViewport)
+    }
+  }, [])
+
+  const measureFeedFloorExtension = useCallback(() => {
+    if (typeof document === "undefined") {
+      return
+    }
+
+    const composerSection = composerShellRef.current?.querySelector<HTMLElement>(
+      '[data-conversation-composer="true"]'
+    )
+    const feedShell = document.querySelector<HTMLElement>('[data-social-feed-shell="true"]')
+
+    if (!composerSection || !feedShell) {
+      setFeedFloorExtensionPx(0)
+      setFeedFloorTopPx(0)
+      setFeedFloorLeftPx(0)
+      setFeedFloorWidthPx(0)
+      setFeedFloorPortalTarget(null)
+      return
+    }
+
+    const composerRect = composerSection.getBoundingClientRect()
+    const feedRect = feedShell.getBoundingClientRect()
+    const feedBottom = feedRect.bottom
+    const nextTopPx = Math.max(0, Math.round(composerRect.top))
+    const nextLeftPx = Math.max(0, Math.round(feedRect.left))
+    const nextWidthPx = Math.max(0, Math.round(feedRect.width))
+    const nextExtensionPx = Math.max(0, Math.round(feedBottom - composerRect.top))
+
+    setFeedFloorPortalTarget((current) => (current === feedShell ? current : feedShell))
+    setFeedFloorTopPx((current) => (current === nextTopPx ? current : nextTopPx))
+    setFeedFloorLeftPx((current) => (current === nextLeftPx ? current : nextLeftPx))
+    setFeedFloorWidthPx((current) => (current === nextWidthPx ? current : nextWidthPx))
+    setFeedFloorExtensionPx((current) =>
+      current === nextExtensionPx ? current : nextExtensionPx
+    )
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    measureFeedFloorExtension()
+
+    window.addEventListener("resize", measureFeedFloorExtension)
+    window.visualViewport?.addEventListener("resize", measureFeedFloorExtension)
+
+    return () => {
+      window.removeEventListener("resize", measureFeedFloorExtension)
+      window.visualViewport?.removeEventListener("resize", measureFeedFloorExtension)
+    }
+  }, [measureFeedFloorExtension])
+
+  useEffect(() => {
     if (typeof ResizeObserver === "undefined") {
       return
     }
 
     const resizeObserver = new ResizeObserver(() => {
       measureSheetLayout()
+      measureFeedFloorExtension()
     })
+    const feedShell = document.querySelector<HTMLElement>('[data-social-feed-shell="true"]')
 
     const observedElements = [
+      feedShell,
+      composerShellRef.current,
       topAreaRef.current,
       contextRailRef.current,
       messagesContentRef.current,
@@ -736,11 +896,149 @@ export function ConversationalAI({
     return () => {
       resizeObserver.disconnect()
     }
-  }, [measureSheetLayout, hasEngagedConversation, measureShowContextRow])
+  }, [measureSheetLayout, measureFeedFloorExtension, hasEngagedConversation, measureShowContextRow])
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !shellShouldShowConversationBody) {
+      return
+    }
+
+    const composerSection = composerShellRef.current?.querySelector<HTMLElement>(
+      '[data-conversation-composer="true"]'
+    )
+
+    if (!composerSection) {
+      return
+    }
+
+    const canScrollMessages = (target: EventTarget | null, deltaY: number) => {
+      const messagesContentElement = messagesContentRef.current
+
+      if (!messagesContentElement || !(target instanceof Node) || !messagesContentElement.contains(target)) {
+        return false
+      }
+
+      const maxScrollTop = messagesContentElement.scrollHeight - messagesContentElement.clientHeight
+
+      if (maxScrollTop <= 0) {
+        return false
+      }
+
+      if (deltaY > 0) {
+        return messagesContentElement.scrollTop < maxScrollTop - 1
+      }
+
+      if (deltaY < 0) {
+        return messagesContentElement.scrollTop > 1
+      }
+
+      return false
+    }
+
+    const handleTouchStart = (event: TouchEvent) => {
+      const startY = event.touches[0]?.clientY ?? 0
+      composerTouchStartYRef.current = startY
+      composerTouchLastYRef.current = startY
+      composerTouchLastTimestampRef.current = event.timeStamp
+      composerTouchDownwardVelocityRef.current = 0
+      composerTouchStartHeightRef.current = composerSection.getBoundingClientRect().height
+      isComposerScrollCloseActiveRef.current = false
+    }
+
+    const handleTouchMove = (event: TouchEvent) => {
+      const touchY = event.touches[0]?.clientY ?? composerTouchStartYRef.current
+      const deltaY = composerTouchStartYRef.current - touchY
+      const messagesContentElement = messagesContentRef.current
+      const isMessagesGesture =
+        messagesContentElement &&
+        event.target instanceof Node &&
+        messagesContentElement.contains(event.target)
+
+      if (!canScrollMessages(event.target, deltaY)) {
+        event.preventDefault()
+
+        const pullDownPx = Math.max(0, touchY - composerTouchStartYRef.current)
+
+        if (isMessagesGesture && pullDownPx > 0) {
+          const elapsedMs = Math.max(1, event.timeStamp - composerTouchLastTimestampRef.current)
+          composerTouchDownwardVelocityRef.current = Math.max(
+            0,
+            (touchY - composerTouchLastYRef.current) / elapsedMs
+          )
+          composerTouchLastYRef.current = touchY
+          composerTouchLastTimestampRef.current = event.timeStamp
+          isComposerScrollCloseActiveRef.current = true
+          setIsCompactResumePreview(false)
+          setIsConversationCollapsed(false)
+          setDragHeight(
+            Math.max(
+              0,
+              composerTouchStartHeightRef.current - pullDownPx * COMPOSER_DRAG_RESPONSE
+            )
+          )
+        }
+      }
+
+      event.stopPropagation()
+    }
+
+    const handleTouchEnd = () => {
+      if (!isComposerScrollCloseActiveRef.current) {
+        return
+      }
+
+      const pullDownPx = Math.max(0, composerTouchLastYRef.current - composerTouchStartYRef.current)
+      const shouldCloseFromScrollPull =
+        pullDownPx >= COMPOSER_SCROLL_CLOSE_THRESHOLD_PX ||
+        (composerTouchDownwardVelocityRef.current >= COMPOSER_FLICK_CLOSE_VELOCITY_PX_MS &&
+          pullDownPx >= COMPOSER_FLICK_CLOSE_MIN_DELTA_PX)
+
+      isComposerScrollCloseActiveRef.current = false
+
+      if (shouldCloseFromScrollPull) {
+        commitSheetCloseRef.current?.()
+        return
+      }
+
+      setDragHeight(null)
+    }
+
+    const handleWheel = (event: WheelEvent) => {
+      if (!canScrollMessages(event.target, event.deltaY)) {
+        event.preventDefault()
+      }
+
+      event.stopPropagation()
+    }
+
+    composerSection.addEventListener("touchstart", handleTouchStart, { passive: true })
+    composerSection.addEventListener("touchmove", handleTouchMove, { passive: false })
+    composerSection.addEventListener("touchend", handleTouchEnd)
+    composerSection.addEventListener("touchcancel", handleTouchEnd)
+    composerSection.addEventListener("wheel", handleWheel, { passive: false })
+
+    return () => {
+      composerSection.removeEventListener("touchstart", handleTouchStart)
+      composerSection.removeEventListener("touchmove", handleTouchMove)
+      composerSection.removeEventListener("touchend", handleTouchEnd)
+      composerSection.removeEventListener("touchcancel", handleTouchEnd)
+      composerSection.removeEventListener("wheel", handleWheel)
+    }
+  }, [shellShouldShowConversationBody])
 
   useLayoutEffect(() => {
     measureSheetLayout()
-  }, [measureSheetLayout, messages, isTyping, isCompactResumePreview, contextItems.length, hiddenContextIds.length])
+    measureFeedFloorExtension()
+  }, [
+    measureSheetLayout,
+    measureFeedFloorExtension,
+    messages,
+    isTyping,
+    isCompactResumePreview,
+    isCompactSendExpandedShell,
+    contextItems.length,
+    hiddenContextIds.length,
+  ])
 
   useEffect(() => {
     if (!hasEngagedConversation && !showContextRow) {
@@ -748,6 +1046,7 @@ export function ConversationalAI({
       setDragHeight(null)
       setIsConversationCollapsed(false)
       setIsCompactResumePreview(false)
+      setIsCompactSendExpandedShell(false)
       setResumeSessionStartIndex(null)
     }
   }, [hasEngagedConversation, showContextRow])
@@ -783,6 +1082,11 @@ export function ConversationalAI({
     ? sheetMetrics.compact
     : dragHeight ?? resolvedAutoHeight
   const forceCompactShell = isStickyShellCompactOnly || !shellShouldShowConversationBody
+
+  useLayoutEffect(() => {
+    measureFeedFloorExtension()
+  }, [measureFeedFloorExtension, resolvedSheetHeight])
+
   const expansionProgress = isStickyShellCompactOnly
     ? 0
     : resolveComposerExpansionProgress(
@@ -795,6 +1099,38 @@ export function ConversationalAI({
     expansionProgress,
     forceCompactShell
   )
+  const shouldUseCompactSendExpandedShell =
+    isCompactSendExpandedShell && shellShouldShowConversationBody && !isStickyShellCompactOnly
+  const compactSendFloorExtensionPx = shouldUseCompactSendExpandedShell
+    ? Math.max(feedFloorExtensionPx, visualViewportCoveredBottomPx)
+    : 0
+  const shouldUseFeedAnchoredComposerSurface =
+    shouldUseCompactSendExpandedShell &&
+    Boolean(feedFloorPortalTarget) &&
+    feedFloorTopPx > 0 &&
+    feedFloorWidthPx > 0 &&
+    feedFloorExtensionPx > 0
+  const feedFloorSurfaceStyle = {
+    ...composerSectionStyle,
+  }
+  const fixedComposerSurfaceStyle = shouldUseFeedAnchoredComposerSurface
+    ? {
+        background: "transparent",
+        backgroundColor: "transparent",
+        boxShadow: "none",
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
+      }
+    : composerSectionStyle
+  const transparentComposerInnerSurfaceStyle = shouldUseFeedAnchoredComposerSurface
+    ? {
+        background: "transparent",
+        backgroundColor: "transparent",
+        boxShadow: "none",
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
+      }
+    : composerInnerSurfaceStyle
   const composerPageMaskBackground =
     isLayoutV2 && hasEngagedConversation
       ? "transparent"
@@ -1102,6 +1438,8 @@ export function ConversationalAI({
     const nextMessage = inputValue.trim()
     if (!nextMessage || isTyping || isStreaming) return
 
+    const shouldExpandShellFromCompactSend =
+      !shouldShowConversationBody || isCompactComposer || isConversationCollapsed || isCompactResumePreview
     const pendingContextItems = contextItems.filter((item) => pendingContextIdsRef.current.includes(item.id))
     const userMessage: ConversationMessage = {
       id: `user-${Date.now()}`,
@@ -1115,6 +1453,7 @@ export function ConversationalAI({
     if (!isConversationSessionActive) observeAiSurfaceOpened({ action: "opened" })
     setIsConversationSessionActive(true)
     setIsCompactResumePreview(false)
+    setIsCompactSendExpandedShell((current) => current || shouldExpandShellFromCompactSend)
 
     if (shouldResumeFromCurrentMessages) {
       setResumeSessionStartIndex(messages.length)
@@ -1138,6 +1477,7 @@ export function ConversationalAI({
         setIsStreaming(false)
         setIsConversationCollapsed(false)
         setIsCompactResumePreview(false)
+        setIsCompactSendExpandedShell((current) => current || shouldExpandShellFromCompactSend)
         replyTimeoutRef.current = null
       })
     }, 700)
@@ -1175,6 +1515,7 @@ export function ConversationalAI({
     setManualSnapHeight(null)
     setDragHeight(null)
     setIsCompactResumePreview(false)
+    setIsCompactSendExpandedShell(false)
 
     if (hasEngagedConversation) {
       setIsConversationCollapsed(true)
@@ -1183,6 +1524,8 @@ export function ConversationalAI({
 
     handleCloseConversation()
   }, [handleCloseConversation, hasEngagedConversation])
+
+  commitSheetCloseRef.current = commitSheetClose
 
   const handleSheetPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (sheetMetrics.compact <= 0) {
@@ -1195,6 +1538,9 @@ export function ConversationalAI({
       pointerId: event.pointerId,
       startY: event.clientY,
       startHeight: resolvedSheetHeight || sheetMetrics.compact,
+      lastY: event.clientY,
+      lastTimestamp: event.timeStamp,
+      downwardVelocityPxMs: 0,
       startedCollapsed: isConversationCollapsed,
       startedPreview: isCompactResumePreview,
     }
@@ -1210,6 +1556,12 @@ export function ConversationalAI({
     }
 
     event.preventDefault()
+
+    const elapsedMs = Math.max(1, event.timeStamp - dragState.lastTimestamp)
+    const instantVelocityPxMs = (event.clientY - dragState.lastY) / elapsedMs
+    dragState.downwardVelocityPxMs = Math.max(0, instantVelocityPxMs)
+    dragState.lastY = event.clientY
+    dragState.lastTimestamp = event.timeStamp
 
     const deltaY = (event.clientY - dragState.startY) * COMPOSER_DRAG_RESPONSE
     const nextHeight = Math.min(sheetMetrics.expanded, Math.max(0, dragState.startHeight - deltaY))
@@ -1248,6 +1600,16 @@ export function ConversationalAI({
 
     if (dragState.startedCollapsed && currentHeight <= dragState.startHeight) {
       setDragHeight(null)
+      return
+    }
+
+    const rawDownwardDeltaPx = event.clientY - dragState.startY
+    const shouldCloseFromDownwardFlick =
+      dragState.downwardVelocityPxMs >= COMPOSER_FLICK_CLOSE_VELOCITY_PX_MS &&
+      rawDownwardDeltaPx >= COMPOSER_FLICK_CLOSE_MIN_DELTA_PX
+
+    if (shouldCloseFromDownwardFlick) {
+      commitSheetClose()
       return
     }
 
@@ -1570,6 +1932,26 @@ export function ConversationalAI({
       </div>
     ) : null
 
+  const feedFloorSurfacePortalContent =
+    shouldUseFeedAnchoredComposerSurface ? (
+      <div
+        aria-hidden="true"
+        data-composer-feed-floor-surface="true"
+        className={cn(
+          "sl-liquid-composer-shell pointer-events-none fixed z-[20] overflow-hidden rounded-b-none rounded-t-[28px]",
+          composerSectionSurfaceClass
+        )}
+        style={{
+          ...feedFloorSurfaceStyle,
+          top: `${feedFloorTopPx}px`,
+          left: `${feedFloorLeftPx}px`,
+          width: `${feedFloorWidthPx}px`,
+          height: `${feedFloorExtensionPx}px`,
+          willChange: dragHeight !== null ? "top, height" : undefined,
+        }}
+      />
+    ) : null
+
   return (
     <>
       <div
@@ -1583,10 +1965,44 @@ export function ConversationalAI({
       <div className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-30", className)}>
         <div
           ref={composerShellRef}
-          className="mx-auto max-w-lg px-4 pb-4 sm:max-w-xl md:max-w-2xl lg:max-w-[600px]"
+          className={cn(
+            "mx-auto max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px]",
+            shouldUseCompactSendExpandedShell ? "px-0 pb-0" : "px-4 pb-4"
+          )}
         >
           <section
             data-conversation-composer="true"
+            data-composer-compact-send-expanded={shouldUseCompactSendExpandedShell || undefined}
+            data-composer-keyboard-cover-px={
+              shouldUseCompactSendExpandedShell && visualViewportCoveredBottomPx > 0
+                ? visualViewportCoveredBottomPx
+                : undefined
+            }
+            data-composer-viewport-baseline-px={
+              shouldUseCompactSendExpandedShell && viewportBaselineHeightPx > 0
+                ? viewportBaselineHeightPx
+                : undefined
+            }
+            data-composer-feed-floor-extension-px={
+              shouldUseCompactSendExpandedShell && feedFloorExtensionPx > 0
+                ? feedFloorExtensionPx
+                : undefined
+            }
+            data-composer-feed-floor-top-px={
+              shouldUseCompactSendExpandedShell && feedFloorTopPx > 0
+                ? feedFloorTopPx
+                : undefined
+            }
+            data-composer-feed-floor-left-px={
+              shouldUseCompactSendExpandedShell && feedFloorLeftPx > 0
+                ? feedFloorLeftPx
+                : undefined
+            }
+            data-composer-feed-floor-width-px={
+              shouldUseCompactSendExpandedShell && feedFloorWidthPx > 0
+                ? feedFloorWidthPx
+                : undefined
+            }
             data-composer-surface={
               isComposerSmokeSurfaceActive(surfaceIntensity) ? surfaceIntensity : undefined
             }
@@ -1596,20 +2012,41 @@ export function ConversationalAI({
             }
             onPointerDownCapture={handleCompactComposerPress}
             className={cn(
-              "sl-liquid-composer-shell pointer-events-auto flex min-h-0 max-h-[90vh] flex-col overflow-hidden transition-[height,border-radius,box-shadow] duration-300 ease-out",
+              "sl-liquid-composer-shell pointer-events-auto relative flex min-h-0 max-h-[97dvh] flex-col transition-[height,border-radius,box-shadow] duration-300 ease-out",
+              compactSendFloorExtensionPx > 0 ? "overflow-visible" : "overflow-hidden",
               isEngagedPerceptual ? "rounded-b-[28px] rounded-t-[18px]" : "rounded-[28px]",
-              composerSectionSurfaceClass,
+              shouldUseCompactSendExpandedShell && "rounded-b-none",
+              !shouldUseFeedAnchoredComposerSurface && composerSectionSurfaceClass,
               isEngagedPerceptual &&
+                !shouldUseCompactSendExpandedShell &&
                 "shadow-[0_-16px_48px_-28px_rgba(15,23,42,0.28)] ring-1 ring-white/[0.08]",
               dragHeight !== null && "transition-none"
             )}
             style={{
-              ...composerSectionStyle,
+              ...fixedComposerSurfaceStyle,
               ...(shellShouldApplySheetHeight && resolvedSheetHeight > 0
                 ? { height: `${resolvedSheetHeight}px` }
                 : {}),
+              ...(compactSendFloorExtensionPx > 0 && !shouldUseFeedAnchoredComposerSurface
+                ? {
+                    boxShadow:
+                      "0 34px 104px -38px rgba(28, 25, 23, 0.46), 0 18px 54px -28px rgba(255, 255, 255, 0.74)",
+                  }
+                : {}),
+              ...(dragHeight !== null ? { willChange: "height" } : {}),
             }}
           >
+            {compactSendFloorExtensionPx > 0 && !feedFloorPortalTarget ? (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 top-full z-0"
+                style={{
+                  ...feedFloorSurfaceStyle,
+                  height: `${compactSendFloorExtensionPx}px`,
+                }}
+              />
+            ) : null}
+
             {shellShouldShowTopArea && !isCompactComposer ? (
               <div
                 ref={topAreaRef}
@@ -1617,7 +2054,7 @@ export function ConversationalAI({
                   "shrink-0 px-4",
                   "pt-3 pb-2"
                 )}
-                style={composerInnerSurfaceStyle}
+                style={transparentComposerInnerSurfaceStyle}
               >
                 <div
                   role="slider"
@@ -1649,7 +2086,7 @@ export function ConversationalAI({
                 className={cn(
                   "relative min-h-0 flex-1 overflow-hidden"
                 )}
-                style={composerInnerSurfaceStyle}
+                style={transparentComposerInnerSurfaceStyle}
               >
                 {hasEngagedConversation && contextRowItems.length > 0 ? (
                   <div
@@ -1701,7 +2138,7 @@ export function ConversationalAI({
               <div
                 ref={contextRailRef}
                 className={cn("shrink-0 px-4 py-2.5", isEngagedPerceptual && "py-1.5 opacity-90")}
-                style={composerInnerSurfaceStyle}
+                style={transparentComposerInnerSurfaceStyle}
               >
                 <div data-conversation-context-rail="true" className="flex gap-2 overflow-x-auto scrollbar-hide">
                   {(isLayoutV2 ? shellContextRowItems : contextRowItems).map((item) => renderContextChip(item))}
@@ -1712,8 +2149,14 @@ export function ConversationalAI({
             <form
               ref={composerFormRef}
               onSubmit={handleSubmit}
-              className="flex shrink-0 items-center gap-3 px-3 py-2.5"
-              style={composerInnerSurfaceStyle}
+              className={cn(
+                "flex shrink-0 items-center gap-3 px-3 py-2.5",
+                shouldUseCompactSendExpandedShell &&
+                  "mx-4 mb-4 rounded-[28px] border border-white/[0.72] shadow-[0_26px_76px_-34px_rgba(28,25,23,0.34),0_14px_46px_-24px_rgba(255,255,255,0.5)]"
+              )}
+              style={{
+                ...(shouldUseCompactSendExpandedShell ? composerSectionStyle : composerInnerSurfaceStyle),
+              }}
             >
               <button
                 type="button"
@@ -1749,6 +2192,9 @@ export function ConversationalAI({
           </section>
         </div>
       </div>
+      {feedFloorSurfacePortalContent && feedFloorPortalTarget
+        ? createPortal(feedFloorSurfacePortalContent, feedFloorPortalTarget)
+        : null}
       {threadPortalContent && threadPortalTarget
         ? createPortal(threadPortalContent, threadPortalTarget)
         : null}
