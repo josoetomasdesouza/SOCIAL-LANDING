@@ -36,6 +36,8 @@ export default function CriarPage() {
   const [extractedData, setExtractedData] = useState<ExtractedBrandData | null>(null)
   const [brandData, setBrandData] = useState<BrandData | null>(null)
   const [extractionStep, setExtractionStep] = useState(0)
+  const [draftId, setDraftId] = useState<string | null>(null)
+  const [isCreatingDraft, setIsCreatingDraft] = useState(false)
   
   // Animacao dos steps de extracao
   useEffect(() => {
@@ -99,17 +101,49 @@ export default function CriarPage() {
     setBrandData(prev => prev ? { ...prev, ...updates } : { name: "", businessModel: "", ...updates })
   }, [])
   
-  const handleCreate = useCallback(() => {
+  const handleCreate = useCallback(async () => {
     if (!brandData?.name || !brandData?.businessModel) {
       setError("Preencha o nome e selecione a categoria")
       return
     }
-    setStep("complete")
+
+    setError(null)
+    setIsCreatingDraft(true)
+
+    try {
+      const response = await fetch("/api/business-runtime/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: brandData.name,
+          businessModel: brandData.businessModel,
+          description: brandData.description,
+          website: brandData.website,
+          logo: brandData.logo || brandData.favicon,
+          primaryColor: brandData.primaryColor,
+          industry: brandData.industry,
+          socialLinks: brandData.socialLinks,
+        }),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao criar draft")
+      }
+
+      setDraftId(data.draftId)
+      setStep("complete")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao criar draft")
+    } finally {
+      setIsCreatingDraft(false)
+    }
   }, [brandData])
   
   const handleBack = useCallback(() => {
     setStep("url")
     setError(null)
+    setDraftId(null)
   }, [])
   
   return (
@@ -413,10 +447,14 @@ export default function CriarPage() {
                       onClick={handleCreate}
                       size="lg"
                       className="w-full h-14 text-lg rounded-xl gap-2 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
-                      disabled={!brandData?.name || !brandData?.businessModel}
+                      disabled={!brandData?.name || !brandData?.businessModel || isCreatingDraft}
                     >
-                      <Sparkles className="w-5 h-5" />
-                      Criar minha Social Landing
+                      {isCreatingDraft ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-5 h-5" />
+                      )}
+                      {isCreatingDraft ? "Criando draft..." : "Criar minha Social Landing"}
                     </Button>
                   </div>
                   
@@ -515,9 +553,20 @@ export default function CriarPage() {
                   <Button 
                     size="lg"
                     className="flex-1 h-12 rounded-xl gap-2 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
+                    asChild={Boolean(draftId)}
+                    disabled={!draftId}
                   >
-                    Ver minha landing
-                    <ExternalLink className="w-4 h-4" />
+                    {draftId ? (
+                      <Link href={`/criar/editor?draftId=${encodeURIComponent(draftId)}`}>
+                        Abrir editor
+                        <ExternalLink className="w-4 h-4" />
+                      </Link>
+                    ) : (
+                      <>
+                        Abrir editor
+                        <ExternalLink className="w-4 h-4" />
+                      </>
+                    )}
                   </Button>
                 </motion.div>
               </motion.div>

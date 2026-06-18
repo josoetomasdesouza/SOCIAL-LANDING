@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, Suspense } from "react"
+import { useState, useMemo, Suspense, useEffect, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -15,6 +15,10 @@ import {
   MessageCircle, Star, Video, Newspaper, Users, ShoppingBag,
   Calendar, FileText, HelpCircle, Link2, Info
 } from "lucide-react"
+import type { BusinessRuntime, BusinessRuntimeVertical } from "@/lib/runtime/business"
+import type { BusinessRuntimeDraftRecord } from "@/lib/runtime/business/drafts"
+import type { BusinessOperationalAiKind } from "@/lib/runtime/business/operational-ai/types"
+import { projectBusinessRuntimeToSocialLanding } from "@/lib/runtime/business/projections/social-landing"
 
 // Tipos de blocos disponiveis
 const BLOCK_TYPES = [
@@ -50,6 +54,122 @@ const DEFAULT_BLOCKS: Record<string, string[]> = {
   institutional: ["about", "team", "news", "gallery", "faq", "contact"],
 }
 
+const RUNTIME_VERTICALS: BusinessRuntimeVertical[] = [
+  "appointment",
+  "beauty",
+  "restaurant",
+  "clinic",
+  "barber",
+  "gym",
+  "generic",
+]
+
+function mapRuntimeVerticalToEditorCategory(vertical: BusinessRuntimeVertical) {
+  if (vertical === "beauty" || vertical === "barber") return "appointment"
+  if (vertical === "clinic") return "health"
+  if (vertical === "generic") return "institutional"
+  return vertical
+}
+
+function buildBlocksForCategory(category: string): Block[] {
+  const defaultBlockIds = DEFAULT_BLOCKS[category] || DEFAULT_BLOCKS.restaurant
+  return defaultBlockIds.map(id => ({
+    id: `${id}-${Date.now()}`,
+    type: id,
+    visible: true,
+    content: {}
+  }))
+}
+
+function buildBlocksFromRuntime(runtime: BusinessRuntime): Block[] {
+  const category = mapRuntimeVerticalToEditorCategory(runtime.vertical)
+  const blockTypes = new Set(DEFAULT_BLOCKS[category] || DEFAULT_BLOCKS.restaurant)
+  if (runtime.knowledge.faq?.length) blockTypes.add("faq")
+  if (runtime.services.length) blockTypes.add("services")
+
+  return Array.from(blockTypes).map(type => ({
+    id: `${type}-runtime`,
+    type,
+    visible: true,
+    content: {}
+  }))
+}
+
+function parseServiceLines(value: string): BusinessRuntime["services"] {
+  return value
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map((line, index) => {
+      const [name = "", description = "", price = ""] = line.split("|").map(part => part.trim())
+      const parsedPrice = Number(price.replace(",", "."))
+      return {
+        id: `service-${index + 1}`,
+        name,
+        description,
+        price: Number.isFinite(parsedPrice) && price ? parsedPrice : undefined,
+      }
+    })
+}
+
+function formatServiceLines(runtime: BusinessRuntime) {
+  return runtime.services
+    .map(service => [service.name, service.description, service.price].filter(value => value !== undefined && value !== "").join(" | "))
+    .join("\n")
+}
+
+function parseFaqLines(value: string): NonNullable<BusinessRuntime["knowledge"]["faq"]> {
+  return value
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map((line, index) => {
+      const [question = "", answer = ""] = line.split("|").map(part => part.trim())
+      return {
+        id: `faq-${index + 1}`,
+        question,
+        answer,
+      }
+    })
+}
+
+function formatFaqLines(runtime: BusinessRuntime) {
+  return runtime.knowledge.faq
+    ?.map(item => [item.question, item.answer].filter(Boolean).join(" | "))
+    .join("\n") ?? ""
+}
+
+function formatKeywordLines(runtime: BusinessRuntime) {
+  return runtime.brand.keywords?.join(", ") ?? ""
+}
+
+function parseKeywordLines(value: string) {
+  return value
+    .split(",")
+    .map(keyword => keyword.trim().toLowerCase())
+    .filter(Boolean)
+}
+
+function mapBlockTypeToOperationalAiKind(blockType: string): BusinessOperationalAiKind {
+  if (blockType === "services" || blockType === "products") {
+    return "services"
+  }
+
+  if (blockType === "hours" || blockType === "contact" || blockType === "social" || blockType === "links") {
+    return "operations"
+  }
+
+  if (blockType === "faq") {
+    return "faq"
+  }
+
+  if (blockType === "about") {
+    return "brand_voice"
+  }
+
+  return "full_draft"
+}
+
 interface Block {
   id: string
   type: string
@@ -59,33 +179,79 @@ interface Block {
 
 function EditorContent() {
   const searchParams = useSearchParams()
+  const draftId = searchParams.get("draftId")
   const slug = searchParams.get("slug") || "minha-marca"
   const focusField = searchParams.get("focus")
   const category = searchParams.get("category") || "restaurant"
+  const [runtime, setRuntime] = useState<BusinessRuntime | null>(null)
+  const [runtimeDraftId, setRuntimeDraftId] = useState<string | null>(null)
+  const [draftError, setDraftError] = useState<string | null>(null)
+  const [isLoadingDraft, setIsLoadingDraft] = useState(Boolean(draftId))
   
   // Dados da marca vindos do chat
   const brandData = useMemo(() => ({
-    name: searchParams.get("name") || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
-    description: searchParams.get("description") || "",
-    whatsapp: searchParams.get("whatsapp") || "",
-    instagram: searchParams.get("instagram") || "",
-  }), [searchParams, slug])
+    name: runtime?.business.name || searchParams.get("name") || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+    description: runtime?.business.description || searchParams.get("description") || "",
+    whatsapp: runtime?.channels.whatsapp || searchParams.get("whatsapp") || "",
+    instagram: runtime?.channels.instagram || searchParams.get("instagram") || "",
+  }), [runtime, searchParams, slug])
 
   // Blocos ativos
   const [blocks, setBlocks] = useState<Block[]>(() => {
-    const defaultBlockIds = DEFAULT_BLOCKS[category] || DEFAULT_BLOCKS.restaurant
-    return defaultBlockIds.map(id => ({
-      id: `${id}-${Date.now()}`,
-      type: id,
-      visible: true,
-      content: {}
-    }))
+    return buildBlocksForCategory(category)
   })
 
   const [selectedBlock, setSelectedBlock] = useState<string | null>(focusField || null)
   const [isSaving, setIsSaving] = useState(false)
+  const [isPublishing, setIsPublishing] = useState(false)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
   const [showAddBlock, setShowAddBlock] = useState(false)
+  const [publishedSlug, setPublishedSlug] = useState<string | null>(null)
+  const projectedPreview = useMemo(
+    () => runtime ? projectBusinessRuntimeToSocialLanding(runtime) : null,
+    [runtime]
+  )
+
+  useEffect(() => {
+    if (!draftId) {
+      setIsLoadingDraft(false)
+      return
+    }
+
+    let cancelled = false
+    setIsLoadingDraft(true)
+    setDraftError(null)
+
+    fetch(`/api/business-runtime/drafts/${encodeURIComponent(draftId)}`)
+      .then(async response => {
+        const data = await response.json()
+        if (!response.ok) {
+          throw new Error(data.error || "Erro ao carregar draft")
+        }
+        return data as BusinessRuntimeDraftRecord
+      })
+      .then(record => {
+        if (cancelled) return
+        setRuntime(record.runtime)
+        setRuntimeDraftId(record.draftId)
+        setBlocks(buildBlocksFromRuntime(record.runtime))
+      })
+      .catch(error => {
+        if (cancelled) return
+        setDraftError(error instanceof Error ? error.message : "Erro ao carregar draft")
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingDraft(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [draftId])
+
+  const updateRuntime = useCallback((updater: (current: BusinessRuntime) => BusinessRuntime) => {
+    setRuntime(current => current ? updater(current) : current)
+  }, [])
 
   // Blocos que podem ser adicionados (nao estao na lista atual)
   const availableBlocks = useMemo(() => {
@@ -104,31 +270,120 @@ function EditorContent() {
     return Math.min(100, Math.round((filled / total) * 100))
   }, [blocks])
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<BusinessRuntime | null> => {
     setIsSaving(true)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setIsSaving(false)
+    setDraftError(null)
+
+    if (!runtime || !runtimeDraftId) {
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      setIsSaving(false)
+      return null
+    }
+
+    try {
+      const response = await fetch(`/api/business-runtime/drafts/${encodeURIComponent(runtimeDraftId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(runtime),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao salvar draft")
+      }
+
+      const record = data as BusinessRuntimeDraftRecord
+      setRuntime(record.runtime)
+      setBlocks(buildBlocksFromRuntime(record.runtime))
+      return record.runtime
+    } catch (error) {
+      setDraftError(error instanceof Error ? error.message : "Erro ao salvar draft")
+      return null
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handlePublish = async () => {
+    if (!runtimeDraftId) {
+      setDraftError("Salve um draft antes de publicar")
+      return
+    }
+
+    setIsPublishing(true)
+    setDraftError(null)
+
+    try {
+      const savedRuntime = await handleSave()
+      if (!savedRuntime) {
+        throw new Error("Nao foi possivel salvar antes de publicar")
+      }
+
+      const response = await fetch("/api/business-runtime/publications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ draftId: runtimeDraftId }),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao publicar")
+      }
+
+      setPublishedSlug(data.slug)
+      setRuntime(data.runtime)
+    } catch (error) {
+      setDraftError(error instanceof Error ? error.message : "Erro ao publicar")
+    } finally {
+      setIsPublishing(false)
+    }
   }
 
   const handleGenerateAI = async (blockId: string) => {
     setIsGeneratingAI(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // Simula conteudo gerado pela IA
-    setBlocks(prev => prev.map(b => {
-      if (b.id === blockId) {
-        return {
-          ...b,
-          content: {
-            title: "Conteudo gerado pela IA",
-            description: "Esta e uma descricao automatica gerada com base no seu negocio e categoria."
+    setDraftError(null)
+
+    try {
+      const block = blocks.find(entry => entry.id === blockId)
+
+      if (!runtimeDraftId || !block) {
+        await new Promise(resolve => setTimeout(resolve, 800))
+        setBlocks(prev => prev.map(entry => {
+          if (entry.id === blockId) {
+            return {
+              ...entry,
+              content: {
+                title: "Conteudo gerado pela IA",
+                description: "Esta e uma descricao automatica gerada com base no seu negocio e categoria."
+              }
+            }
           }
-        }
+          return entry
+        }))
+        return
       }
-      return b
-    }))
-    
-    setIsGeneratingAI(false)
+
+      const response = await fetch(`/api/business-runtime/drafts/${encodeURIComponent(runtimeDraftId)}/operational-ai`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: mapBlockTypeToOperationalAiKind(block.type),
+          operatorBrief: `Preencher bloco ${block.type}`,
+        }),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao aplicar IA operacional")
+      }
+
+      setRuntime(data.runtime)
+      setBlocks(buildBlocksFromRuntime(data.runtime))
+    } catch (error) {
+      setDraftError(error instanceof Error ? error.message : "Erro ao aplicar IA operacional")
+    } finally {
+      setIsGeneratingAI(false)
+    }
   }
 
   const handleAddBlock = (type: string) => {
@@ -165,7 +420,7 @@ function EditorContent() {
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" asChild>
-              <Link href="/criar/novo">
+              <Link href="/criar">
                 <ArrowLeft className="w-5 h-5" />
               </Link>
             </Button>
@@ -177,15 +432,30 @@ function EditorContent() {
           
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/${slug}`} target="_blank">
+              <Link href={`/${publishedSlug || runtime?.slug || slug}`} target="_blank">
                 <Eye className="w-4 h-4 mr-2" />
                 Preview
               </Link>
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePublish}
+              disabled={isPublishing || isSaving || !runtimeDraftId}
+            >
+              {isPublishing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Publicar
+                </>
+              )}
+            </Button>
             <Button 
               size="sm" 
               onClick={handleSave}
-              disabled={isSaving}
+              disabled={isSaving || isPublishing}
               className="bg-accent hover:bg-accent/90"
             >
               {isSaving ? (
@@ -200,6 +470,25 @@ function EditorContent() {
           </div>
         </div>
       </header>
+
+      {isLoadingDraft && (
+        <div className="pt-28 flex items-center justify-center text-muted-foreground">
+          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          Carregando draft...
+        </div>
+      )}
+
+      {draftError && (
+        <div className="px-4 py-2 text-sm text-destructive bg-destructive/10 border-b border-destructive/20">
+          {draftError}
+        </div>
+      )}
+
+      {publishedSlug && (
+        <div className="px-4 py-2 text-sm text-green-700 bg-green-500/10 border-b border-green-500/20">
+          Publicado em /{publishedSlug}
+        </div>
+      )}
 
       <div className="pt-14 flex">
         {/* Sidebar - Lista de Blocos */}
@@ -366,10 +655,22 @@ function EditorContent() {
                       {block.type === "about" && (
                         <>
                           <div>
-                            <label className="text-sm font-medium mb-2 block">Titulo</label>
-                            <Input 
-                              placeholder="Ex: Sobre nos"
-                              defaultValue={block.content.title as string}
+                            <label className="text-sm font-medium mb-2 block">Nome do negocio</label>
+                            <Input
+                              placeholder="Ex: Minha marca"
+                              value={runtime?.business.name ?? block.content.title as string ?? ""}
+                              onChange={(event) => updateRuntime(current => ({
+                                ...current,
+                                business: {
+                                  ...current.business,
+                                  name: event.target.value,
+                                },
+                                brand: {
+                                  ...current.brand,
+                                  name: event.target.value,
+                                },
+                              }))}
+                              readOnly={!runtime}
                             />
                           </div>
                           <div>
@@ -377,9 +678,149 @@ function EditorContent() {
                             <Textarea 
                               placeholder="Conte sua historia..."
                               rows={4}
-                              defaultValue={block.content.description as string}
+                              value={runtime?.business.description ?? block.content.description as string ?? ""}
+                              onChange={(event) => updateRuntime(current => ({
+                                ...current,
+                                business: {
+                                  ...current.business,
+                                  description: event.target.value,
+                                },
+                                brand: {
+                                  ...current.brand,
+                                  description: event.target.value,
+                                },
+                                knowledge: {
+                                  ...current.knowledge,
+                                  summary: event.target.value,
+                                },
+                              }))}
+                              readOnly={!runtime}
                             />
                           </div>
+                          {runtime && (
+                            <>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Vertical</label>
+                                <select
+                                  value={runtime.vertical}
+                                  onChange={(event) => updateRuntime(current => ({
+                                    ...current,
+                                    vertical: event.target.value as BusinessRuntimeVertical,
+                                  }))}
+                                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                >
+                                  {RUNTIME_VERTICALS.map(vertical => (
+                                    <option key={vertical} value={vertical}>{vertical}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Slug do draft</label>
+                                <Input
+                                  value={runtime.slug}
+                                  onChange={(event) => updateRuntime(current => ({
+                                    ...current,
+                                    slug: event.target.value,
+                                  }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Posicionamento</label>
+                                <Input
+                                  value={runtime.brand.positioning ?? ""}
+                                  onChange={(event) => updateRuntime(current => ({
+                                    ...current,
+                                    brand: {
+                                      ...current.brand,
+                                      positioning: event.target.value,
+                                    },
+                                  }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Tom de voz</label>
+                                <Input
+                                  value={runtime.brand.toneOfVoice ?? ""}
+                                  onChange={(event) => updateRuntime(current => ({
+                                    ...current,
+                                    brand: {
+                                      ...current.brand,
+                                      toneOfVoice: event.target.value,
+                                    },
+                                  }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Personalidade</label>
+                                <Input
+                                  value={runtime.brand.personality ?? ""}
+                                  onChange={(event) => updateRuntime(current => ({
+                                    ...current,
+                                    brand: {
+                                      ...current.brand,
+                                      personality: event.target.value,
+                                    },
+                                  }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Estilo visual</label>
+                                <Input
+                                  value={runtime.brand.visualIdentity?.style ?? ""}
+                                  onChange={(event) => updateRuntime(current => ({
+                                    ...current,
+                                    brand: {
+                                      ...current.brand,
+                                      visualIdentity: {
+                                        ...current.brand.visualIdentity,
+                                        style: event.target.value,
+                                      },
+                                    },
+                                  }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Palavras-chave</label>
+                                <Input
+                                  value={formatKeywordLines(runtime)}
+                                  onChange={(event) => updateRuntime(current => ({
+                                    ...current,
+                                    brand: {
+                                      ...current.brand,
+                                      keywords: parseKeywordLines(event.target.value),
+                                    },
+                                  }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Público-alvo</label>
+                                <Input
+                                  value={runtime.brand.targetAudience ?? ""}
+                                  onChange={(event) => updateRuntime(current => ({
+                                    ...current,
+                                    brand: {
+                                      ...current.brand,
+                                      targetAudience: event.target.value,
+                                    },
+                                  }))}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Proposta de valor</label>
+                                <Textarea
+                                  rows={3}
+                                  value={runtime.brand.valueProposition ?? ""}
+                                  onChange={(event) => updateRuntime(current => ({
+                                    ...current,
+                                    brand: {
+                                      ...current.brand,
+                                      valueProposition: event.target.value,
+                                    },
+                                  }))}
+                                />
+                              </div>
+                            </>
+                          )}
                         </>
                       )}
 
@@ -387,29 +828,80 @@ function EditorContent() {
                         <>
                           <div>
                             <label className="text-sm font-medium mb-2 block">WhatsApp</label>
-                            <Input placeholder="(11) 99999-9999" />
+                            <Input
+                              placeholder="(11) 99999-9999"
+                              value={runtime?.channels.whatsapp ?? ""}
+                              onChange={(event) => updateRuntime(current => ({
+                                ...current,
+                                channels: {
+                                  ...current.channels,
+                                  whatsapp: event.target.value,
+                                },
+                              }))}
+                              readOnly={!runtime}
+                            />
                           </div>
                           <div>
                             <label className="text-sm font-medium mb-2 block">E-mail</label>
-                            <Input placeholder="contato@suamarca.com" type="email" />
+                            <Input
+                              placeholder="contato@suamarca.com"
+                              type="email"
+                              value={runtime?.channels.email ?? ""}
+                              onChange={(event) => updateRuntime(current => ({
+                                ...current,
+                                channels: {
+                                  ...current.channels,
+                                  email: event.target.value,
+                                },
+                              }))}
+                              readOnly={!runtime}
+                            />
                           </div>
                           <div>
                             <label className="text-sm font-medium mb-2 block">Endereco</label>
-                            <Input placeholder="Rua, numero, bairro, cidade" />
+                            <Input
+                              placeholder="Rua, numero, bairro, cidade"
+                              value={runtime?.location.address ?? ""}
+                              onChange={(event) => updateRuntime(current => ({
+                                ...current,
+                                location: {
+                                  ...current.location,
+                                  address: event.target.value,
+                                },
+                              }))}
+                              readOnly={!runtime}
+                            />
                           </div>
                         </>
                       )}
 
                       {block.type === "hours" && (
                         <div className="space-y-3">
-                          {["Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Domingo"].map(day => (
-                            <div key={day} className="flex items-center gap-4">
-                              <span className="w-24 text-sm">{day}</span>
-                              <Input placeholder="08:00" className="w-24" />
-                              <span className="text-muted-foreground">ate</span>
-                              <Input placeholder="18:00" className="w-24" />
+                          {runtime ? (
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Resumo de horarios</label>
+                              <Input
+                                placeholder="Ex: Seg-Sex: 09h-18h"
+                                value={runtime.hours.summary ?? ""}
+                                onChange={(event) => updateRuntime(current => ({
+                                  ...current,
+                                  hours: {
+                                    ...current.hours,
+                                    summary: event.target.value,
+                                  },
+                                }))}
+                              />
                             </div>
-                          ))}
+                          ) : (
+                            ["Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Domingo"].map(day => (
+                              <div key={day} className="flex items-center gap-4">
+                                <span className="w-24 text-sm">{day}</span>
+                                <Input placeholder="08:00" className="w-24" />
+                                <span className="text-muted-foreground">ate</span>
+                                <Input placeholder="18:00" className="w-24" />
+                              </div>
+                            ))
+                          )}
                         </div>
                       )}
 
@@ -430,25 +922,75 @@ function EditorContent() {
                         <>
                           <div>
                             <label className="text-sm font-medium mb-2 block">Instagram</label>
-                            <Input placeholder="@suamarca" />
+                            <Input
+                              placeholder="@suamarca"
+                              value={runtime?.channels.instagram ?? ""}
+                              onChange={(event) => updateRuntime(current => ({
+                                ...current,
+                                channels: {
+                                  ...current.channels,
+                                  instagram: event.target.value,
+                                },
+                              }))}
+                              readOnly={!runtime}
+                            />
                           </div>
                           <div>
-                            <label className="text-sm font-medium mb-2 block">Facebook</label>
-                            <Input placeholder="facebook.com/suamarca" />
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium mb-2 block">TikTok</label>
-                            <Input placeholder="@suamarca" />
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium mb-2 block">YouTube</label>
-                            <Input placeholder="youtube.com/@suamarca" />
+                            <label className="text-sm font-medium mb-2 block">Site</label>
+                            <Input
+                              placeholder="https://suamarca.com"
+                              value={runtime?.channels.website ?? ""}
+                              onChange={(event) => updateRuntime(current => ({
+                                ...current,
+                                channels: {
+                                  ...current.channels,
+                                  website: event.target.value,
+                                },
+                              }))}
+                              readOnly={!runtime}
+                            />
                           </div>
                         </>
                       )}
 
+                      {runtime && block.type === "services" && (
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">Servicos</label>
+                          <Textarea
+                            rows={6}
+                            placeholder="Nome | descricao | preco"
+                            value={formatServiceLines(runtime)}
+                            onChange={(event) => updateRuntime(current => ({
+                              ...current,
+                              services: parseServiceLines(event.target.value),
+                            }))}
+                          />
+                          <p className="text-xs text-muted-foreground mt-2">Um servico por linha: Nome | descricao | preco</p>
+                        </div>
+                      )}
+
+                      {runtime && block.type === "faq" && (
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">FAQ</label>
+                          <Textarea
+                            rows={6}
+                            placeholder="Pergunta | resposta"
+                            value={formatFaqLines(runtime)}
+                            onChange={(event) => updateRuntime(current => ({
+                              ...current,
+                              knowledge: {
+                                ...current.knowledge,
+                                faq: parseFaqLines(event.target.value),
+                              },
+                            }))}
+                          />
+                          <p className="text-xs text-muted-foreground mt-2">Uma pergunta por linha: Pergunta | resposta</p>
+                        </div>
+                      )}
+
                       {/* Placeholder para outros tipos */}
-                      {!["about", "contact", "hours", "gallery", "social"].includes(block.type) && (
+                      {!["about", "contact", "hours", "gallery", "social"].includes(block.type) &&
+                        !(runtime && ["services", "faq"].includes(block.type)) && (
                         <div className="text-center py-8 text-muted-foreground">
                           <Info className="w-8 h-8 mx-auto mb-2 opacity-50" />
                           <p>Editor para bloco "{info.name}" em desenvolvimento.</p>
@@ -476,7 +1018,7 @@ function EditorContent() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-sm">Preview</h2>
               <Button variant="ghost" size="sm" asChild>
-                <Link href={`/${slug}`} target="_blank">
+                <Link href={`/${runtime?.slug || slug}`} target="_blank">
                   <ExternalLink className="w-4 h-4" />
                 </Link>
               </Button>
@@ -495,15 +1037,37 @@ function EditorContent() {
                   <div className="p-4 space-y-4">
                     {/* Header Preview */}
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-accent/20" />
+                      {projectedPreview?.config.logo ? (
+                        <div className="relative w-12 h-12 rounded-full overflow-hidden bg-accent/20">
+                          <Image src={projectedPreview.config.logo} alt="" fill className="object-cover" />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-accent/20" />
+                      )}
                       <div>
-                        <p className="font-semibold text-sm">{slug}</p>
-                        <p className="text-xs text-muted-foreground">Preview ao vivo</p>
+                        <p className="font-semibold text-sm">{projectedPreview?.config.name || slug}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {projectedPreview?.config.description || "Preview ao vivo"}
+                        </p>
                       </div>
                     </div>
 
                     {/* Blocks Preview */}
-                    {blocks.filter(b => b.visible).map(block => {
+                    {projectedPreview ? (
+                      projectedPreview.sections.map(section => (
+                        <div
+                          key={section.id}
+                          className="p-3 rounded-xl bg-secondary/30 border border-border/30"
+                        >
+                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                            {section.title}
+                          </p>
+                          <p className="text-sm">
+                            {section.posts?.[0]?.title || section.posts?.[0]?.description || "Conteudo do bloco..."}
+                          </p>
+                        </div>
+                      ))
+                    ) : blocks.filter(b => b.visible).map(block => {
                       const info = getBlockInfo(block.type)
                       return (
                         <div 

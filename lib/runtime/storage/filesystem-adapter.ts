@@ -174,6 +174,10 @@ export class FileSystemStorageAdapter implements RuntimeStorageAdapter {
       return listRuntimeBackupKeys(backupPrefixMatch[1], this.storageRoot)
     }
 
+    if (normalized === "runtime") {
+      return listRuntimeDocumentKeys(this.storageRoot)
+    }
+
     if (this.exists(normalized)) {
       return [normalized]
     }
@@ -261,6 +265,27 @@ export function listRuntimeBackupKeys(slug: string, storageRoot: string): string
       .map((filename) => backupFilenameToKey(filename))
       .filter((entry): entry is string => entry !== null && entry.startsWith(buildRuntimeBackupPrefix(slug)))
       .sort((left, right) => right.localeCompare(left))
+  } catch {
+    return []
+  }
+}
+
+export function listRuntimeDocumentKeys(storageRoot: string): string[] {
+  try {
+    return readdirSync(storageRoot)
+      .flatMap((filename) => {
+        if (filename.endsWith(".draft.json") && !filename.includes("/")) {
+          return [`runtime/${filename.replace(".draft.json", "")}/draft`]
+        }
+
+        const liveMatch = /^(.+)\.v1\.json$/.exec(filename)
+        if (liveMatch && !filename.includes("/")) {
+          return [`runtime/${liveMatch[1]}/live`]
+        }
+
+        return []
+      })
+      .sort((left, right) => left.localeCompare(right))
   } catch {
     return []
   }
