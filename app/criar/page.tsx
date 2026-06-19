@@ -29,6 +29,9 @@ const EXTRACTION_STEPS = [
   "Finalizando..."
 ]
 
+const EXTRACTION_ERROR_MESSAGE =
+  "Não consegui extrair esse site. Você pode tentar com http/https ou criar sem site."
+
 export default function CriarPage() {
   const [step, setStep] = useState<Step>("url")
   const [url, setUrl] = useState("")
@@ -70,7 +73,7 @@ export default function CriarPage() {
       const data = await response.json()
       
       if (!response.ok) {
-        throw new Error(data.error || "Erro ao extrair dados")
+        throw new Error(data.error || EXTRACTION_ERROR_MESSAGE)
       }
       
       setExtractedData(data)
@@ -86,7 +89,7 @@ export default function CriarPage() {
       setStep("review")
       
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao processar")
+      setError(err instanceof Error ? err.message : EXTRACTION_ERROR_MESSAGE)
       setStep("url")
     }
   }, [url])
@@ -235,7 +238,7 @@ export default function CriarPage() {
                     <div className="relative bg-card border border-border/50 rounded-2xl p-2 flex items-center gap-2">
                       <div className="flex items-center gap-3 pl-4 text-muted-foreground">
                         <Globe className="w-5 h-5" />
-                        <span className="text-sm font-medium hidden sm:inline">https://</span>
+                        <span className="text-sm font-medium hidden sm:inline">URL</span>
                       </div>
                       <Input
                         type="text"
@@ -280,11 +283,11 @@ export default function CriarPage() {
                   className="flex items-center gap-6"
                 >
                   <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-                  <span className="text-sm text-muted-foreground font-medium">ou comece do zero</span>
+                  <span className="text-sm text-muted-foreground font-medium">ou</span>
                   <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
                 </motion.div>
                 
-                {/* Chat Guiado link */}
+                {/* Fluxo real sem site */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -293,14 +296,14 @@ export default function CriarPage() {
                 >
                   <Button
                     variant="ghost"
-                    asChild
+                    onClick={handleSkipUrl}
                     className="text-muted-foreground hover:text-foreground font-medium"
                   >
-                    <Link href="/criar/novo">
+                    <>
                       <Sparkles className="w-4 h-4 mr-2" />
-                      Nao tenho site, criar com assistente IA
+                      Criar sem site
                       <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
+                    </>
                   </Button>
                 </motion.div>
                 
