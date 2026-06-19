@@ -4,36 +4,202 @@ Este log registra decisoes, recuperacoes, contratos e memorias operacionais do
 projeto. Ele deve ser atualizado sempre que uma mudanca alterar arquitetura,
 linguagem visual, protocolo ou risco sistemico.
 
-## 2026-06-08 - Composer v1 dock drawer shell (default /demo)
+## 2026-06-13 - Conversational training style
 
 ### Contexto
 
-O layout v1 do composer em `/demo` precisava de um stack fixo estilo WhatsApp:
-drawer de conversa acima da cápsula, fill até o fundo da tela, cápsula compacta
-desacoplada. Morph de contexto (long-press) quebrava com drawer sumindo e chip
-fora da pill.
+Foram fornecidos exemplos de conversa mais proximos de um assistente moderno:
+decisoes abertas, comparacoes, follow-ups implicitos, retomadas longas,
+duvidas emocionais e perguntas gerais com nuance.
 
 ### Mudanca
 
-- Shell dock (`fill` + drawer peek 10px) **sempre visível** no v1, mesmo idle.
-- Drawer ancorado no fundo (`bottom` = cápsula + safe area); expande só com conversa engaged.
-- Cápsula locked (só form) quando engaged sem pending; rail de contexto **dentro** da pill.
-- Morph: pending preservado no dock colapsado; alvo via rail/chip; grace 120ms antes de cancel por scroll.
-- Helpers em `drawer-layout`, `use-drawer-sheet-drag` (park close), `composer-layout`.
+Foi criado `docs/ai/CONVERSATION_TRAINING_STYLE_GUIDE.md` e adicionado
+`pnpm qa:conversation-training-style`. O provider LLM recebeu instrucoes de
+estrutura conversacional: explorar criterio antes de recomendar, responder
+conhecimento geral antes de reconectar, tratar follow-up curto pelo assunto
+ativo e pedir objetivo antes de produtos/acoes.
 
-### Impacto visual
+O fallback local ganhou coberturas pequenas para:
 
-- Idle: peek + fill + cápsula — nunca cápsula sozinha.
-- Engaged colapsado: mesmo stack; morph entra na pill escura.
-- Sem sombra no fill/drawer (borda superior mantida).
+- decisao aberta sobre corte;
+- usuario enjoado do visual;
+- "mais moderno" e cabelo cacheado;
+- recomendacao de pomada por acabamento desejado;
+- pergunta aberta sobre R$ 100 mil;
+- pesquisa Samsung via tool/web route.
 
-### Impacto estrutural
+### Regra derivada
 
-Arquivos principais: `conversational-ai.tsx`, `conversation-context-morph.tsx`,
-`post-to-chat-morph-layer.tsx`, `drawer-layout.ts`, `use-drawer-sheet-drag.ts`,
-`composer-layout.ts`, `business-social-landing.tsx`.
+Treinamento conversacional nao deve decorar frases. Deve preservar estruturas:
+pergunta real, criterio relevante, explicacao proporcional e proximo passo util.
+Se parecer formulario, falhou.
 
-Tier 1 adjacente: morph grace period (120ms) — diff mínimo, sem alterar easing/duração.
+## 2026-06-13 - Question Satisfaction Layer
+
+### Contexto
+
+O agente ja tinha intent, topic manager, tool router, anti-repetition e camadas
+de linguagem, mas ainda podia responder ao classificador em vez de responder a
+pergunta do usuario. O caso real foi: depois de falar sobre cabelo feminino
+cacheado, "voces cortam cabelo feminino?" foi tratado como outro assunto.
+
+### Mudanca
+
+Foi criada `lib/conversation-intelligence/question-satisfaction-layer.ts` como
+gate final antes da resposta sair. A camada valida perguntas criticas contra a
+resposta candidata e repara quando a resposta nao satisfaz a duvida minima:
+
+- pergunta sim/nao sobre servico precisa responder se existe confirmacao;
+- "que horas?" depois de jogos precisa responder horarios dos jogos;
+- pedido "cite 3" precisa listar tres itens coerentes com o sujeito atual.
+
+Tambem foi adicionado `pnpm qa:question-satisfaction` e o audit real ganhou o
+cenario `question-satisfaction-female-hair-service`.
+
+Depois da primeira correcao, a camada foi lapidada para derivar um contrato de
+resposta por turno (`questionType`, `target`, `expectedAnswerShape`,
+`mustAnswer`, `mustNotSay`). Isso evita que a validacao seja apenas patch de
+casos isolados e reduz falso positivo como "qual jogo tem hoje?" virar pergunta
+de servico.
+
+Na V2, esse contrato passou a ser calculado antes do LLM/fallback e enviado no
+`LlmBrainProviderInput`. O brain local e o prompt do provider priorizam
+`questionContract` antes de `intent`, `nextMove`, `topicStack`, `toolRoute` ou
+tom. O verificador final permanece como rede de seguranca, mas respostas
+originadas de contrato nao recebem costura generica do conductor.
+
+### Regra derivada
+
+Antes de personalidade, formato ou continuidade, a resposta precisa resolver a
+pergunta real do usuario. Se a resposta nao contem a informacao minima pedida, a
+camada final deve reparar ou bloquear a saida.
+
+## 2026-06-13 - Agente conversacional universal
+
+### Contexto
+
+A IA ainda se comportava como chatbot de dominio: perguntas de tempo, futebol,
+noticias ou clima eram puxadas para servico/agenda.
+
+### Mudanca
+
+Foi adicionada uma camada universal antes do brain de negocio:
+
+- `lib/conversation-intelligence/topic-manager.ts` mantém stack de assuntos
+  ativos/pausados/fechados;
+- `lib/conversation-intelligence/tool-router.ts` decide entre resposta geral,
+  dados em tempo real e ferramentas Social Landing;
+- `app/api/conversation/tools/route.ts` expõe providers fail-closed para data,
+  clima, noticias, esportes e busca web;
+- `pnpm qa:universal-agent` valida Netflix, futebol, clima, noticias,
+  tecnologia, mudança de assunto, retorno e agendamento após conversa livre.
+
+### Regra derivada
+
+A Social Landing não é o cérebro da conversa; é um conjunto de ferramentas. O
+agente deve responder assuntos gerais diretamente e só usar agenda/catalogo
+quando o usuário realmente pedir.
+
+## 2026-06-13 - Anti-repetition guard conversacional
+
+### Contexto
+
+A camada conversacional ainda podia repetir aberturas e frases de template,
+especialmente quando o fallback local ou o conductor costuravam respostas em
+turnos longos.
+
+### Mudanca
+
+Foi criado `lib/conversation-intelligence/anti-repetition.ts` e o guard passou a
+rodar no retorno final do resolver inteligente. Ele compara a resposta candidata
+com historico recente, bloqueia aberturas repetidas, detecta similaridade alta e
+remove linguagem interna/robotica.
+
+Tambem foi adicionado `pnpm qa:anti-repetition`, com 20 turnos adversariais, e o
+audit real ganhou o cenario `anti-repetition-natural-language`.
+
+### Regra derivada
+
+Resposta conversacional nao pode parecer template: sem abertura repetida, sem
+similaridade alta entre turnos recentes, sem termos internos como contexto atual,
+continuidade, intencao, resolver, visualBlock ou acao clara.
+
+## 2026-06-13 - Gate adversarial humano
+
+### Contexto
+
+O audit de produto precisava validar conversa humana fora do roteiro, nao apenas
+fluxos bonitos ou fixtures deterministicas.
+
+### Mudanca
+
+Foi criado `pnpm qa:human-adversarial-conversation`, rodando Playwright no
+`/demo?composer-layout=v2` com cenarios adversariais:
+
+- mudanca de assunto e retorno;
+- critica direta a IA;
+- escrita abreviada;
+- referencias externas misturadas ao dominio;
+- pedidos impossiveis;
+- conversa livre com inseguranca.
+
+O audit registra JSON bruto em `.review/human-adversarial-conversation-audit.json`
+e falha em P0/P1.
+
+### Regra derivada
+
+A IA precisa reconhecer critica, inseguranca, escrita ruim e pedidos impossiveis
+sem repetir resposta, inventar dado transacional, forcar contexto anterior ou
+antecipar cards.
+
+## 2026-06-13 - Quality gate conversacional
+
+### Contexto
+
+A camada LLM-first precisava medir qualidade humana, nao apenas acerto funcional.
+Respostas corretas mas secas, sem continuidade ou com card cedo demais ainda
+degradam a experiencia.
+
+### Mudanca
+
+Foi criado `pnpm qa:conversation-quality`, com fixtures multi-vertical e score por
+resposta para continuidade, naturalidade, reflexao, proximo passo, uso de memoria
+e disciplina de ferramenta.
+
+### Regra derivada
+
+Conversa aprovada precisa conduzir. Se a IA perde contexto, inventa dado
+transacional ou antecipa cards, o QA falha.
+
+## 2026-06-13 - Provider LLM real com fallback local
+
+### Contexto
+
+A Conversation Intelligence Layer passou a ter brain LLM-first. A etapa seguinte
+precisava conectar provider real sem deixar o app inventar dados transacionais ou
+vazar SDK/chave para Tier 1.
+
+### Mudanca
+
+Foi criado um provider plugavel para o brain conversacional:
+
+- `lib/conversation-intelligence/llm-provider.ts`
+- rota server `app/api/conversation/llm-brain/route.ts`
+- fallback deterministico local quando env/rede/JSON falham
+- metadados `actionRequest` e `conversationMode` preservados
+
+### Regra derivada
+
+O LLM gera texto e decisao de ferramenta. Preco, agenda, disponibilidade e cards
+continuam controlados por resolvers/tools do app.
+
+### Regresses evitadas
+
+- SDK ou chave de provider no Tier 1;
+- cards cedo demais por entusiasmo generativo;
+- invencao de preco/agenda/disponibilidade;
+- dependencia obrigatoria de env externa para QA local.
 
 ## 2026-05-20 - Criacao dos documentos mestres de memoria operacional
 
@@ -451,3 +617,73 @@ Qualquer ajuste em divisorias pode afetar:
 
 - `components/business/business-social-landing.tsx`
 - `components/social-landing/stories.tsx`
+
+## 2026-06-13 - WS-H02 User Progress Preservation
+
+### Contexto
+
+Fail Closed continuava correto em seguranca, mas algumas respostas comerciais
+encerravam a conversa em limitacao seca quando faltava dado confirmado.
+
+### Mudanca
+
+Criada camada `UserProgressPreservation` para atuar depois do fail-closed
+operacional: se a resposta bloquear uma query recuperavel, a IA nao inventa
+dado e troca o encerramento por uma pergunta minima util.
+
+### Contrato
+
+- Fail Closed nao inventa disponibilidade, preco ou politica.
+- WS-H02 preserva o objetivo comercial quando falta slot operacional.
+- Queries nao recuperaveis mantem o fail-closed original.
+
+### Validacao
+
+- `pnpm conversation:lab:rc` passou.
+- Regression: 99% satisfaction, P0 7, P1 11.
+- Real-agent: 96% satisfaction, P0 25, P1 31.
+- `invented_data_count`: 0.
+- `no_leak`: 0.
+
+### Arquivos relacionados
+
+- `lib/conversation-intelligence/user-progress-preservation.ts`
+- `lib/conversation-intelligence/resolver-adapter.ts`
+- `conversation-lab/datasets/golden/user-progress-preservation-regressions.jsonl`
+- `conversation-lab/reports/summary/latest.md`
+
+## 2026-06-14 - WS-H02-R1 Residual Hardening
+
+### Contexto
+
+Depois do WS-H02, dois residuos ficaram visiveis: recuperacao de horario curto
+com tool label inconsistente e preco curto cross-vertical caindo em defaults de
+barbearia.
+
+### Mudanca
+
+Microcorrecao restrita:
+
+- WS-H02 agora usa contexto recente para diferenciar `que horas?` ambiguo de
+  `sobre/e o horario` como retomada operacional explicita.
+- Recuperacao de preco curto usa pergunta generica ou vertical contextual, sem
+  assumir corte/barba quando o historico aponta consulta, produto ou restaurante.
+- Respostas WS-H02 com pergunta minima util deixam de ser sobrescritas pelo
+  composer transacional generico de agenda.
+- Default antigo do brain local para preco sem servico deixou de assumir corte
+  masculino/barba em contexto cross-vertical.
+
+### Validacao
+
+- `pnpm conversation:lab:rc` passou.
+- Regression: 99% satisfaction, P0 7, P1 11.
+- Real-agent: 97% satisfaction, P0 21, P1 29.
+- `invented_data_count`: 0.
+- `no_leak`: 0.
+
+### Arquivos relacionados
+
+- `lib/conversation-intelligence/user-progress-preservation.ts`
+- `lib/conversation-intelligence/resolver-adapter.ts`
+- `lib/conversation-intelligence/human-communication-layer.ts`
+- `lib/conversation-intelligence/llm-brain.ts`

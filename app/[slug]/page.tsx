@@ -1,17 +1,15 @@
-"use client"
-
-import { useParams, useSearchParams } from "next/navigation"
-import { useMemo, Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { 
-  Phone, Mail, Instagram, MapPin, Clock, Star, 
-  MessageCircle, Share2, Heart, ArrowLeft, Edit,
-  ExternalLink, ChevronRight, Loader2
+import {
+  Phone, Mail, Instagram, MapPin, Clock, Star,
+  MessageCircle, Share2, Edit, ChevronRight, Loader2
 } from "lucide-react"
+import { BusinessSocialLanding } from "@/components/business/business-social-landing"
+import { loadBusinessRuntimePublication } from "@/lib/runtime/business/publication"
+import { projectBusinessRuntimeToSocialLanding } from "@/lib/runtime/business/projections/social-landing"
 
-// Dados mockados - em producao viriam do banco
+// Dados mockados - fallback enquanto nao houver publicacao real.
 const MOCK_LANDINGS: Record<string, {
   name: string
   category: string
@@ -43,48 +41,80 @@ const MOCK_LANDINGS: Record<string, {
   }
 }
 
-function SlugContent() {
-  const params = useParams()
-  const searchParams = useSearchParams()
-  const slug = params.slug as string
+interface SlugPageProps {
+  params: Promise<{
+    slug: string
+  }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}
 
-  // Busca dados da landing (em producao, seria uma API call)
-  // Por enquanto, tenta ler da URL ou usa mock
-  const landing = useMemo(() => {
-    // Verifica se tem dados na URL (vindos do editor/chat)
-    const urlName = searchParams.get("name")
-    if (urlName) {
-      return {
-        name: urlName,
-        category: searchParams.get("category") || "institutional",
-        description: searchParams.get("description") || "",
-        color: "#10b981",
-        whatsapp: searchParams.get("whatsapp") || undefined,
-        instagram: searchParams.get("instagram") || undefined,
-      }
-    }
-    
-    // Fallback para mock ou dados gerados
-    return MOCK_LANDINGS[slug] || {
-      name: slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
-      category: "institutional",
-      description: "Bem-vindo a nossa pagina! Estamos construindo algo incrivel.",
+interface FallbackLanding {
+  name: string
+  category: string
+  description: string
+  logo?: string
+  cover?: string
+  color: string
+  whatsapp?: string
+  instagram?: string
+  email?: string
+  address?: string
+  hours?: string
+  rating?: number
+  reviews?: number
+}
+
+function getSearchParam(
+  searchParams: Record<string, string | string[] | undefined>,
+  key: string
+) {
+  const value = searchParams[key]
+  return Array.isArray(value) ? value[0] : value
+}
+
+function buildFallbackLanding(
+  slug: string,
+  searchParams: Record<string, string | string[] | undefined>
+): FallbackLanding {
+  const urlName = getSearchParam(searchParams, "name")
+
+  if (urlName) {
+    return {
+      name: urlName,
+      category: getSearchParam(searchParams, "category") || "institutional",
+      description: getSearchParam(searchParams, "description") || "",
       color: "#10b981",
+      whatsapp: getSearchParam(searchParams, "whatsapp"),
+      instagram: getSearchParam(searchParams, "instagram"),
     }
-  }, [slug, searchParams])
+  }
 
+  return MOCK_LANDINGS[slug] || {
+    name: slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+    category: "institutional",
+    description: "Bem-vindo a nossa pagina! Estamos construindo algo incrivel.",
+    color: "#10b981",
+  }
+}
+
+function FallbackSlugLanding({
+  slug,
+  landing,
+}: {
+  slug: string
+  landing: FallbackLanding
+}) {
   const brandColor = landing.color
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header 
+      <header
         className="sticky top-0 z-50 backdrop-blur-xl border-b border-border/50"
         style={{ backgroundColor: `${brandColor}10` }}
       >
         <div className="max-w-lg mx-auto flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-3">
-            <div 
+            <div
               className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
               style={{ backgroundColor: brandColor }}
             >
@@ -105,7 +135,6 @@ function SlugContent() {
         </div>
       </header>
 
-      {/* Cover */}
       {landing.cover && (
         <div className="relative h-48 w-full">
           <Image
@@ -118,20 +147,18 @@ function SlugContent() {
         </div>
       )}
 
-      {/* Main Content */}
       <main className="max-w-lg mx-auto px-4 pb-8">
-        {/* Profile Section */}
         <div className={`${landing.cover ? "-mt-16" : "mt-6"} relative z-10`}>
-          <div 
+          <div
             className="w-24 h-24 rounded-full border-4 border-background flex items-center justify-center text-white font-bold text-2xl mx-auto shadow-lg"
             style={{ backgroundColor: brandColor }}
           >
             {landing.name.charAt(0)}
           </div>
-          
+
           <div className="text-center mt-4">
             <h1 className="text-2xl font-bold">{landing.name}</h1>
-            
+
             {landing.rating && (
               <div className="flex items-center justify-center gap-2 mt-2">
                 <div className="flex items-center gap-1">
@@ -143,17 +170,16 @@ function SlugContent() {
                 </span>
               </div>
             )}
-            
+
             <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
               {landing.description}
             </p>
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex gap-3 mt-6">
           {landing.whatsapp && (
-            <Button 
+            <Button
               className="flex-1 h-12"
               style={{ backgroundColor: brandColor }}
               asChild
@@ -174,11 +200,10 @@ function SlugContent() {
           )}
         </div>
 
-        {/* Info Cards */}
         <div className="mt-6 space-y-3">
           {landing.hours && (
             <div className="flex items-start gap-4 p-4 rounded-xl bg-secondary/30 border border-border/50">
-              <div 
+              <div
                 className="w-10 h-10 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: `${brandColor}20` }}
               >
@@ -193,7 +218,7 @@ function SlugContent() {
 
           {landing.address && (
             <div className="flex items-start gap-4 p-4 rounded-xl bg-secondary/30 border border-border/50">
-              <div 
+              <div
                 className="w-10 h-10 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: `${brandColor}20` }}
               >
@@ -208,7 +233,7 @@ function SlugContent() {
 
           {landing.email && (
             <div className="flex items-start gap-4 p-4 rounded-xl bg-secondary/30 border border-border/50">
-              <div 
+              <div
                 className="w-10 h-10 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: `${brandColor}20` }}
               >
@@ -222,8 +247,7 @@ function SlugContent() {
           )}
         </div>
 
-        {/* CTA Section */}
-        <div 
+        <div
           className="mt-8 p-6 rounded-2xl text-center"
           style={{ backgroundColor: `${brandColor}10` }}
         >
@@ -232,7 +256,7 @@ function SlugContent() {
           <p className="text-sm text-muted-foreground mb-4">
             Tire suas duvidas ou faca seu pedido
           </p>
-          <Button 
+          <Button
             className="w-full h-12"
             style={{ backgroundColor: brandColor }}
             asChild
@@ -244,7 +268,6 @@ function SlugContent() {
           </Button>
         </div>
 
-        {/* Footer */}
         <footer className="mt-8 pt-6 border-t border-border/50 text-center">
           <p className="text-xs text-muted-foreground">
             Feito com Social Landing
@@ -260,7 +283,24 @@ function SlugContent() {
   )
 }
 
-// Loading fallback
+export default async function SlugPage({ params, searchParams }: SlugPageProps) {
+  const { slug } = await params
+  const resolvedSearchParams = await searchParams
+  const publication = loadBusinessRuntimePublication(slug)
+
+  if (publication) {
+    const projection = projectBusinessRuntimeToSocialLanding(publication.runtime)
+    return <BusinessSocialLanding {...projection} conversationalAI={<></>} />
+  }
+
+  return (
+    <FallbackSlugLanding
+      slug={slug}
+      landing={buildFallbackLanding(slug, resolvedSearchParams)}
+    />
+  )
+}
+
 function SlugLoading() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -269,14 +309,5 @@ function SlugLoading() {
         <p className="text-muted-foreground">Carregando...</p>
       </div>
     </div>
-  )
-}
-
-// Export com Suspense
-export default function SlugPage() {
-  return (
-    <Suspense fallback={<SlugLoading />}>
-      <SlugContent />
-    </Suspense>
   )
 }

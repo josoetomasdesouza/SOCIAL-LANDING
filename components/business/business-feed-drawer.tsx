@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useCallback, useState } from "react"
 import Image from "next/image"
-import { Heart, MessageCircle, Share, ChevronUp, Play, Star, Bookmark, Newspaper } from "lucide-react"
+import { Heart, MessageCircle, Share, Play, Star, Bookmark, Newspaper } from "lucide-react"
 import { observeDrawerClosed, observeDrawerOpened } from "@/lib/events/instrumentation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -307,7 +307,7 @@ export function BusinessFeedDrawer({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm transition-opacity"
+        className="sl-liquid-drawer-backdrop fixed inset-0 z-50 transition-opacity"
         style={{ opacity: getBackdropOpacity(0.7) }}
         onClick={handleBackdropClick}
         aria-hidden="true"
@@ -318,7 +318,7 @@ export function BusinessFeedDrawer({
         ref={sheetRef}
         data-feed-drawer-sheet="true"
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 rounded-t-3xl overflow-hidden flex flex-col shadow-2xl bg-background",
+          "sl-liquid-drawer-sheet fixed inset-x-0 bottom-0 z-[60] rounded-t-3xl overflow-hidden flex flex-col",
           isDragging ? "transition-none" : "animate-in slide-in-from-bottom duration-300 transition-[height,transform]"
         )}
         style={{
@@ -329,18 +329,8 @@ export function BusinessFeedDrawer({
         <DrawerDragZone
           dragHandleProps={dragHandleProps}
           data-feed-drawer-header="true"
-          className="sticky top-0 z-10 bg-background/98 backdrop-blur-xl border-b border-border/50"
-        >
-          <div className="flex items-center gap-2.5 px-5 pb-4">
-            <ChevronUp className="w-5 h-5 text-muted-foreground" />
-            <span className="font-semibold text-foreground tracking-tight">
-              {categoryLabels[category] || "Conteudos"}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              • {filteredPosts.length} {filteredPosts.length === 1 ? "item" : "itens"}
-            </span>
-          </div>
-        </DrawerDragZone>
+          className="sl-liquid-drawer-header sticky top-0 z-10 border-b"
+        />
 
         {/* Feed Content */}
         <DrawerScrollBody
@@ -348,7 +338,7 @@ export function BusinessFeedDrawer({
           isPulling={isPulling}
           style={composerOverlaysFeed ? { paddingBottom: composerClearance } : undefined}
         >
-          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 sm:px-5 py-6" data-feed-drawer-body="true">
+          <div className="max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-[600px] mx-auto px-4 pb-6 pt-3 sm:px-5" data-feed-drawer-body="true">
             <div className="space-y-8">
               {orderedPosts.map((post, index) => {
                 const isInitial = initialPost?.id === post.id

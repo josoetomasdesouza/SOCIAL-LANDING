@@ -19,12 +19,34 @@ interface ConversationVisualBlock {
 interface ConversationResponseResolverResult {
   text: string
   visualBlock?: ConversationVisualBlock
+  intelligence?: {
+    intent: string
+    confidence: number
+    memoryUsed: boolean
+    action: string
+    conversationMode?: "answer" | "reflect" | "clarify" | "recommend" | "act" | "close"
+    actionRequest?: {
+      type: "show_options" | "show_schedule" | "show_price" | "show_professionals" | "none"
+      reason: string
+    }
+    nextMove?: unknown
+  }
 }
 
 interface ConversationResponseResolverInput {
   message: string
   brandName: string
   contextItems: ConversationContextPayload[]
+  catalogSummary?: {
+    services?: Array<{ id?: string; name: string; kind: "service"; detail?: string }>
+    professionals?: Array<{ id?: string; name: string; kind: "professional"; detail?: string }>
+  }
+  history?: Array<{
+    role: "ai" | "user" | "action" | "context_event"
+    content: string
+    context?: ConversationContextPayload
+    contexts?: ConversationContextPayload[]
+  }>
 }
 
 type ConversationResponseResolver = (
@@ -110,6 +132,10 @@ responseResolver(input)
 ```
 
 **Contract:** Vertical resolver returns `null` for anything it does not confidently own. Never return empty text to "silence" the composer.
+
+`history`, `catalogSummary`, and `intelligence` are optional compatibility fields. Existing resolvers may ignore them; intelligence-aware resolvers use them to derive session memory, feed the LLM provider with safe catalog context, and expose streaming-ready metadata without changing the visual block contract.
+
+The LLM-first layer treats legacy resolvers as tools. Provider output is strict JSON and falls back locally when env/network/provider validation fails. See [`LLM_FIRST_CONVERSATION_ARCHITECTURE.md`](./LLM_FIRST_CONVERSATION_ARCHITECTURE.md).
 
 ---
 

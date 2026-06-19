@@ -210,6 +210,10 @@ function matchesPeriodRefinementIntent(message: string) {
     "tem algo",
     "algum horario",
     "algum horário",
+    "hoje",
+    "amanha",
+    "amanhã",
+    "mais cedo",
   ]
   return cues.some((cue) => normalized.includes(cue))
 }
@@ -237,6 +241,8 @@ function matchesAlternateProfessionalIntent(message: string) {
     "alguém mais",
     "alternativa",
     "e outro",
+    "tem outro",
+    "tem outra",
     "tem mais alguem",
     "tem mais alguém",
   ]

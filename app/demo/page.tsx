@@ -17,12 +17,35 @@ import { HealthFeed } from "@/components/business/health/health-feed"
 import { InfluencerFeed } from "@/components/business/influencer/influencer-feed"
 import { PersonalFeed } from "@/components/business/personal/personal-feed"
 import { InstitutionalFeed } from "@/components/business/institutional/institutional-feed"
-import {
-  ensureComposerLayoutProductDefault,
-  syncComposerLayoutOverrideFromUrl,
-} from "@/lib/ui/composer-layout"
+import { syncComposerLayoutOverrideFromUrl } from "@/lib/ui/composer-layout"
 import { COMPOSER_SURFACE_OVERRIDE_STORAGE_KEY } from "@/lib/ui/composer-surface-material"
 import type { BusinessType } from "@/lib/business-types"
+
+const DEMO_BUSINESS_TYPES = new Set<BusinessType>([
+  "appointment",
+  "ecommerce",
+  "courses",
+  "restaurant",
+  "realestate",
+  "professionals",
+  "events",
+  "gym",
+  "health",
+  "influencer",
+  "personal",
+  "institutional",
+])
+
+function readBusinessTypeFromUrl(): BusinessType | null {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  const requestedType = new URLSearchParams(window.location.search).get("type")
+  return requestedType && DEMO_BUSINESS_TYPES.has(requestedType as BusinessType)
+    ? (requestedType as BusinessType)
+    : null
+}
 
 function syncComposerSurfaceOverrideFromUrl() {
   if (typeof window === "undefined") {
@@ -41,12 +64,15 @@ function syncComposerExperimentOverridesFromUrl() {
 }
 
 export default function DemoPage() {
-  const [selectedType, setSelectedType] = useState<BusinessType | null>(null)
+  const [selectedType, setSelectedType] = useState<BusinessType | null>(() => readBusinessTypeFromUrl())
   const previousVerticalRef = useRef<BusinessType | null>(null)
 
   useEffect(() => {
-    ensureComposerLayoutProductDefault()
     syncComposerExperimentOverridesFromUrl()
+    const requestedType = readBusinessTypeFromUrl()
+    if (requestedType) {
+      setSelectedType(requestedType)
+    }
   }, [])
 
   useEffect(() => {
@@ -103,7 +129,7 @@ export default function DemoPage() {
   
   return (
     <PassiveEventProvider>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         {/* Business Feed */}
         {renderBusinessFeed()}
       </div>

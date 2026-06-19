@@ -146,6 +146,20 @@ function resolveUrl(url: string, baseUrl: string): string {
   return `${baseUrl}/${url}`
 }
 
+function normalizeExtractionUrl(value: string): string {
+  const trimmed = value.trim()
+
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed
+  }
+
+  if (/^(localhost|127\.0\.0\.1)(:\d+)?(\/.*)?$/i.test(trimmed)) {
+    return `http://${trimmed}`
+  }
+
+  return `https://${trimmed}`
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { url } = await request.json()
@@ -157,11 +171,7 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Normaliza a URL
-    let normalizedUrl = url.trim()
-    if (!normalizedUrl.startsWith("http://") && !normalizedUrl.startsWith("https://")) {
-      normalizedUrl = `https://${normalizedUrl}`
-    }
+    const normalizedUrl = normalizeExtractionUrl(url)
     
     // Faz o fetch do site
     const response = await fetch(normalizedUrl, {
@@ -267,8 +277,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Erro ao extrair dados:", error)
     return NextResponse.json(
-      { error: "Erro ao processar o site. Verifique se a URL esta correta." },
-      { status: 500 }
+      { error: "Não consegui extrair esse site. Você pode tentar com http/https ou criar sem site." },
+      { status: 400 }
     )
   }
 }

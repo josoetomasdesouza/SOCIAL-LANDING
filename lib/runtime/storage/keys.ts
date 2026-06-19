@@ -13,6 +13,10 @@ export function resolveAppointmentStorageRoot(rootDir: string = process.cwd()): 
   return join(rootDir, "data/runtime/appointment")
 }
 
+export function resolveBusinessRuntimeStorageRoot(rootDir: string = process.cwd()): string {
+  return join(rootDir, "data/runtime/business")
+}
+
 export function buildRuntimeLiveKey(slug: string): string {
   return `${STORAGE_KEY_RUNTIME_LIVE}/${slug}/live`
 }

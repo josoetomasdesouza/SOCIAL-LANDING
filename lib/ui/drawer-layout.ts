@@ -1,36 +1,19 @@
-export const DRAWER_SHEET_HEIGHT = "95dvh"
-export const DRAWER_SHEET_MAX_HEIGHT = "100dvh"
-export const DRAWER_PULL_DRAG_RESISTANCE = 0.55
+export const DRAWER_SHEET_HEIGHT = "97dvh"
+export const DRAWER_SHEET_MAX_HEIGHT = "97dvh"
+export const DRAWER_PULL_DRAG_RESISTANCE = 0.82
 
 /** Downward flick velocity (px/ms) that completes close with momentum. */
-export const DRAWER_FLICK_CLOSE_VELOCITY_PX_MS = 0.65
-export const DRAWER_SETTLE_CLOSE_MS = 280
-export const DRAWER_SETTLE_OPEN_MS = 220
-/** Composer dock — height collapse when parking on the dock strip. */
-export const DRAWER_DOCK_PARK_SETTLE_MS = 420
+export const DRAWER_FLICK_CLOSE_VELOCITY_PX_MS = 0.42
+export const DRAWER_SETTLE_CLOSE_MS = 220
+export const DRAWER_SETTLE_OPEN_MS = 170
 
 export function easeOutCubic(progress: number) {
   const t = Math.min(1, Math.max(0, progress))
   return 1 - Math.pow(1 - t, 3)
 }
 
-/** Soft deceleration — drawer “parks” on the dock. */
-export function easeOutQuart(progress: number) {
-  const t = Math.min(1, Math.max(0, progress))
-  return 1 - Math.pow(1 - t, 4)
-}
-
 export function resolveDrawerCloseSettleTargetRaw(sheetHeightPx: number) {
   return sheetHeightPx / DRAWER_PULL_DRAG_RESISTANCE + 24
-}
-
-/** Bottom-anchored composer dock — settle to compact height, not off-screen. */
-export function resolveComposerDockDrawerCloseTargetRaw(dismissHeightPx: number) {
-  if (dismissHeightPx <= 0) {
-    return 0
-  }
-
-  return dismissHeightPx / DRAWER_PULL_DRAG_RESISTANCE
 }
 
 export function shouldCloseDrawerFromRelease({
@@ -107,41 +90,6 @@ export function resolveDrawerSheetStyle(
     height: resolveDrawerSheetHeight(dragOffsetPx, baseHeight, maxHeight),
     transform: getDrawerSheetTransform(dragOffsetPx, options?.translateX),
   }
-}
-
-function readVisualViewportMetrics() {
-  if (typeof window === "undefined") {
-    return null
-  }
-
-  const visualViewport = window.visualViewport
-  if (!visualViewport) {
-    return {
-      bottomPx: window.innerHeight,
-      insetPx: 0,
-    }
-  }
-
-  const bottomPx = visualViewport.offsetTop + visualViewport.height
-
-  return {
-    bottomPx,
-    insetPx: Math.max(0, Math.round(window.innerHeight - bottomPx)),
-  }
-}
-
-/** Layout viewport bottom minus visual viewport bottom (keyboard, Safari chrome). */
-export function resolveVisualViewportBottomInsetPx() {
-  return readVisualViewportMetrics()?.insetPx ?? 0
-}
-
-/** Visual viewport bottom edge in layout coordinates. */
-export function resolveVisualViewportBottomPx() {
-  if (typeof window === "undefined") {
-    return 0
-  }
-
-  return readVisualViewportMetrics()?.bottomPx ?? window.innerHeight
 }
 
 export function getDrawerMaxUpDragPx(viewportHeight?: number) {

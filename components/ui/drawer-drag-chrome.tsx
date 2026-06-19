@@ -5,14 +5,14 @@ import type { DrawerDragHandleProps } from "@/lib/ui/use-drawer-sheet-drag"
 
 export function DrawerDragHandleBar({ className }: { className?: string }) {
   return (
-    <div className={cn("flex justify-center pt-3 pb-2", className)}>
-      <div className="h-1 w-10 rounded-full bg-border" />
+    <div className={cn("flex justify-center pt-2 pb-1", className)}>
+      <div className="h-px w-[68px] rounded-full bg-gradient-to-r from-stone-700/10 via-stone-700/34 to-stone-700/10 shadow-[0_1px_1px_rgba(255,255,255,0.42),0_0_8px_rgba(28,25,23,0.06)]" />
     </div>
   )
 }
 
 interface DrawerDragZoneProps {
-  children: React.ReactNode
+  children?: React.ReactNode
   dragHandleProps: DrawerDragHandleProps
   className?: string
 }

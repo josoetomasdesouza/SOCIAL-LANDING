@@ -29,6 +29,9 @@ const EXTRACTION_STEPS = [
   "Finalizando..."
 ]
 
+const EXTRACTION_ERROR_MESSAGE =
+  "Não consegui extrair esse site. Você pode tentar com http/https ou criar sem site."
+
 export default function CriarPage() {
   const [step, setStep] = useState<Step>("url")
   const [url, setUrl] = useState("")
@@ -36,6 +39,8 @@ export default function CriarPage() {
   const [extractedData, setExtractedData] = useState<ExtractedBrandData | null>(null)
   const [brandData, setBrandData] = useState<BrandData | null>(null)
   const [extractionStep, setExtractionStep] = useState(0)
+  const [draftId, setDraftId] = useState<string | null>(null)
+  const [isCreatingDraft, setIsCreatingDraft] = useState(false)
   
   // Animacao dos steps de extracao
   useEffect(() => {
@@ -68,7 +73,7 @@ export default function CriarPage() {
       const data = await response.json()
       
       if (!response.ok) {
-        throw new Error(data.error || "Erro ao extrair dados")
+        throw new Error(data.error || EXTRACTION_ERROR_MESSAGE)
       }
       
       setExtractedData(data)
@@ -84,7 +89,7 @@ export default function CriarPage() {
       setStep("review")
       
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao processar")
+      setError(err instanceof Error ? err.message : EXTRACTION_ERROR_MESSAGE)
       setStep("url")
     }
   }, [url])
@@ -99,17 +104,49 @@ export default function CriarPage() {
     setBrandData(prev => prev ? { ...prev, ...updates } : { name: "", businessModel: "", ...updates })
   }, [])
   
-  const handleCreate = useCallback(() => {
+  const handleCreate = useCallback(async () => {
     if (!brandData?.name || !brandData?.businessModel) {
       setError("Preencha o nome e selecione a categoria")
       return
     }
-    setStep("complete")
+
+    setError(null)
+    setIsCreatingDraft(true)
+
+    try {
+      const response = await fetch("/api/business-runtime/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: brandData.name,
+          businessModel: brandData.businessModel,
+          description: brandData.description,
+          website: brandData.website,
+          logo: brandData.logo || brandData.favicon,
+          primaryColor: brandData.primaryColor,
+          industry: brandData.industry,
+          socialLinks: brandData.socialLinks,
+        }),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao criar draft")
+      }
+
+      setDraftId(data.draftId)
+      setStep("complete")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao criar draft")
+    } finally {
+      setIsCreatingDraft(false)
+    }
   }, [brandData])
   
   const handleBack = useCallback(() => {
     setStep("url")
     setError(null)
+    setDraftId(null)
   }, [])
   
   return (
@@ -201,7 +238,7 @@ export default function CriarPage() {
                     <div className="relative bg-card border border-border/50 rounded-2xl p-2 flex items-center gap-2">
                       <div className="flex items-center gap-3 pl-4 text-muted-foreground">
                         <Globe className="w-5 h-5" />
-                        <span className="text-sm font-medium hidden sm:inline">https://</span>
+                        <span className="text-sm font-medium hidden sm:inline">URL</span>
                       </div>
                       <Input
                         type="text"
@@ -246,11 +283,11 @@ export default function CriarPage() {
                   className="flex items-center gap-6"
                 >
                   <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-                  <span className="text-sm text-muted-foreground font-medium">ou comece do zero</span>
+                  <span className="text-sm text-muted-foreground font-medium">ou</span>
                   <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
                 </motion.div>
                 
-                {/* Chat Guiado link */}
+                {/* Fluxo real sem site */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -259,14 +296,14 @@ export default function CriarPage() {
                 >
                   <Button
                     variant="ghost"
-                    asChild
+                    onClick={handleSkipUrl}
                     className="text-muted-foreground hover:text-foreground font-medium"
                   >
-                    <Link href="/criar/novo">
+                    <>
                       <Sparkles className="w-4 h-4 mr-2" />
-                      Nao tenho site, criar com assistente IA
+                      Criar sem site
                       <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
+                    </>
                   </Button>
                 </motion.div>
                 
@@ -413,10 +450,14 @@ export default function CriarPage() {
                       onClick={handleCreate}
                       size="lg"
                       className="w-full h-14 text-lg rounded-xl gap-2 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
-                      disabled={!brandData?.name || !brandData?.businessModel}
+                      disabled={!brandData?.name || !brandData?.businessModel || isCreatingDraft}
                     >
-                      <Sparkles className="w-5 h-5" />
-                      Criar minha Social Landing
+                      {isCreatingDraft ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-5 h-5" />
+                      )}
+                      {isCreatingDraft ? "Criando draft..." : "Criar minha Social Landing"}
                     </Button>
                   </div>
                   
@@ -515,9 +556,20 @@ export default function CriarPage() {
                   <Button 
                     size="lg"
                     className="flex-1 h-12 rounded-xl gap-2 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
+                    asChild={Boolean(draftId)}
+                    disabled={!draftId}
                   >
-                    Ver minha landing
-                    <ExternalLink className="w-4 h-4" />
+                    {draftId ? (
+                      <Link href={`/criar/editor?draftId=${encodeURIComponent(draftId)}`}>
+                        Abrir editor
+                        <ExternalLink className="w-4 h-4" />
+                      </Link>
+                    ) : (
+                      <>
+                        Abrir editor
+                        <ExternalLink className="w-4 h-4" />
+                      </>
+                    )}
                   </Button>
                 </motion.div>
               </motion.div>

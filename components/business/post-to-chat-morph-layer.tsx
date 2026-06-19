@@ -3,7 +3,6 @@
 
 import { X } from "lucide-react"
 import { useEffect, useRef } from "react"
-import { cn } from "@/lib/utils"
 
 export interface PostToChatMorphRect {
   left: number
@@ -28,8 +27,6 @@ interface PostToChatMorphLayerProps {
   toRect: PostToChatMorphRect
   resolveToRect?: () => PostToChatMorphRect | null
   durationMs?: number
-  /** Dock v1 light capsule — matches composer context chip typography. */
-  useLightSurface?: boolean
   onComplete: () => void
 }
 
@@ -52,7 +49,6 @@ export function PostToChatMorphLayer({
   toRect,
   resolveToRect,
   durationMs = 480,
-  useLightSurface = false,
   onComplete,
 }: PostToChatMorphLayerProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
@@ -118,15 +114,6 @@ export function PostToChatMorphLayer({
       rafId = window.requestAnimationFrame(step)
     }
 
-    let scrollGraceTimeout: number | null = null
-
-    const attachScrollListeners = () => {
-      if (listenersAttached) return
-      window.addEventListener("scroll", cancelAnimation, { passive: true, capture: true })
-      window.addEventListener("resize", cancelAnimation, { passive: true })
-      listenersAttached = true
-    }
-
     const cancelAnimation = () => {
       window.cancelAnimationFrame(rafId)
       detachListeners()
@@ -135,13 +122,12 @@ export function PostToChatMorphLayer({
 
     applyFrame(0)
     rafId = window.requestAnimationFrame(step)
-    scrollGraceTimeout = window.setTimeout(attachScrollListeners, 120)
+    window.addEventListener("scroll", cancelAnimation, { passive: true, capture: true })
+    window.addEventListener("resize", cancelAnimation, { passive: true })
+    listenersAttached = true
 
     return () => {
       window.cancelAnimationFrame(rafId)
-      if (scrollGraceTimeout !== null) {
-        window.clearTimeout(scrollGraceTimeout)
-      }
       detachListeners()
       // Do NOT call finish() here — Strict Mode cleanup fires onComplete()
       // before any visible frame. Real completions happen in:
@@ -154,12 +140,7 @@ export function PostToChatMorphLayer({
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[75] overflow-hidden">
       <div
         ref={nodeRef}
-        className={cn(
-          "absolute left-0 top-0 origin-top-left flex h-11 min-w-[156px] shrink-0 items-center gap-2 overflow-hidden rounded-full pr-1.5 will-change-transform",
-          useLightSurface
-            ? "border-[0.5px] border-[#52585f]/32 bg-white"
-            : "border border-white/[0.08] bg-white/[0.055] shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)]"
-        )}
+        className="absolute left-0 top-0 origin-top-left flex h-11 min-w-[156px] shrink-0 items-center gap-2 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.055] pr-1.5 shadow-[0_10px_24px_-20px_rgba(2,6,23,0.6)] will-change-transform"
         style={{
           left: fromRect.left,
           top: fromRect.top,
@@ -181,31 +162,14 @@ export function PostToChatMorphLayer({
         </div>
         <div className="min-w-0 flex-1">
           {preview.subtitle ? (
-            <p
-              className={cn(
-                "truncate text-[10px] font-medium uppercase tracking-wide",
-                useLightSurface ? "text-muted-foreground" : "text-white/42"
-              )}
-            >
+            <p className="truncate text-[10px] font-medium uppercase tracking-wide text-white/42">
               {preview.subtitle}
             </p>
           ) : null}
-          <p
-            className={cn(
-              "truncate text-xs font-medium",
-              useLightSurface ? "text-foreground" : "text-white/92"
-            )}
-          >
-            {preview.title}
-          </p>
+          <p className="truncate text-xs font-medium text-white/92">{preview.title}</p>
         </div>
         {preview.showDismiss !== false ? (
-          <div
-            className={cn(
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
-              useLightSurface ? "bg-muted text-muted-foreground" : "bg-white/[0.08] text-white/56"
-            )}
-          >
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/56">
             <X className="h-3.5 w-3.5" />
           </div>
         ) : null}
